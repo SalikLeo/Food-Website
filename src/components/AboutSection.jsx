@@ -1,0 +1,98 @@
+import React from 'react';
+import { Award, ArrowRight } from 'lucide-react';
+
+export default function AboutSection() {
+  return (
+    <section id="about" className="py-20 bg-cream border-t border-zinc-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          
+          {/* Left Column: Image with 100% Fresh stamp */}
+          <div className="lg:col-span-6 relative">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-zinc-200">
+              <img
+                src="/assets/images/cat-pizza-BmV7hCev.jpg"
+                alt="Mehrban Fast Food Fresh Preparation"
+                className="w-full h-80 sm:h-96 object-cover"
+                onError={(e) => {
+                  e.target.src = '/assets/hero-food.jpg';
+                }}
+              />
+              
+              {/* Circular 100% Fresh Daily Stamp */}
+              <div className="absolute bottom-4 right-4 bg-zinc-950/90 text-white rounded-2xl p-4 border border-zinc-800 shadow-xl flex flex-col items-center">
+                <Award className="w-5 h-5 text-orange-500 mb-1" />
+                <span className="font-display text-2xl text-amber-400 leading-none">100%</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300">
+                  FRESH DAILY
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Copy & Stats */}
+          <div className="lg:col-span-6 space-y-6">
+            <div>
+              <span className="text-xs font-bold tracking-[0.2em] text-orange-600 uppercase">
+                ABOUT US
+              </span>
+              <h2 className="mt-2 text-4xl sm:text-5xl lg:text-6xl font-display uppercase tracking-tight text-zinc-900 leading-none">
+                TASTE THAT YOU <span className="text-orange-600">NEED</span>
+              </h2>
+            </div>
+
+            <p className="text-zinc-600 text-base leading-relaxed">
+              Mehrban Fast Food brings together freshly prepared pizzas, burgers, shawarma, sandwiches and delicious fast-food deals, made for great taste and value.
+            </p>
+
+            <p className="text-zinc-600 text-sm leading-relaxed">
+              Every order is cooked after you place it — hot dough, marinated chicken and our own sauces. From a single zinger burger to a full family deal, we keep the quality the same.
+            </p>
+
+            {/* 3 Metric cards */}
+            <div className="grid grid-cols-3 gap-4 pt-4">
+              <div className="bg-white rounded-2xl p-4 border border-zinc-200 text-center shadow-sm">
+                <span className="font-display text-3xl sm:text-4xl text-zinc-900 block leading-none mb-1">
+                  9
+                </span>
+                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Categories
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 border border-zinc-200 text-center shadow-sm">
+                <span className="font-display text-3xl sm:text-4xl text-orange-600 block leading-none mb-1">
+                  60+
+                </span>
+                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Menu Items
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 border border-zinc-200 text-center shadow-sm">
+                <span className="font-display text-3xl sm:text-4xl text-amber-500 block leading-none mb-1">
+                  12
+                </span>
+                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Value Deals
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <a
+                href="#menu"
+                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-all hover:scale-105"
+              >
+                <span>Explore Menu</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
+}

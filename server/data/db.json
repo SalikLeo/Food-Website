@@ -1,0 +1,1246 @@
+{
+  "categories": [
+    {
+      "id": "pizza",
+      "label": "Pizza",
+      "blurb": "Fresh dough, real cheese, desi flavours",
+      "count": 18
+    },
+    {
+      "id": "burgers",
+      "label": "Burgers",
+      "blurb": "Crispy, grilled and tower-stacked",
+      "count": 11
+    },
+    {
+      "id": "shawarma",
+      "label": "Shawarma",
+      "blurb": "Rolled hot with our special sauces",
+      "count": 12
+    },
+    {
+      "id": "sandwiches",
+      "label": "Sandwiches",
+      "blurb": "Toasted, loaded and cheesy",
+      "count": 3
+    },
+    {
+      "id": "fries",
+      "label": "Fries",
+      "blurb": "Golden crispy sides and add-ons",
+      "count": 4
+    },
+    {
+      "id": "wings",
+      "label": "Hot Wings",
+      "blurb": "Spicy fried chicken, piece by piece",
+      "count": 3
+    },
+    {
+      "id": "nuggets",
+      "label": "Chicken Nuggets",
+      "blurb": "Crunchy chicken bites with dips",
+      "count": 2
+    },
+    {
+      "id": "special",
+      "label": "Special Items",
+      "blurb": "Loaded fries, pasta, cheese stick & grill burger",
+      "count": 4
+    }
+  ],
+  "deals": [
+    {
+      "id": "deal-1",
+      "number": "01",
+      "name": "Deal 1",
+      "category": "deals",
+      "includes": [
+        "1 Zinger Burger",
+        "1 Patty Burger",
+        "1 Coke 500ml"
+      ],
+      "price": 550,
+      "image": "/assets/deal-1.png",
+      "cokeImg": "/assets/coke-500ml.png",
+      "description": "1 Zinger Burger + 1 Patty Burger + 1 Coke 500ml"
+    },
+    {
+      "id": "deal-2",
+      "number": "02",
+      "name": "Deal 2",
+      "category": "deals",
+      "includes": [
+        "1 Zinger Burger",
+        "6 Nuggets",
+        "1 Coke 500ml"
+      ],
+      "price": 600,
+      "image": "/assets/deal-2.png",
+      "cokeImg": "/assets/coke-500ml.png",
+      "description": "1 Zinger Burger + 6 Nuggets + 1 Coke 500ml"
+    },
+    {
+      "id": "deal-3",
+      "number": "03",
+      "name": "Deal 3",
+      "category": "deals",
+      "includes": [
+        "5 Zinger Burger",
+        "1 Coke 1.5L"
+      ],
+      "price": 1650,
+      "image": "/assets/deal-3.png",
+      "cokeImg": "/assets/coke-1-5l.png",
+      "description": "5 Zinger Burger + 1 Coke 1.5L"
+    },
+    {
+      "id": "deal-4",
+      "number": "04",
+      "name": "Deal 4",
+      "category": "deals",
+      "includes": [
+        "1 Zinger Burger",
+        "1 Small Pizza",
+        "1 Coke 500ml"
+      ],
+      "price": 830,
+      "image": "/assets/deal-4.png",
+      "cokeImg": "/assets/coke-500ml.png",
+      "description": "1 Zinger Burger + 1 Small Pizza + 1 Coke 500ml"
+    },
+    {
+      "id": "deal-5",
+      "number": "05",
+      "name": "Deal 5",
+      "category": "deals",
+      "includes": [
+        "2 Small Pizza",
+        "1 Coke 500ml"
+      ],
+      "price": 940,
+      "image": "/assets/deal-5.png",
+      "cokeImg": "/assets/coke-500ml.png",
+      "description": "2 Small Pizza + 1 Coke 500ml"
+    },
+    {
+      "id": "deal-6",
+      "number": "06",
+      "name": "Deal 6",
+      "category": "deals",
+      "includes": [
+        "1 Large Pizza",
+        "1 Coke 1.5L"
+      ],
+      "price": 1350,
+      "image": "/assets/deal-6.png",
+      "cokeImg": "/assets/coke-1-5l.png",
+      "description": "1 Large Pizza + 1 Coke 1.5L"
+    },
+    {
+      "id": "deal-7",
+      "number": "07",
+      "name": "Deal 7",
+      "category": "deals",
+      "includes": [
+        "1 Small Pizza",
+        "1 Medium Pizza",
+        "1 Coke 1.5L"
+      ],
+      "price": 1400,
+      "image": "/assets/deal-7.png",
+      "cokeImg": "/assets/coke-1-5l.png",
+      "description": "1 Small Pizza + 1 Medium Pizza + 1 Coke 1.5L"
+    },
+    {
+      "id": "deal-8",
+      "number": "08",
+      "name": "Deal 8",
+      "category": "deals",
+      "includes": [
+        "2 Medium Pizza",
+        "1 Coke 1.5L"
+      ],
+      "price": 1650,
+      "image": "/assets/deal-8.png",
+      "cokeImg": "/assets/coke-1-5l.png",
+      "description": "2 Medium Pizza + 1 Coke 1.5L"
+    },
+    {
+      "id": "deal-9",
+      "number": "09",
+      "name": "Deal 9",
+      "category": "deals",
+      "includes": [
+        "2 Large Pizza",
+        "1 Coke 1.5L"
+      ],
+      "price": 2450,
+      "image": "/assets/deal-9.png",
+      "cokeImg": "/assets/coke-1-5l.png",
+      "description": "2 Large Pizza + 1 Coke 1.5L"
+    },
+    {
+      "id": "deal-10",
+      "number": "10",
+      "name": "Deal 10",
+      "category": "deals",
+      "includes": [
+        "1 Medium Pizza",
+        "1 Large Pizza",
+        "1 Coke 1.5L"
+      ],
+      "price": 2100,
+      "image": "/assets/deal-10.png",
+      "cokeImg": "/assets/coke-1-5l.png",
+      "description": "1 Medium Pizza + 1 Large Pizza + 1 Coke 1.5L"
+    },
+    {
+      "id": "deal-11",
+      "number": "11",
+      "name": "Deal 11",
+      "category": "deals",
+      "includes": [
+        "3 Zinger Burger",
+        "1 Coke 1L"
+      ],
+      "price": 990,
+      "image": "/assets/deal-11.png",
+      "cokeImg": "/assets/coke-1l.png",
+      "description": "3 Zinger Burger + 1 Coke 1L"
+    }
+  ],
+  "familyDeal": {
+    "id": "family-deal",
+    "name": "Family Deal",
+    "category": "deals",
+    "includes": [
+      "5 Zinger Burger",
+      "2 Patty Burger",
+      "2 Small Shawarma",
+      "1 Large Shawarma",
+      "6 Nuggets",
+      "1 Coke 1.5L"
+    ],
+    "price": 2580,
+    "image": "/assets/deal-family.png",
+    "description": "1 Zinger Burger + 2 Patty Burger + 2 Small Shawarma + 1 Large Shawarma + 6 Nuggets + 1 Coke 1.5L",
+    "tag": "Family Bundle"
+  },
+  "products": [
+    {
+      "id": "pizza-1",
+      "name": "Chicken Tikka",
+      "description": "Spicy tikka chunks, onion, capsicum, mozzarella",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-tikka-B4zowSG0.jpg",
+      "price": 450,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 450
+        },
+        {
+          "label": "Medium",
+          "price": 800
+        }
+      ],
+      "inStock": false,
+      "tag": "",
+      "updatedAt": "2026-09-17T22:28:35.160Z"
+    },
+    {
+      "id": "pizza-2",
+      "name": "Chicken Fajita",
+      "description": "Fajita chicken, bell pepper, onion, herbs",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-fajita-BB8kQFoB.jpg",
+      "price": 450,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 450
+        },
+        {
+          "label": "Medium",
+          "price": 800
+        },
+        {
+          "label": "Large",
+          "price": 1200
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-3",
+      "name": "B.B.Q",
+      "description": "BBQ chicken, smoky sauce, onion rings",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-bbq-xSPmnR0J.jpg",
+      "price": 450,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 450
+        },
+        {
+          "label": "Medium",
+          "price": 800
+        },
+        {
+          "label": "Large",
+          "price": 1200
+        }
+      ],
+      "inStock": true,
+      "tag": "Best One",
+      "updatedAt": "2026-09-17T21:16:20.073Z"
+    },
+    {
+      "id": "pizza-4",
+      "name": "Chicken Supreme",
+      "description": "Loaded chicken, veggies and extra cheese",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-supreme-CJThciNL.jpg",
+      "price": 450,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 450
+        },
+        {
+          "label": "Medium",
+          "price": 800
+        },
+        {
+          "label": "Large",
+          "price": 1200
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-5",
+      "name": "Pickle Punjabi",
+      "description": "Desi punjabi masala chicken with pickle and cheese",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-punjabi-Dw1oJ_dL.jpg",
+      "price": 450,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 450
+        },
+        {
+          "label": "Medium",
+          "price": 800
+        },
+        {
+          "label": "Large",
+          "price": 1200
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-6",
+      "name": "Mexican",
+      "description": "Mexican spices, jalapeño, olives, cheese",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-mexican-B0yBG8F-.jpg",
+      "price": 450,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 450
+        },
+        {
+          "label": "Medium",
+          "price": 800
+        },
+        {
+          "label": "Large",
+          "price": 1200
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-7",
+      "name": "Hot & Spicy",
+      "description": "Extra chilli sauce, jalapeño and hot chicken",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-hot-spicy-BS4MHiIx.jpg",
+      "price": 450,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 450
+        },
+        {
+          "label": "Medium",
+          "price": 800
+        },
+        {
+          "label": "Large",
+          "price": 1200
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-1",
+      "name": "Malai Boti",
+      "description": "Creamy malai boti with white sauce base",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-malai-pn8ak1Fd.jpg",
+      "price": 550,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 550
+        },
+        {
+          "label": "Medium",
+          "price": 950
+        },
+        {
+          "label": "Large",
+          "price": 1400
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-2",
+      "name": "Kabab Crust",
+      "description": "Sliced chicken kabab crust, onion and cheese",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-kabab-DN0Hc8tt.jpg",
+      "price": 550,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 550
+        },
+        {
+          "label": "Medium",
+          "price": 950
+        },
+        {
+          "label": "Large",
+          "price": 1400
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-3",
+      "name": "Mehrban Special",
+      "description": "Our signature loaded special pizza",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-special-CuXHdKll.jpg",
+      "price": 550,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 550
+        },
+        {
+          "label": "Medium",
+          "price": 950
+        },
+        {
+          "label": "Large",
+          "price": 1400
+        }
+      ],
+      "tag": "Signature",
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-4",
+      "name": "Chicken Lasagna",
+      "description": "Double cheese, capsicum, tomato, sweet corn, lasagna sauce, black olives",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-lazania-Chib7rxL.jpg",
+      "price": 950,
+      "sizes": [
+        {
+          "label": "Medium",
+          "price": 950
+        },
+        {
+          "label": "Large",
+          "price": 1400
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-5",
+      "name": "Vegetarian",
+      "description": "Onion, tomato, capsicum, olives and corn",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-veg-DPH2ghUB.jpg",
+      "price": 350,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 350
+        },
+        {
+          "label": "Medium",
+          "price": 550
+        },
+        {
+          "label": "Large",
+          "price": 900
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-6",
+      "name": "Cheese Lover",
+      "description": "Triple cheese with sweet corn and pepper",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-cheese-lover-D5Ll1oLb.jpg",
+      "price": 350,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 350
+        },
+        {
+          "label": "Medium",
+          "price": 550
+        },
+        {
+          "label": "Large",
+          "price": 900
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-7",
+      "name": "Chicken Stuff",
+      "description": "Stuffed crust filled with chicken",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-chicken-stuff-B37ZiK9W.jpg",
+      "price": 550,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 550
+        },
+        {
+          "label": "Medium",
+          "price": 950
+        },
+        {
+          "label": "Large",
+          "price": 1400
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-8",
+      "name": "Cheese Stuff",
+      "description": "Cheese filled crust, extra gooey",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-cheese-stuff-Bz1sU4fJ.jpg",
+      "price": 550,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 550
+        },
+        {
+          "label": "Medium",
+          "price": 950
+        },
+        {
+          "label": "Large",
+          "price": 1400
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-9",
+      "name": "Crown Crust",
+      "description": "Crown of cheese bites around the crust",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-crown-CDB3WuBF.jpg",
+      "price": 550,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 550
+        },
+        {
+          "label": "Medium",
+          "price": 950
+        },
+        {
+          "label": "Large",
+          "price": 1400
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-special-10",
+      "name": "Pepperoni Pizza",
+      "description": "Chicken pepperoni with double cheese",
+      "category": "pizza",
+      "image": "/assets/images/p-pizza-pepperoni-WXsyNc0i.jpg",
+      "price": 550,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 550
+        },
+        {
+          "label": "Medium",
+          "price": 950
+        },
+        {
+          "label": "Large",
+          "price": 1400
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "pizza-extra-topping",
+      "name": "Extra Topping",
+      "description": "Add extra cheese or chicken topping to any pizza",
+      "category": "pizza",
+      "image": "/assets/images/p-topping-HYD2Vs_a.jpg",
+      "price": 100,
+      "sizes": [
+        {
+          "label": "Small",
+          "price": 100
+        },
+        {
+          "label": "Medium",
+          "price": 150
+        },
+        {
+          "label": "Large",
+          "price": 200
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "burger-shami",
+      "name": "Shami Burger",
+      "category": "burgers",
+      "description": "Desi shami kabab patty with chutney and onion",
+      "image": "/assets/images/p-burger-shami-CkDHzVMD.jpg",
+      "price": 150,
+      "inStock": true
+    },
+    {
+      "id": "burger-patty",
+      "name": "Chicken Patty Burger",
+      "category": "burgers",
+      "description": "Fried chicken patty, cheese slice and sauces",
+      "image": "/assets/images/p-burger-patty-CRK4Tg4I.jpg",
+      "price": 180,
+      "inStock": true
+    },
+    {
+      "id": "burger-lapata",
+      "name": "Lapaita Burger",
+      "category": "burgers",
+      "description": "Spicy shredded chicken lapaita with green chutney",
+      "image": "/assets/images/p-burger-lapata-DlcWAzDU.jpg",
+      "price": 190,
+      "inStock": true
+    },
+    {
+      "id": "burger-chicken",
+      "name": "Chicken Burger",
+      "category": "burgers",
+      "description": "Chicken fillet, fresh salad and mayo",
+      "image": "/assets/images/p-burger-chicken-BYC-RyGQ.jpg",
+      "price": 250,
+      "inStock": true
+    },
+    {
+      "id": "burger-chicken-lapata",
+      "name": "Chicken Lapaita Burger",
+      "category": "burgers",
+      "description": "Loaded lapaita chicken with mayo and salad",
+      "image": "/assets/images/p-burger-lapata-DlcWAzDU.jpg",
+      "price": 280,
+      "inStock": true
+    },
+    {
+      "id": "burger-zinger",
+      "name": "Zinger Burger",
+      "category": "burgers",
+      "description": "Crispy fried zinger fillet, lettuce and mayo",
+      "image": "/assets/images/p-burger-zinger-BkEI1e80.jpg",
+      "price": 300,
+      "tag": "Bestseller",
+      "inStock": true
+    },
+    {
+      "id": "burger-grill",
+      "name": "Grill Burger",
+      "category": "burgers",
+      "description": "Flame grilled chicken patty with smoky sauce",
+      "image": "/assets/images/p-burger-grill-dPQdT2ft.jpg",
+      "price": 350,
+      "inStock": true
+    },
+    {
+      "id": "burger-pizza",
+      "name": "Pizza Burger",
+      "category": "burgers",
+      "description": "Pizza sauce, mozzarella and chicken in a bun",
+      "image": "/assets/images/p-burger-pizza-CW83OlLk.jpg",
+      "price": 380,
+      "inStock": true
+    },
+    {
+      "id": "burger-tower",
+      "name": "Tower Burger Patty & Zinger",
+      "category": "burgers",
+      "description": "Zinger fillet + chicken patty + cheese tower",
+      "image": "/assets/images/p-burger-tower-B0UE9r7R.jpg",
+      "price": 400,
+      "inStock": true
+    },
+    {
+      "id": "burger-zinger-pizza",
+      "name": "Zinger Pizza Burger",
+      "category": "burgers",
+      "description": "Zinger fillet topped with pizza cheese",
+      "image": "/assets/images/p-burger-zinger-pizza-q-W0hbUP.jpg",
+      "price": 400,
+      "inStock": true
+    },
+    {
+      "id": "burger-double-zinger",
+      "name": "Tower Double Zinger Burger",
+      "category": "burgers",
+      "description": "Two zinger fillets stacked with double cheese",
+      "image": "/assets/images/p-burger-double-zinger-B4hPVQXa.jpg",
+      "price": 450,
+      "tag": "Tower Stack",
+      "inStock": true
+    },
+    {
+      "id": "shawarma-chicken",
+      "name": "Chicken Shawarma",
+      "category": "shawarma",
+      "description": "Classic chicken shawarma with garlic mayo and fries",
+      "image": "/assets/images/p-shawarma-chicken-BGjNBfXi.jpg",
+      "price": 150,
+      "sizes": [
+        {
+          "label": "Medium",
+          "price": 150
+        },
+        {
+          "label": "Large",
+          "price": 200
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "shawarma-zinger",
+      "name": "Zinger Shawarma",
+      "category": "shawarma",
+      "description": "Crispy zinger strips rolled with sauces and salad",
+      "image": "/assets/images/p-shawarma-zinger-BoQzBQwT.jpg",
+      "price": 170,
+      "sizes": [
+        {
+          "label": "Medium",
+          "price": 170
+        },
+        {
+          "label": "Large",
+          "price": 300
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "shawarma-cheese",
+      "name": "Chicken Cheese Shawarma",
+      "category": "shawarma",
+      "description": "Chicken shawarma loaded with melted cheese",
+      "image": "/assets/images/p-shawarma-cheese-CXJ1ugTG.jpg",
+      "price": 200,
+      "sizes": [
+        {
+          "label": "Medium",
+          "price": 200
+        },
+        {
+          "label": "Large",
+          "price": 250
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "shawarma-platter",
+      "name": "Platter Shawarma",
+      "category": "shawarma",
+      "description": "Shawarma served with fries and dips on a platter",
+      "image": "/assets/images/p-shawarma-platter-DJsk0nmL.jpg",
+      "price": 600,
+      "inStock": true
+    },
+    {
+      "id": "shawarma-extra-bread",
+      "name": "Extra Bread",
+      "category": "shawarma",
+      "description": "Add an extra bread",
+      "image": "/assets/images/p-shawarma-platter-DJsk0nmL.jpg",
+      "price": 30,
+      "inStock": true
+    },
+    {
+      "id": "shawarma-special",
+      "name": "Mehrban Special Shawarma",
+      "category": "shawarma",
+      "description": "Loaded chicken, cheese and our special sauce",
+      "image": "/assets/images/p-shawarma-special-CvEPCaT5.jpg",
+      "price": 350,
+      "tag": "Signature",
+      "inStock": true
+    },
+    {
+      "id": "shawarma-bbq-paratha",
+      "name": "B.B.Q Paratha",
+      "category": "shawarma",
+      "description": "Smoky BBQ chicken rolled in a crispy paratha",
+      "image": "/assets/images/p-shawarma-bbq-paratha-C4qj-bEe.jpg",
+      "price": 270,
+      "inStock": true
+    },
+    {
+      "id": "shawarma-grill-paratha",
+      "name": "Grill Paratha",
+      "category": "shawarma",
+      "description": "Grilled chicken paratha roll with green chutney",
+      "image": "/assets/images/p-shawarma-grill-paratha-BtPHcM5Q.jpg",
+      "price": 350,
+      "inStock": true
+    },
+    {
+      "id": "shawarma-grill",
+      "name": "Grill Shawarma",
+      "category": "shawarma",
+      "description": "Grilled boneless chicken shawarma with garlic sauce",
+      "image": "/assets/images/p-shawarma-grill-DFJ1wndt.jpg",
+      "price": 350,
+      "inStock": true
+    },
+    {
+      "id": "shawarma-zinger-paratha",
+      "name": "Zinger Paratha",
+      "category": "shawarma",
+      "description": "Crispy zinger strips rolled in a flaky paratha",
+      "image": "/assets/p-shawarma-zinger-paratha.jpg",
+      "price": 300,
+      "inStock": true
+    },
+    {
+      "id": "shawarma-zinger-piece",
+      "name": "Zinger Piece",
+      "category": "shawarma",
+      "description": "Single crispy fried zinger chicken piece",
+      "image": "/assets/images/p-zinger-piece-CSLsNx9t.jpg",
+      "price": 230,
+      "inStock": true
+    },
+    {
+      "id": "shawarma-spring-roll",
+      "name": "Spring Roll",
+      "category": "shawarma",
+      "description": "Crispy chicken spring rolls with dip",
+      "image": "/assets/images/p-spring-roll-CLi4eoG2.jpg",
+      "price": 350,
+      "inStock": true
+    },
+    {
+      "id": "sand-chicken",
+      "name": "Chicken Sandwich",
+      "category": "sandwiches",
+      "description": "Toasted bread, chicken filling, fresh salad",
+      "image": "/assets/images/p-sand-chicken-Db_PbbjM.jpg",
+      "price": 300,
+      "inStock": true
+    },
+    {
+      "id": "sand-pizza",
+      "name": "Pizza Sandwich",
+      "category": "sandwiches",
+      "description": "Pizza sauce, chicken and mozzarella toasted",
+      "image": "/assets/images/p-sand-pizza-C_jDpYrf.jpg",
+      "price": 400,
+      "inStock": true
+    },
+    {
+      "id": "sand-malai",
+      "name": "Malai Boti Sandwich",
+      "category": "sandwiches",
+      "description": "Creamy malai boti with cheese and sauces",
+      "image": "/assets/images/p-sand-malai-CBRNkQ8v.jpg",
+      "price": 350,
+      "inStock": true
+    },
+    {
+      "id": "fries-regular",
+      "name": "Regular Fries",
+      "category": "fries",
+      "description": "Golden crispy fries with ketchup",
+      "image": "/assets/images/p-fries-regular-Bw4Ej2Fq.jpg",
+      "price": 200,
+      "inStock": true
+    },
+    {
+      "id": "fries-loaded",
+      "name": "Loaded Fries",
+      "category": "fries",
+      "description": "Fries topped with chicken, cheese sauce and jalapeño",
+      "image": "/assets/images/p-fries-loaded-BlQYs6bb.jpg",
+      "price": 350,
+      "tag": "Bestseller",
+      "inStock": true
+    },
+    {
+      "id": "fries-cheese-slice",
+      "name": "Cheese Slice",
+      "category": "fries",
+      "description": "Add-on cheese slice",
+      "image": "/assets/images/p-addons-2BiVi0gw.jpg",
+      "price": 50,
+      "inStock": true
+    },
+    {
+      "id": "fries-mayo-slice",
+      "name": "Extra Mayonnaise Slice",
+      "category": "fries",
+      "description": "Extra mayonnaise add-on",
+      "image": "/assets/images/p-addons-2BiVi0gw.jpg",
+      "price": 50,
+      "inStock": true
+    },
+    {
+      "id": "wings-6",
+      "name": "Hot Wings (6 Pcs)",
+      "category": "wings",
+      "description": "Six spicy fried chicken wings with dip",
+      "image": "/assets/images/p-wings-12-D_fqpzvi.jpg",
+      "price": 300,
+      "inStock": true
+    },
+    {
+      "id": "wings-12",
+      "name": "Hot Wings (12 Pcs)",
+      "category": "wings",
+      "description": "Twelve spicy fried wings, perfect to share",
+      "image": "/assets/images/p-wings-12-D_fqpzvi.jpg",
+      "price": 600,
+      "inStock": true
+    },
+    {
+      "id": "wings-zinger-piece",
+      "name": "Zinger Piece",
+      "category": "wings",
+      "description": "Single crispy fried zinger chicken piece",
+      "image": "/assets/images/p-zinger-piece-CSLsNx9t.jpg",
+      "price": 230,
+      "inStock": true
+    },
+    {
+      "id": "nuggets-6",
+      "name": "Nuggets (6 Pcs)",
+      "category": "nuggets",
+      "description": "Six crunchy chicken nuggets with dip",
+      "image": "/assets/images/p-nuggets-12-t1kdd9YG.jpg",
+      "price": 250,
+      "inStock": true
+    },
+    {
+      "id": "nuggets-12",
+      "name": "Nuggets (12 Pcs)",
+      "category": "nuggets",
+      "description": "Twelve crunchy chicken nuggets with dips",
+      "image": "/assets/images/p-nuggets-12-t1kdd9YG.jpg",
+      "price": 480,
+      "inStock": true
+    },
+    {
+      "id": "special-loaded-fries",
+      "name": "Loaded Fries",
+      "category": "special",
+      "description": "Fries loaded with chicken, cheese sauce and jalapeño",
+      "image": "/assets/images/p-fries-loaded-BlQYs6bb.jpg",
+      "price": 400,
+      "inStock": true
+    },
+    {
+      "id": "special-pasta",
+      "name": "Pasta",
+      "category": "special",
+      "description": "Creamy chicken pasta baked with cheese",
+      "image": "/assets/images/p-pasta-Blrmrbem.jpg",
+      "price": 400,
+      "sizes": [
+        {
+          "label": "Regular",
+          "price": 400
+        },
+        {
+          "label": "Large",
+          "price": 600
+        }
+      ],
+      "inStock": true
+    },
+    {
+      "id": "special-cheese-stick",
+      "name": "Cheese Stick",
+      "category": "special",
+      "description": "Crispy cheese stick bread with herbs and dip",
+      "image": "/assets/images/p-cheese-stick-Cuzb04Ju.jpg",
+      "price": 400,
+      "inStock": true
+    },
+    {
+      "id": "special-grill-burger",
+      "name": "Grill Burger",
+      "category": "special",
+      "description": "Flame grilled chicken burger with fries",
+      "image": "/assets/images/p-burger-grill-dPQdT2ft.jpg",
+      "price": 350,
+      "inStock": true
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Where is Mehrban Fast Food located in Lahore?",
+      "a": "Mehrban Fast Food is at Shaikh Chowk Itfaq Town, Mansoora Bazar, Main Multan Road, Lahore."
+    },
+    {
+      "q": "What food does Mehrban Fast Food offer?",
+      "a": "The menu covers pizza and special pizza, zinger and grill burgers, chicken shawarma, sandwiches, fries, hot wings, chicken nuggets, special items and combo deals."
+    },
+    {
+      "q": "Does Mehrban Fast Food deliver in Lahore?",
+      "a": "Yes — home delivery is available in nearby areas of Main Multan Road, Lahore. Minimum order is Rs. 500 and the delivery fee is Rs. 100."
+    },
+    {
+      "q": "What are the opening hours?",
+      "a": "Please call to confirm today's timings — call 0323-4660279 or 0323-6580604."
+    },
+    {
+      "q": "How can I contact Mehrban Fast Food?",
+      "a": "Call 0323-4660279 or 0323-6580604, or send your order on WhatsApp."
+    },
+    {
+      "q": "Where can I see the Mehrban Fast Food menu and prices?",
+      "a": "The full menu with current prices is on this website — every category has its own tab with item photos and prices."
+    }
+  ],
+  "siteInfo": {
+    "name": "Mehrban Fast Food",
+    "tagline": "Taste That You Need",
+    "address": "Shaikh Chowk Itfaq Town, Mansoora Bazar, Main Multan Road, Lahore",
+    "phones": [
+      "0323-4660279",
+      "0323-6580604"
+    ],
+    "whatsapp": "923236580604",
+    "minOrder": 500,
+    "deliveryFee": 100,
+    "deliveryTime": "30-40 min",
+    "rating": "4.8 / 5"
+  },
+  "orders": [
+    {
+      "id": "ORD-984535-92",
+      "customerName": "Muhammad Salik Leo",
+      "phone": "03095369472",
+      "address": "Wah Model Town",
+      "notes": "Customer called: please add extra napkins",
+      "paymentMethod": "Cash on Delivery",
+      "items": [
+        {
+          "name": "Chicken Fajita",
+          "size": "Medium",
+          "price": 800,
+          "quantity": 1
+        },
+        {
+          "name": "Mexican",
+          "size": "Medium",
+          "price": 800,
+          "quantity": 1
+        },
+        {
+          "name": "Hot & Spicy",
+          "size": "Medium",
+          "price": 800,
+          "quantity": 1
+        },
+        {
+          "name": "Malai Boti",
+          "size": "Medium",
+          "price": 950,
+          "quantity": 1
+        },
+        {
+          "name": "Pickle Punjabi",
+          "size": "Medium",
+          "price": 800,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 4150,
+      "deliveryFee": 0,
+      "total": 4150,
+      "status": "Pending",
+      "createdAt": "2026-09-17T22:09:44.535Z",
+      "updatedAt": "2026-09-17T22:26:59.969Z"
+    },
+    {
+      "id": "ORD-181983-71",
+      "customerName": "Muhammad Salik Leo",
+      "phone": "03095369472",
+      "address": "Wah Model Town",
+      "notes": "",
+      "paymentMethod": "Easypaisa",
+      "items": [
+        {
+          "cartKey": "family-deal-default",
+          "id": "family-deal",
+          "name": "Family Deal",
+          "category": "deals",
+          "size": null,
+          "price": 2580,
+          "image": "/assets/deal-family.png",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 2580,
+      "deliveryFee": 0,
+      "total": 2580,
+      "status": "Delivered",
+      "createdAt": "2026-09-17T21:56:21.983Z",
+      "updatedAt": "2026-09-17T22:10:06.002Z"
+    },
+    {
+      "id": "ORD-145351-45",
+      "customerName": "Muhammad Salik Leo",
+      "phone": "03095369472",
+      "address": "Wah Model Town",
+      "notes": "",
+      "paymentMethod": "Easypaisa",
+      "items": [
+        {
+          "cartKey": "pizza-3-Large",
+          "id": "pizza-3",
+          "name": "B.B.Q",
+          "category": "pizza",
+          "size": "Large",
+          "price": 1200,
+          "image": "/assets/images/p-pizza-bbq-xSPmnR0J.jpg",
+          "quantity": 2
+        }
+      ],
+      "subtotal": 2400,
+      "deliveryFee": 0,
+      "total": 2400,
+      "status": "Pending",
+      "createdAt": "2026-09-17T21:55:45.351Z"
+    },
+    {
+      "id": "ORD-825128-38",
+      "customerName": "Muhammad Salik Leo",
+      "phone": "03095369472",
+      "address": "Wah Model Town",
+      "notes": "",
+      "paymentMethod": "Cash on Delivery (WhatsApp Order)",
+      "items": [
+        {
+          "cartKey": "deal-4-default",
+          "id": "deal-4",
+          "name": "Deal 4",
+          "category": "deals",
+          "size": null,
+          "price": 830,
+          "image": "/assets/deal-4.png",
+          "quantity": 1
+        },
+        {
+          "cartKey": "deal-2-default",
+          "id": "deal-2",
+          "name": "Deal 2",
+          "category": "deals",
+          "size": null,
+          "price": 600,
+          "image": "/assets/deal-2.png",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 1430,
+      "deliveryFee": 100,
+      "total": 1530,
+      "status": "Delivered",
+      "createdAt": "2026-09-17T19:20:25.128Z",
+      "updatedAt": "2026-09-17T22:10:13.035Z"
+    },
+    {
+      "id": "ORD-541573-17",
+      "customerName": "Ali Khan",
+      "phone": "0323-1122334",
+      "address": "House 14, Street 2, Itfaq Town, Lahore",
+      "notes": "Extra garlic sauce please",
+      "paymentMethod": "Cash on Delivery",
+      "items": [
+        {
+          "cartKey": "deal-1-default",
+          "id": "deal-1",
+          "name": "Deal 1",
+          "category": "deals",
+          "size": null,
+          "price": 550,
+          "image": "/assets/deal-1.png",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 550,
+      "deliveryFee": 100,
+      "total": 650,
+      "status": "Delivered",
+      "createdAt": "2026-09-17T18:42:21.573Z",
+      "updatedAt": "2026-09-17T21:19:05.102Z"
+    }
+  ],
+  "settings": {
+    "deliveryFee": 150,
+    "minOrder": 800,
+    "freeDeliveryThreshold": 1500,
+    "deliveryNotice": "Delivery available in nearby areas (Shaikh Chowk, Itfaq Town, Mansoora, Multan Road)",
+    "updatedAt": "2026-09-17T21:26:34.812Z"
+  }
+}
