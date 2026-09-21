@@ -808,9 +808,9 @@ export default function CustomerMobileApp({
                 {promoBanners.map((banner, idx) => (
                   <div 
                     key={banner.id || idx}
-                    className="w-full flex-shrink-0 p-5 flex items-center justify-between gap-3"
+                    className="w-full flex-shrink-0 p-4 sm:p-5 flex items-center justify-between gap-3 overflow-hidden"
                   >
-                    <div className="flex-1 space-y-1.5 min-w-0">
+                    <div className="flex-1 space-y-1.5 min-w-0 pr-1">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase border ${
                         isDark 
                           ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' 
@@ -820,16 +820,16 @@ export default function CustomerMobileApp({
                         <span>{banner.badge}</span>
                       </span>
                       
-                      <h3 className="text-lg sm:text-2xl font-montserrat uppercase tracking-tight text-white leading-tight font-bold break-words line-clamp-2">
+                      <h3 className="text-base sm:text-xl font-montserrat uppercase tracking-tight text-white leading-tight font-extrabold break-words line-clamp-2">
                         {banner.title}
                       </h3>
 
-                      <p className="text-xs text-white/90 font-medium line-clamp-2">
+                      <p className="text-[11px] sm:text-xs text-white/90 font-medium line-clamp-2">
                         {banner.tagline}
                       </p>
 
-                      <div className="pt-2 flex items-center gap-3">
-                        <span className="text-amber-300 font-sans font-extrabold text-base flex-shrink-0">
+                      <div className="pt-1.5 flex flex-wrap items-center gap-2">
+                        <span className="text-amber-300 font-sans font-extrabold text-xs sm:text-sm whitespace-nowrap">
                           {banner.price}
                         </span>
                         <button
@@ -842,7 +842,7 @@ export default function CustomerMobileApp({
                             }
                             banner.action();
                           }}
-                          className={`px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer ${
+                          className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer whitespace-nowrap ${
                             isDark 
                               ? 'bg-orange-600 hover:bg-orange-500 text-white' 
                               : 'bg-white hover:bg-zinc-100 text-orange-700 shadow-sm'
@@ -854,12 +854,12 @@ export default function CustomerMobileApp({
                     </div>
 
                     {/* Banner Thumbnail */}
-                    <div className="w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 relative pointer-events-none select-none">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 flex items-center justify-center relative pointer-events-none select-none">
                       <img
                         src={banner.image}
                         alt={banner.title}
                         draggable="false"
-                        className="w-full h-full object-contain drop-shadow-2xl"
+                        className="max-w-full max-h-full object-contain drop-shadow-xl"
                         onError={(e) => {
                           e.target.src = '/assets/images/cat-burgers-CfWIZ4YN.jpg';
                         }}

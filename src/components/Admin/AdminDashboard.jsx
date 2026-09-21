@@ -242,7 +242,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                 className="h-10 w-auto object-contain"
               />
               <div>
-                <h1 className="font-display tracking-wider text-xl uppercase leading-none text-zinc-900">
+                <h1 className="font-sans text-sm sm:text-base font-extrabold uppercase tracking-wider leading-tight text-zinc-900">
                   Salik Fast Food Admin
                 </h1>
                 <span className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">
