@@ -53,7 +53,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const [loading, setLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showStorefrontConfirm, setShowStorefrontConfirm] = useState(false);
-  const [statsTimeFilter, setStatsTimeFilter] = useState('today'); // 'today' | 'monthly' | 'all'
+  const [statsTimeFilter, setStatsTimeFilter] = useState('today'); // 'today' | 'monthly' | 'annual' | 'all'
 
   // Format local date string YYYY-MM-DD
   const getLocalDateStr = (d) => {
@@ -70,12 +70,16 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     const now = new Date();
     const todayStr = getLocalDateStr(now);
     const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const thisYearStr = `${now.getFullYear()}`;
 
     if (statsTimeFilter === 'today') {
       return orders.filter(o => o.createdAt && getLocalDateStr(o.createdAt) === todayStr);
     }
     if (statsTimeFilter === 'monthly') {
       return orders.filter(o => o.createdAt && getLocalDateStr(o.createdAt).slice(0, 7) === thisMonthStr);
+    }
+    if (statsTimeFilter === 'annual') {
+      return orders.filter(o => o.createdAt && getLocalDateStr(o.createdAt).slice(0, 4) === thisYearStr);
     }
     return orders;
   }, [orders, statsTimeFilter]);
@@ -297,49 +301,52 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         
         {/* Stats Section with Time Filter Buttons */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600">
-                Performance Overview
-              </h2>
-            </div>
-
-            {/* Time Filter Buttons: Today, Monthly, All Time */}
-            <div className="flex items-center gap-1 p-1 bg-white border border-zinc-300/80 rounded-xl shadow-2xs">
-              <button
-                type="button"
-                onClick={() => setStatsTimeFilter('today')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  statsTimeFilter === 'today'
-                    ? 'bg-orange-600 text-white shadow-xs'
-                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-                }`}
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatsTimeFilter('monthly')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  statsTimeFilter === 'monthly'
-                    ? 'bg-orange-600 text-white shadow-xs'
-                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatsTimeFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  statsTimeFilter === 'all'
-                    ? 'bg-orange-600 text-white shadow-xs'
-                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-                }`}
-              >
-                All Time
-              </button>
-            </div>
+          {/* Full-width Time Filter Buttons: Today, Monthly, Annual, All Time */}
+          <div className="grid grid-cols-4 gap-1 p-1 bg-white border border-zinc-300/80 rounded-2xl shadow-2xs w-full">
+            <button
+              type="button"
+              onClick={() => setStatsTimeFilter('today')}
+              className={`w-full py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+                statsTimeFilter === 'today'
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatsTimeFilter('monthly')}
+              className={`w-full py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+                statsTimeFilter === 'monthly'
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatsTimeFilter('annual')}
+              className={`w-full py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+                statsTimeFilter === 'annual'
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+              }`}
+            >
+              Annual
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatsTimeFilter('all')}
+              className={`w-full py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+                statsTimeFilter === 'all'
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+              }`}
+            >
+              All Time
+            </button>
           </div>
 
           {/* Stats Cards Row (3-Card Layout: Orders, Pending, Revenue) */}
