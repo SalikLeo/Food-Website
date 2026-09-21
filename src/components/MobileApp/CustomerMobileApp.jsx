@@ -11,6 +11,7 @@ import { apiUrl } from '../../config/api';
 import WhatsAppIcon from '../WhatsAppIcon';
 import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
+import { App as CapApp } from '@capacitor/app';
 
 // High quality category dish image mapping
 const categoryImages = {
@@ -160,6 +161,51 @@ export default function CustomerMobileApp({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [mobileMenuOpen, showConfirmModal]);
+
+  // Handle native Android hardware back button
+  useEffect(() => {
+    let backHandle = null;
+    const setupBack = async () => {
+      try {
+        backHandle = await CapApp.addListener('backButton', ({ canGoBack }) => {
+          if (showConfirmModal) {
+            setShowConfirmModal(false);
+            return;
+          }
+          if (mobileMenuOpen) {
+            setMobileMenuOpen(false);
+            return;
+          }
+          if (typeof setIsCartOpen === 'function') {
+            setIsCartOpen(false);
+          }
+          if (searchQuery.trim()) {
+            setSearchQuery('');
+            return;
+          }
+          if (currentView !== 'home') {
+            setCurrentView('home');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          }
+          if (canGoBack) {
+            window.history.back();
+          } else {
+            CapApp.exitApp();
+          }
+        });
+      } catch (e) {
+        console.warn('Capacitor App listener not active:', e);
+      }
+    };
+    setupBack();
+    return () => {
+      if (backHandle?.remove) {
+        backHandle.remove();
+      }
+    };
+  }, [showConfirmModal, mobileMenuOpen, searchQuery, currentView, setIsCartOpen]);
+
 
   // Auto-rotate promo banners (pauses while dragging)
   useEffect(() => {
@@ -1005,35 +1051,18 @@ export default function CustomerMobileApp({
               </button>
 
               <span className="text-xs font-semibold text-orange-500">
-                {searchQuery.trim() ? `${categoryProducts.length} Results` : `${categoryProducts.length} Available`}
+                {searchQuery.trim() ? `${categoryProducts.length} Items Found` : `${categoryProducts.length} Items Available`}
               </span>
             </div>
 
-            {/* Category Navigation & Search Header Card */}
-            <div className={`rounded-2xl p-4 border space-y-3 transition-colors ${
+            {/* Category Search Header Card */}
+            <div className={`rounded-2xl p-3 sm:p-4 border transition-colors ${
               isDark 
                 ? 'bg-[#141418] border-white/10' 
                 : 'bg-white border-zinc-200 shadow-2xs'
             }`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className={`text-xl sm:text-2xl font-montserrat uppercase tracking-tight font-black flex items-center gap-2 ${
-                    isDark ? 'text-white' : 'text-zinc-900'
-                  }`}>
-                    <span>{searchQuery.trim() ? '🔍' : (categoryEmojis[activeCategory.id] || '🍽️')}</span>
-                    <span>{searchQuery.trim() ? 'Global Search' : activeCategory.label}</span>
-                  </h2>
-                  <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                    {searchQuery.trim() 
-                      ? `Searching all categories for "${searchQuery}"`
-                      : (activeCategory.blurb || 'Browse delicious items below')
-                    }
-                  </p>
-                </div>
-              </div>
-
               {/* Global Search Bar */}
-              <div className="relative w-full pt-1">
+              <div className="relative w-full">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <input
                   type="text"

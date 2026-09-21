@@ -21,9 +21,18 @@ import DeliverySettingsManager from './DeliverySettingsManager';
 import ItemSalesManager from './ItemSalesManager';
 import ReviewManager from './ReviewManager';
 import { apiUrl, APP_MODE } from '../../config/api';
+import { App as CapApp } from '@capacitor/app';
 
 export default function AdminDashboard({ onLogout, onBackToStore }) {
   const [activeTab, setActiveTab] = useState('products');
+  const [tabHistory, setTabHistory] = useState(['products']);
+
+  const switchTab = (tab) => {
+    if (tab === activeTab) return;
+    setActiveTab(tab);
+    setTabHistory(prev => (prev[prev.length - 1] === tab ? prev : [...prev, tab]));
+  };
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [deals, setDeals] = useState([]);
@@ -123,6 +132,46 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showLogoutConfirm]);
 
+  // Handle native Android hardware back button
+  useEffect(() => {
+    let backHandle = null;
+    const setupBack = async () => {
+      try {
+        backHandle = await CapApp.addListener('backButton', ({ canGoBack }) => {
+          // If a modal or receipt is open in a child component (OrdersManager, etc.), let it handle the back action
+          if (window.__salikAdminModalOpen) {
+            return;
+          }
+          if (showLogoutConfirm) {
+            setShowLogoutConfirm(false);
+            return;
+          }
+          if (tabHistory.length > 1) {
+            const nextHistory = tabHistory.slice(0, -1);
+            const prevTab = nextHistory[nextHistory.length - 1];
+            setTabHistory(nextHistory);
+            setActiveTab(prevTab);
+            return;
+          }
+          if (canGoBack) {
+            window.history.back();
+          } else {
+            CapApp.exitApp();
+          }
+        });
+      } catch (e) {
+        console.warn('Capacitor App listener not active:', e);
+      }
+    };
+    setupBack();
+    return () => {
+      if (backHandle?.remove) {
+        backHandle.remove();
+      }
+    };
+  }, [showLogoutConfirm, tabHistory]);
+
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -181,7 +230,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             />
             <div>
               <h1 className="font-display tracking-wider text-xl uppercase leading-none text-zinc-900">
-                Salik Fast Food Management Panel
+                Salik Fast Food Admin
               </h1>
               <span className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">
                 Store Administrator
@@ -222,7 +271,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8 pb-32 sm:pb-36">
         
         {/* Stats Section with Time Filter Buttons */}
         <div className="space-y-3">
@@ -271,74 +320,49 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             </div>
           </div>
 
-          {/* Stats Cards Row */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+          {/* Stats Cards Row (3-Card Layout: Orders, Pending, Revenue) */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             
-            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                <Package className="w-5 h-5" />
+            {/* 1. Orders */}
+            <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-zinc-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                  Total Products
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-[11px] text-zinc-500 font-bold uppercase tracking-wider block truncate">
+                  Orders
                 </span>
-                <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
-                  {displayStats.totalProducts}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <Flame className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                  Total Deals
-                </span>
-                <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
-                  {displayStats.totalDeals}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                  {statsTimeFilter === 'today' ? 'Today Orders' : statsTimeFilter === 'monthly' ? 'Monthly Orders' : 'Total Orders'}
-                </span>
-                <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
+                <span className="font-sans text-base sm:text-2xl text-zinc-900 font-bold block leading-tight">
                   {displayStats.totalOrders}
                 </span>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <Clock className="w-5 h-5" />
+            {/* 2. Pending */}
+            <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-zinc-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                  Pending Orders
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-[11px] text-zinc-500 font-bold uppercase tracking-wider block truncate">
+                  Pending
                 </span>
-                <span className="font-sans text-2xl text-amber-600 font-bold block leading-tight">
+                <span className="font-sans text-base sm:text-2xl text-amber-600 font-bold block leading-tight">
                   {displayStats.pendingOrders}
                 </span>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5 col-span-2 lg:col-span-1">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <DollarSign className="w-5 h-5" />
+            {/* 3. Revenue */}
+            <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-zinc-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
-                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                  {statsTimeFilter === 'today' ? 'Today Revenue' : statsTimeFilter === 'monthly' ? 'Monthly Revenue' : 'Total Revenue'}
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-[11px] text-zinc-500 font-bold uppercase tracking-wider block truncate">
+                  Revenue
                 </span>
-                <span className="font-sans text-xl font-bold text-emerald-700 block leading-tight">
+                <span className="font-sans text-xs sm:text-xl font-bold text-emerald-700 block leading-tight truncate">
                   Rs. {displayStats.totalRevenue.toLocaleString()}
                 </span>
               </div>
@@ -350,7 +374,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         {/* Tab Navigation */}
         <div className="grid grid-cols-2 sm:flex sm:flex-row sm:items-center gap-2 sm:gap-2.5 border-b border-zinc-300/80 pb-3 w-full">
           <button
-            onClick={() => setActiveTab('products')}
+            onClick={() => switchTab('products')}
             className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'products'
                 ? 'bg-orange-600 text-white shadow-sm'
@@ -362,7 +386,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           </button>
 
           <button
-            onClick={() => setActiveTab('orders')}
+            onClick={() => switchTab('orders')}
             className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'orders'
                 ? 'bg-orange-600 text-white shadow-sm'
@@ -377,7 +401,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           </button>
 
           <button
-            onClick={() => setActiveTab('deals')}
+            onClick={() => switchTab('deals')}
             className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'deals'
                 ? 'bg-orange-600 text-white shadow-sm'
@@ -389,7 +413,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           </button>
 
           <button
-            onClick={() => setActiveTab('sales')}
+            onClick={() => switchTab('sales')}
             className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'sales'
                 ? 'bg-orange-600 text-white shadow-sm'
@@ -401,7 +425,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           </button>
 
           <button
-            onClick={() => setActiveTab('reviews')}
+            onClick={() => switchTab('reviews')}
             className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'reviews'
                 ? 'bg-orange-600 text-white shadow-sm'
@@ -413,7 +437,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           </button>
 
           <button
-            onClick={() => setActiveTab('settings')}
+            onClick={() => switchTab('settings')}
             className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'settings' || activeTab === 'delivery'
                 ? 'bg-orange-600 text-white shadow-sm'
@@ -424,6 +448,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             <span>Settings</span>
           </button>
         </div>
+
 
         {/* Tab Content with Smooth Fade-in Transition */}
         <div key={activeTab} className="animate-fade-in">

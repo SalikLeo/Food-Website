@@ -89,6 +89,14 @@ export default function OrdersManager({
   // In-App Receipt Modal State
   const [viewingReceiptOrder, setViewingReceiptOrder] = useState(null);
 
+  // Sync modal state with AdminDashboard back handler
+  useEffect(() => {
+    window.__salikAdminModalOpen = Boolean(viewingReceiptOrder || modifyingOrder);
+    return () => {
+      window.__salikAdminModalOpen = false;
+    };
+  }, [viewingReceiptOrder, modifyingOrder]);
+
   // Native Android hardware/gesture back button listener (Capacitor)
   useEffect(() => {
     let backHandle = null;
@@ -104,9 +112,6 @@ export default function OrdersManager({
             setModifyingOrder(null);
             return;
           }
-          if (canGoBack) {
-            window.history.back();
-          }
         });
       } catch {
         // Not running in native Capacitor shell
@@ -121,6 +126,7 @@ export default function OrdersManager({
       }
     };
   }, [viewingReceiptOrder, modifyingOrder]);
+
 
   // Browser / WebView history popstate handler
   useEffect(() => {
@@ -458,38 +464,61 @@ export default function OrdersManager({
       background: #fdfdfd;
     }
 
-    /* Items Table */
+    /* Items Table - Tabular Design with Solid Grid Borders */
     .items-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 6px;
-      font-size: 10px;
+      border: 1px solid #000;
     }
     .items-table th {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 10px;
       font-weight: 700;
-      text-align: left;
-      padding: 4px 1px;
-      border-bottom: 1px solid #000;
-      border-top: 1px solid #000;
       text-transform: uppercase;
-      font-size: 8.5px;
+      letter-spacing: 0.3px;
+      text-align: left;
+      padding: 4px 4px;
+      background: #f4f4f5;
+      border-bottom: 1px solid #000;
+      border-right: 1px solid #000;
+      color: #000;
+    }
+    .items-table th:last-child {
+      border-right: none;
     }
     .items-table td {
-      padding: 4px 1px;
+      padding: 4px 4px;
       vertical-align: top;
-      border-bottom: 1px dotted #ccc;
+      border-bottom: 1px solid #000;
+      border-right: 1px solid #000;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 9px;
+      color: #000;
     }
-    .items-table .col-num { width: 14px; }
-    .items-table .col-qty { width: 18px; text-align: center; font-weight: 600; }
-    .items-table .col-price { width: 34px; text-align: right; }
-    .items-table .col-total { width: 44px; text-align: right; font-weight: 600; }
+    .items-table tr:last-child td {
+      border-bottom: none;
+    }
+    .items-table td:last-child {
+      border-right: none;
+    }
+    .items-table .col-num { width: 16px; text-align: center; }
+    .items-table .col-qty { width: 22px; text-align: center; font-weight: 700; }
+    .items-table .col-price { width: 38px; text-align: right; }
+    .items-table .col-total { width: 44px; text-align: right; font-weight: 700; }
     
     .item-name {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-weight: 600;
+      font-size: 9px;
+      color: #000;
     }
     .item-size {
-      font-size: 8.5px;
-      color: #333;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 8px;
+      font-weight: 500;
+      color: #3f3f46;
+      margin-top: 1px;
     }
 
     /* Totals Box */
@@ -630,11 +659,10 @@ export default function OrdersManager({
 
   <!-- Footer -->
   <div class="receipt-footer">
-    <div class="bold" style="font-size: 9.5px; margin-bottom: 2px;">Thank you for ordering with Salik Fast Food!</div>
-    <div>Please check your order upon receiving.</div>
-    <div>For complaints or feedback, contact: 0309-5369472</div>
+    <div class="bold" style="font-size: 10.5px; margin-bottom: 3px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Thank you for ordering!</div>
     <div class="cut-line">✂ - - - - - - - - - - - - - - - - - - - - -</div>
   </div>
+
 </body>
 </html>`;
   };
@@ -1753,7 +1781,7 @@ export default function OrdersManager({
 
       {/* IN-APP RECEIPT MODAL */}
       {viewingReceiptOrder && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-2 sm:p-4 animate-tab-fade">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-2 sm:p-4 pb-32 sm:pb-36 animate-tab-fade">
           
           {/* Top Control Bar with Back and Print */}
           <div className="w-full max-w-[420px] bg-zinc-900 text-white rounded-2xl p-3 mb-3 flex items-center justify-between shadow-2xl border border-white/10 sticky top-2 z-10">
@@ -1827,29 +1855,41 @@ export default function OrdersManager({
               )}
             </div>
 
-            {/* Items Table */}
+            {/* Items Table - Proper Tabular Grid Design */}
             <div className="py-3 border-b border-dashed border-black">
-              <table className="w-full text-left text-[11px]">
+              <table className="w-full text-left border-collapse border border-black">
                 <thead>
-                  <tr className="border-b border-black font-bold uppercase text-[9.5px]">
-                    <th className="pb-1 w-6">#</th>
-                    <th className="pb-1">Item</th>
-                    <th className="pb-1 text-center w-8">Qty</th>
-                    <th className="pb-1 text-right w-12">Rate</th>
-                    <th className="pb-1 text-right w-14">Amount</th>
+                  <tr className="bg-zinc-100 font-sans font-bold text-[13px] uppercase tracking-wide border-b border-black text-black">
+                    <th className="py-1.5 px-1.5 border-r border-black w-7 text-center">#</th>
+                    <th className="py-1.5 px-2 border-r border-black">Item</th>
+                    <th className="py-1.5 px-1.5 border-r border-black text-center w-9">Qty</th>
+                    <th className="py-1.5 px-1.5 border-r border-black text-right w-14">Rate</th>
+                    <th className="py-1.5 px-2 text-right w-16">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-200">
+                <tbody>
                   {(viewingReceiptOrder.items || []).map((it, idx) => (
-                    <tr key={idx} className="align-top">
-                      <td className="py-1 text-zinc-500">{idx + 1}</td>
-                      <td className="py-1 pr-1 font-sans font-medium text-xs">
-                        {it.name}
-                        {it.size && <span className="block font-mono text-[9.5px] text-zinc-500">Size: {it.size}</span>}
+                    <tr key={idx} className="align-top border-b border-black">
+                      <td className="py-1.5 px-1.5 border-r border-black text-center font-sans text-xs text-zinc-600">
+                        {idx + 1}
                       </td>
-                      <td className="py-1 text-center font-bold">{it.quantity}</td>
-                      <td className="py-1 text-right">{Number(it.price).toLocaleString()}</td>
-                      <td className="py-1 text-right font-bold">{(Number(it.price) * Number(it.quantity)).toLocaleString()}</td>
+                      <td className="py-1.5 px-2 border-r border-black font-sans font-semibold text-xs text-black">
+                        <div>{it.name}</div>
+                        {it.size && (
+                          <span className="inline-block font-sans font-medium text-[11px] text-zinc-700 mt-0.5">
+                            Size: {it.size}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-1.5 px-1.5 border-r border-black text-center font-sans font-bold text-xs text-black">
+                        {it.quantity}
+                      </td>
+                      <td className="py-1.5 px-1.5 border-r border-black text-right font-sans text-xs text-zinc-800">
+                        {Number(it.price).toLocaleString()}
+                      </td>
+                      <td className="py-1.5 px-2 text-right font-sans font-bold text-xs text-black">
+                        {(Number(it.price) * Number(it.quantity)).toLocaleString()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -1873,11 +1913,9 @@ export default function OrdersManager({
             </div>
 
             {/* Footer */}
-            <div className="text-center pt-3 text-[10px] space-y-1 text-zinc-600">
-              <p className="font-bold text-black">Thank you for ordering with Salik Fast Food!</p>
-              <p>Please check your order upon receiving.</p>
-              <p>For complaints or feedback, contact: 0309-5369472</p>
-              <p className="text-zinc-400 pt-1 tracking-widest">✂ - - - - - - - - - - - - - - - - - - - - -</p>
+            <div className="text-center pt-3 text-[11px] space-y-1 text-zinc-700 font-sans">
+              <p className="font-bold text-black text-xs uppercase tracking-wide">Thank you for ordering!</p>
+              <p className="text-zinc-500 pt-1 tracking-widest font-mono text-[10px]">✂ - - - - - - - - - - - - - - - - - - - - -</p>
             </div>
 
           </div>
