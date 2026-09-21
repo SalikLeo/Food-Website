@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle } from 'lucide-react';
+import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle, Loader2 } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
 import { formatPrice } from '../../utils/formatters';
+import { downloadReceiptImage, shareReceiptImageWhatsApp } from '../../services/receiptImageService';
 
 // Helper to format date to local YYYY-MM-DD
 const getLocalDateStr = (d) => {
@@ -91,6 +92,10 @@ export default function OrdersManager({
 
   // In-App Receipt Modal State
   const [viewingReceiptOrder, setViewingReceiptOrder] = useState(null);
+  const receiptPaperRef = useRef(null);
+  const [isDownloadingReceipt, setIsDownloadingReceipt] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [isSharingWhatsApp, setIsSharingWhatsApp] = useState(false);
 
   // Sync receipt state with AdminDashboard header visibility and modal stack
   useEffect(() => {
@@ -728,42 +733,31 @@ export default function OrdersManager({
     }
   };
 
-  const handleDownloadReceipt = (order) => {
+  const handleDownloadReceipt = async (order) => {
+    if (!order || isDownloadingReceipt) return;
     try {
-      const html = generateReceiptHtml(order);
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Receipt-ORD-${order.id || 'order'}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setIsDownloadingReceipt(true);
+      await downloadReceiptImage(receiptPaperRef.current, order);
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 2000);
     } catch (e) {
-      console.error('Download receipt error:', e);
+      console.error('Download receipt image failed:', e);
+      alert('Could not download receipt image: ' + (e?.message || e));
+    } finally {
+      setIsDownloadingReceipt(false);
     }
   };
 
-  const handleShareWhatsApp = (order) => {
+  const handleShareWhatsApp = async (order) => {
+    if (!order || isSharingWhatsApp) return;
     try {
-      const itemsList = (order.items || []).map(it => `• ${it.quantity}x ${it.name}${it.size ? ` (${it.size})` : ''} - Rs. ${formatPrice(Number(it.price) * Number(it.quantity))}`).join('\n');
-      const msg = `*SALIK FAST FOOD - RECEIPT #${order.id}*\n\n` +
-        `*Customer:* ${order.customerName || 'Customer'}\n` +
-        `*Phone:* ${order.phone || '-'}\n` +
-        (order.address ? `*Address:* ${order.address}\n` : '') +
-        `*Date:* ${formatOrderDateTime(order.createdAt)}\n\n` +
-        `*ORDER ITEMS:*\n${itemsList}\n\n` +
-        `*Subtotal:* Rs. ${formatPrice(order.subtotal || 0)}\n` +
-        `*Delivery Charges:* ${Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(order.deliveryFee)}`}\n` +
-        `*TOTAL PAYABLE:* Rs. ${formatPrice(order.total || 0)}\n` +
-        `*Payment Method:* ${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}\n\n` +
-        `Thank you for ordering with Salik Fast Food!`;
-      const cleanPhone = (order.phone || '').replace(/\D/g, '');
-      const url = cleanPhone ? `https://wa.me/${cleanPhone.startsWith('0') ? '92' + cleanPhone.slice(1) : cleanPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank');
+      setIsSharingWhatsApp(true);
+      await shareReceiptImageWhatsApp(receiptPaperRef.current, order);
     } catch (e) {
       console.error('WhatsApp share error:', e);
+      alert('Could not share receipt to WhatsApp: ' + (e?.message || e));
+    } finally {
+      setIsSharingWhatsApp(false);
     }
   };
 
@@ -1867,131 +1861,159 @@ export default function OrdersManager({
               <X className="w-4 h-4" />
             </button>
 
-            {/* Store Header */}
-            <div className="text-center pb-3 border-b border-dashed border-black font-sans">
-              <h2 className="text-lg font-black tracking-wider uppercase">SALIK FAST FOOD</h2>
-              <p className="text-[11px] text-zinc-700 uppercase font-semibold">Taste That You Need</p>
-              <p className="text-[10.5px] text-zinc-600 mt-0.5">
-                Wah Model Town, Wah Cantt<br />
-                Phone: 0309-5369472
-              </p>
-              <div className="mt-2 inline-block px-3 py-0.5 border border-black font-bold uppercase tracking-wider text-[10px]">
-                {viewingReceiptOrder.paymentMethod ? viewingReceiptOrder.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}
-              </div>
-            </div>
-
-            {/* Order Metadata Box */}
-            <div className="py-3 border-b border-dashed border-black space-y-1 font-sans text-xs">
-              <div className="flex justify-between">
-                <span className="font-bold">Order ID:</span>
-                <span className="font-semibold">#{viewingReceiptOrder.id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-bold">Date & Time:</span>
-                <span>{formatOrderDateTime(viewingReceiptOrder.createdAt)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-bold">Customer:</span>
-                <span className="font-semibold">{viewingReceiptOrder.customerName || 'Walk-in Customer'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-bold">Phone:</span>
-                <span>{viewingReceiptOrder.phone || '-'}</span>
-              </div>
-              {viewingReceiptOrder.address && (
-                <div className="pt-1">
-                  <span className="font-bold block">Delivery Address:</span>
-                  <span className="block text-[11px] leading-tight text-zinc-800">{viewingReceiptOrder.address}</span>
+            {/* Printable Receipt Paper Area (Captured by html2canvas / direct renderer) */}
+            <div ref={receiptPaperRef} id="admin-printable-receipt" className="bg-white text-black">
+              {/* Store Header */}
+              <div className="text-center pb-3 border-b border-dashed border-black font-sans">
+                <h2 className="text-lg font-black tracking-wider uppercase">SALIK FAST FOOD</h2>
+                <p className="text-[11px] text-zinc-700 uppercase font-semibold">Taste That You Need</p>
+                <p className="text-[10.5px] text-zinc-600 mt-0.5">
+                  Wah Model Town, Wah Cantt<br />
+                  Phone: 0309-5369472
+                </p>
+                <div className="mt-2 inline-block px-3 py-0.5 border border-black font-bold uppercase tracking-wider text-[10px]">
+                  {viewingReceiptOrder.paymentMethod ? viewingReceiptOrder.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}
                 </div>
-              )}
-              {viewingReceiptOrder.notes && (
-                <div className="pt-1 text-[11px] italic">
-                  <span className="font-bold not-italic">Notes:</span> {viewingReceiptOrder.notes}
-                </div>
-              )}
-            </div>
+              </div>
 
-            {/* Items Table - Proper Tabular Grid Design */}
-            <div className="py-3 border-b border-dashed border-black">
-              <table className="w-full text-left border-collapse border border-black">
-                <thead>
-                  <tr className="bg-zinc-100 font-sans font-bold text-[13px] uppercase tracking-wide border-b border-black text-black">
-                    <th className="py-1.5 px-1.5 border-r border-black w-7 text-center">#</th>
-                    <th className="py-1.5 px-2 border-r border-black">Item</th>
-                    <th className="py-1.5 px-1.5 border-r border-black text-center w-9">Qty</th>
-                    <th className="py-1.5 px-1.5 border-r border-black text-right w-14">Rate</th>
-                    <th className="py-1.5 px-2 text-right w-16">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(viewingReceiptOrder.items || []).map((it, idx) => (
-                    <tr key={idx} className="align-top border-b border-black">
-                      <td className="py-1.5 px-1.5 border-r border-black text-center font-sans text-xs text-zinc-600">
-                        {idx + 1}
-                      </td>
-                      <td className="py-1.5 px-2 border-r border-black font-sans font-semibold text-xs text-black">
-                        <div>{it.name}</div>
-                        {it.size && (
-                          <span className="inline-block font-sans font-medium text-[11px] text-zinc-700 mt-0.5">
-                            Size: {it.size}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-1.5 px-1.5 border-r border-black text-center font-sans font-bold text-xs text-black">
-                        {it.quantity}
-                      </td>
-                      <td className="py-1.5 px-1.5 border-r border-black text-right font-sans text-xs text-zinc-800">
-                        {formatPrice(it.price)}
-                      </td>
-                      <td className="py-1.5 px-2 text-right font-sans font-bold text-xs text-black">
-                        {formatPrice(Number(it.price) * Number(it.quantity))}
-                      </td>
+              {/* Order Metadata Box */}
+              <div className="py-3 border-b border-dashed border-black space-y-1 font-sans text-xs">
+                <div className="flex justify-between">
+                  <span className="font-bold">Order ID:</span>
+                  <span className="font-semibold">#{viewingReceiptOrder.id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-bold">Date & Time:</span>
+                  <span>{formatOrderDateTime(viewingReceiptOrder.createdAt)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-bold">Customer:</span>
+                  <span className="font-semibold">{viewingReceiptOrder.customerName || 'Walk-in Customer'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-bold">Phone:</span>
+                  <span>{viewingReceiptOrder.phone || '-'}</span>
+                </div>
+                {viewingReceiptOrder.address && (
+                  <div className="pt-1">
+                    <span className="font-bold block">Delivery Address:</span>
+                    <span className="block text-[11px] leading-tight text-zinc-800">{viewingReceiptOrder.address}</span>
+                  </div>
+                )}
+                {viewingReceiptOrder.notes && (
+                  <div className="pt-1 text-[11px] italic">
+                    <span className="font-bold not-italic">Notes:</span> {viewingReceiptOrder.notes}
+                  </div>
+                )}
+              </div>
+
+              {/* Items Table - Proper Tabular Grid Design */}
+              <div className="py-3 border-b border-dashed border-black">
+                <table className="w-full text-left border-collapse border border-black">
+                  <thead>
+                    <tr className="bg-zinc-100 font-sans font-bold text-[13px] uppercase tracking-wide border-b border-black text-black">
+                      <th className="py-1.5 px-1.5 border-r border-black w-7 text-center">#</th>
+                      <th className="py-1.5 px-2 border-r border-black">Item</th>
+                      <th className="py-1.5 px-1.5 border-r border-black text-center w-9">Qty</th>
+                      <th className="py-1.5 px-1.5 border-r border-black text-right w-14">Rate</th>
+                      <th className="py-1.5 px-2 text-right w-16">Amount</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {(viewingReceiptOrder.items || []).map((it, idx) => (
+                      <tr key={idx} className="align-top border-b border-black">
+                        <td className="py-1.5 px-1.5 border-r border-black text-center font-sans text-xs text-zinc-600">
+                          {idx + 1}
+                        </td>
+                        <td className="py-1.5 px-2 border-r border-black font-sans font-semibold text-xs text-black">
+                          <div>{it.name}</div>
+                          {it.size && (
+                            <span className="inline-block font-sans font-medium text-[11px] text-zinc-700 mt-0.5">
+                              Size: {it.size}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-1.5 px-1.5 border-r border-black text-center font-sans font-bold text-xs text-black">
+                          {it.quantity}
+                        </td>
+                        <td className="py-1.5 px-1.5 border-r border-black text-right font-sans text-xs text-zinc-800">
+                          {formatPrice(it.price)}
+                        </td>
+                        <td className="py-1.5 px-2 text-right font-sans font-bold text-xs text-black">
+                          {formatPrice(Number(it.price) * Number(it.quantity))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Totals */}
+              <div className="py-3 border-b border-dashed border-black space-y-1 font-sans text-xs">
+                <div className="flex justify-between text-zinc-700">
+                  <span className="font-medium">Subtotal</span>
+                  <span className="font-bold">Rs. {formatPrice(viewingReceiptOrder.subtotal || 0)}</span>
+                </div>
+                <div className="flex justify-between text-zinc-700">
+                  <span className="font-medium">Delivery Charges</span>
+                  <span className="font-bold">{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(viewingReceiptOrder.deliveryFee)}`}</span>
+                </div>
+                <div className="flex justify-between text-sm font-black pt-1 border-t border-black text-black">
+                  <span>TOTAL PAYABLE</span>
+                  <span>Rs. {formatPrice(viewingReceiptOrder.total || 0)}</span>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="text-center pt-3 text-[11px] space-y-1 text-zinc-700 font-sans">
+                <p className="font-bold text-black text-xs uppercase tracking-wide">Thank you for ordering!</p>
+                <p className="text-zinc-500 pt-1 tracking-widest font-mono text-[10px]">✂ - - - - - - - - - - - - - - - - - - - - -</p>
+              </div>
             </div>
 
-            {/* Totals */}
-            <div className="py-3 border-b border-dashed border-black space-y-1 font-sans text-xs">
-              <div className="flex justify-between text-zinc-700">
-                <span className="font-medium">Subtotal</span>
-                <span className="font-bold">Rs. {formatPrice(viewingReceiptOrder.subtotal || 0)}</span>
-              </div>
-              <div className="flex justify-between text-zinc-700">
-                <span className="font-medium">Delivery Charges</span>
-                <span className="font-bold">{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(viewingReceiptOrder.deliveryFee)}`}</span>
-              </div>
-              <div className="flex justify-between text-sm font-black pt-1 border-t border-black text-black">
-                <span>TOTAL PAYABLE</span>
-                <span>Rs. {formatPrice(viewingReceiptOrder.total || 0)}</span>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="text-center pt-3 text-[11px] space-y-1 text-zinc-700 font-sans">
-              <p className="font-bold text-black text-xs uppercase tracking-wide">Thank you for ordering!</p>
-              <p className="text-zinc-500 pt-1 tracking-widest font-mono text-[10px]">✂ - - - - - - - - - - - - - - - - - - - - -</p>
-            </div>
-
-            {/* Bottom Actions: Download, WhatsApp Share, Print */}
+            {/* Bottom Actions: Download Image, WhatsApp Share Image, Print */}
             <div className="mt-4 pt-3 border-t border-dashed border-black/40 flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => handleDownloadReceipt(viewingReceiptOrder)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+                disabled={isDownloadingReceipt}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
               >
-                <Download className="w-3.5 h-3.5 text-orange-400" />
-                <span>Download</span>
+                {isDownloadingReceipt ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 text-orange-400 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : downloadSuccess ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Saved!</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-3.5 h-3.5 text-orange-400" />
+                    <span>Download</span>
+                  </>
+                )}
               </button>
 
               <button
                 type="button"
                 onClick={() => handleShareWhatsApp(viewingReceiptOrder)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+                disabled={isSharingWhatsApp}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
               >
-                <MessageCircle className="w-3.5 h-3.5 text-white" />
-                <span>WhatsApp</span>
+                {isSharingWhatsApp ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+                    <span>Sharing...</span>
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="w-3.5 h-3.5 text-white" />
+                    <span>WhatsApp</span>
+                  </>
+                )}
               </button>
 
               <button

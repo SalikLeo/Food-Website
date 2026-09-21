@@ -27,6 +27,7 @@
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "html2canvas": "^1.4.1",
     "lucide-react": "^1.16.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^10.0.10",

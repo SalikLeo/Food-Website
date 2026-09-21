@@ -1,8 +1,14 @@
-import React, { useEffect } from 'react';
-import { X, Download, MessageCircle } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, Download, MessageCircle, Loader2, Check } from 'lucide-react';
 import { formatPrice } from '../utils/formatters';
+import { downloadReceiptImage, shareReceiptImageWhatsApp } from '../services/receiptImageService';
 
 export default function CustomerReceiptModal({ order, onClose }) {
+  const receiptCardRef = useRef(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -123,48 +129,31 @@ export default function CustomerReceiptModal({ order, onClose }) {
 </html>`;
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
+    if (!order || isDownloading) return;
     try {
-      const html = generateReceiptHtml();
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Receipt-ORD-${order.id || 'order'}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setIsDownloading(true);
+      await downloadReceiptImage(receiptCardRef.current, order);
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 2000);
     } catch (e) {
-      console.error('Download receipt error:', e);
+      console.error('Download receipt image failed:', e);
+      alert('Could not download receipt image: ' + (e?.message || e));
+    } finally {
+      setIsDownloading(false);
     }
   };
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
+    if (!order || isSharing) return;
     try {
-      const itemsText = itemsList
-        .map(it => `• ${it.quantity}x ${it.name}${it.size ? ` (${typeof it.size === 'string' ? it.size : it.size?.label})` : ''} - Rs. ${formatPrice(Number(it.price) * Number(it.quantity))}`)
-        .join('\n');
-
-      const msg = `*SALIK FAST FOOD - RECEIPT #${order.id}*\n\n` +
-        `*Customer:* ${order.customerName || 'Customer'}\n` +
-        `*Phone:* ${order.phone || '-'}\n` +
-        (order.address ? `*Address:* ${order.address}\n` : '') +
-        `*Date:* ${orderDate}\n\n` +
-        `*ORDER ITEMS:*\n${itemsText}\n\n` +
-        `*Subtotal:* Rs. ${formatPrice(orderItemsSubtotal)}\n` +
-        `*Delivery Charges:* ${orderDeliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(orderDeliveryFee)}`}\n` +
-        `*TOTAL PAYABLE:* Rs. ${formatPrice(orderTotal)}\n` +
-        `*Payment Method:* ${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}\n\n` +
-        `Thank you for ordering with Salik Fast Food!`;
-
-      const cleanPhone = (order.phone || '').replace(/\D/g, '');
-      const url = cleanPhone
-        ? `https://wa.me/${cleanPhone.startsWith('0') ? '92' + cleanPhone.slice(1) : cleanPhone}?text=${encodeURIComponent(msg)}`
-        : `https://wa.me/923095369472?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank');
+      setIsSharing(true);
+      await shareReceiptImageWhatsApp(receiptCardRef.current, order);
     } catch (e) {
       console.error('WhatsApp share error:', e);
+      alert('Could not share receipt to WhatsApp: ' + (e?.message || e));
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -188,133 +177,161 @@ export default function CustomerReceiptModal({ order, onClose }) {
           <X className="w-4 h-4" />
         </button>
 
-        {/* Store Header */}
-        <div className="text-center pb-3 border-b border-dashed border-black font-sans">
-          <h2 className="text-base font-extrabold tracking-wider uppercase text-zinc-900">SALIK FAST FOOD</h2>
-          <p className="text-[11px] text-zinc-600 uppercase font-semibold">Taste That You Need</p>
-          <p className="text-[10px] text-zinc-500 mt-0.5">
-            Wah Model Town, Wah Cantt<br />
-            Phone: 0309-5369472
-          </p>
-          <div className="mt-2 inline-block px-2.5 py-0.5 border border-black font-bold uppercase tracking-wider text-[9.5px]">
-            {order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}
-          </div>
-        </div>
-
-        {/* Order Metadata */}
-        <div className="py-2.5 border-b border-dashed border-black space-y-1 font-sans text-xs">
-          <div className="flex justify-between">
-            <span className="font-bold">Order ID:</span>
-            <span className="font-semibold">#{order.id}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-bold">Date & Time:</span>
-            <span>{orderDate}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-bold">Customer:</span>
-            <span className="font-semibold">{order.customerName || 'Customer'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-bold">Phone:</span>
-            <span>{order.phone || '-'}</span>
-          </div>
-          {order.address && (
-            <div className="pt-0.5">
-              <span className="font-bold block">Delivery Address:</span>
-              <span className="block text-[11px] leading-tight text-zinc-700">{order.address}</span>
+        {/* Printable Receipt Paper Area */}
+        <div ref={receiptCardRef} className="bg-white text-black">
+          {/* Store Header */}
+          <div className="text-center pb-3 border-b border-dashed border-black font-sans">
+            <h2 className="text-base font-extrabold tracking-wider uppercase text-zinc-900">SALIK FAST FOOD</h2>
+            <p className="text-[11px] text-zinc-600 uppercase font-semibold">Taste That You Need</p>
+            <p className="text-[10px] text-zinc-500 mt-0.5">
+              Wah Model Town, Wah Cantt<br />
+              Phone: 0309-5369472
+            </p>
+            <div className="mt-2 inline-block px-2.5 py-0.5 border border-black font-bold uppercase tracking-wider text-[9.5px]">
+              {order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}
             </div>
-          )}
-          {order.notes && (
-            <div className="pt-0.5 text-[11px] italic">
-              <span className="font-bold not-italic">Notes:</span> {order.notes}
-            </div>
-          )}
-        </div>
+          </div>
 
-        {/* Items Table - Tabular Design */}
-        <div className="py-2.5 border-b border-dashed border-black">
-          <table className="w-full text-left border-collapse border border-black text-xs">
-            <thead>
-              <tr className="bg-zinc-100 font-sans font-bold text-[11px] uppercase tracking-wide border-b border-black text-black">
-                <th className="py-1 px-1.5 border-r border-black w-6 text-center">#</th>
-                <th className="py-1 px-2 border-r border-black">Item</th>
-                <th className="py-1 px-1.5 border-r border-black text-center w-8">Qty</th>
-                <th className="py-1 px-1.5 border-r border-black text-right w-12">Rate</th>
-                <th className="py-1 px-2 text-right w-14">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itemsList.map((it, idx) => (
-                <tr key={idx} className="align-top border-b border-black">
-                  <td className="py-1 px-1.5 border-r border-black text-center text-[11px] text-zinc-600">
-                    {idx + 1}
-                  </td>
-                  <td className="py-1 px-2 border-r border-black font-medium text-xs text-black">
-                    <div>{it.name}</div>
-                    {it.size && (
-                      <span className="inline-block text-[10px] text-zinc-600">
-                        Size: {typeof it.size === 'string' ? it.size : it.size?.label}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-1 px-1.5 border-r border-black text-center font-bold text-xs text-black">
-                    {it.quantity}
-                  </td>
-                  <td className="py-1 px-1.5 border-r border-black text-right text-xs text-zinc-800">
-                    {formatPrice(it.price)}
-                  </td>
-                  <td className="py-1 px-2 text-right font-bold text-xs text-black">
-                    {formatPrice(Number(it.price) * Number(it.quantity))}
-                  </td>
+          {/* Order Metadata */}
+          <div className="py-2.5 border-b border-dashed border-black space-y-1 font-sans text-xs">
+            <div className="flex justify-between">
+              <span className="font-bold">Order ID:</span>
+              <span className="font-semibold">#{order.id}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Date & Time:</span>
+              <span>{orderDate}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Customer:</span>
+              <span className="font-semibold">{order.customerName || 'Customer'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Phone:</span>
+              <span>{order.phone || '-'}</span>
+            </div>
+            {order.address && (
+              <div className="pt-0.5">
+                <span className="font-bold block">Delivery Address:</span>
+                <span className="block text-[11px] leading-tight text-zinc-700">{order.address}</span>
+              </div>
+            )}
+            {order.notes && (
+              <div className="pt-0.5 text-[11px] italic">
+                <span className="font-bold not-italic">Notes:</span> {order.notes}
+              </div>
+            )}
+          </div>
+
+          {/* Items Table - Tabular Design */}
+          <div className="py-2.5 border-b border-dashed border-black">
+            <table className="w-full text-left border-collapse border border-black text-xs">
+              <thead>
+                <tr className="bg-zinc-100 font-sans font-bold text-[11px] uppercase tracking-wide border-b border-black text-black">
+                  <th className="py-1 px-1.5 border-r border-black w-6 text-center">#</th>
+                  <th className="py-1 px-2 border-r border-black">Item</th>
+                  <th className="py-1 px-1.5 border-r border-black text-center w-8">Qty</th>
+                  <th className="py-1 px-1.5 border-r border-black text-right w-12">Rate</th>
+                  <th className="py-1 px-2 text-right w-14">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {itemsList.map((it, idx) => (
+                  <tr key={idx} className="align-top border-b border-black">
+                    <td className="py-1 px-1.5 border-r border-black text-center text-[11px] text-zinc-600">
+                      {idx + 1}
+                    </td>
+                    <td className="py-1 px-2 border-r border-black font-medium text-xs text-black">
+                      <div>{it.name}</div>
+                      {it.size && (
+                        <span className="inline-block text-[10px] text-zinc-600">
+                          Size: {typeof it.size === 'string' ? it.size : it.size?.label}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-1 px-1.5 border-r border-black text-center font-bold text-xs text-black">
+                      {it.quantity}
+                    </td>
+                    <td className="py-1 px-1.5 border-r border-black text-right text-xs text-zinc-800">
+                      {formatPrice(it.price)}
+                    </td>
+                    <td className="py-1 px-2 text-right font-bold text-xs text-black">
+                      {formatPrice(Number(it.price) * Number(it.quantity))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Totals */}
+          <div className="py-2.5 border-b border-dashed border-black space-y-1 font-sans text-xs">
+            <div className="flex justify-between text-zinc-700">
+              <span className="font-medium">Subtotal</span>
+              <span className="font-bold">Rs. {formatPrice(orderItemsSubtotal)}</span>
+            </div>
+            <div className="flex justify-between text-zinc-700">
+              <span className="font-medium">Delivery Charges</span>
+              <span className="font-bold">
+                {orderDeliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(orderDeliveryFee)}`}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm font-extrabold pt-1 border-t border-black text-black">
+              <span>TOTAL PAYABLE</span>
+              <span>Rs. {formatPrice(orderTotal)}</span>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center pt-2.5 text-[11px] space-y-1 text-zinc-700 font-sans">
+            <p className="font-bold text-black uppercase tracking-wide">Thank you for ordering!</p>
+            <p className="text-zinc-400 font-mono text-[9.5px]">✂ - - - - - - - - - - - - - - - - - - - - -</p>
+          </div>
         </div>
 
-        {/* Totals */}
-        <div className="py-2.5 border-b border-dashed border-black space-y-1 font-sans text-xs">
-          <div className="flex justify-between text-zinc-700">
-            <span className="font-medium">Subtotal</span>
-            <span className="font-bold">Rs. {formatPrice(orderItemsSubtotal)}</span>
-          </div>
-          <div className="flex justify-between text-zinc-700">
-            <span className="font-medium">Delivery Charges</span>
-            <span className="font-bold">
-              {orderDeliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(orderDeliveryFee)}`}
-            </span>
-          </div>
-          <div className="flex justify-between text-sm font-extrabold pt-1 border-t border-black text-black">
-            <span>TOTAL PAYABLE</span>
-            <span>Rs. {formatPrice(orderTotal)}</span>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center pt-2.5 text-[11px] space-y-1 text-zinc-700 font-sans">
-          <p className="font-bold text-black uppercase tracking-wide">Thank you for ordering!</p>
-          <p className="text-zinc-400 font-mono text-[9.5px]">✂ - - - - - - - - - - - - - - - - - - - - -</p>
-        </div>
-
-        {/* Action Buttons */}
+        {/* Action Buttons: Download Image, WhatsApp Share Image */}
         <div className="mt-3.5 pt-2.5 border-t border-dashed border-zinc-400 flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={handleDownload}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+            disabled={isDownloading}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
           >
-            <Download className="w-3.5 h-3.5 text-orange-400" />
-            <span>Download</span>
+            {isDownloading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 text-orange-400 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : downloadSuccess ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Saved!</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5 text-orange-400" />
+                <span>Download</span>
+              </>
+            )}
           </button>
 
           <button
             type="button"
             onClick={handleWhatsApp}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+            disabled={isSharing}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
           >
-            <MessageCircle className="w-3.5 h-3.5 text-white" />
-            <span>WhatsApp</span>
+            {isSharing ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+                <span>Sharing...</span>
+              </>
+            ) : (
+              <>
+                <MessageCircle className="w-3.5 h-3.5 text-white" />
+                <span>WhatsApp</span>
+              </>
+            )}
           </button>
         </div>
       </div>

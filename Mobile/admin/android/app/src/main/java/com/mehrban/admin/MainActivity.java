@@ -9,6 +9,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(ReceiptBridgePlugin.class);
         super.onCreate(savedInstanceState);
 
         // Ensure app content fits within system windows and leaves notch & nav buttons free
