@@ -2151,51 +2151,6 @@ export default function CustomerMobileApp({
                 </button>
               </div>
 
-              {/* Theme Mode Toggle Card in Menu */}
-              <div className={`p-3.5 rounded-2xl border ${
-                isDark ? 'bg-white/5 border-white/10' : 'bg-zinc-50 border-zinc-200 shadow-2xs'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                      isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-orange-600 text-white shadow-xs'
-                    }`}>
-                      {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                    </div>
-                    <div>
-                      <span className={`text-xs font-bold uppercase tracking-wider block ${
-                        isDark ? 'text-white' : 'text-zinc-900'
-                      }`}>
-                        {isDark ? 'Dark Mode' : 'Light Mode'}
-                      </span>
-                      <span className={`text-[10px] block ${
-                        isDark ? 'text-zinc-400' : 'text-zinc-500'
-                      }`}>
-                        {isDark ? 'Tap switch for Light Mode' : 'Tap switch for Dark Mode'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Toggle Switch */}
-                  <button
-                    type="button"
-                    onClick={toggleTheme}
-                    className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent focus:outline-hidden ${
-                      isDark ? 'bg-zinc-700' : 'bg-orange-600'
-                    }`}
-                    aria-label="Toggle theme mode"
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 flex items-center justify-center text-xs ${
-                        isDark ? 'translate-x-0' : 'translate-x-5'
-                      }`}
-                    >
-                      {isDark ? '🌙' : '☀️'}
-                    </span>
-                  </button>
-                </div>
-              </div>
-
               {/* Navigation Links: Home, Deals, Menu, RECENT ORDERS */}
               <nav className="space-y-2.5">
                 <button
@@ -2382,6 +2337,64 @@ export default function CustomerMobileApp({
                   <span>{googleLoading ? 'Connecting...' : 'Login with Google'}</span>
                 </button>
               )}
+
+              {/* Neumorphic Theme Mode Toggle (below Login with Google) */}
+              <div className="pt-2">
+                <div 
+                  onClick={toggleTheme}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                  className={`w-full py-2.5 px-4 rounded-2xl flex items-center justify-center gap-4 cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
+                    isDark 
+                      ? 'bg-[#1e232d] border border-white/5 shadow-inner' 
+                      : 'bg-[#edf0f5] border border-zinc-200/90 shadow-2xs'
+                  }`}
+                >
+                  {/* Sun Icon */}
+                  <div className={`transition-all duration-300 flex items-center justify-center ${
+                    !isDark 
+                      ? 'text-zinc-700 scale-105' 
+                      : 'text-zinc-500 opacity-40 hover:opacity-60'
+                  }`}>
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="4.5" />
+                      <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.93 4.93l1.8 1.8M17.27 17.27l1.8 1.8M4.93 19.07l1.8-1.8M17.27 6.73l1.8-1.8" />
+                    </svg>
+                  </div>
+
+                  {/* Inset Neumorphic Track */}
+                  <div 
+                    className={`relative w-20 h-10 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
+                      isDark 
+                        ? 'bg-[#141720] shadow-[inset_3px_3px_6px_rgba(0,0,0,0.7),inset_-1px_-1px_3px_rgba(255,255,255,0.06)]' 
+                        : 'bg-[#d5dae3] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.18),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]'
+                    }`}
+                  >
+                    {/* Floating Sliding Knob */}
+                    <div 
+                      className={`w-8 h-8 rounded-full transition-transform duration-300 ease-out transform ${
+                        isDark 
+                          ? 'translate-x-10 bg-[#4f5768] shadow-[2px_3px_8px_rgba(0,0,0,0.6),-1px_-1px_3px_rgba(255,255,255,0.08)]' 
+                          : 'translate-x-0 bg-[#ffffff] shadow-[2px_3px_6px_rgba(0,0,0,0.18),-1px_-1px_2px_rgba(255,255,255,0.9)]'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Moon with Stars Icon */}
+                  <div className={`transition-all duration-300 flex items-center justify-center ${
+                    isDark 
+                      ? 'text-zinc-300 scale-105' 
+                      : 'text-zinc-400 opacity-40 hover:opacity-60'
+                  }`}>
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 3.2A8 8 0 1 0 20.8 10 7 7 0 0 1 14 3.2Z" />
+                      <path d="M19 3.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="currentColor" stroke="none" />
+                      <path d="M22 8l.4.9.9.4-.9.4-.4.9-.4-.9-.9-.4.9-.4z" fill="currentColor" stroke="none" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
