@@ -1218,10 +1218,7 @@ export default function OrdersManager({
                 {isDelivered ? (
                   <div>
                     <div className="p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 bg-white">
-                      <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap min-w-0">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                          <CheckCircle2 className="w-4 h-4" />
-                        </div>
+                      <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap min-w-0">
                         <span className="font-sans font-bold text-xs sm:text-sm text-zinc-900">
                           #{order.id}
                         </span>
