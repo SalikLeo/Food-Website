@@ -1,0 +1,98 @@
+\documentclass[10pt,letterpaper]{article}
+
+% --- Packages ---
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{amsmath}
+
+% --- Page Setup ---
+\pagestyle{empty}          % Suppress page numbers
+\raggedbottom              % Don't stretch vertical spacing
+\urlstyle{same}            % Keep link fonts consistent with body text
+
+% --- Section Heading Formatting ---
+\titleformat{\section}{\large\scshape\raggedright}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+
+% --- Itemize / List Settings ---
+\setlist[itemize]{leftmargin=*, nosep, label=\textbullet}
+\setlist[itemize,2]{leftmargin=12pt, nosep, label=$\circ$}
+
+\begin{document}
+
+% ==================== HEADER ====================
+\noindent
+\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+    \textbf{\Large Muhammad Salik} & Email : \href{mailto:muhammadsalikleo321@gmail.com}{muhammadsalikleo321@gmail.com} \\
+    \href{https://www.linkedin.com/in/muhammad-salik-leo/}{LinkedIn} --- \href{https://github.com/SalikLeo}{Github} & Mobile : \href{tel:+923095369472}{0309-5369472} \\
+\end{tabular*}
+
+\vspace{4pt}
+\small % Body text is 9pt/10pt matching the original layout
+
+% ==================== PROFILE ====================
+\section{Profile}
+AI Engineer focused on \textbf{computer vision}, \textbf{speech processing}, and \textbf{model optimization}. Experienced building \textbf{end-to-end ML pipelines}, \textbf{LLM agents}, and \textbf{FastAPI} services, with hands-on work in \textbf{edge deployment} and \textbf{model quantization}.
+
+% ==================== TECHNICAL SKILLS ====================
+\section{Technical Skills}
+\begin{itemize}
+    \item \textbf{Core AI \& LLM Systems:} Python, LLM Agents, FastAPI, REST APIs, Flask
+    \item \textbf{Computer Vision:} PyTorch, YOLO (v8), OpenCV, Depth Anything V2, Model Fine-tuning, Real-time Inference
+    \item \textbf{Speech \& Edge AI:} Whisper (whisper.cpp), XTTS-v2, CTranslate2, WebSockets, NVIDIA Jetson, TensorRT, CUDA
+    \item \textbf{Deep Learning:} Model Optimization, Data Preprocessing, Augmentation, Dataset Validation, C++ Model Quantization
+    \item \textbf{Web \& Software:} Electron.js, WordPress, SEO, UX, Responsive Web Development
+    \item \textbf{Platforms:} Linux/Bash, Git
+\end{itemize}
+
+% ==================== EXPERIENCE ====================
+\section{Experience}
+\begin{itemize}
+    \item \textbf{Aeyron} \hfill Islamabad, Pakistan (Hybrid) \\
+    \textit{Computer Vision Engineer} \hfill \textit{May 2026 -- Present}
+    \begin{itemize}
+        \item Developed and evaluated \textbf{deep learning workflows} for computer vision and speech recognition applications, reducing inference bottlenecks through \textbf{model optimization}.
+        \item Designed \textbf{data preprocessing, augmentation, and validation pipelines} in Python to improve dataset balance and overall model convergence.
+    \end{itemize}
+    
+    \vspace{4pt}
+    \item \textbf{PrimeSoft Agency} \hfill Wah Cantonment, Punjab, Pakistan (Hybrid) \\
+    \textit{Custom Software / Website Developer -- Freelance} \hfill \textit{1 Year}
+    \begin{itemize}
+        \item Built custom \textbf{desktop POS and inventory software using Electron.js} to help businesses manage daily sales and stock tracking.
+        \item Created and launched \textbf{custom WordPress websites and online stores} tailored to client needs.
+    \end{itemize}
+    
+    \vspace{4pt}
+    \item \textbf{Paragon Visa Consultancy} \hfill Islamabad, Pakistan (Remote) \\
+    \textit{Web Developer -- Freelance} \hfill \textit{4 Months}
+    \begin{itemize}
+        \item Designed, developed, and maintained a \textbf{user-friendly, responsive website} to showcase services and enhance client engagement, applying \textbf{SEO and UX best practices}.
+    \end{itemize}
+\end{itemize}
+
+% ==================== PROJECTS ====================
+\section{Projects}
+\begin{itemize}
+    \item \textbf{MedAide -- Edge-AI Medical Transcription \& SOAP Generator:} Real-time clinical speech-to-text pipeline using quantized \textbf{Whisper} with \textbf{CUDA} on \textbf{NVIDIA Jetson Orin Nano}; low-latency \textbf{WebSocket} streaming with \textbf{LLM}-generated SOAP notes; optimized to $\sim$\textbf{3.2GB VRAM} via \textbf{CTranslate2}/\textbf{whisper.cpp} for real-time edge execution. \textit{Tech: whisper.cpp, XTTS-v2, CTranslate2, WebSockets, Python, NVIDIA Jetson, LLM APIs.}
+    
+    \vspace{3pt}
+    \item \textbf{Embedded AI \& Jetson Integration:} Deployed real-time computer vision and speech models on \textbf{NVIDIA Jetson} (Orin Nano / reComputer J1010); accelerated inference with \textbf{CUDA}, \textbf{TensorRT}, and Linux swap optimization for stable frame rates under thermal limits; built hybrid edge-to-cloud pipelines syncing inference metadata to remote services. \textit{Tech: NVIDIA Jetson, TensorRT, CUDA, PyTorch, OpenCV, Linux/Bash.}
+    
+    \vspace{3pt}
+    \item \textbf{Car DD -- AI Vehicle Damage Assessment System:} Automated vehicle inspection pipeline using custom-trained \textbf{YOLO} and \textbf{OpenCV} to detect dents, scratches, and structural flaws across varied lighting/angles; built an automated engine generating structured \textbf{PDF} damage analytics and repair-cost estimates. \textit{Tech: YOLO, Depth Anything V2, PyTorch, OpenCV, Python, PDF Automation.}
+    
+    \vspace{3pt}
+    \item \textbf{FitVision -- AI Gym Assistant \& Workout Tracker:} Fine-tuned custom \textbf{YOLOv8} models for real-time gym-equipment detection and exercise recommendation; built \textbf{REST APIs} for meal-plan generation, calorie tracking, and workout scheduling; optimized inference for low-latency mobile/edge use. \textit{Tech: YOLO (v8), PyTorch, OpenCV, Python, FastAPI/Flask, REST APIs.}
+\end{itemize}
+
+% ==================== EDUCATION ====================
+\section{Education}
+\begin{itemize}
+    \item \textbf{COMSATS University Islamabad} \hfill Pakistan \\
+    \textit{Bachelor of Science in Computer Science} \hfill \textit{2020 -- 2024}
+\end{itemize}
+
+\end{document}

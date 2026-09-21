@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { apiUrl } from '../../config/api';
 
 export default function AdminLogin({ onLogin, onBackToStore }) {
   const [password, setPassword] = useState('');
@@ -12,7 +13,7 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
     setError('');
 
     try {
-      const res = await fetch('/api/admin/login', {
+      const res = await fetch(apiUrl('/api/admin/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -46,7 +47,7 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
         <div className="text-center mb-8">
           <img
             src="/assets/mehrban-logo.png"
-            alt="Mehrban Fast Food"
+            alt="Salik Fast Food"
             className="h-16 w-auto mx-auto mb-4 object-contain"
           />
           <h2 className="font-display text-3xl uppercase tracking-wide text-zinc-900">

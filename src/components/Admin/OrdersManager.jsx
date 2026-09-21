@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar } from 'lucide-react';
+import { apiUrl } from '../../config/api';
 
 // Helper to format date to local YYYY-MM-DD
 const getLocalDateStr = (d) => {
@@ -259,7 +260,7 @@ export default function OrdersManager({
     if (!modifyingOrder || editItems.length === 0) return;
     setIsSaving(true);
     try {
-      const res = await fetch(`/api/orders/${modifyingOrder.id}/items`, {
+      const res = await fetch(apiUrl(`/api/orders/${modifyingOrder.id}/items`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -286,7 +287,7 @@ export default function OrdersManager({
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const res = await fetch(`/api/orders/${orderId}/status`, {
+      const res = await fetch(apiUrl(`/api/orders/${orderId}/status`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -309,7 +310,7 @@ export default function OrdersManager({
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Receipt #${order.id} - Mehrban Fast Food</title>
+  <title>Receipt #${order.id} - Salik Fast Food</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -540,11 +541,11 @@ export default function OrdersManager({
 <body>
   <!-- Header -->
   <div class="receipt-header">
-    <div class="brand-title">MEHRBAN FAST FOOD</div>
+    <div class="brand-title">SALIK FAST FOOD</div>
     <div class="brand-tagline">Taste That You Need</div>
     <div class="contact-info">
-      Main Multan Road, Shaikh Chowk, Itfaq Town, Lahore<br>
-      Phone: 0323-4660279 / 0323-6580604
+      Wah Model Town, Wah Cantt<br>
+      Phone: 0309-5369472
     </div>
     <div class="order-badge">
       ${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}
@@ -631,9 +632,9 @@ export default function OrdersManager({
 
   <!-- Footer -->
   <div class="receipt-footer">
-    <div class="bold" style="font-size: 9.5px; margin-bottom: 2px;">Thank you for ordering with Mehrban!</div>
+    <div class="bold" style="font-size: 9.5px; margin-bottom: 2px;">Thank you for ordering with Salik Fast Food!</div>
     <div>Please check your order upon receiving.</div>
-    <div>For complaints or feedback, contact: 0323-4660279</div>
+    <div>For complaints or feedback, contact: 0309-5369472</div>
     <div class="cut-line">✂ - - - - - - - - - - - - - - - - - - - - -</div>
   </div>
 </body>

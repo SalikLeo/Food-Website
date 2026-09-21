@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, ShoppingBag, Plus, Minus, Tag, Check } from 'lucide-react';
+import { Search, ShoppingBag, Plus, Minus, Tag, Check, Ban, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function MenuSection({ categories = [], products = [] }) {
@@ -12,14 +12,9 @@ export default function MenuSection({ categories = [], products = [] }) {
   // Active category blurb
   const activeCat = categories.find(c => c.id === selectedCategory) || categories[0];
 
-  // Only show available (in stock) products on the public storefront
-  const inStockProducts = useMemo(() => {
-    return (products || []).filter(p => p.inStock !== false);
-  }, [products]);
-
-  // Filter products by category and search
+  // Filter products by category and search (includes sold out items with sold-out badges)
   const filteredProducts = useMemo(() => {
-    let list = inStockProducts;
+    let list = products || [];
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return list.filter(p =>
@@ -31,7 +26,7 @@ export default function MenuSection({ categories = [], products = [] }) {
       list = list.filter(p => p.category === selectedCategory);
     }
     return list;
-  }, [inStockProducts, selectedCategory, searchQuery]);
+  }, [products, selectedCategory, searchQuery]);
 
   // Size helper
   const getSelectedSize = (product) => {
@@ -58,11 +53,11 @@ export default function MenuSection({ categories = [], products = [] }) {
     }));
   };
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = (product, e = null) => {
     if (product.inStock === false) return;
     const size = getSelectedSize(product);
     const qty = getQty(product.id);
-    addToCart(product, size, qty);
+    addToCart(product, size, qty, e?.currentTarget);
   };
 
   const handleOrderNow = (product) => {
@@ -111,7 +106,7 @@ export default function MenuSection({ categories = [], products = [] }) {
           <div className="flex items-center gap-2.5 overflow-x-auto pb-4 mb-8 category-scroll">
             {categories.map((cat) => {
               const isActive = selectedCategory === cat.id;
-              const itemCount = inStockProducts.filter(p => p.category === cat.id).length;
+              const itemCount = (products || []).filter(p => p.category === cat.id).length;
               return (
                 <button
                   key={cat.id}
@@ -159,31 +154,43 @@ export default function MenuSection({ categories = [], products = [] }) {
               const selectedSize = getSelectedSize(product);
               const activePrice = selectedSize ? selectedSize.price : product.price;
               const qty = getQty(product.id);
+              const isSoldOut = product.inStock === false;
 
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl border border-zinc-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+                  className={`bg-white rounded-2xl border border-zinc-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group ${
+                    isSoldOut ? 'opacity-90' : ''
+                  }`}
                 >
                   {/* Card Media Top */}
                   <div className="relative w-full h-48 bg-zinc-100 overflow-hidden">
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className={`w-full h-full object-cover transition-transform duration-500 ${
+                        isSoldOut ? 'grayscale contrast-75 opacity-75' : 'group-hover:scale-105'
+                      }`}
                       onError={(e) => {
                         e.target.src = '/assets/images/cat-special-CdXGKIOV.jpg';
                       }}
                     />
 
-                    {/* Tag / Badge */}
-                    {product.tag && (
-                      <div className="absolute top-3 left-3">
-                        <span className="px-2.5 py-1 rounded-md bg-orange-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow">
-                          {product.tag}
+                    {/* Tag / Sold Out Badge */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                      {isSoldOut ? (
+                        <span className="px-2.5 py-1 rounded-md bg-zinc-900/95 text-amber-300 border border-amber-400/40 text-[10px] font-extrabold uppercase tracking-wider shadow-md flex items-center gap-1.5 backdrop-blur-xs">
+                          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                          Sold Out Today
                         </span>
-                      </div>
-                    )}
+                      ) : (
+                        product.tag && (
+                          <span className="px-2.5 py-1 rounded-md bg-orange-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow">
+                            {product.tag}
+                          </span>
+                        )
+                      )}
+                    </div>
                   </div>
 
                   {/* Card Content */}
@@ -195,7 +202,7 @@ export default function MenuSection({ categories = [], products = [] }) {
                           {product.name}
                         </h4>
                         <span className="font-bold text-sm sm:text-base text-red-600 flex-shrink-0 tracking-tight">
-                          RS. {activePrice.toLocaleString()}
+                          Rs. {activePrice.toLocaleString()}
                         </span>
                       </div>
 
@@ -213,12 +220,13 @@ export default function MenuSection({ categories = [], products = [] }) {
                               <button
                                 key={s.label}
                                 type="button"
+                                disabled={isSoldOut}
                                 onClick={() => handleSelectSize(product.id, s)}
                                 className={`flex-1 py-1 px-3 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider text-center transition-all duration-200 ${
                                   isSizeActive
                                     ? 'bg-gradient-to-r from-[#d93409] to-[#ea580c] text-white shadow-sm'
                                     : 'text-[#635d56] hover:text-zinc-900 bg-transparent'
-                                }`}
+                                } ${isSoldOut ? 'opacity-70 cursor-not-allowed' : ''}`}
                               >
                                 {s.label}
                               </button>
@@ -230,43 +238,68 @@ export default function MenuSection({ categories = [], products = [] }) {
 
                     {/* Quantity & Actions */}
                     <div className="space-y-2 pt-2 border-t border-zinc-100">
-                      <div className="flex items-center gap-2">
-                        {/* Stepper */}
-                        <div className="flex items-center border border-zinc-300 rounded-lg overflow-hidden bg-zinc-50">
+                      {isSoldOut ? (
+                        <div className="space-y-1.5">
                           <button
-                            onClick={() => setQty(product.id, -1)}
-                            className="px-2.5 py-1.5 hover:bg-zinc-200 text-zinc-700 transition-colors"
+                            type="button"
+                            disabled
+                            className="w-full h-10 flex items-center justify-center gap-1.5 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-400 text-xs font-bold cursor-not-allowed uppercase tracking-wider"
                           >
-                            <Minus className="w-3 h-3" />
+                            <Ban className="w-3.5 h-3.5 text-zinc-400" />
+                            <span>Sold Out Today</span>
                           </button>
-                          <span className="px-2 py-1 text-xs font-bold text-zinc-900 min-w-[20px] text-center">
-                            {qty}
-                          </span>
-                          <button
-                            onClick={() => setQty(product.id, 1)}
-                            className="px-2.5 py-1.5 hover:bg-zinc-200 text-zinc-700 transition-colors"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
+                          <p className="text-[11px] text-center text-zinc-400 font-medium italic">
+                            Temporarily unavailable today
+                          </p>
                         </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2">
+                            {/* Sleek, Modern Stepper */}
+                            <div className="flex items-center h-10 rounded-xl bg-zinc-100/90 border border-zinc-200/80 p-0.5 shadow-2xs">
+                              <button
+                                type="button"
+                                onClick={() => setQty(product.id, -1)}
+                                className="w-8 h-full rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                                aria-label="Decrease quantity"
+                              >
+                                <Minus className="w-3.5 h-3.5" />
+                              </button>
+                              <span className="w-7 text-center font-bold text-xs sm:text-sm text-zinc-900">
+                                {qty}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setQty(product.id, 1)}
+                                className="w-8 h-full rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                                aria-label="Increase quantity"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
 
-                        {/* Add to Cart */}
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold transition-colors"
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5 text-orange-400" />
-                          <span>Add to Cart</span>
-                        </button>
-                      </div>
+                            {/* Add to Cart */}
+                            <button
+                              type="button"
+                              onClick={(e) => handleAddToCart(product, e)}
+                              className="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 active:scale-[0.98] text-white font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer"
+                            >
+                              <ShoppingBag className="w-3.5 h-3.5 text-orange-400" />
+                              <span>Add to Cart</span>
+                            </button>
+                          </div>
 
-                      {/* Order Now */}
-                      <button
-                        onClick={() => handleOrderNow(product)}
-                        className="w-full py-2 rounded-lg bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-sm"
-                      >
-                        Order Now
-                      </button>
+                          {/* Order Now */}
+                          <button
+                            type="button"
+                            onClick={() => handleOrderNow(product)}
+                            className="w-full h-10 rounded-xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] active:scale-[0.98] text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <Zap className="w-3.5 h-3.5 fill-white" />
+                            <span>Order Now</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

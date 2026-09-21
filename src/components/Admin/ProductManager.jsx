@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Edit2, Trash2, UploadCloud, Search, Check, X, Image as ImageIcon, FolderTree, Save, Undo2 } from 'lucide-react';
+import { apiUrl } from '../../config/api';
 
 export default function ProductManager({ products = [], categories = [], onRefresh }) {
   const [search, setSearch] = useState('');
@@ -19,6 +21,18 @@ export default function ProductManager({ products = [], categories = [], onRefre
   const [isSavingCat, setIsSavingCat] = useState(false);
   const [catFeedback, setCatFeedback] = useState(null);
 
+  // Lock body scroll when either modal is open
+  useEffect(() => {
+    if (isCategoryModalOpen || isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isCategoryModalOpen, isModalOpen]);
+
   const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!newCatLabel.trim()) return;
@@ -26,7 +40,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
     setIsSavingCat(true);
     setCatFeedback(null);
     try {
-      const res = await fetch('/api/categories', {
+      const res = await fetch(apiUrl('/api/categories'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -63,7 +77,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
     setIsSavingCat(true);
     setCatFeedback(null);
     try {
-      const res = await fetch(`/api/categories/${catId}`, {
+      const res = await fetch(apiUrl(`/api/categories/${catId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -100,7 +114,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
     setIsSavingCat(true);
     setCatFeedback(null);
     try {
-      const res = await fetch(`/api/categories/${cat.id}`, {
+      const res = await fetch(apiUrl(`/api/categories/${cat.id}`), {
         method: 'DELETE'
       });
       const data = await res.json();
@@ -187,7 +201,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
     data.append('image', file);
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch(apiUrl('/api/upload'), {
         method: 'POST',
         body: data
       });
@@ -228,7 +242,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
     try {
       if (editingProduct) {
         // Update
-        const res = await fetch(`/api/products/${editingProduct.id}`, {
+        const res = await fetch(apiUrl(`/api/products/${editingProduct.id}`), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -236,7 +250,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
         if (!res.ok) throw new Error('Update failed');
       } else {
         // Create
-        const res = await fetch('/api/products', {
+        const res = await fetch(apiUrl('/api/products'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -255,7 +269,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
     if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
 
     try {
-      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(apiUrl(`/api/products/${id}`), { method: 'DELETE' });
       if (res.ok) {
         onRefresh();
       } else {
@@ -263,6 +277,30 @@ export default function ProductManager({ products = [], categories = [], onRefre
       }
     } catch {
       alert('Network error deleting product');
+    }
+  };
+
+  // Quick 1-click Out of Stock toggle
+  const [updatingStockId, setUpdatingStockId] = useState(null);
+
+  const handleToggleStock = async (product) => {
+    const newStatus = product.inStock === false ? true : false;
+    setUpdatingStockId(product.id);
+    try {
+      const res = await fetch(apiUrl(`/api/products/${product.id}`), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inStock: newStatus })
+      });
+      if (res.ok) {
+        if (onRefresh) onRefresh();
+      } else {
+        alert('Failed to update product stock status');
+      }
+    } catch {
+      alert('Network error updating stock status');
+    } finally {
+      setUpdatingStockId(null);
     }
   };
 
@@ -336,7 +374,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-zinc-700">
             <thead className="bg-zinc-50 text-zinc-500 uppercase text-[10px] tracking-wider border-b border-zinc-200 font-bold">
-              <tr>
+              <tr className="divide-x divide-zinc-200/80">
                 <th className="px-5 py-3.5">Item</th>
                 <th className="px-4 py-3.5">Category</th>
                 <th className="px-4 py-3.5">Pricing / Sizes</th>
@@ -346,7 +384,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {filtered.map(product => (
-                <tr key={product.id} className="hover:bg-zinc-50/80 transition-colors">
+                <tr key={product.id} className="divide-x divide-zinc-100 hover:bg-zinc-50/80 transition-colors">
                   <td className="px-5 py-3 flex items-center gap-3">
                     <img
                       src={product.image}
@@ -395,15 +433,20 @@ export default function ProductManager({ products = [], categories = [], onRefre
                   </td>
 
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    <button
+                      type="button"
+                      onClick={() => handleToggleStock(product)}
+                      disabled={updatingStockId === product.id}
+                      title={product.inStock !== false ? "Click to mark Out of Stock" : "Click to mark In Stock"}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95 ${
                         product.inStock !== false
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-red-50 text-red-700 border border-red-200'
-                      }`}
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100'
+                          : 'bg-red-50 text-red-700 border border-red-300 hover:bg-red-100'
+                      } ${updatingStockId === product.id ? 'opacity-60 cursor-wait' : ''}`}
                     >
-                      {product.inStock !== false ? 'In Stock' : 'Out of Stock'}
-                    </span>
+                      <span className={`w-2 h-2 rounded-full ${product.inStock !== false ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+                      <span>{updatingStockId === product.id ? 'Updating...' : product.inStock !== false ? 'In Stock' : 'Out of Stock'}</span>
+                    </button>
                   </td>
 
                   <td className="px-5 py-3 text-right">
@@ -432,9 +475,10 @@ export default function ProductManager({ products = [], categories = [], onRefre
       </div>
 
       {/* Add / Edit Product Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="relative bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 max-w-xl w-full text-zinc-900 shadow-2xl animate-in zoom-in-95 duration-200">
+      {isModalOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[100] overflow-y-auto flex items-start sm:items-center justify-center p-3 sm:p-4 pt-6 pb-6 sm:py-8 bg-black/60 backdrop-blur-xs">
+            <div className="relative bg-white border border-zinc-200 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-xl w-full text-zinc-900 shadow-2xl animate-in zoom-in-95 duration-200 my-auto">
             
             <div className="flex items-center justify-between pb-4 border-b border-zinc-200 mb-6">
               <h3 className="font-display text-2xl uppercase tracking-wide text-zinc-900">
@@ -552,7 +596,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
                 <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-zinc-50 border border-zinc-200">
                   <div>
                     <label className="block text-[10px] text-zinc-500 font-bold uppercase mb-1">
-                      Small Price (Rs.)
+                      Small Price (<span className="normal-case">Rs.</span>)
                     </label>
                     <input
                       type="number"
@@ -564,7 +608,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
                   </div>
                   <div>
                     <label className="block text-[10px] text-zinc-500 font-bold uppercase mb-1">
-                      Medium Price (Rs.)
+                      Medium Price (<span className="normal-case">Rs.</span>)
                     </label>
                     <input
                       type="number"
@@ -576,7 +620,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
                   </div>
                   <div>
                     <label className="block text-[10px] text-zinc-500 font-bold uppercase mb-1">
-                      Large Price (Rs.)
+                      Large Price (<span className="normal-case">Rs.</span>)
                     </label>
                     <input
                       type="number"
@@ -590,7 +634,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
               ) : (
                 <div>
                   <label className="block font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
-                    Price (Rs.) *
+                    Price (<span className="normal-case">Rs.</span>) *
                   </label>
                   <input
                     type="number"
@@ -650,19 +694,21 @@ export default function ProductManager({ products = [], categories = [], onRefre
 
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Manage Categories Modal */}
-      {isCategoryModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150"
-          onClick={() => setIsCategoryModalOpen(false)}
-        >
+      {isCategoryModalOpen &&
+        createPortal(
           <div
-            className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-zinc-200 space-y-5 animate-in zoom-in-95 duration-150 my-8"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto pt-4 pb-6 sm:py-8 animate-in fade-in duration-150"
+            onClick={() => setIsCategoryModalOpen(false)}
           >
+            <div
+              className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-zinc-200 space-y-4 sm:space-y-5 animate-in zoom-in-95 duration-150 my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-zinc-200">
               <div className="flex items-center gap-2.5">
@@ -670,9 +716,9 @@ export default function ProductManager({ products = [], categories = [], onRefre
                   <FolderTree className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-display font-bold text-lg text-zinc-900 flex items-center gap-2">
+                  <h3 className="font-bold text-lg text-zinc-900 flex items-center gap-2">
                     <span>Manage Categories</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200 font-semibold font-sans">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200 font-semibold">
                       {categories.length} total
                     </span>
                   </h3>
@@ -758,7 +804,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
                 Existing Categories ({categories.length})
               </span>
 
-              <div className="border border-zinc-200 rounded-xl divide-y divide-zinc-100 max-h-72 overflow-y-auto bg-white">
+              <div className="border border-zinc-200 rounded-xl divide-y divide-zinc-100 max-h-52 sm:max-h-72 overflow-y-auto custom-dropdown-scroll bg-white">
                 {categories.length === 0 ? (
                   <div className="p-6 text-center text-xs text-zinc-500">
                     No categories found. Add your first category above!
@@ -818,9 +864,6 @@ export default function ProductManager({ products = [], categories = [], onRefre
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-bold text-xs text-zinc-900">
                                   {cat.label}
-                                </span>
-                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500">
-                                  #{cat.id}
                                 </span>
                                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                                   catProductCount > 0
@@ -884,7 +927,8 @@ export default function ProductManager({ products = [], categories = [], onRefre
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

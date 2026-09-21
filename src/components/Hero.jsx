@@ -1,11 +1,54 @@
-import React from 'react';
-import { Flame, Clock, Star, Utensils, ArrowRight } from 'lucide-react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Flame, Clock, Star, Utensils } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { apiUrl, isCustomerApp } from '../config/api';
 
-export default function Hero() {
+export default function Hero({ products: propProducts = [], deals: propDeals = [] }) {
+  const { settings } = useCart();
+  const [internalProducts, setInternalProducts] = useState([]);
+  const [internalDeals, setInternalDeals] = useState([]);
+
+  useEffect(() => {
+    if (propProducts.length === 0) {
+      fetch(apiUrl('/api/products'))
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) setInternalProducts(data);
+        })
+        .catch(() => {});
+    }
+    if (propDeals.length === 0) {
+      fetch(apiUrl('/api/deals'))
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.deals) setInternalDeals(data.deals);
+        })
+        .catch(() => {});
+    }
+  }, [propProducts.length, propDeals.length]);
+
+  const allProducts = propProducts.length > 0 ? propProducts : internalProducts;
+  const allDeals = propDeals.length > 0 ? propDeals : internalDeals;
+
+  const totalItems = allProducts.length > 0 ? allProducts.length : 22;
+
+  const lowestDealPrice = useMemo(() => {
+    if (allDeals && allDeals.length > 0) {
+      const prices = allDeals
+        .map((d) => Number(d.price))
+        .filter((p) => !isNaN(p) && p > 0);
+      if (prices.length > 0) return Math.min(...prices);
+    }
+    return 600;
+  }, [allDeals]);
+
+  const freeDeliveryAmount = Number(settings?.freeDeliveryThreshold) > 0
+    ? Number(settings.freeDeliveryThreshold)
+    : 1500;
   return (
     <section
       id="home"
-      className="relative pt-32 pb-16 lg:pt-40 lg:pb-24 overflow-hidden bg-[#0d0d0e]"
+      className={`relative ${isCustomerApp ? 'pt-20 pb-12' : 'pt-32 pb-16'} lg:pt-40 lg:pb-24 overflow-hidden bg-[#0d0d0e]`}
       style={{
         background: `
           radial-gradient(ellipse 80% 70% at 95% 25%, rgba(165, 28, 28, 0.45) 0%, rgba(100, 18, 22, 0.25) 50%, transparent 80%),
@@ -33,14 +76,14 @@ export default function Hero() {
 
             {/* Main Headline */}
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.25rem] font-display uppercase tracking-tight text-white leading-[0.92]">
-              MEHRBAN FAST FOOD <br />
-              LAHORE <br />
+              SALIK FAST FOOD <br />
+              WAH CANTT <br />
               <span className="text-gradient-orange">MADE FRESH.</span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-zinc-400 text-base sm:text-lg max-w-xl leading-relaxed">
-              Best pizza, zinger burgers, shawarma, broast wings and combo deals with fast home delivery in Lahore — Main Multan Road, Itfaq Town.
+              Best pizza, zinger burgers, shawarma, broast wings and combo deals with fast home delivery in Wah Cantt — Wah Model Town.
             </p>
 
             {/* Action Buttons */}
@@ -66,7 +109,7 @@ export default function Hero() {
                   <Clock className="w-4 h-4" />
                   <span>30-40 MIN</span>
                 </div>
-                <span className="text-[11px] text-zinc-500 uppercase tracking-wider mt-0.5">
+                <span className="text-xs text-zinc-300 font-semibold uppercase tracking-wider mt-1">
                   HOME DELIVERY
                 </span>
               </div>
@@ -76,7 +119,7 @@ export default function Hero() {
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span>4.8 / 5</span>
                 </div>
-                <span className="text-[11px] text-zinc-500 uppercase tracking-wider mt-0.5">
+                <span className="text-xs text-zinc-300 font-semibold uppercase tracking-wider mt-1">
                   LOVED LOCALLY
                 </span>
               </div>
@@ -84,9 +127,9 @@ export default function Hero() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5 text-orange-400 font-bold text-sm">
                   <Utensils className="w-4 h-4" />
-                  <span>9 CATEGORIES</span>
+                  <span>{totalItems} ITEMS</span>
                 </div>
-                <span className="text-[11px] text-zinc-500 uppercase tracking-wider mt-0.5">
+                <span className="text-xs text-zinc-300 font-semibold uppercase tracking-wider mt-1">
                   FULL MENU
                 </span>
               </div>
@@ -108,24 +151,19 @@ export default function Hero() {
                   className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105"
                 />
 
-                {/* Floating Discount Badge */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl text-zinc-900 border border-white/40 flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="font-display text-xl sm:text-2xl text-zinc-900 tracking-wide leading-none">
-                      DEALS FROM RS. 500
-                    </span>
-                    <span className="text-[11px] font-bold text-orange-600 tracking-wider uppercase mt-1">
-                      MINIMUM ORDER RS. 500
-                    </span>
-                  </div>
-                  <a
-                    href="#deals"
-                    className="p-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-                    aria-label="View Deals"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </div>
+                {/* Compact Floating Deals Badge */}
+                <a
+                  href="#deals"
+                  className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl px-5 py-3 sm:px-6 sm:py-4 shadow-xl border border-white/60 hover:scale-105 active:scale-95 transition-all duration-200 flex flex-col items-start justify-center z-10"
+                  aria-label="View Deals"
+                >
+                  <span className={`font-display font-bold ${isCustomerApp ? 'text-[1.75rem] leading-none' : 'text-xl sm:text-3xl'} md:text-4xl text-gradient-orange tracking-tight uppercase inline-block pr-2`}>
+                    DEALS FROM RS. {lowestDealPrice.toLocaleString()}
+                  </span>
+                  <span className={`font-sans ${isCustomerApp ? 'text-xs font-semibold' : 'text-xs sm:text-sm'} md:text-base font-medium text-zinc-600 leading-normal mt-0.5 sm:mt-1.5 block whitespace-nowrap`}>
+                    Free Delivery on order above Rs. {freeDeliveryAmount.toLocaleString()}
+                  </span>
+                </a>
               </div>
             </div>
           </div>

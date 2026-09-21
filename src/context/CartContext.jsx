@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiUrl } from '../config/api';
+import { flyItemToCart } from '../utils/flyToCart';
 
 const CartContext = createContext();
 
@@ -24,7 +26,7 @@ export const CartProvider = ({ children }) => {
     }
   }, [cartItems]);
 
-  const addToCart = (product, selectedSize = null, quantity = 1) => {
+  const addToCart = (product, selectedSize = null, quantity = 1, options = null) => {
     if (!product || product.inStock === false) {
       return;
     }
@@ -56,8 +58,31 @@ export const CartProvider = ({ children }) => {
       ];
     });
 
-    // Animate or briefly flash
-    setIsCartOpen(true);
+    // Check if startElement is provided for fly-to-cart animation
+    let startElement = null;
+    let openDrawer = false;
+
+    if (options) {
+      if (options.nodeType || options.currentTarget || options.target) {
+        startElement = options;
+      } else if (typeof options === 'object') {
+        startElement = options.startElement || null;
+        openDrawer = Boolean(options.openDrawer);
+      }
+    }
+
+    if (startElement) {
+      flyItemToCart({
+        startElement,
+        image: product.image,
+        name: product.name,
+        quantity
+      });
+    }
+
+    if (openDrawer) {
+      setIsCartOpen(true);
+    }
   };
 
   const updateQuantity = (cartKey, delta) => {
@@ -91,7 +116,7 @@ export const CartProvider = ({ children }) => {
 
   const refreshSettings = async () => {
     try {
-      const res = await fetch('/api/settings');
+      const res = await fetch(apiUrl('/api/settings'));
       const data = await res.json();
       if (data && typeof data.deliveryFee === 'number') {
         setSettings(data);
@@ -133,7 +158,7 @@ export const CartProvider = ({ children }) => {
     ).join('\n');
 
     return encodeURIComponent(
-`*New Order — Mehrban Fast Food Lahore*
+`*New Order — Salik Fast Food Wah Cantt*
 Order time: ${dateStr}
 
 ${itemsList || '(No items selected)'}

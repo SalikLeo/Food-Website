@@ -31,6 +31,121 @@ if (!fs.existsSync(dbFile)) {
   }
 }
 
+const INITIAL_REVIEWS = [
+  {
+    id: 'rev-1',
+    name: 'Usman Tariq',
+    location: 'Wah Model Town Phase 1',
+    platform: 'Google Review',
+    rating: 5,
+    date: '2 days ago',
+    avatar: 'UT',
+    avatarBg: 'bg-amber-500',
+    itemOrdered: 'Crown Crust Large Pizza',
+    comment:
+      'Hands down the best crown crust pizza in Wah Cantt! Cheese pull was insane and the crust was loaded with kabab pieces. Delivered piping hot in 30 minutes to Model Town Phase 1.',
+    createdAt: new Date(Date.now() - 2 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-2',
+    name: 'Dr. Ayesha Siddiqui',
+    location: 'Officers Colony, Wah Cantt',
+    platform: 'Google Review',
+    rating: 5,
+    date: '1 week ago',
+    avatar: 'AS',
+    avatarBg: 'bg-orange-600',
+    itemOrdered: 'Zinger Tower Burger & Wings',
+    comment:
+      'Their Zinger patty is so crispy and juicy, beats international brands in Wah. The garlic mayo sauce is top tier. Will definitely be our regular weekend family order!',
+    createdAt: new Date(Date.now() - 7 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-3',
+    name: 'Hamza Malik',
+    location: 'Aslam Market, Wah Cantt',
+    platform: 'Foodpanda Verified',
+    rating: 5,
+    date: '3 days ago',
+    avatar: 'HM',
+    avatarBg: 'bg-red-600',
+    itemOrdered: 'Deal 3: 2 Zinger + Large Pizza',
+    comment:
+      'Incredible value for money. Deal 3 easily fed four of us with plenty left over. Ordering directly on their website was super smooth and received instant WhatsApp confirmation.',
+    createdAt: new Date(Date.now() - 3 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-4',
+    name: 'Zainab Bibi',
+    location: 'Wah Model Town Phase 2',
+    platform: 'Google Review',
+    rating: 5,
+    date: '5 days ago',
+    avatar: 'ZB',
+    avatarBg: 'bg-emerald-600',
+    itemOrdered: 'Special Chicken Shawarma Platter',
+    comment:
+      'Best shawarma in town! Proper pita bread, packed with grilled chicken and pickling veggies without too much oily mayo. Fresh, clean, and delivered fast.',
+    createdAt: new Date(Date.now() - 5 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-5',
+    name: 'Bilal Ahmed',
+    location: 'Barrier 3, Wah Cantt',
+    platform: 'Foodpanda Verified',
+    rating: 5,
+    date: '1 week ago',
+    avatar: 'BA',
+    avatarBg: 'bg-blue-600',
+    itemOrdered: 'Crispy Broast & Loaded Fries',
+    comment:
+      'Broast was super crunchy outside and tender inside, not oily at all. The loaded fries with melted cheese and chipotle sauce were fantastic. 10/10 recommended for Wah foodies.',
+    createdAt: new Date(Date.now() - 7 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-6',
+    name: 'Sana Farooq',
+    location: 'Lalarukh, Wah Cantt',
+    platform: 'Google Review',
+    rating: 5,
+    date: '2 weeks ago',
+    avatar: 'SF',
+    avatarBg: 'bg-purple-600',
+    itemOrdered: 'Malai Boti Pizza Large',
+    comment:
+      'If you like creamy, rich desi flavors on a pizza, their Malai Boti pizza is unbeatable. Soft crust, generous chicken chunks, and arrived steam-hot. Customer service is 10/10!',
+    createdAt: new Date(Date.now() - 14 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-7',
+    name: 'Naveed Akhtar',
+    location: 'New City Phase 2',
+    platform: 'Google Review',
+    rating: 5,
+    date: '3 weeks ago',
+    avatar: 'NA',
+    avatarBg: 'bg-teal-600',
+    itemOrdered: 'Mega Feast Family Deal',
+    comment:
+      'Ordered for a family get-together. Everything from the pizzas to the burgers and fries was fresh and perfectly packed. Very courteous delivery rider.',
+    createdAt: new Date(Date.now() - 21 * 86400000).toISOString()
+  },
+  {
+    id: 'rev-8',
+    name: 'Kashif Mehmood',
+    location: 'Wah Model Town Phase 1',
+    platform: 'Google Review',
+    rating: 5,
+    date: '1 month ago',
+    avatar: 'KM',
+    avatarBg: 'bg-rose-600',
+    itemOrdered: 'Pepperoni Supreme Pizza',
+    comment:
+      'Authentic taste and fresh dough made daily. Salik Fast Food has become our go-to late night hunger spot in Wah. Keep up the high standard!',
+    createdAt: new Date(Date.now() - 30 * 86400000).toISOString()
+  }
+];
+
 function readDb() {
   try {
     const raw = fs.readFileSync(dbFile, 'utf8');
@@ -202,16 +317,37 @@ export const db = {
   // Deals
   getDeals() {
     const data = readDb();
+    let deals = data.deals || [];
+    if (data.familyDeal && !deals.some(d => d.id === data.familyDeal.id || d.id === 'family-deal')) {
+      const migrated = {
+        ...data.familyDeal,
+        id: data.familyDeal.id || 'family-deal',
+        name: data.familyDeal.name || 'Family Deal 1',
+        number: data.familyDeal.number || '01',
+        dealType: 'family',
+        tag: data.familyDeal.tag || 'Family Bundle'
+      };
+      deals = [...deals, migrated];
+      data.deals = deals;
+      data.familyDeal = null;
+      writeDb(data);
+    }
+    const primaryFamilyDeal = deals.find(d => d.dealType === 'family' || d.id === 'family-deal') || data.familyDeal || null;
     return {
-      deals: data.deals || [],
-      familyDeal: data.familyDeal || null
+      deals,
+      familyDeal: primaryFamilyDeal
     };
   },
 
   createDeal(dealData) {
     const data = readDb();
-    const id = dealData.id || `deal-${Date.now()}`;
-    const newDeal = { ...dealData, id };
+    const isFamily = dealData.dealType === 'family';
+    const id = dealData.id || (isFamily ? `family-deal-${Date.now()}` : `deal-${Date.now()}`);
+    const newDeal = {
+      ...dealData,
+      id,
+      dealType: isFamily ? 'family' : 'normal'
+    };
     data.deals = [...(data.deals || []), newDeal];
     writeDb(data);
     return newDeal;
@@ -219,20 +355,27 @@ export const db = {
 
   updateDeal(id, updates) {
     const data = readDb();
-    if (id === 'family-deal') {
+    if (data.familyDeal && (id === 'family-deal' || id === data.familyDeal.id)) {
       data.familyDeal = { ...data.familyDeal, ...updates };
+    }
+    const idx = (data.deals || []).findIndex(d => d.id === id);
+    if (idx !== -1) {
+      data.deals[idx] = { ...data.deals[idx], ...updates };
+      writeDb(data);
+      return data.deals[idx];
+    }
+    if (id === 'family-deal' && data.familyDeal) {
       writeDb(data);
       return data.familyDeal;
     }
-    const idx = (data.deals || []).findIndex(d => d.id === id);
-    if (idx === -1) return null;
-    data.deals[idx] = { ...data.deals[idx], ...updates };
-    writeDb(data);
-    return data.deals[idx];
+    return null;
   },
 
   deleteDeal(id) {
     const data = readDb();
+    if (id === 'family-deal' || (data.familyDeal && data.familyDeal.id === id)) {
+      data.familyDeal = null;
+    }
     data.deals = (data.deals || []).filter(d => d.id !== id);
     writeDb(data);
     return true;
@@ -282,35 +425,193 @@ export const db = {
 
   getSettings() {
     const data = readDb();
+    const defaultButtons = {
+      whatsappWeb: true,
+      whatsappMobile: true,
+      backToTopWeb: true,
+      backToTopMobile: true,
+      cartWeb: true,
+      cartMobile: true
+    };
+    const defaultCategories = ['pizza', 'burgers'];
+
     if (!data.settings) {
       data.settings = {
         deliveryFee: 100,
         minOrder: 500,
         freeDeliveryThreshold: 0,
-        deliveryNotice: 'Delivery available in nearby areas (Shaikh Chowk, Itfaq Town, Mansoora, Multan Road)'
+        deliveryNotice: 'Delivery available in nearby areas (Wah Model Town, Aslam Market, Officers Colony, Lalarukh)',
+        floatingButtons: defaultButtons,
+        bestSellerCategories: defaultCategories
       };
       writeDb(data);
+    } else {
+      let changed = false;
+      if (!data.settings.floatingButtons) {
+        data.settings.floatingButtons = defaultButtons;
+        changed = true;
+      }
+      if (!Array.isArray(data.settings.bestSellerCategories)) {
+        data.settings.bestSellerCategories = defaultCategories;
+        changed = true;
+      }
+      if (changed) writeDb(data);
     }
     return data.settings;
   },
 
   updateSettings(updates) {
     const data = readDb();
+    const current = data.settings || {};
+    const currentButtons = current.floatingButtons || {
+      whatsappWeb: true,
+      whatsappMobile: true,
+      backToTopWeb: true,
+      backToTopMobile: true,
+      cartWeb: true,
+      cartMobile: true
+    };
+
+    const newButtons = updates.floatingButtons
+      ? {
+          whatsappWeb: updates.floatingButtons.whatsappWeb !== undefined ? Boolean(updates.floatingButtons.whatsappWeb) : currentButtons.whatsappWeb,
+          whatsappMobile: updates.floatingButtons.whatsappMobile !== undefined ? Boolean(updates.floatingButtons.whatsappMobile) : currentButtons.whatsappMobile,
+          backToTopWeb: updates.floatingButtons.backToTopWeb !== undefined ? Boolean(updates.floatingButtons.backToTopWeb) : currentButtons.backToTopWeb,
+          backToTopMobile: updates.floatingButtons.backToTopMobile !== undefined ? Boolean(updates.floatingButtons.backToTopMobile) : currentButtons.backToTopMobile,
+          cartWeb: updates.floatingButtons.cartWeb !== undefined ? Boolean(updates.floatingButtons.cartWeb) : (currentButtons.cartWeb ?? true),
+          cartMobile: updates.floatingButtons.cartMobile !== undefined ? Boolean(updates.floatingButtons.cartMobile) : (currentButtons.cartMobile ?? true)
+        }
+      : currentButtons;
+
+    const newCategories = Array.isArray(updates.bestSellerCategories)
+      ? updates.bestSellerCategories.map(c => String(c).trim().toLowerCase()).filter(Boolean)
+      : (current.bestSellerCategories || ['pizza', 'burgers']);
+
     data.settings = {
-      ...(data.settings || {
-        deliveryFee: 100,
-        minOrder: 500,
-        freeDeliveryThreshold: 0,
-        deliveryNotice: 'Delivery available in nearby areas'
-      }),
+      ...current,
       ...updates,
-      deliveryFee: updates.deliveryFee !== undefined ? Number(updates.deliveryFee) : (data.settings?.deliveryFee ?? 100),
-      minOrder: updates.minOrder !== undefined ? Number(updates.minOrder) : (data.settings?.minOrder ?? 500),
-      freeDeliveryThreshold: updates.freeDeliveryThreshold !== undefined ? Number(updates.freeDeliveryThreshold) : (data.settings?.freeDeliveryThreshold ?? 0),
+      deliveryFee: updates.deliveryFee !== undefined ? Number(updates.deliveryFee) : (current.deliveryFee ?? 100),
+      minOrder: updates.minOrder !== undefined ? Number(updates.minOrder) : (current.minOrder ?? 500),
+      freeDeliveryThreshold: updates.freeDeliveryThreshold !== undefined ? Number(updates.freeDeliveryThreshold) : (current.freeDeliveryThreshold ?? 0),
+      floatingButtons: newButtons,
+      bestSellerCategories: newCategories,
       updatedAt: new Date().toISOString()
     };
     writeDb(data);
     return data.settings;
+  },
+
+  // Best Sellers (Computed from item sales in selected categories)
+  getBestSellers() {
+    const data = readDb();
+    const settings = data.settings || {};
+    const allowedCategories = (Array.isArray(settings.bestSellerCategories) && settings.bestSellerCategories.length > 0)
+      ? settings.bestSellerCategories.map(c => c.toLowerCase())
+      : ['pizza', 'burgers'];
+
+    // 1. Calculate sales count for each product from delivered orders
+    const salesMap = {};
+    (data.orders || []).forEach(order => {
+      if (order.status !== 'Delivered') return;
+      (order.items || []).forEach(item => {
+        const name = (item.name || '').trim().toLowerCase();
+        if (!name) return;
+        const qty = Number(item.quantity) || 1;
+        salesMap[name] = (salesMap[name] || 0) + qty;
+      });
+    });
+
+    // 2. Filter products in catalog belonging to allowedCategories
+    const allProducts = data.products || [];
+    const eligibleProducts = allProducts.filter(p => {
+      const cat = (p.category || '').toLowerCase();
+      return allowedCategories.includes(cat);
+    });
+
+    // 3. Attach salesCount to each product
+    const rankedProducts = eligibleProducts.map(p => {
+      const pName = (p.name || '').trim().toLowerCase();
+      let salesCount = 0;
+      Object.keys(salesMap).forEach(orderedName => {
+        if (orderedName === pName || orderedName.includes(pName) || pName.includes(orderedName)) {
+          salesCount += salesMap[orderedName];
+        }
+      });
+
+      return {
+        ...p,
+        salesCount
+      };
+    });
+
+    // 4. Sort primarily by salesCount descending, then by popular flag or id
+    rankedProducts.sort((a, b) => {
+      if (b.salesCount !== a.salesCount) {
+        return b.salesCount - a.salesCount;
+      }
+      if (b.popular && !a.popular) return 1;
+      if (!b.popular && a.popular) return -1;
+      return 0;
+    });
+
+    // 5. Return top 4
+    return rankedProducts.slice(0, 4);
+  },
+
+  // Customer Reviews
+  getReviews() {
+    const data = readDb();
+    if (!Array.isArray(data.reviews) || data.reviews.length === 0) {
+      data.reviews = INITIAL_REVIEWS;
+      writeDb(data);
+    }
+    return data.reviews;
+  },
+
+  createReview(reviewData) {
+    const data = readDb();
+    if (!Array.isArray(data.reviews)) {
+      data.reviews = INITIAL_REVIEWS;
+    }
+    const initials = (reviewData.name || 'User')
+      .split(' ')
+      .map(n => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'U';
+
+    const colors = ['bg-amber-500', 'bg-orange-600', 'bg-red-600', 'bg-emerald-600', 'bg-blue-600', 'bg-purple-600', 'bg-teal-600', 'bg-rose-600'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+    const newReview = {
+      id: `rev-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: (reviewData.name || 'Anonymous Customer').trim(),
+      location: (reviewData.location || 'Wah Cantt').trim(),
+      platform: reviewData.platform || 'Customer Review',
+      rating: Math.min(5, Math.max(1, Number(reviewData.rating) || 5)),
+      date: 'Just now',
+      avatar: initials,
+      avatarBg: reviewData.avatarBg || randomColor,
+      itemOrdered: (reviewData.itemOrdered || 'MP Special Meal').trim(),
+      comment: (reviewData.comment || '').trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    data.reviews = [newReview, ...data.reviews];
+    writeDb(data);
+    return newReview;
+  },
+
+  deleteReview(id) {
+    const data = readDb();
+    if (!Array.isArray(data.reviews)) return false;
+    const initialLen = data.reviews.length;
+    data.reviews = data.reviews.filter(r => String(r.id) !== String(id));
+    if (data.reviews.length !== initialLen) {
+      writeDb(data);
+      return true;
+    }
+    return false;
   },
 
   updateOrderDeliveryFee(id, newDeliveryFee) {
@@ -344,6 +645,7 @@ export const db = {
     const orders = data.orders || [];
     const products = data.products || [];
     const deals = data.deals || [];
+    const reviews = data.reviews || [];
     
     const totalRevenue = orders
       .filter(o => o.status !== 'Cancelled')
@@ -356,7 +658,8 @@ export const db = {
       totalDeals: deals.length + (data.familyDeal ? 1 : 0),
       totalOrders: orders.length,
       pendingOrders,
-      totalRevenue
+      totalRevenue,
+      totalReviews: reviews.length
     };
   }
 };

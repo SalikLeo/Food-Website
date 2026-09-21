@@ -11,12 +11,14 @@ import {
   Utensils,
   Info,
   MapPin,
-  MessageCircle,
-  ChevronRight
+  ChevronRight,
+  Star
 } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
+import { isCustomerApp } from '../config/api';
 
-export default function Header({ onAdminClick }) {
+export default function Header({ onAdminClick, hideAdmin = false }) {
   const { itemCount, setIsCartOpen } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -32,7 +34,7 @@ export default function Header({ onAdminClick }) {
       setIsScrolled(window.scrollY > 20);
 
       // Detect current section for active highlight
-      const sections = ['contact', 'about', 'menu', 'deals'];
+      const sections = ['contact', 'reviews', 'about', 'menu', 'deals'];
       const scrollPos = window.scrollY + 220;
       let found = '';
       for (const id of sections) {
@@ -90,6 +92,7 @@ export default function Header({ onAdminClick }) {
     { label: 'Deals', href: '#deals', icon: Flame, badge: 'HOT' },
     { label: 'Menu', href: '#menu', icon: Utensils },
     { label: 'About Us', href: '#about', icon: Info },
+    { label: 'Reviews', href: '#reviews', icon: Star },
     { label: 'Contact', href: '#contact', icon: MapPin },
   ];
 
@@ -97,131 +100,174 @@ export default function Header({ onAdminClick }) {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'glass-nav py-3 shadow-card-dark'
-            : 'bg-black/30 backdrop-blur-md py-4 border-b border-white/5'
+          isCustomerApp
+            ? 'bg-[#101013]/95 backdrop-blur-md border-b border-white/10 pt-[max(env(safe-area-inset-top,0px),0.65rem)] pb-3 px-4 shadow-lg'
+            : isScrolled
+              ? 'glass-nav py-3 shadow-[0_2px_8px_rgba(0,0,0,0.12)]'
+              : 'bg-black/30 backdrop-blur-md py-4 border-b border-white/5'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Logo & Tagline */}
-          <a href="#" className="flex items-center gap-3 group">
+          {/* Logo & Store Info */}
+          <a href="#" className="flex items-center gap-2.5 sm:gap-3 group">
             <img
               src="/assets/mehrban-logo.png"
-              alt="Mehrban Fast Food"
-              className="h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+              alt="Salik Fast Food"
+              className={`${isCustomerApp ? 'h-9 w-auto' : 'h-12 w-auto'} object-contain transition-transform duration-200 group-hover:scale-105`}
             />
             <div className="flex flex-col">
-              <span className="font-display tracking-wider text-xl leading-none text-white group-hover:text-primary transition-colors">
-                MEHRBAN FAST FOOD
+              <span className={`font-display tracking-wider ${isCustomerApp ? 'text-lg' : 'text-xl'} leading-none text-white group-hover:text-primary transition-colors`}>
+                SALIK FAST FOOD
               </span>
-              <span className="text-[11px] font-medium tracking-[0.2em] text-orange-400 uppercase mt-0.5">
-                Taste That You Need
+              <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-orange-400 uppercase mt-0.5 flex items-center gap-1.5">
+                {isCustomerApp ? (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
+                    <span>Wah Cantt • Open Now</span>
+                  </>
+                ) : (
+                  'Taste That You Need'
+                )}
               </span>
             </div>
           </a>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-1.5 text-sm font-semibold tracking-wide text-zinc-300">
-            <a
-              href="#"
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                !activeHash
-                  ? 'bg-white/10 text-amber-400'
-                  : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
-              }`}
-            >
-              Home
-            </a>
-            <a
-              href="#deals"
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                activeHash === '#deals'
-                  ? 'bg-white/10 text-amber-400'
-                  : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
-              }`}
-            >
-              Deals
-            </a>
-            <a
-              href="#menu"
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                activeHash === '#menu'
-                  ? 'bg-white/10 text-amber-400'
-                  : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
-              }`}
-            >
-              Menu
-            </a>
-            <a
-              href="#about"
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                activeHash === '#about'
-                  ? 'bg-white/10 text-amber-400'
-                  : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
-              }`}
-            >
-              About Us
-            </a>
-            <a
-              href="#contact"
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                activeHash === '#contact'
-                  ? 'bg-white/10 text-amber-400'
-                  : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
-              }`}
-            >
-              Contact
-            </a>
-            <button
-              onClick={onAdminClick}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all border border-zinc-700/50 ml-2"
-              title="Admin Dashboard"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
-              <span>Admin</span>
-            </button>
-          </nav>
+          {/* Desktop Nav Links (Web only) */}
+          {!isCustomerApp && (
+            <nav className="hidden lg:flex items-center gap-1.5 text-sm font-semibold tracking-wide text-zinc-300">
+              <a
+                href="#"
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                  !activeHash
+                    ? 'bg-white/10 text-amber-400'
+                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                }`}
+              >
+                Home
+              </a>
+              <a
+                href="#deals"
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                  activeHash === '#deals'
+                    ? 'bg-white/10 text-amber-400'
+                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                }`}
+              >
+                Deals
+              </a>
+              <a
+                href="#menu"
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                  activeHash === '#menu'
+                    ? 'bg-white/10 text-amber-400'
+                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                }`}
+              >
+                Menu
+              </a>
+              <a
+                href="#about"
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                  activeHash === '#about'
+                    ? 'bg-white/10 text-amber-400'
+                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                }`}
+              >
+                About Us
+              </a>
+              <a
+                href="#reviews"
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                  activeHash === '#reviews'
+                    ? 'bg-white/10 text-amber-400'
+                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                }`}
+              >
+                Reviews
+              </a>
+              <a
+                href="#contact"
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                  activeHash === '#contact'
+                    ? 'bg-white/10 text-amber-400'
+                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                }`}
+              >
+                Contact
+              </a>
+              {!hideAdmin && (
+                <button
+                  onClick={onAdminClick}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all border border-zinc-700/50 ml-2 cursor-pointer"
+                  title="Admin Dashboard"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
+                  <span>Admin</span>
+                </button>
+              )}
+            </nav>
+          )}
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3">
-            {/* Phone Link */}
-            <a
-              href="tel:0323-4660279"
-              className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-all"
-            >
-              <Phone className="w-3.5 h-3.5 text-primary" />
-              <span>0323-4660279</span>
-            </a>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Phone Link (Web only) */}
+            {!isCustomerApp && (
+              <a
+                href="tel:03095369472"
+                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-all"
+              >
+                <Phone className="w-3.5 h-3.5 text-primary" />
+                <span>0309-5369472</span>
+              </a>
+            )}
 
-            {/* Cart Trigger */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50 transition-all focus:outline-none"
-              aria-label="View Cart"
-            >
-              <ShoppingBag className="w-5 h-5 text-zinc-200" />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center animate-pulse shadow-sm">
-                  {itemCount}
-                </span>
-              )}
-            </button>
+            {/* Header Cart Trigger (Web only: mobile app has the bottom-right floating cart) */}
+            {!isCustomerApp && (
+              <button
+                id="header-cart-btn"
+                onClick={() => setIsCartOpen(true)}
+                className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50 transition-all focus:outline-none"
+                aria-label="View Cart"
+              >
+                <ShoppingBag className="w-5 h-5 text-zinc-200" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center animate-pulse shadow-sm">
+                    {itemCount}
+                  </span>
+                )}
+              </button>
+            )}
 
-            {/* Desktop ORDER NOW Orange CTA */}
-            <a
-              href="#order"
-              className="hidden md:inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-95"
-            >
-              Order Now
-            </a>
+            {/* Desktop ORDER NOW Orange CTA (Web only) */}
+            {!isCustomerApp && (
+              <a
+                href="#order"
+                className="hidden md:inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-95"
+              >
+                Order Now
+              </a>
+            )}
 
-            {/* Mobile Hamburger Toggle */}
+            {/* WhatsApp Quick Icon (Mobile App) */}
+            {isCustomerApp && (
+              <a
+                href="https://wa.me/923095369472?text=Assalam%20o%20Alaikum%20Salik%20Fast%20Food!%20I%20would%20like%20to%20place%20an%20order."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl text-emerald-400 hover:text-emerald-300 bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-emerald-500/40 transition-all focus:outline-none active:scale-95 flex items-center justify-center shadow-xs"
+                aria-label="Chat on WhatsApp"
+              >
+                <WhatsAppIcon className="w-5 h-5 text-emerald-400" />
+              </a>
+            )}
+
+            {/* Mobile Menu Toggle (Always available on mobile app & mobile web) */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2.5 rounded-xl text-zinc-300 hover:text-white bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-all focus:outline-none"
+              className={`${isCustomerApp ? 'p-2' : 'lg:hidden p-2.5'} rounded-xl text-zinc-300 hover:text-white bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-all focus:outline-none active:scale-95`}
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6 text-orange-400" /> : <MenuIcon className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 text-orange-400" /> : <MenuIcon className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -252,16 +298,16 @@ export default function Header({ onAdminClick }) {
               }`}
             >
               {/* Drawer Top Header */}
-              <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-zinc-800/80 flex items-center justify-between bg-[#141418]">
+              <div className="px-5 py-4 sm:px-6 sm:py-5 pt-[max(env(safe-area-inset-top,0px),1rem)] border-b border-zinc-800/80 flex items-center justify-between bg-[#141418]">
                 <div className="flex items-center gap-3">
                   <img
                     src="/assets/mehrban-logo.png"
-                    alt="Mehrban Fast Food"
+                    alt="Salik Fast Food"
                     className="h-10 w-auto object-contain"
                   />
                   <div className="flex flex-col">
                     <span className="font-display tracking-wider text-xl leading-none text-white">
-                      MEHRBAN <span className="text-amber-400">FAST FOOD</span>
+                      SALIK <span className="text-amber-400">FAST FOOD</span>
                     </span>
                     <span className="text-[10px] font-medium tracking-[0.2em] text-orange-400 uppercase mt-0.5">
                       Taste That You Need
@@ -330,7 +376,7 @@ export default function Header({ onAdminClick }) {
               </div>
 
               {/* Drawer Bottom Actions */}
-              <div className="p-5 border-t border-zinc-800/80 space-y-2.5 bg-[#141418]">
+              <div className="p-5 pb-[max(env(safe-area-inset-bottom,0px),1.25rem)] border-t border-zinc-800/80 space-y-2.5 bg-[#141418]">
                 {/* Order Online CTA */}
                 <a
                   href="#order"
@@ -343,37 +389,39 @@ export default function Header({ onAdminClick }) {
 
                 {/* Direct Call Button */}
                 <a
-                  href="tel:0323-4660279"
+                  href="tel:03095369472"
                   className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/80 text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-colors"
                 >
                   <Phone className="w-4 h-4 text-orange-400" />
-                  <span>Call: 0323-4660279</span>
+                  <span>Call: 0309-5369472</span>
                 </a>
 
                 {/* WhatsApp Quick Order Button */}
                 <a
-                  href="https://wa.me/923234660279?text=Assalam%20o%20Alaikum%20Mehrban%20Fast%20Food!%20I%20would%20like%20to%20place%20an%20order."
+                  href="https://wa.me/923095369472?text=Assalam%20o%20Alaikum%20Salik%20Fast%20Food!%20I%20would%20like%20to%20place%20an%20order."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/30 text-emerald-400 font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-colors"
                 >
-                  <MessageCircle className="w-4 h-4 text-emerald-400" />
+                  <WhatsAppIcon className="w-4 h-4 text-emerald-400" />
                   <span>Order on WhatsApp</span>
                 </a>
 
                 {/* Admin Management Link */}
-                <div className="pt-1.5 flex justify-center">
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      onAdminClick();
-                    }}
-                    className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-orange-400 transition-colors"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
-                    <span>Admin Management</span>
-                  </button>
-                </div>
+                {!hideAdmin && (
+                  <div className="pt-1.5 flex justify-center">
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        onAdminClick();
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-orange-400 transition-colors cursor-pointer"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
+                      <span>Admin Management</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>,

@@ -1037,24 +1037,24 @@
   ],
   "faqs": [
     {
-      "q": "Where is Mehrban Fast Food located in Lahore?",
-      "a": "Mehrban Fast Food is at Shaikh Chowk Itfaq Town, Mansoora Bazar, Main Multan Road, Lahore."
+      "q": "Where is Mehrban Fast Food located?",
+      "a": "Mehrban Fast Food is located in Wah Model Town, Wah Cantt."
     },
     {
       "q": "What food does Mehrban Fast Food offer?",
       "a": "The menu covers pizza and special pizza, zinger and grill burgers, chicken shawarma, sandwiches, fries, hot wings, chicken nuggets, special items and combo deals."
     },
     {
-      "q": "Does Mehrban Fast Food deliver in Lahore?",
-      "a": "Yes — home delivery is available in nearby areas of Main Multan Road, Lahore. Minimum order is Rs. 500 and the delivery fee is Rs. 100."
+      "q": "Does Mehrban Fast Food deliver in Wah Cantt?",
+      "a": "Yes — home delivery is available in nearby areas of Wah Cantt. Minimum order is Rs. 500 and the delivery fee is Rs. 100."
     },
     {
       "q": "What are the opening hours?",
-      "a": "Please call to confirm today's timings — call 0323-4660279 or 0323-6580604."
+      "a": "Please call to confirm today's timings — call 0309-5369472."
     },
     {
       "q": "How can I contact Mehrban Fast Food?",
-      "a": "Call 0323-4660279 or 0323-6580604, or send your order on WhatsApp."
+      "a": "Call 0309-5369472, or send your order on WhatsApp."
     },
     {
       "q": "Where can I see the Mehrban Fast Food menu and prices?",
@@ -1064,12 +1064,11 @@
   "siteInfo": {
     "name": "Mehrban Fast Food",
     "tagline": "Taste That You Need",
-    "address": "Shaikh Chowk Itfaq Town, Mansoora Bazar, Main Multan Road, Lahore",
+    "address": "Wah Model Town, Wah Cantt",
     "phones": [
-      "0323-4660279",
-      "0323-6580604"
+      "0309-5369472"
     ],
-    "whatsapp": "923236580604",
+    "whatsapp": "923095369472",
     "minOrder": 500,
     "deliveryFee": 100,
     "deliveryTime": "30-40 min",

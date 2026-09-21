@@ -1,5 +1,6 @@
 import React from 'react';
-import { CheckCircle2, MessageCircle, X, Clock, MapPin } from 'lucide-react';
+import { CheckCircle2, X, Clock, MapPin } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
 
 export default function OrderSuccessModal() {
@@ -11,7 +12,7 @@ export default function OrderSuccessModal() {
     const text = encodeURIComponent(
       `Assalam o Alaikum! I placed order #${lastOrder.id} for Rs. ${lastOrder.total}. Please confirm the delivery time.`
     );
-    window.open(`https://wa.me/923236580604?text=${text}`, '_blank');
+    window.open(`https://wa.me/923095369472?text=${text}`, '_blank');
   };
 
   return (
@@ -87,7 +88,7 @@ export default function OrderSuccessModal() {
             onClick={handleWhatsAppTrack}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors"
           >
-            <MessageCircle className="w-4 h-4" />
+            <WhatsAppIcon className="w-4 h-4" />
             <span>Track on WhatsApp</span>
           </button>
 

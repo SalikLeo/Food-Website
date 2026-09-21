@@ -3,6 +3,7 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { fileURLToPath } from 'url';
 import { db } from './db.js';
 
@@ -291,6 +292,49 @@ app.post('/api/settings', (req, res) => {
   }
 });
 
+// Best Sellers Endpoint (Top 4 selling items in admin-selected categories)
+app.get('/api/best-sellers', (req, res) => {
+  try {
+    const bestSellers = db.getBestSellers();
+    res.json(bestSellers);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Customer Reviews Endpoints
+app.get('/api/reviews', (req, res) => {
+  try {
+    const reviews = db.getReviews();
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/reviews', (req, res) => {
+  try {
+    const { name, comment, rating } = req.body;
+    if (!name || !comment) {
+      return res.status(400).json({ error: 'Name and review comment are required' });
+    }
+    const newReview = db.createReview(req.body);
+    res.status(201).json({ success: true, review: newReview });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/reviews/:id', (req, res) => {
+  try {
+    const deleted = db.deleteReview(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Review not found' });
+    res.json({ success: true, message: 'Review deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // FAQs and Info
 app.get('/api/faqs', (req, res) => {
   res.json(db.getFaqs());
@@ -315,6 +359,20 @@ app.post('/api/admin/login', (req, res) => {
   return res.status(401).json({ error: 'Invalid admin credentials' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Mehrban Fast Food Server running at http://localhost:${PORT}`);
+function getLocalNetworkIp() {
+  const nets = os.networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      if (net.family === 'IPv4' && !net.internal && !net.address.startsWith('169.254.')) {
+        return net.address;
+      }
+    }
+  }
+  return 'localhost';
+}
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Salik Fast Food Server running on:`);
+  console.log(`- Local:   http://localhost:${PORT}`);
+  console.log(`- Network: http://${getLocalNetworkIp()}:${PORT}`);
 });

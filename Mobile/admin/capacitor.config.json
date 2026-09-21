@@ -1,0 +1,9 @@
+{
+  "appId": "com.mehrban.admin",
+  "appName": "Salik Admin",
+  "webDir": "www",
+  "server": {
+    "cleartext": true,
+    "androidScheme": "http"
+  }
+}

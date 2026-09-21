@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Plus, Minus, Trash2, Truck } from 'lucide-react';
+import { X, Plus, Minus, Trash2, Truck, AlertTriangle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function CartDrawer() {
@@ -20,6 +20,8 @@ export default function CartDrawer() {
     isFreeDelivery,
     amountForFreeDelivery
   } = useCart();
+
+  const hasSoldOutItems = cartItems.some(item => item.inStock === false);
 
   // Lock background scroll when cart is open
   useEffect(() => {
@@ -143,11 +145,18 @@ export default function CartDrawer() {
                       <h4 className="font-bold text-xs sm:text-sm text-zinc-900 truncate">
                         {item.name}
                       </h4>
-                      {item.size && (
-                        <span className="inline-block text-[10px] font-semibold text-orange-600">
-                          Size: {item.size}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {item.size && (
+                          <span className="inline-block text-[10px] font-semibold text-orange-600">
+                            Size: {item.size}
+                          </span>
+                        )}
+                        {item.inStock === false && (
+                          <span className="inline-block text-[9px] font-bold text-red-700 bg-red-50 border border-red-200 rounded px-1.5 py-0.2">
+                            Sold Out Today
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <button
@@ -239,15 +248,29 @@ export default function CartDrawer() {
                 <span className="font-display text-xl uppercase tracking-wide text-zinc-900 font-normal">
                   TOTAL
                 </span>
-                <span className="font-display text-2xl text-[#e53e10] font-normal">
-                  RS. {total.toLocaleString()}
+                <span className="font-display text-2xl text-[#e53e10] font-normal flex items-baseline">
+                  <span className="font-sans text-base font-bold mr-1">Rs.</span>
+                  <span>{total.toLocaleString()}</span>
                 </span>
               </div>
             </div>
 
+            {/* Sold out alert if applicable */}
+            {hasSoldOutItems && (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <span>Some items are sold out today. Please remove them before checkout.</span>
+              </div>
+            )}
+
             <button
               onClick={handleCheckoutClick}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] text-white font-display text-lg uppercase tracking-wider shadow-md hover:shadow-lg active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2"
+              disabled={hasSoldOutItems}
+              className={`w-full py-3.5 rounded-2xl font-display text-lg uppercase tracking-wider shadow-md transition-all text-center flex items-center justify-center gap-2 ${
+                hasSoldOutItems
+                  ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed border border-zinc-300'
+                  : 'bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] text-white hover:shadow-lg active:scale-[0.98] cursor-pointer'
+              }`}
             >
               <span>CHECKOUT</span>
             </button>

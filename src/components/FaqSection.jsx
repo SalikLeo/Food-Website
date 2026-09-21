@@ -18,12 +18,12 @@ export default function FaqSection({ faqs = [] }) {
             FAQS
           </span>
           <h2 className="mt-2 font-display text-4xl sm:text-5xl lg:text-6xl text-zinc-900 tracking-tight leading-none">
-            MEHRBAN FAST FOOD <span className="text-orange-600">LAHORE</span> — QUESTIONS
+            SALIK FAST FOOD <span className="text-orange-600">WAH CANTT</span> — QUESTIONS
           </h2>
           <p className="mt-4 text-zinc-600 text-sm leading-relaxed">
-            Mehrban Fast Food is a fast food restaurant at Shaikh Chowk, Itfaq Town, Mansoora Bazar on Main Multan Road, Lahore. Browse the{' '}
+            Salik Fast Food is located in Wah Model Town, Wah Cantt. Browse the{' '}
             <a href="#menu" className="font-semibold text-orange-600 underline-offset-4 hover:underline">
-              Mehrban Fast Food menu
+              Salik Fast Food menu
             </a>
             , check the{' '}
             <a href="#deals" className="font-semibold text-orange-600 underline-offset-4 hover:underline">
@@ -31,9 +31,9 @@ export default function FaqSection({ faqs = [] }) {
             </a>{' '}
             or{' '}
             <a href="#contact" className="font-semibold text-orange-600 underline-offset-4 hover:underline">
-              contact Mehrban Fast Food
+              contact Salik Fast Food
             </a>{' '}
-            for home delivery in nearby Lahore areas.
+            for home delivery in nearby Wah Cantt areas.
           </p>
         </div>
 

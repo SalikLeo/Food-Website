@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Send,
-  MessageSquare,
   ShoppingBag,
   AlertCircle,
   X,
@@ -12,7 +11,9 @@ import {
   User,
   Clock
 } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
+import { apiUrl } from '../config/api';
 
 export default function OrderSection() {
   const {
@@ -125,7 +126,7 @@ export default function OrderSection() {
         total
       };
 
-      const res = await fetch('/api/orders', {
+      const res = await fetch(apiUrl('/api/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -162,7 +163,7 @@ export default function OrderSection() {
     setShowConfirmModal(false);
     // Save to DB in background
     try {
-      fetch('/api/orders', {
+      fetch(apiUrl('/api/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -182,7 +183,7 @@ export default function OrderSection() {
     }
 
     const message = getWhatsAppMessage(formData);
-    window.open(`https://wa.me/923236580604?text=${message}`, '_blank');
+    window.open(`https://wa.me/923095369472?text=${message}`, '_blank');
   };
 
   return (
@@ -305,7 +306,7 @@ export default function OrderSection() {
                   onClick={handleInitiateWhatsAppOrder}
                   className="flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all"
                 >
-                  <MessageSquare className="w-4 h-4" />
+                  <WhatsAppIcon className="w-4 h-4" />
                   <span>WhatsApp Order</span>
                 </button>
               </div>
@@ -336,7 +337,7 @@ export default function OrderSection() {
                         <span className="text-orange-400 ml-1">({item.size})</span>
                       )}
                     </div>
-                    <span className="font-bold text-orange-400 font-mono">
+                    <span className="font-semibold text-orange-400 font-sans">
                       Rs. {(item.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
@@ -361,8 +362,9 @@ export default function OrderSection() {
                 <span className="text-base font-bold text-white uppercase tracking-wider">
                   TOTAL
                 </span>
-                <span className="font-display text-3xl text-amber-400 font-bold">
-                  RS. {total.toLocaleString()}
+                <span className="font-display text-3xl text-amber-400 font-bold flex items-baseline">
+                  <span className="font-sans text-xl font-bold mr-1">Rs.</span>
+                  <span>{total.toLocaleString()}</span>
                 </span>
               </div>
             </div>
@@ -526,7 +528,7 @@ export default function OrderSection() {
                     disabled={loading}
                     className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
                   >
-                    <MessageSquare className="w-4 h-4" />
+                    <WhatsAppIcon className="w-4 h-4" />
                     <span>Yes, Confirm & Send on WhatsApp</span>
                   </button>
                 )}

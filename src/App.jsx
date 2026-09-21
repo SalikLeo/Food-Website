@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
+import BestSellersSection from './components/BestSellersSection';
 import DealsSection from './components/DealsSection';
 import MenuSection from './components/MenuSection';
 import OrderSection from './components/OrderSection';
 import AboutSection from './components/AboutSection';
 import ContactSection from './components/ContactSection';
+import ReviewsSection from './components/ReviewsSection';
 import FaqSection from './components/FaqSection';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
+import FloatingMobileCart from './components/FloatingMobileCart';
 import OrderSuccessModal from './components/OrderSuccessModal';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import { CartProvider } from './context/CartContext';
+import { apiUrl, APP_MODE, isCustomerApp } from './config/api';
 
 export default function App() {
   const [isAdminView, setIsAdminView] = useState(() => {
+    if (APP_MODE === 'admin') return true;
+    if (APP_MODE === 'customer' || isCustomerApp) return false;
     return window.location.pathname.includes('/admin') || window.location.hash.includes('admin');
   });
 
@@ -28,6 +34,7 @@ export default function App() {
   const [deals, setDeals] = useState([]);
   const [familyDeal, setFamilyDeal] = useState(null);
   const [faqs, setFaqs] = useState([]);
+  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Sync hash/path for admin
@@ -42,11 +49,12 @@ export default function App() {
   // Fetch initial public data
   const loadData = async () => {
     try {
-      const [catsRes, prodsRes, dealsRes, faqsRes] = await Promise.all([
-        fetch('/api/categories').then(r => r.json()).catch(() => []),
-        fetch('/api/products').then(r => r.json()).catch(() => []),
-        fetch('/api/deals').then(r => r.json()).catch(() => ({ deals: [], familyDeal: null })),
-        fetch('/api/faqs').then(r => r.json()).catch(() => [])
+      const [catsRes, prodsRes, dealsRes, faqsRes, settingsRes] = await Promise.all([
+        fetch(apiUrl('/api/categories')).then(r => r.json()).catch(() => []),
+        fetch(apiUrl('/api/products')).then(r => r.json()).catch(() => []),
+        fetch(apiUrl('/api/deals')).then(r => r.json()).catch(() => ({ deals: [], familyDeal: null })),
+        fetch(apiUrl('/api/faqs')).then(r => r.json()).catch(() => []),
+        fetch(apiUrl('/api/settings')).then(r => r.json()).catch(() => null)
       ]);
 
       if (Array.isArray(catsRes) && catsRes.length > 0) setCategories(catsRes);
@@ -54,6 +62,7 @@ export default function App() {
       if (dealsRes?.deals) setDeals(dealsRes.deals);
       if (dealsRes?.familyDeal) setFamilyDeal(dealsRes.familyDeal);
       if (Array.isArray(faqsRes) && faqsRes.length > 0) setFaqs(faqsRes);
+      if (settingsRes) setSettings(settingsRes);
     } catch (e) {
       console.error('Error fetching storefront data:', e);
     } finally {
@@ -96,21 +105,27 @@ export default function App() {
           />
         )
       ) : (
-        <div className="min-h-screen bg-[#0d0d0e] text-white selection:bg-orange-500 selection:text-white">
-          <Header onAdminClick={handleOpenAdmin} />
+        <div className={`min-h-screen bg-[#0d0d0e] text-white selection:bg-orange-500 selection:text-white ${isCustomerApp ? 'is-mobile-app' : ''}`}>
+          <Header
+            onAdminClick={handleOpenAdmin}
+            hideAdmin={isCustomerApp || APP_MODE === 'customer'}
+          />
           
           <main>
-            <Hero />
+            <Hero products={products} deals={deals} />
+            <BestSellersSection products={products} categories={categories} settings={settings} />
             <DealsSection deals={deals} familyDeal={familyDeal} />
             <MenuSection categories={categories} products={products} />
             <OrderSection />
             <AboutSection />
+            <ReviewsSection />
             <ContactSection />
             <FaqSection faqs={faqs} />
           </main>
 
-          <Footer categories={categories} />
+          <Footer categories={categories} settings={settings} />
           <CartDrawer />
+          <FloatingMobileCart />
           <OrderSuccessModal />
         </div>
       )}

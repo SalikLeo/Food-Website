@@ -12,7 +12,7 @@ export default function AboutSection() {
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-zinc-200">
               <img
                 src="/assets/images/cat-pizza-BmV7hCev.jpg"
-                alt="Mehrban Fast Food Fresh Preparation"
+                alt="Salik Fast Food Fresh Preparation"
                 className="w-full h-80 sm:h-96 object-cover"
                 onError={(e) => {
                   e.target.src = '/assets/hero-food.jpg';
@@ -42,7 +42,7 @@ export default function AboutSection() {
             </div>
 
             <p className="text-zinc-600 text-base leading-relaxed">
-              Mehrban Fast Food brings together freshly prepared pizzas, burgers, shawarma, sandwiches and delicious fast-food deals, made for great taste and value.
+              Salik Fast Food brings together freshly prepared pizzas, burgers, shawarma, sandwiches and delicious fast-food deals, made for great taste and value.
             </p>
 
             <p className="text-zinc-600 text-sm leading-relaxed">

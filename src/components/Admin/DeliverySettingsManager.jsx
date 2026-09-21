@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Truck,
-  DollarSign,
   AlertCircle,
   CheckCircle2,
   Save,
-  RotateCcw,
-  Sparkles,
-  Info,
-  ShieldAlert,
-  ArrowRight
+  Smartphone,
+  Monitor,
+  ArrowUp,
+  Sliders,
+  Flame,
+  Check,
+  Package,
+  ShoppingBag
 } from 'lucide-react';
+import WhatsAppIcon from '../WhatsAppIcon';
+import { apiUrl } from '../../config/api';
 
 export default function DeliverySettingsManager({ onRefresh }) {
   const [loading, setLoading] = useState(false);
@@ -25,20 +29,57 @@ export default function DeliverySettingsManager({ onRefresh }) {
     'Delivery available in nearby areas (Shaikh Chowk, Itfaq Town, Mansoora, Multan Road)'
   );
 
+  const [floatingButtons, setFloatingButtons] = useState({
+    whatsappWeb: true,
+    whatsappMobile: true,
+    backToTopWeb: true,
+    backToTopMobile: true,
+    cartWeb: true,
+    cartMobile: true
+  });
+
+  // Best Sellers eligible categories state
+  const [bestSellerCategories, setBestSellerCategories] = useState(['pizza', 'burgers']);
+  const [allCategories, setAllCategories] = useState([]);
+  const [productsList, setProductsList] = useState([]);
+  const [ordersList, setOrdersList] = useState([]);
+
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/settings');
-      const data = await res.json();
-      if (data) {
-        if (typeof data.deliveryFee === 'number') setDeliveryFee(data.deliveryFee);
-        if (typeof data.minOrder === 'number') setMinOrder(data.minOrder);
-        if (typeof data.freeDeliveryThreshold === 'number')
-          setFreeDeliveryThreshold(data.freeDeliveryThreshold);
-        if (data.deliveryNotice) setDeliveryNotice(data.deliveryNotice);
+      const [settingsRes, catsRes, prodsRes, ordersRes] = await Promise.all([
+        fetch(apiUrl('/api/settings')).then((r) => r.json()),
+        fetch(apiUrl('/api/categories')).then((r) => r.json()).catch(() => []),
+        fetch(apiUrl('/api/products')).then((r) => r.json()).catch(() => []),
+        fetch(apiUrl('/api/orders')).then((r) => r.json()).catch(() => [])
+      ]);
+
+      if (settingsRes) {
+        if (typeof settingsRes.deliveryFee === 'number') setDeliveryFee(settingsRes.deliveryFee);
+        if (typeof settingsRes.minOrder === 'number') setMinOrder(settingsRes.minOrder);
+        if (typeof settingsRes.freeDeliveryThreshold === 'number')
+          setFreeDeliveryThreshold(settingsRes.freeDeliveryThreshold);
+        if (settingsRes.deliveryNotice) setDeliveryNotice(settingsRes.deliveryNotice);
+        if (settingsRes.floatingButtons) {
+          setFloatingButtons({
+            whatsappWeb: settingsRes.floatingButtons.whatsappWeb !== false,
+            whatsappMobile: settingsRes.floatingButtons.whatsappMobile !== false,
+            backToTopWeb: settingsRes.floatingButtons.backToTopWeb !== false,
+            backToTopMobile: settingsRes.floatingButtons.backToTopMobile !== false,
+            cartWeb: settingsRes.floatingButtons.cartWeb !== false,
+            cartMobile: settingsRes.floatingButtons.cartMobile !== false
+          });
+        }
+        if (Array.isArray(settingsRes.bestSellerCategories) && settingsRes.bestSellerCategories.length > 0) {
+          setBestSellerCategories(settingsRes.bestSellerCategories);
+        }
       }
+
+      if (Array.isArray(catsRes)) setAllCategories(catsRes);
+      if (Array.isArray(prodsRes)) setProductsList(prodsRes);
+      if (Array.isArray(ordersRes)) setOrdersList(ordersRes);
     } catch (err) {
-      console.error('Error fetching settings:', err);
+      console.error('Error fetching settings & categories:', err);
       setErrorMessage('Could not load current settings from server.');
     } finally {
       setLoading(false);
@@ -49,6 +90,58 @@ export default function DeliverySettingsManager({ onRefresh }) {
     fetchSettings();
   }, []);
 
+  // Live preview calculation of top 4 best sellers based on selected categories
+  const previewBestSellers = useMemo(() => {
+    const allowed = (bestSellerCategories || []).map((c) => c.toLowerCase());
+    const salesMap = {};
+    (ordersList || []).forEach((order) => {
+      if (order.status === 'Cancelled') return;
+      (order.items || []).forEach((item) => {
+        const name = (item.name || '').trim().toLowerCase();
+        if (!name) return;
+        salesMap[name] = (salesMap[name] || 0) + (Number(item.quantity) || 1);
+      });
+    });
+
+    const eligible = (productsList || []).filter((p) => {
+      const cat = (p.category || '').toLowerCase();
+      return allowed.includes(cat);
+    });
+
+    const ranked = eligible.map((p) => {
+      const pName = (p.name || '').trim().toLowerCase();
+      let sales = 0;
+      Object.keys(salesMap).forEach((k) => {
+        if (k === pName || k.includes(pName) || pName.includes(k)) {
+          sales += salesMap[k];
+        }
+      });
+      return { ...p, salesCount: sales };
+    });
+
+    ranked.sort((a, b) => {
+      if (b.salesCount !== a.salesCount) return b.salesCount - a.salesCount;
+      if (b.popular && !a.popular) return 1;
+      if (!b.popular && a.popular) return -1;
+      return 0;
+    });
+
+    return ranked.slice(0, 4);
+  }, [bestSellerCategories, productsList, ordersList]);
+
+  const toggleCategory = (catId) => {
+    const id = catId.toLowerCase();
+    setBestSellerCategories((prev) => {
+      if (prev.includes(id)) {
+        // Keep at least one category selected
+        if (prev.length === 1) return prev;
+        return prev.filter((c) => c !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+
   const handleSave = async (e) => {
     if (e) e.preventDefault();
     setSaving(true);
@@ -56,20 +149,29 @@ export default function DeliverySettingsManager({ onRefresh }) {
     setErrorMessage('');
 
     try {
-      const res = await fetch('/api/settings', {
+      const res = await fetch(apiUrl('/api/settings'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           deliveryFee: Math.max(0, Number(deliveryFee) || 0),
           minOrder: Math.max(0, Number(minOrder) || 0),
           freeDeliveryThreshold: Math.max(0, Number(freeDeliveryThreshold) || 0),
-          deliveryNotice: deliveryNotice.trim()
+          deliveryNotice: deliveryNotice.trim(),
+          floatingButtons: {
+            whatsappWeb: Boolean(floatingButtons.whatsappWeb),
+            whatsappMobile: Boolean(floatingButtons.whatsappMobile),
+            backToTopWeb: Boolean(floatingButtons.backToTopWeb),
+            backToTopMobile: Boolean(floatingButtons.backToTopMobile),
+            cartWeb: Boolean(floatingButtons.cartWeb),
+            cartMobile: Boolean(floatingButtons.cartMobile)
+          },
+          bestSellerCategories: bestSellerCategories
         })
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        setSuccessMessage(`Delivery Fee updated to Rs. ${deliveryFee} successfully!`);
+        setSuccessMessage('Delivery, Floating Buttons & Best Sellers settings updated successfully!');
         if (onRefresh) onRefresh();
         setTimeout(() => setSuccessMessage(''), 4000);
       } else {
@@ -84,8 +186,6 @@ export default function DeliverySettingsManager({ onRefresh }) {
 
   const presets = [
     { label: 'Free Delivery', value: 0 },
-    { label: 'Rs. 50', value: 50 },
-    { label: 'Rs. 80', value: 80 },
     { label: 'Rs. 100 (Standard)', value: 100 },
     { label: 'Rs. 150 (Distant Areas)', value: 150 },
     { label: 'Rs. 200 (Long Distance)', value: 200 },
@@ -118,8 +218,15 @@ export default function DeliverySettingsManager({ onRefresh }) {
           <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-bold block">
             Current Delivery Charge
           </span>
-          <span className="font-display text-2xl text-orange-600 font-bold">
-            {deliveryFee === 0 ? 'FREE' : `Rs. ${Number(deliveryFee).toLocaleString()}`}
+          <span className="font-display text-2xl text-orange-600 font-bold flex items-baseline md:justify-end">
+            {Number(deliveryFee) === 0 ? (
+              'FREE'
+            ) : (
+              <>
+                <span className="font-sans font-bold text-base mr-1">Rs.</span>
+                <span>{Number(deliveryFee).toLocaleString()}</span>
+              </>
+            )}
           </span>
         </div>
       </div>
@@ -139,13 +246,11 @@ export default function DeliverySettingsManager({ onRefresh }) {
         </div>
       )}
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left 2 Columns: Controls */}
-        <div className="lg:col-span-2 space-y-6">
+      <form onSubmit={handleSave} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Section 1: Standard Delivery Fee */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4">
+          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
             <div>
               <label className="text-sm font-bold text-zinc-900 block mb-1">
                 Standard Base Delivery Fee (Rs.)
@@ -155,7 +260,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
               </p>
             </div>
 
-            <div className="relative max-w-xs">
+            <div className="relative w-full max-w-sm">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-orange-600">
                 Rs.
               </span>
@@ -171,7 +276,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
               />
             </div>
 
-            {/* Quick 1-Click Presets */}
+            {/* Quick Presets */}
             <div>
               <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-2">
                 Quick Presets:
@@ -199,7 +304,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
           </div>
 
           {/* Section 2: Minimum Order Limit */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4">
+          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
             <div>
               <label className="text-sm font-bold text-zinc-900 block mb-1">
                 Minimum Order Amount for Delivery (Rs.)
@@ -209,7 +314,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
               </p>
             </div>
 
-            <div className="relative max-w-xs">
+            <div className="relative w-full max-w-sm">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-600">
                 Rs.
               </span>
@@ -224,26 +329,31 @@ export default function DeliverySettingsManager({ onRefresh }) {
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {[0, 300, 500, 750, 1000].map((amt) => (
-                <button
-                  key={amt}
-                  type="button"
-                  onClick={() => setMinOrder(amt)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    Number(minOrder) === amt
-                      ? 'bg-amber-600 text-white border border-amber-600 shadow-xs'
-                      : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
-                  }`}
-                >
-                  {amt === 0 ? 'No Minimum' : `Rs. ${amt}`}
-                </button>
-              ))}
+            <div>
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                Quick Presets:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {[0, 300, 500, 750, 1000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setMinOrder(amt)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      Number(minOrder) === amt
+                        ? 'bg-amber-600 text-white border border-amber-600 shadow-xs'
+                        : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
+                    }`}
+                  >
+                    {amt === 0 ? 'No Minimum' : `Rs. ${amt}`}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Section 3: Optional Free Delivery Threshold */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4">
+          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
             <div>
               <label className="text-sm font-bold text-zinc-900 block mb-1">
                 Free Delivery Above Subtotal (Optional)
@@ -253,7 +363,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
               </p>
             </div>
 
-            <div className="relative max-w-xs">
+            <div className="relative w-full max-w-sm">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-600">
                 Rs.
               </span>
@@ -268,148 +378,600 @@ export default function DeliverySettingsManager({ onRefresh }) {
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {[0, 1500, 2000, 2500, 3000].map((amt) => (
-                <button
-                  key={amt}
-                  type="button"
-                  onClick={() => setFreeDeliveryThreshold(amt)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    Number(freeDeliveryThreshold) === amt
-                      ? 'bg-emerald-600 text-white border border-emerald-600 shadow-xs'
-                      : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
-                  }`}
-                >
-                  {amt === 0 ? 'Disabled' : `Free above Rs. ${amt}`}
-                </button>
-              ))}
+            <div>
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                Quick Presets:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {[0, 1500, 2000, 2500, 3000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setFreeDeliveryThreshold(amt)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      Number(freeDeliveryThreshold) === amt
+                        ? 'bg-emerald-600 text-white border border-emerald-600 shadow-xs'
+                        : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
+                    }`}
+                  >
+                    {amt === 0 ? 'Disabled' : `Free above Rs. ${amt}`}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Section 4: Delivery Notice */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-3">
-            <label className="text-sm font-bold text-zinc-900 block">
-              Delivery Policy & Area Notice
-            </label>
-            <p className="text-xs text-zinc-500">
-              This note is shown on checkout and store contact info to inform customers about delivery areas and variable charges.
-            </p>
+          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
+            <div>
+              <label className="text-sm font-bold text-zinc-900 block mb-1">
+                Delivery Policy & Area Notice
+              </label>
+              <p className="text-xs text-zinc-500">
+                This note is shown on checkout and store contact info to inform customers about delivery areas and variable charges.
+              </p>
+            </div>
             <textarea
-              rows="2"
+              rows="4"
               value={deliveryNotice}
               onChange={(e) => setDeliveryNotice(e.target.value)}
               className="w-full p-3.5 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-2xs resize-none"
-              placeholder="e.g. Delivery available in nearby areas. Rates may vary for distant areas."
+              placeholder="e.g. Delivery available in nearby areas (Wah Model Town, Wah Cantt). Rates may vary for distant areas."
             />
-          </div>
-
-          {/* Save Button Row */}
-          <div className="flex items-center gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all disabled:opacity-50 cursor-pointer"
-            >
-              <Save className="w-4 h-4" />
-              <span>{saving ? 'Saving...' : 'Save Delivery Settings'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={fetchSettings}
-              disabled={loading || saving}
-              className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span>Reset</span>
-            </button>
+            <div className="text-[11px] text-zinc-400">
+              Customers can view this notice during online ordering.
+            </div>
           </div>
 
         </div>
 
-        {/* Right Column: Live Customer Preview & Operational Guidelines */}
-        <div className="space-y-6">
-          
-          {/* Live Preview Box */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold text-orange-600 uppercase tracking-wider">
-              <Sparkles className="w-4 h-4" />
-              <span>Customer Cart Live Preview</span>
-            </div>
-
-            <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-200 text-zinc-900 space-y-3 shadow-2xs">
-              <div className="text-xs font-bold uppercase tracking-wider text-zinc-500 pb-2 border-b border-zinc-200">
-                Order Summary
+        {/* Section 5: Storefront Floating Action Buttons (WhatsApp & Move to Top) */}
+        <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center flex-shrink-0">
+                <Sliders className="w-5 h-5" />
               </div>
-
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between text-zinc-600">
-                  <span>Sample Food Items</span>
-                  <span className="font-semibold text-zinc-900">Rs. 1,450</span>
-                </div>
-                <div className="flex justify-between text-zinc-600">
-                  <span>Delivery Fee</span>
-                  <span className="font-bold text-orange-600">
-                    {Number(deliveryFee) === 0 ? 'FREE' : `Rs. ${Number(deliveryFee).toLocaleString()}`}
-                  </span>
-                </div>
-                <div className="flex justify-between items-baseline pt-2 border-t border-zinc-200 text-sm">
-                  <span className="font-display uppercase text-zinc-900 font-bold">TOTAL</span>
-                  <span className="font-display text-xl text-orange-600 font-bold">
-                    Rs. {(1450 + (Number(deliveryFee) || 0)).toLocaleString()}
-                  </span>
-                </div>
+              <div>
+                <h3 className="text-base font-bold text-zinc-900">
+                  Storefront Floating Action Buttons
+                </h3>
+                <p className="text-xs text-zinc-500">
+                  Independent controls to hide or show floating buttons on Desktop (Web) vs Mobile views.
+                </p>
               </div>
-
-              {Number(minOrder) > 0 && (
-                <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] leading-tight">
-                  <span className="font-bold">Min Order: </span>
-                  Rs. {Number(minOrder).toLocaleString()} for home delivery
-                </div>
-              )}
             </div>
-
-            <div className="p-3.5 rounded-xl bg-orange-50/50 border border-orange-200/60 text-xs text-zinc-600 space-y-1.5">
-              <div className="flex items-center gap-2 text-zinc-800 font-semibold">
-                <Info className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                <span>How this works</span>
-              </div>
-              <p className="leading-relaxed text-[11px]">
-                When you change the delivery fee here and click <strong>Save</strong>, the new amount is immediately saved to the store database. Any customer opening the cart, web order form, or WhatsApp order generator will see this new rate.
-              </p>
-            </div>
+            <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-zinc-100 text-zinc-600 self-start sm:self-auto">
+              Storefront Display Controls
+            </span>
           </div>
 
-          {/* Operational Guidance Card for Varying Rates */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-              <Truck className="w-4 h-4 text-orange-600" />
-              <span>Variable Distance Delivery Tips</span>
-            </h3>
-            <ul className="text-xs text-zinc-600 space-y-2 leading-relaxed">
-              <li className="flex items-start gap-2">
-                <span className="text-orange-600 font-bold">•</span>
-                <span>
-                  <strong>Standard nearby areas</strong> (Itfaq Town, Shaikh Chowk, Mansoora) can use the default fee (e.g. Rs. 100).
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* 1. Floating Cart Button */}
+            <div className="p-5 rounded-2xl bg-zinc-50/80 border border-zinc-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-xs border border-zinc-700">
+                    <ShoppingBag className="w-5 h-5 text-orange-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-zinc-900">
+                      Floating Cart Button
+                    </h4>
+                    <p className="text-[11px] text-zinc-500">
+                      Bottom-right floating cart drawer button
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                    floatingButtons.cartWeb || floatingButtons.cartMobile
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-zinc-200 text-zinc-600 border-zinc-300'
+                  }`}
+                >
+                  {floatingButtons.cartWeb && floatingButtons.cartMobile
+                    ? 'Active (All Devices)'
+                    : floatingButtons.cartWeb
+                    ? 'Web View Only'
+                    : floatingButtons.cartMobile
+                    ? 'Mobile View Only'
+                    : 'Hidden on All'}
                 </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-orange-600 font-bold">•</span>
-                <span>
-                  <strong>Distant orders</strong>: You can adjust the delivery fee on individual customer orders directly in the <strong>Customer Orders</strong> tab before confirming.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-orange-600 font-bold">•</span>
-                <span>
-                  <strong>Rainy / High Demand</strong>: Easily increase the base fee here by Rs. 50 or Rs. 100 during peak delivery rush.
-                </span>
-              </li>
-            </ul>
-          </div>
+              </div>
 
+              {/* Toggles */}
+              <div className="space-y-3 pt-2">
+                {/* Web View Toggle */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-zinc-200 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600">
+                      <Monitor className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-zinc-800 block">Web / Desktop View</span>
+                      <span className="text-[10px] text-zinc-400">Screens 640px and wider</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`text-[11px] font-bold tracking-wider transition-colors ${
+                        floatingButtons.cartWeb ? 'text-emerald-600' : 'text-zinc-400'
+                      }`}
+                    >
+                      {floatingButtons.cartWeb ? 'ON' : 'OFF'}
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={floatingButtons.cartWeb}
+                      onClick={() =>
+                        setFloatingButtons((prev) => ({ ...prev, cartWeb: !prev.cartWeb }))
+                      }
+                      className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out focus:outline-none shadow-inner ${
+                        floatingButtons.cartWeb ? 'bg-emerald-500' : 'bg-zinc-300'
+                      }`}
+                      aria-label="Toggle Cart Button on Web"
+                    >
+                      <div
+                        className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                          floatingButtons.cartWeb ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mobile View Toggle */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-zinc-200 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600">
+                      <Smartphone className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-zinc-800 block">Mobile Phone View</span>
+                      <span className="text-[10px] text-zinc-400">Mobile phones & small screens</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`text-[11px] font-bold tracking-wider transition-colors ${
+                        floatingButtons.cartMobile ? 'text-emerald-600' : 'text-zinc-400'
+                      }`}
+                    >
+                      {floatingButtons.cartMobile ? 'ON' : 'OFF'}
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={floatingButtons.cartMobile}
+                      onClick={() =>
+                        setFloatingButtons((prev) => ({
+                          ...prev,
+                          cartMobile: !prev.cartMobile
+                        }))
+                      }
+                      className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out focus:outline-none shadow-inner ${
+                        floatingButtons.cartMobile ? 'bg-emerald-500' : 'bg-zinc-300'
+                      }`}
+                      aria-label="Toggle Cart Button on Mobile"
+                    >
+                      <div
+                        className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                          floatingButtons.cartMobile ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. WhatsApp Floating Chat Button */}
+            <div className="p-5 rounded-2xl bg-zinc-50/80 border border-zinc-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#25D366] text-white flex items-center justify-center shadow-xs">
+                    <WhatsAppIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-zinc-900">
+                      WhatsApp Chat Button
+                    </h4>
+                    <p className="text-[11px] text-zinc-500">
+                      Bottom-right direct WhatsApp ordering button
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                    floatingButtons.whatsappWeb || floatingButtons.whatsappMobile
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-zinc-200 text-zinc-600 border-zinc-300'
+                  }`}
+                >
+                  {floatingButtons.whatsappWeb && floatingButtons.whatsappMobile
+                    ? 'Active (All Devices)'
+                    : floatingButtons.whatsappWeb
+                    ? 'Web View Only'
+                    : floatingButtons.whatsappMobile
+                    ? 'Mobile View Only'
+                    : 'Hidden on All'}
+                </span>
+              </div>
+
+              {/* Toggles */}
+              <div className="space-y-3 pt-2">
+                {/* Web View Toggle */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-zinc-200 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600">
+                      <Monitor className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-zinc-800 block">Web / Desktop View</span>
+                      <span className="text-[10px] text-zinc-400">Screens 640px and wider</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`text-[11px] font-bold tracking-wider transition-colors ${
+                        floatingButtons.whatsappWeb ? 'text-emerald-600' : 'text-zinc-400'
+                      }`}
+                    >
+                      {floatingButtons.whatsappWeb ? 'ON' : 'OFF'}
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={floatingButtons.whatsappWeb}
+                      onClick={() =>
+                        setFloatingButtons((prev) => ({ ...prev, whatsappWeb: !prev.whatsappWeb }))
+                      }
+                      className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out focus:outline-none shadow-inner ${
+                        floatingButtons.whatsappWeb ? 'bg-emerald-500' : 'bg-zinc-300'
+                      }`}
+                      aria-label="Toggle WhatsApp on Web"
+                    >
+                      <div
+                        className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                          floatingButtons.whatsappWeb ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mobile View Toggle */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-zinc-200 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600">
+                      <Smartphone className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-zinc-800 block">Mobile Phone View</span>
+                      <span className="text-[10px] text-zinc-400">Mobile phones & small screens</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`text-[11px] font-bold tracking-wider transition-colors ${
+                        floatingButtons.whatsappMobile ? 'text-emerald-600' : 'text-zinc-400'
+                      }`}
+                    >
+                      {floatingButtons.whatsappMobile ? 'ON' : 'OFF'}
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={floatingButtons.whatsappMobile}
+                      onClick={() =>
+                        setFloatingButtons((prev) => ({
+                          ...prev,
+                          whatsappMobile: !prev.whatsappMobile
+                        }))
+                      }
+                      className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out focus:outline-none shadow-inner ${
+                        floatingButtons.whatsappMobile ? 'bg-emerald-500' : 'bg-zinc-300'
+                      }`}
+                      aria-label="Toggle WhatsApp on Mobile"
+                    >
+                      <div
+                        className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                          floatingButtons.whatsappMobile ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Move to Top Floating Button */}
+            <div className="p-5 rounded-2xl bg-zinc-50/80 border border-zinc-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-xs">
+                    <ArrowUp className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-zinc-900">
+                      Move to Top (Back to Top)
+                    </h4>
+                    <p className="text-[11px] text-zinc-500">
+                      Floating orange smooth scroll button
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                    floatingButtons.backToTopWeb || floatingButtons.backToTopMobile
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-zinc-200 text-zinc-600 border-zinc-300'
+                  }`}
+                >
+                  {floatingButtons.backToTopWeb && floatingButtons.backToTopMobile
+                    ? 'Active (All Devices)'
+                    : floatingButtons.backToTopWeb
+                    ? 'Web View Only'
+                    : floatingButtons.backToTopMobile
+                    ? 'Mobile View Only'
+                    : 'Hidden on All'}
+                </span>
+              </div>
+
+              {/* Toggles */}
+              <div className="space-y-3 pt-2">
+                {/* Web View Toggle */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-zinc-200 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600">
+                      <Monitor className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-zinc-800 block">Web / Desktop View</span>
+                      <span className="text-[10px] text-zinc-400">Screens 640px and wider</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`text-[11px] font-bold tracking-wider transition-colors ${
+                        floatingButtons.backToTopWeb ? 'text-emerald-600' : 'text-zinc-400'
+                      }`}
+                    >
+                      {floatingButtons.backToTopWeb ? 'ON' : 'OFF'}
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={floatingButtons.backToTopWeb}
+                      onClick={() =>
+                        setFloatingButtons((prev) => ({
+                          ...prev,
+                          backToTopWeb: !prev.backToTopWeb
+                        }))
+                      }
+                      className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out focus:outline-none shadow-inner ${
+                        floatingButtons.backToTopWeb ? 'bg-emerald-500' : 'bg-zinc-300'
+                      }`}
+                      aria-label="Toggle Back to Top on Web"
+                    >
+                      <div
+                        className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                          floatingButtons.backToTopWeb ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mobile View Toggle */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-zinc-200 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600">
+                      <Smartphone className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-zinc-800 block">Mobile Phone View</span>
+                      <span className="text-[10px] text-zinc-400">Mobile phones & small screens</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`text-[11px] font-bold tracking-wider transition-colors ${
+                        floatingButtons.backToTopMobile ? 'text-emerald-600' : 'text-zinc-400'
+                      }`}
+                    >
+                      {floatingButtons.backToTopMobile ? 'ON' : 'OFF'}
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={floatingButtons.backToTopMobile}
+                      onClick={() =>
+                        setFloatingButtons((prev) => ({
+                          ...prev,
+                          backToTopMobile: !prev.backToTopMobile
+                        }))
+                      }
+                      className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out focus:outline-none shadow-inner ${
+                        floatingButtons.backToTopMobile ? 'bg-emerald-500' : 'bg-zinc-300'
+                      }`}
+                      aria-label="Toggle Back to Top on Mobile"
+                    >
+                      <div
+                        className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                          floatingButtons.backToTopMobile ? 'translate-x-6' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* Section 6: Best Sellers Category Eligibility & Live Preview */}
+        <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center flex-shrink-0">
+                <Flame className="w-5 h-5 fill-red-500 text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-zinc-900">
+                  Best Sellers Section Categories
+                </h3>
+                <p className="text-xs text-zinc-500">
+                  Choose which food categories qualify for the top 4 Best Sellers row on your homepage.
+                </p>
+              </div>
+            </div>
+            <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 self-start sm:self-auto">
+              Homepage Showcase
+            </span>
+          </div>
+
+          {/* Category Toggle Pills */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="text-xs font-bold text-zinc-800 uppercase tracking-wider block">
+                Eligible Categories ({bestSellerCategories.length} selected):
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBestSellerCategories(['pizza', 'burgers'])}
+                  className="text-[11px] font-bold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
+                >
+                  Pizza & Burgers Only
+                </button>
+                <span className="text-zinc-300">•</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setBestSellerCategories(
+                      allCategories
+                        .map((c) => c.id.toLowerCase())
+                        .filter((id) => id !== 'sauces' && !id.includes('drink'))
+                    )
+                  }
+                  className="text-[11px] font-bold text-zinc-600 hover:text-zinc-800 hover:underline cursor-pointer"
+                >
+                  All Meals (No Sauces/Drinks)
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2.5">
+              {allCategories.map((cat) => {
+                const isSelected = bestSellerCategories.includes(cat.id.toLowerCase());
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => toggleCategory(cat.id)}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer border ${
+                      isSelected
+                        ? 'bg-red-600 text-white border-red-600 shadow-xs scale-[1.02]'
+                        : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors ${
+                        isSelected
+                          ? 'bg-white text-red-600 border-white'
+                          : 'bg-white border-zinc-300'
+                      }`}
+                    >
+                      {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    </div>
+                    <span>{cat.label || cat.id}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="text-[11px] text-zinc-500 italic pt-1">
+              Tip: Unselected categories (such as cold drinks, extra sauces, or add-ons) are strictly blocked from appearing in the Best Sellers section.
+            </p>
+          </div>
+
+          {/* Real-time Top 4 Best Sellers Preview */}
+          <div className="bg-zinc-50 p-5 rounded-2xl border border-zinc-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <Flame className="w-4 h-4 text-red-500 fill-red-500" />
+                <span>Live Preview: All-Time Top 4 Selling Items in Selected Categories</span>
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                Auto-calculated from all-time sales
+              </span>
+            </div>
+
+            {previewBestSellers.length === 0 ? (
+              <div className="p-6 text-center text-xs text-zinc-500 bg-white rounded-xl border border-zinc-200">
+                No items found in the selected categories. Please select at least one active category.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {previewBestSellers.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className="bg-white p-4 rounded-xl border border-zinc-200 shadow-2xs flex flex-col justify-between space-y-3 relative group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-red-100 text-red-700">
+                        #{idx + 1} Best Seller
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                        {item.salesCount || 0} sold
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={item.image || '/assets/placeholder-food.png'}
+                        alt={item.name}
+                        className="w-12 h-12 rounded-lg object-contain bg-zinc-50 border border-zinc-100 flex-shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <h5 className="font-bold text-xs text-zinc-900 truncate">
+                          {item.name}
+                        </h5>
+                        <span className="text-[10px] text-zinc-500 capitalize block">
+                          {item.category}
+                        </span>
+                        <span className="text-xs font-bold text-red-600 font-display">
+                          Rs. {Number(item.price || (item.sizes && item.sizes[0]?.price) || 0).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Save Button Row */}
+        <div className="flex items-center gap-3 pt-2">
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            <span>{saving ? 'Saving...' : 'Save Settings'}</span>
+          </button>
+        </div>
       </form>
     </div>
   );

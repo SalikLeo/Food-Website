@@ -3,7 +3,7 @@
     {
       "id": "pizza",
       "label": "Pizza",
-      "blurb": "Fresh dough, real cheese, desi flavours",
+      "blurb": "",
       "count": 18
     },
     {
@@ -47,186 +47,66 @@
       "label": "Special Items",
       "blurb": "Loaded fries, pasta, cheese stick & grill burger",
       "count": 4
+    },
+    {
+      "id": "sauces",
+      "label": "Sauces",
+      "blurb": "mayo dip, etc",
+      "count": 0
     }
   ],
   "deals": [
     {
-      "id": "deal-1",
+      "id": "family-deal",
+      "name": "Family Deal 1",
+      "category": "deals",
+      "includes": [
+        "5 Zinger Burger (Burgers)",
+        "2 Patty Burger",
+        "2 Small Shawarma (Shawarma)",
+        "1 Large Shawarma (Shawarma)",
+        "6 Nuggets (Chicken Nuggets)",
+        "1 Coke 1.5L (Beverages)"
+      ],
+      "price": 2580,
+      "image": "/assets/deal-family.png",
+      "description": "5 Zinger Burger (Burgers) + 2 Patty Burger + 2 Small Shawarma (Shawarma) + 1 Large Shawarma (Shawarma) + 6 Nuggets (Chicken Nuggets) + 1 Coke 1.5L (Beverages)",
+      "tag": "Family Bundle",
       "number": "01",
+      "dealType": "family"
+    },
+    {
       "name": "Deal 1",
+      "number": "01",
       "category": "deals",
-      "includes": [
-        "1 Zinger Burger",
-        "1 Patty Burger",
-        "1 Coke 500ml"
-      ],
-      "price": 550,
+      "dealType": "normal",
+      "price": 800,
       "image": "/assets/deal-1.png",
-      "cokeImg": "/assets/coke-500ml.png",
-      "description": "1 Zinger Burger + 1 Patty Burger + 1 Coke 500ml"
+      "includes": [
+        "2 Zinger Burger (Burgers)",
+        "2 Coke 500ml (Beverages)"
+      ],
+      "description": "2 Zinger Burger (Burgers) + 2 Coke 500ml (Beverages)",
+      "tag": "",
+      "id": "deal-1789746368640"
     },
     {
-      "id": "deal-2",
-      "number": "02",
       "name": "Deal 2",
+      "number": "02",
       "category": "deals",
-      "includes": [
-        "1 Zinger Burger",
-        "6 Nuggets",
-        "1 Coke 500ml"
-      ],
-      "price": 600,
+      "dealType": "normal",
+      "price": 1300,
       "image": "/assets/deal-2.png",
-      "cokeImg": "/assets/coke-500ml.png",
-      "description": "1 Zinger Burger + 6 Nuggets + 1 Coke 500ml"
-    },
-    {
-      "id": "deal-3",
-      "number": "03",
-      "name": "Deal 3",
-      "category": "deals",
       "includes": [
-        "5 Zinger Burger",
-        "1 Coke 1.5L"
+        "1 Small Chicken Tikka (Pizza)",
+        "1 Coke 1L (Beverages)"
       ],
-      "price": 1650,
-      "image": "/assets/deal-3.png",
-      "cokeImg": "/assets/coke-1-5l.png",
-      "description": "5 Zinger Burger + 1 Coke 1.5L"
-    },
-    {
-      "id": "deal-4",
-      "number": "04",
-      "name": "Deal 4",
-      "category": "deals",
-      "includes": [
-        "1 Zinger Burger",
-        "1 Small Pizza",
-        "1 Coke 500ml"
-      ],
-      "price": 830,
-      "image": "/assets/deal-4.png",
-      "cokeImg": "/assets/coke-500ml.png",
-      "description": "1 Zinger Burger + 1 Small Pizza + 1 Coke 500ml"
-    },
-    {
-      "id": "deal-5",
-      "number": "05",
-      "name": "Deal 5",
-      "category": "deals",
-      "includes": [
-        "2 Small Pizza",
-        "1 Coke 500ml"
-      ],
-      "price": 940,
-      "image": "/assets/deal-5.png",
-      "cokeImg": "/assets/coke-500ml.png",
-      "description": "2 Small Pizza + 1 Coke 500ml"
-    },
-    {
-      "id": "deal-6",
-      "number": "06",
-      "name": "Deal 6",
-      "category": "deals",
-      "includes": [
-        "1 Large Pizza",
-        "1 Coke 1.5L"
-      ],
-      "price": 1350,
-      "image": "/assets/deal-6.png",
-      "cokeImg": "/assets/coke-1-5l.png",
-      "description": "1 Large Pizza + 1 Coke 1.5L"
-    },
-    {
-      "id": "deal-7",
-      "number": "07",
-      "name": "Deal 7",
-      "category": "deals",
-      "includes": [
-        "1 Small Pizza",
-        "1 Medium Pizza",
-        "1 Coke 1.5L"
-      ],
-      "price": 1400,
-      "image": "/assets/deal-7.png",
-      "cokeImg": "/assets/coke-1-5l.png",
-      "description": "1 Small Pizza + 1 Medium Pizza + 1 Coke 1.5L"
-    },
-    {
-      "id": "deal-8",
-      "number": "08",
-      "name": "Deal 8",
-      "category": "deals",
-      "includes": [
-        "2 Medium Pizza",
-        "1 Coke 1.5L"
-      ],
-      "price": 1650,
-      "image": "/assets/deal-8.png",
-      "cokeImg": "/assets/coke-1-5l.png",
-      "description": "2 Medium Pizza + 1 Coke 1.5L"
-    },
-    {
-      "id": "deal-9",
-      "number": "09",
-      "name": "Deal 9",
-      "category": "deals",
-      "includes": [
-        "2 Large Pizza",
-        "1 Coke 1.5L"
-      ],
-      "price": 2450,
-      "image": "/assets/deal-9.png",
-      "cokeImg": "/assets/coke-1-5l.png",
-      "description": "2 Large Pizza + 1 Coke 1.5L"
-    },
-    {
-      "id": "deal-10",
-      "number": "10",
-      "name": "Deal 10",
-      "category": "deals",
-      "includes": [
-        "1 Medium Pizza",
-        "1 Large Pizza",
-        "1 Coke 1.5L"
-      ],
-      "price": 2100,
-      "image": "/assets/deal-10.png",
-      "cokeImg": "/assets/coke-1-5l.png",
-      "description": "1 Medium Pizza + 1 Large Pizza + 1 Coke 1.5L"
-    },
-    {
-      "id": "deal-11",
-      "number": "11",
-      "name": "Deal 11",
-      "category": "deals",
-      "includes": [
-        "3 Zinger Burger",
-        "1 Coke 1L"
-      ],
-      "price": 990,
-      "image": "/assets/deal-11.png",
-      "cokeImg": "/assets/coke-1l.png",
-      "description": "3 Zinger Burger + 1 Coke 1L"
+      "description": "1 Small Chicken Tikka (Pizza) + 1 Coke 1L (Beverages)",
+      "tag": "",
+      "id": "deal-1789746424743"
     }
   ],
-  "familyDeal": {
-    "id": "family-deal",
-    "name": "Family Deal",
-    "category": "deals",
-    "includes": [
-      "5 Zinger Burger",
-      "2 Patty Burger",
-      "2 Small Shawarma",
-      "1 Large Shawarma",
-      "6 Nuggets",
-      "1 Coke 1.5L"
-    ],
-    "price": 2580,
-    "image": "/assets/deal-family.png",
-    "description": "1 Zinger Burger + 2 Patty Burger + 2 Small Shawarma + 1 Large Shawarma + 6 Nuggets + 1 Coke 1.5L",
-    "tag": "Family Bundle"
-  },
+  "familyDeal": null,
   "products": [
     {
       "id": "pizza-1",
@@ -247,7 +127,7 @@
       ],
       "inStock": false,
       "tag": "",
-      "updatedAt": "2026-09-17T22:28:35.160Z"
+      "updatedAt": "2026-09-19T20:09:50.657Z"
     },
     {
       "id": "pizza-2",
@@ -437,7 +317,7 @@
     },
     {
       "id": "pizza-special-3",
-      "name": "Mehrban Special",
+      "name": "MP Special",
       "description": "Our signature loaded special pizza",
       "category": "pizza",
       "image": "/assets/images/p-pizza-special-CuXHdKll.jpg",
@@ -817,7 +697,7 @@
     },
     {
       "id": "shawarma-special",
-      "name": "Mehrban Special Shawarma",
+      "name": "MP Special Shawarma",
       "category": "shawarma",
       "description": "Loaded chicken, cheese and our special sauce",
       "image": "/assets/images/p-shawarma-special-CvEPCaT5.jpg",
@@ -1037,45 +917,66 @@
   ],
   "faqs": [
     {
-      "q": "Where is Mehrban Fast Food located in Lahore?",
-      "a": "Mehrban Fast Food is at Shaikh Chowk Itfaq Town, Mansoora Bazar, Main Multan Road, Lahore."
+      "q": "Where is Salik Fast Food located?",
+      "a": "Salik Fast Food is located in Wah Model Town, Wah Cantt."
     },
     {
-      "q": "What food does Mehrban Fast Food offer?",
+      "q": "What food does Salik Fast Food offer?",
       "a": "The menu covers pizza and special pizza, zinger and grill burgers, chicken shawarma, sandwiches, fries, hot wings, chicken nuggets, special items and combo deals."
     },
     {
-      "q": "Does Mehrban Fast Food deliver in Lahore?",
-      "a": "Yes — home delivery is available in nearby areas of Main Multan Road, Lahore. Minimum order is Rs. 500 and the delivery fee is Rs. 100."
+      "q": "Does Salik Fast Food deliver in Wah Cantt?",
+      "a": "Yes — home delivery is available in nearby areas of Wah Cantt. Minimum order is Rs. 500 and the delivery fee is Rs. 100."
     },
     {
       "q": "What are the opening hours?",
-      "a": "Please call to confirm today's timings — call 0323-4660279 or 0323-6580604."
+      "a": "Please call to confirm today's timings — call 0309-5369472."
     },
     {
-      "q": "How can I contact Mehrban Fast Food?",
-      "a": "Call 0323-4660279 or 0323-6580604, or send your order on WhatsApp."
+      "q": "How can I contact Salik Fast Food?",
+      "a": "Call 0309-5369472, or send your order on WhatsApp."
     },
     {
-      "q": "Where can I see the Mehrban Fast Food menu and prices?",
+      "q": "Where can I see the Salik Fast Food menu and prices?",
       "a": "The full menu with current prices is on this website — every category has its own tab with item photos and prices."
     }
   ],
   "siteInfo": {
-    "name": "Mehrban Fast Food",
+    "name": "Salik Fast Food",
     "tagline": "Taste That You Need",
-    "address": "Shaikh Chowk Itfaq Town, Mansoora Bazar, Main Multan Road, Lahore",
+    "address": "Wah Model Town, Wah Cantt",
     "phones": [
-      "0323-4660279",
-      "0323-6580604"
+      "0309-5369472"
     ],
-    "whatsapp": "923236580604",
+    "whatsapp": "923095369472",
     "minOrder": 500,
     "deliveryFee": 100,
     "deliveryTime": "30-40 min",
     "rating": "4.8 / 5"
   },
   "orders": [
+    {
+      "id": "ORD-560855-48",
+      "customerName": "Taimoor Khan",
+      "phone": "03001234567",
+      "address": "House 45, Street 9, Near Central Mosque",
+      "notes": "",
+      "paymentMethod": "Cash on Delivery",
+      "items": [
+        {
+          "id": "p1",
+          "name": "Zinger Burger",
+          "price": 350,
+          "quantity": 2
+        }
+      ],
+      "subtotal": 700,
+      "deliveryFee": 50,
+      "total": 750,
+      "userId": "cust_1789890560845_520",
+      "status": "Pending",
+      "createdAt": "2026-09-20T07:49:20.855Z"
+    },
     {
       "id": "ORD-984535-92",
       "customerName": "Muhammad Salik Leo",
@@ -1118,9 +1019,9 @@
       "subtotal": 4150,
       "deliveryFee": 0,
       "total": 4150,
-      "status": "Pending",
+      "status": "Delivered",
       "createdAt": "2026-09-17T22:09:44.535Z",
-      "updatedAt": "2026-09-17T22:26:59.969Z"
+      "updatedAt": "2026-09-19T16:50:57.057Z"
     },
     {
       "id": "ORD-181983-71",
@@ -1170,8 +1071,9 @@
       "subtotal": 2400,
       "deliveryFee": 0,
       "total": 2400,
-      "status": "Pending",
-      "createdAt": "2026-09-17T21:55:45.351Z"
+      "status": "Delivered",
+      "createdAt": "2026-09-17T21:55:45.351Z",
+      "updatedAt": "2026-09-19T16:50:59.124Z"
     },
     {
       "id": "ORD-825128-38",
@@ -1240,7 +1142,175 @@
     "deliveryFee": 150,
     "minOrder": 800,
     "freeDeliveryThreshold": 1500,
-    "deliveryNotice": "Delivery available in nearby areas (Shaikh Chowk, Itfaq Town, Mansoora, Multan Road)",
-    "updatedAt": "2026-09-17T21:26:34.812Z"
-  }
+    "deliveryNotice": "Delivery available in nearby areas (Wah Model Town, Wah Cantt)",
+    "updatedAt": "2026-09-19T21:31:51.331Z",
+    "floatingButtons": {
+      "whatsappWeb": true,
+      "whatsappMobile": true,
+      "backToTopWeb": true,
+      "backToTopMobile": true,
+      "cartWeb": true,
+      "cartMobile": true
+    },
+    "bestSellerCategories": [
+      "pizza",
+      "burgers",
+      "shawarma",
+      "sandwiches",
+      "fries",
+      "wings",
+      "nuggets"
+    ]
+  },
+  "reviews": [
+    {
+      "id": "rev-1",
+      "name": "Usman Tariq",
+      "location": "Wah Model Town Phase 1",
+      "platform": "Google Review",
+      "rating": 5,
+      "date": "2 days ago",
+      "avatar": "UT",
+      "avatarBg": "bg-amber-500",
+      "itemOrdered": "Crown Crust Large Pizza",
+      "comment": "Hands down the best crown crust pizza in Wah Cantt! Cheese pull was insane and the crust was loaded with kabab pieces. Delivered piping hot in 30 minutes to Model Town Phase 1.",
+      "createdAt": "2026-09-17T20:28:16.814Z"
+    },
+    {
+      "id": "rev-2",
+      "name": "Dr. Ayesha Siddiqui",
+      "location": "Officers Colony, Wah Cantt",
+      "platform": "Google Review",
+      "rating": 5,
+      "date": "1 week ago",
+      "avatar": "AS",
+      "avatarBg": "bg-orange-600",
+      "itemOrdered": "Zinger Tower Burger & Wings",
+      "comment": "Their Zinger patty is so crispy and juicy, beats international brands in Wah. The garlic mayo sauce is top tier. Will definitely be our regular weekend family order!",
+      "createdAt": "2026-09-12T20:28:16.815Z"
+    },
+    {
+      "id": "rev-3",
+      "name": "Hamza Malik",
+      "location": "Aslam Market, Wah Cantt",
+      "platform": "Foodpanda Verified",
+      "rating": 5,
+      "date": "3 days ago",
+      "avatar": "HM",
+      "avatarBg": "bg-red-600",
+      "itemOrdered": "Deal 3: 2 Zinger + Large Pizza",
+      "comment": "Incredible value for money. Deal 3 easily fed four of us with plenty left over. Ordering directly on their website was super smooth and received instant WhatsApp confirmation.",
+      "createdAt": "2026-09-16T20:28:16.815Z"
+    },
+    {
+      "id": "rev-4",
+      "name": "Zainab Bibi",
+      "location": "Wah Model Town Phase 2",
+      "platform": "Google Review",
+      "rating": 5,
+      "date": "5 days ago",
+      "avatar": "ZB",
+      "avatarBg": "bg-emerald-600",
+      "itemOrdered": "Special Chicken Shawarma Platter",
+      "comment": "Best shawarma in town! Proper pita bread, packed with grilled chicken and pickling veggies without too much oily mayo. Fresh, clean, and delivered fast.",
+      "createdAt": "2026-09-14T20:28:16.815Z"
+    },
+    {
+      "id": "rev-5",
+      "name": "Bilal Ahmed",
+      "location": "Barrier 3, Wah Cantt",
+      "platform": "Foodpanda Verified",
+      "rating": 5,
+      "date": "1 week ago",
+      "avatar": "BA",
+      "avatarBg": "bg-blue-600",
+      "itemOrdered": "Crispy Broast & Loaded Fries",
+      "comment": "Broast was super crunchy outside and tender inside, not oily at all. The loaded fries with melted cheese and chipotle sauce were fantastic. 10/10 recommended for Wah foodies.",
+      "createdAt": "2026-09-12T20:28:16.815Z"
+    },
+    {
+      "id": "rev-6",
+      "name": "Sana Farooq",
+      "location": "Lalarukh, Wah Cantt",
+      "platform": "Google Review",
+      "rating": 5,
+      "date": "2 weeks ago",
+      "avatar": "SF",
+      "avatarBg": "bg-purple-600",
+      "itemOrdered": "Malai Boti Pizza Large",
+      "comment": "If you like creamy, rich desi flavors on a pizza, their Malai Boti pizza is unbeatable. Soft crust, generous chicken chunks, and arrived steam-hot. Customer service is 10/10!",
+      "createdAt": "2026-09-05T20:28:16.815Z"
+    },
+    {
+      "id": "rev-7",
+      "name": "Naveed Akhtar",
+      "location": "New City Phase 2",
+      "platform": "Google Review",
+      "rating": 5,
+      "date": "3 weeks ago",
+      "avatar": "NA",
+      "avatarBg": "bg-teal-600",
+      "itemOrdered": "Mega Feast Family Deal",
+      "comment": "Ordered for a family get-together. Everything from the pizzas to the burgers and fries was fresh and perfectly packed. Very courteous delivery rider.",
+      "createdAt": "2026-08-29T20:28:16.815Z"
+    },
+    {
+      "id": "rev-8",
+      "name": "Kashif Mehmood",
+      "location": "Wah Model Town Phase 1",
+      "platform": "Google Review",
+      "rating": 5,
+      "date": "1 month ago",
+      "avatar": "KM",
+      "avatarBg": "bg-rose-600",
+      "itemOrdered": "Pepperoni Supreme Pizza",
+      "comment": "Authentic taste and fresh dough made daily. Salik Fast Food has become our go-to late night hunger spot in Wah. Keep up the high standard!",
+      "createdAt": "2026-08-20T20:28:16.815Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "cust_1789890330543_905",
+      "phone": "03095369472",
+      "name": "",
+      "email": "",
+      "addresses": [],
+      "createdAt": "2026-09-20T07:45:30.543Z",
+      "lastLoginAt": "2026-09-20T07:45:30.543Z",
+      "token": "mp_cust_Y3VzdF8xNzg5ODkwMzMwNTQzXzkwNToxNzg5ODkwMzMwNTQz"
+    },
+    {
+      "id": "cust_1789890560845_520",
+      "phone": "03001234567",
+      "name": "Taimoor Khan",
+      "email": "taimoor@example.com",
+      "addresses": [
+        "House 45, Street 9, Near Central Mosque"
+      ],
+      "createdAt": "2026-09-20T07:49:20.845Z",
+      "lastLoginAt": "2026-09-20T07:49:20.845Z",
+      "token": "mp_cust_Y3VzdF8xNzg5ODkwNTYwODQ1XzUyMDoxNzg5ODkwNTYwODQ1",
+      "updatedAt": "2026-09-20T07:49:20.856Z"
+    },
+    {
+      "id": "cust_1789890560865_903",
+      "phone": "03129876543",
+      "name": "",
+      "email": "customer@gmail.com",
+      "addresses": [],
+      "createdAt": "2026-09-20T07:49:20.865Z",
+      "lastLoginAt": "2026-09-20T07:49:20.865Z",
+      "token": "mp_cust_Y3VzdF8xNzg5ODkwNTYwODY1XzkwMzoxNzg5ODkwNTYwODY1"
+    },
+    {
+      "id": "cust_1789892053784_888",
+      "phone": "3095369472",
+      "name": "",
+      "email": "",
+      "addresses": [],
+      "createdAt": "2026-09-20T08:14:13.784Z",
+      "lastLoginAt": "2026-09-20T08:14:13.784Z",
+      "token": "mp_cust_Y3VzdF8xNzg5ODkyMDUzNzg0Xzg4ODoxNzg5ODkyMDUzNzg0"
+    }
+  ]
 }

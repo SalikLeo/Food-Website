@@ -22,19 +22,12 @@ export default function ItemSalesManager({
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('qty_desc');
-  const [orderScope, setOrderScope] = useState('valid');
   const [includeUnsold, setIncludeUnsold] = useState(false);
 
-  // Filter orders according to selected scope
+  // Only consider orders with 'Delivered' status as completed sales
   const filteredOrders = useMemo(() => {
-    if (orderScope === 'delivered') {
-      return orders.filter(o => o.status === 'Delivered');
-    }
-    if (orderScope === 'valid') {
-      return orders.filter(o => o.status !== 'Cancelled');
-    }
-    return orders;
-  }, [orders, orderScope]);
+    return orders.filter(o => o.status === 'Delivered');
+  }, [orders]);
 
   // Aggregate item sales
   const salesData = useMemo(() => {
@@ -229,7 +222,7 @@ export default function ItemSalesManager({
             <Award className="w-6 h-6" />
           </div>
           <div className="min-w-0">
-            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">
+            <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
               #1 Best Seller
             </span>
             <span className="font-bold text-zinc-900 text-sm block truncate" title={stats.topSeller?.name || 'None yet'}>
@@ -247,7 +240,7 @@ export default function ItemSalesManager({
             <DollarSign className="w-6 h-6" />
           </div>
           <div className="min-w-0">
-            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">
+            <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
               Highest Revenue Item
             </span>
             <span className="font-bold text-zinc-900 text-sm block truncate" title={stats.topEarner?.name || 'None yet'}>
@@ -265,10 +258,10 @@ export default function ItemSalesManager({
             <Package className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">
+            <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
               Total Food Items Sold
             </span>
-            <span className="font-display text-2xl text-zinc-900 font-bold">
+            <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
               {stats.totalUnits.toLocaleString()}
             </span>
             <span className="text-[11px] text-zinc-500 block">
@@ -283,10 +276,10 @@ export default function ItemSalesManager({
             <TrendingUp className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">
+            <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
               Food Sales Revenue
             </span>
-            <span className="font-display text-2xl text-orange-600 font-bold">
+            <span className="font-sans text-2xl text-orange-600 font-bold block leading-tight">
               Rs. {stats.totalRev.toLocaleString()}
             </span>
             <span className="text-[11px] text-zinc-500 block">
@@ -338,32 +331,6 @@ export default function ItemSalesManager({
               <option value="qty_asc">Sort: Least Sold</option>
               <option value="name_asc">Sort: Item Name (A-Z)</option>
             </select>
-
-            {/* Order Status Scope */}
-            <div className="flex items-center rounded-xl bg-zinc-100 p-0.5 border border-zinc-200 text-xs">
-              <button
-                type="button"
-                onClick={() => setOrderScope('valid')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  orderScope === 'valid'
-                    ? 'bg-white text-zinc-900 shadow-2xs'
-                    : 'text-zinc-600 hover:text-zinc-900'
-                }`}
-              >
-                Valid Orders
-              </button>
-              <button
-                type="button"
-                onClick={() => setOrderScope('delivered')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  orderScope === 'delivered'
-                    ? 'bg-white text-zinc-900 shadow-2xs'
-                    : 'text-zinc-600 hover:text-zinc-900'
-                }`}
-              >
-                Delivered Only
-              </button>
-            </div>
           </div>
         </div>
 
@@ -396,7 +363,7 @@ export default function ItemSalesManager({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-zinc-700">
               <thead className="bg-zinc-50 text-zinc-500 uppercase text-[10px] tracking-wider border-b border-zinc-200 font-bold">
-                <tr>
+                <tr className="divide-x divide-zinc-200/80">
                   <th className="px-4 py-3.5 text-center w-14">Rank</th>
                   <th className="px-4 py-3.5">Item Name</th>
                   <th className="px-4 py-3.5">Category</th>
@@ -413,7 +380,7 @@ export default function ItemSalesManager({
                   const percentOfTotal = stats.totalUnits > 0 ? ((item.totalQty / stats.totalUnits) * 100).toFixed(1) : 0;
 
                   return (
-                    <tr key={item.name} className="hover:bg-zinc-50/80 transition-colors">
+                    <tr key={item.name} className="divide-x divide-zinc-100 hover:bg-zinc-50/80 transition-colors">
                       {/* Rank */}
                       <td className="px-4 py-3.5 text-center">
                         {rank === 1 && item.totalQty > 0 ? (
@@ -501,7 +468,7 @@ export default function ItemSalesManager({
 
                       {/* Units Sold */}
                       <td className="px-4 py-3.5 text-center">
-                        <span className="font-display text-lg font-bold text-zinc-900 block leading-tight">
+                        <span className="font-sans text-base font-bold text-zinc-900 block leading-tight">
                           {item.totalQty.toLocaleString()}
                         </span>
                         <span className="text-[10px] text-zinc-500 uppercase font-medium">
@@ -511,7 +478,7 @@ export default function ItemSalesManager({
 
                       {/* Total Revenue */}
                       <td className="px-5 py-3.5 text-right">
-                        <span className="font-display text-base font-bold text-orange-600 block leading-tight">
+                        <span className="font-sans text-sm font-semibold text-orange-600 block leading-tight">
                           Rs. {item.totalRevenue.toLocaleString()}
                         </span>
                         {item.totalQty > 0 && (

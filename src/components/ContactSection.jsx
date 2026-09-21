@@ -1,5 +1,6 @@
 import React from 'react';
-import { MapPin, Phone, Clock, Truck, ShoppingBag, MessageCircle } from 'lucide-react';
+import { MapPin, Phone, Clock, Truck, ShoppingBag } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
 
 export default function ContactSection() {
@@ -8,7 +9,7 @@ export default function ContactSection() {
   const min = settings?.minOrder ?? 500;
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/923236580604?text=Hi%20Mehrban%20Fast%20Food%2C%20I%20would%20like%20to%20place%20an%20order.', '_blank');
+    window.open('https://wa.me/923095369472?text=Hi%20MP%20Fast%20Food%2C%20I%20would%20like%20to%20place%20an%20order.', '_blank');
   };
 
   return (
@@ -38,7 +39,7 @@ export default function ContactSection() {
                 Location
               </h3>
               <p className="text-zinc-600 text-xs leading-relaxed">
-                Shaikh Chowk Itfaq Town, Mansoora Bazar, Main Multan Road, Lahore
+                Wah Model Town, Wah Cantt
               </p>
             </div>
           </div>
@@ -53,11 +54,8 @@ export default function ContactSection() {
                 Call to Order
               </h3>
               <div className="space-y-1">
-                <a href="tel:0323-4660279" className="text-zinc-700 hover:text-orange-600 font-semibold text-xs block transition-colors">
-                  0323-4660279
-                </a>
-                <a href="tel:0323-6580604" className="text-zinc-700 hover:text-orange-600 font-semibold text-xs block transition-colors">
-                  0323-6580604
+                <a href="tel:03095369472" className="text-zinc-700 hover:text-orange-600 font-semibold text-xs block transition-colors">
+                  0309-5369472
                 </a>
               </div>
             </div>
@@ -113,7 +111,7 @@ export default function ContactSection() {
           <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-sm flex flex-col justify-between hover:border-orange-500/50 transition-colors">
             <div className="space-y-3">
               <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                <MessageCircle className="w-5 h-5" />
+                <WhatsAppIcon className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-sm text-zinc-900 uppercase tracking-wide">
                 WhatsApp Ordering
@@ -132,16 +130,16 @@ export default function ContactSection() {
             onClick={handleWhatsAppClick}
             className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all"
           >
-            <MessageCircle className="w-4 h-4" />
+            <WhatsAppIcon className="w-4 h-4" />
             <span>Order on WhatsApp</span>
           </button>
 
           <a
-            href="tel:0323-4660279"
+            href="tel:03095369472"
             className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-white hover:bg-zinc-100 border border-zinc-200 text-zinc-900 font-bold text-xs uppercase tracking-wider transition-all shadow-sm"
           >
             <Phone className="w-4 h-4 text-orange-600" />
-            <span>0323-4660279</span>
+            <span>0309-5369472</span>
           </a>
         </div>
 

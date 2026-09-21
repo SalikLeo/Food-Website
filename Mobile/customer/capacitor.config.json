@@ -1,0 +1,9 @@
+{
+  "appId": "com.mehrban.customer",
+  "appName": "Salik Fast Food",
+  "webDir": "www",
+  "server": {
+    "cleartext": true,
+    "androidScheme": "http"
+  }
+}
