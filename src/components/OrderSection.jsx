@@ -377,11 +377,11 @@ export default function OrderSection() {
                 </span>
               </div>
               <div className="flex justify-between items-baseline pt-4 border-t border-zinc-800/80">
-                <span className="text-base font-bold text-white uppercase tracking-wider">
+                <span className="font-montserrat text-sm font-extrabold text-white uppercase tracking-wider">
                   TOTAL
                 </span>
-                <span className="font-display text-3xl text-amber-400 font-bold flex items-baseline">
-                  <span className="font-sans text-xl font-bold mr-1">Rs.</span>
+                <span className="font-montserrat text-2xl text-amber-400 font-extrabold flex items-baseline">
+                  <span className="text-base font-bold mr-1">Rs.</span>
                   <span>{total.toLocaleString()}</span>
                 </span>
               </div>
@@ -521,9 +521,9 @@ export default function OrderSection() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-zinc-800 flex justify-between items-baseline font-display">
-                  <span className="text-sm uppercase tracking-wider text-zinc-300 font-bold">TOTAL TO PAY</span>
-                  <span className="text-2xl font-bold text-amber-400">Rs. {total.toLocaleString()}</span>
+                <div className="pt-2.5 border-t border-zinc-800 flex justify-between items-baseline font-montserrat">
+                  <span className="text-xs uppercase tracking-wider text-zinc-300 font-extrabold">TOTAL TO PAY</span>
+                  <span className="text-xl font-extrabold text-amber-400">Rs. {total.toLocaleString()}</span>
                 </div>
               </div>
 
