@@ -135,6 +135,7 @@ export default function OrderSection() {
       const payload = {
         userId: user?.id,
         customerName: formData.name,
+        customerEmail: user?.email,
         phone: formData.phone,
         address: formData.address,
         notes: formData.notes,

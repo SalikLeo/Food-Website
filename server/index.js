@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import { fileURLToPath } from 'url';
+import nodemailer from 'nodemailer';
 import { db } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -344,37 +345,131 @@ app.get('/api/site-info', (req, res) => {
   res.json(db.getSiteInfo());
 });
 
-// In-memory OTP Store for phone verification
+// Configurable Email Transporter for Sending Real Verification Codes
+function createEmailTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
+  const user = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
+  if (user && pass) {
+    if (host) {
+      return nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+        tls: { rejectUnauthorized: false }
+      });
+    } else {
+      return nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user, pass }
+      });
+    }
+  }
+  return null;
+}
+
+async function sendVerificationEmail(toEmail, code) {
+  const transporter = createEmailTransporter();
+  const subject = `Your Salik Fast Food Verification Code: ${code}`;
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 20px; background-color: #0e0e11; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff;">
+      <div style="max-width: 480px; margin: 0 auto; background-color: #16161c; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #e53e10, #f56505); padding: 28px 24px; text-align: center;">
+          <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">SALIK FAST FOOD</h1>
+          <p style="margin: 4px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;">Wah Cantt • Taste That You Need</p>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 32px 24px; text-align: center;">
+          <h2 style="margin: 0 0 12px 0; font-size: 20px; color: #ffffff; font-weight: 700;">Email Verification Code</h2>
+          <p style="margin: 0 0 24px 0; font-size: 14px; color: #a1a1aa; line-height: 1.5;">
+            Use the 6-digit verification code below to sign in, save your delivery addresses, and track your recent orders:
+          </p>
+
+          <!-- OTP Badge -->
+          <div style="background-color: #212129; border: 1px solid #f97316; border-radius: 14px; padding: 18px 24px; margin: 0 auto 24px auto; display: inline-block;">
+            <span style="font-family: monospace, Courier, sans-serif; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #fb923c; display: block; margin-left: 8px;">
+              ${code}
+            </span>
+          </div>
+
+          <p style="margin: 0; font-size: 12px; color: #71717a;">
+            ⏳ This code is valid for <strong>10 minutes</strong>. If you did not request this email, please disregard it.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #121216; padding: 16px 24px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 11px; color: #71717a;">
+          <p style="margin: 0 0 4px 0;">Salik Fast Food, Wah Model Town, Wah Cantt</p>
+          <p style="margin: 0;">Hotline: <strong style="color: #ea580c;">0309-5369472</strong></p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+
+  if (transporter) {
+    try {
+      const fromAddress = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@salikfastfood.com';
+      const info = await transporter.sendMail({
+        from: `"Salik Fast Food" <${fromAddress}>`,
+        to: toEmail,
+        subject,
+        html
+      });
+      console.log(`[Email Sent] Verification code ${code} successfully sent to ${toEmail}. MessageId: ${info.messageId}`);
+      return { sent: true, messageId: info.messageId };
+    } catch (err) {
+      console.error(`[Email Send Error] Failed to send to ${toEmail}:`, err.message);
+      return { sent: false, error: err.message };
+    }
+  } else {
+    console.log(`[EMAIL NOTICE] No SMTP configured yet (set EMAIL_USER & EMAIL_PASS or SMTP_*). Code for ${toEmail} is: ${code}`);
+    return { sent: false, mock: true, code };
+  }
+}
+
+// In-memory OTP Store for email verification
 const otpStore = new Map();
 
-// Customer Auth Endpoints
-app.post('/api/auth/send-otp', (req, res) => {
+// Customer Auth Endpoints (Email OTP)
+app.post('/api/auth/send-otp', async (req, res) => {
   try {
-    const { phone } = req.body;
-    if (!phone || typeof phone !== 'string') {
-      return res.status(400).json({ error: 'Phone number is required' });
+    const { email } = req.body;
+    if (!email || typeof email !== 'string' || !email.includes('@') || !email.includes('.')) {
+      return res.status(400).json({ error: 'Please enter a valid email address (e.g. yourname@gmail.com)' });
     }
-    const cleanPhone = phone.replace(/[^0-9]/g, '').slice(-10);
-    if (cleanPhone.length < 10) {
-      return res.status(400).json({ error: 'Please enter a valid 11-digit mobile number (e.g. 0309-5369472)' });
-    }
+    const cleanEmail = email.trim().toLowerCase();
 
     // Generate 6-digit OTP code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
 
-    otpStore.set(cleanPhone, { code, expiresAt });
+    otpStore.set(cleanEmail, { code, expiresAt });
 
-    const formattedPhone = `0${cleanPhone}`;
-    const whatsappText = encodeURIComponent(`Your Salik Fast Food login code is: ${code}. Valid for 10 minutes.`);
-    const whatsappUrl = `https://wa.me/92${cleanPhone}?text=${whatsappText}`;
+    const emailResult = await sendVerificationEmail(cleanEmail, code);
 
     return res.json({
       success: true,
-      message: 'WhatsApp verification code generated',
-      code, // returned so testers & clients can autofill instantly
-      whatsappUrl,
-      phone: formattedPhone
+      message: emailResult.sent
+        ? `Verification code sent to ${cleanEmail}`
+        : `Verification code generated for ${cleanEmail}`,
+      email: cleanEmail,
+      delivered: emailResult.sent,
+      // Provide devCode fallback only if SMTP not configured so tester is never locked out
+      devCode: emailResult.sent ? undefined : code
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -383,12 +478,12 @@ app.post('/api/auth/send-otp', (req, res) => {
 
 app.post('/api/auth/verify-otp', (req, res) => {
   try {
-    const { phone, code, name, address } = req.body;
-    if (!phone || !code) {
-      return res.status(400).json({ error: 'Phone and verification code are required' });
+    const { email, code, name, phone, address } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ error: 'Email and verification code are required' });
     }
-    const cleanPhone = phone.replace(/[^0-9]/g, '').slice(-10);
-    const stored = otpStore.get(cleanPhone);
+    const cleanEmail = email.trim().toLowerCase();
+    const stored = otpStore.get(cleanEmail);
 
     // Accept generated code or master test code 123456
     const isValid = (stored && stored.code === code.trim() && stored.expiresAt > Date.now()) || code.trim() === '123456';
@@ -396,15 +491,16 @@ app.post('/api/auth/verify-otp', (req, res) => {
       return res.status(400).json({ error: 'Invalid or expired verification code' });
     }
 
-    otpStore.delete(cleanPhone);
+    otpStore.delete(cleanEmail);
 
     const user = db.createOrUpdateUser({
-      phone: `0${cleanPhone}`,
-      name: name || undefined,
-      address: address || undefined
+      email: cleanEmail,
+      phone: phone ? phone.trim() : undefined,
+      name: name ? name.trim() : undefined,
+      address: address ? address.trim() : undefined
     });
 
-    const orders = db.getUserOrders(`0${cleanPhone}`, user.id);
+    const orders = db.getUserOrders({ email: cleanEmail, phone: user.phone, userId: user.id });
 
     return res.json({
       success: true,
@@ -426,7 +522,7 @@ app.get('/api/auth/me', (req, res) => {
     const user = db.findUserByToken(token);
     if (!user) return res.status(401).json({ error: 'Invalid or expired session' });
 
-    const orders = db.getUserOrders(user.phone, user.id);
+    const orders = db.getUserOrders({ email: user.email, phone: user.phone, userId: user.id });
     res.json({ success: true, user, orders });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -442,8 +538,8 @@ app.put('/api/auth/profile', (req, res) => {
     const user = db.findUserByToken(token);
     if (!user) return res.status(401).json({ error: 'Invalid session' });
 
-    const { name, email, addresses } = req.body;
-    const updated = db.updateUserProfile(user.id, { name, email, addresses });
+    const { name, email, phone, addresses } = req.body;
+    const updated = db.updateUserProfile(user.id, { name, email, phone, addresses });
     res.json({ success: true, user: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -455,16 +551,19 @@ app.get('/api/customer/orders', (req, res) => {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace(/^Bearer\s+/i, '').trim();
     const phone = req.query.phone || '';
+    const email = req.query.email || '';
     
     let user = null;
     if (token) user = db.findUserByToken(token);
 
-    const targetPhone = user ? user.phone : phone;
-    if (!targetPhone && !user) {
-      return res.status(400).json({ error: 'Authentication token or phone required' });
+    const targetPhone = user?.phone || phone;
+    const targetEmail = user?.email || email;
+
+    if (!targetPhone && !targetEmail && !user) {
+      return res.status(400).json({ error: 'Authentication token, email, or phone required' });
     }
 
-    const orders = db.getUserOrders(targetPhone, user?.id);
+    const orders = db.getUserOrders({ email: targetEmail, phone: targetPhone, userId: user?.id });
     res.json(orders);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -80,9 +80,11 @@ export const CustomerAuthProvider = ({ children }) => {
     try {
       const headers = {};
       if (token) headers.Authorization = `Bearer ${token}`;
-      const url = user?.phone 
-        ? apiUrl(`/api/customer/orders?phone=${encodeURIComponent(user.phone)}`)
-        : apiUrl('/api/customer/orders');
+      const params = new URLSearchParams();
+      if (user?.email) params.append('email', user.email);
+      if (user?.phone) params.append('phone', user.phone);
+      const queryString = params.toString();
+      const url = apiUrl(`/api/customer/orders${queryString ? `?${queryString}` : ''}`);
 
       const res = await fetch(url, { headers });
       if (res.ok) {
@@ -94,26 +96,26 @@ export const CustomerAuthProvider = ({ children }) => {
     } finally {
       setLoadingOrders(false);
     }
-  }, [token, user?.phone]);
+  }, [token, user?.email, user?.phone]);
 
-  // Send WhatsApp OTP
-  const sendOtp = async (phone) => {
+  // Send Email OTP Code
+  const sendOtp = async (email) => {
     const res = await fetch(apiUrl('/api/auth/send-otp'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone })
+      body: JSON.stringify({ email })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to send verification code');
     return data;
   };
 
-  // Verify OTP & Log In / Register
-  const verifyOtp = async (phone, code, name = '', address = '') => {
+  // Verify Email Code & Log In / Register
+  const verifyOtp = async (email, code, name = '', phone = '', address = '') => {
     const res = await fetch(apiUrl('/api/auth/verify-otp'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, code, name, address })
+      body: JSON.stringify({ email, code, name, phone, address })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Invalid verification code');
@@ -126,7 +128,7 @@ export const CustomerAuthProvider = ({ children }) => {
   };
 
   // Update Profile
-  const updateProfile = async ({ name, email, addresses }) => {
+  const updateProfile = async ({ name, email, phone, addresses }) => {
     if (!token) throw new Error('Not logged in');
     const res = await fetch(apiUrl('/api/auth/profile'), {
       method: 'PUT',
@@ -134,7 +136,7 @@ export const CustomerAuthProvider = ({ children }) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ name, email, addresses })
+      body: JSON.stringify({ name, email, phone, addresses })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to update profile');

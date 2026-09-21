@@ -268,7 +268,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                     ? 'bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 border-orange-500/40'
                     : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border-zinc-800 hover:border-zinc-700'
                 }`}
-                title={isLoggedIn ? 'View Profile' : 'Sign In with WhatsApp'}
+                title={isLoggedIn ? 'View Profile' : 'Sign In with Email'}
               >
                 <User className="w-3.5 h-3.5" />
                 <span>{isLoggedIn ? (user?.name ? user.name.split(' ')[0] : 'Profile') : 'Sign In'}</span>
@@ -376,8 +376,8 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                         <span className="text-xs font-bold text-white truncate block">
                           {user?.name || 'Valued Customer'}
                         </span>
-                        <span className="text-[10px] text-zinc-400 font-mono block truncate">
-                          {user?.phone}
+                        <span className="text-[10px] text-zinc-400 block truncate">
+                          {user?.email || user?.phone}
                         </span>
                       </div>
                     </div>
@@ -408,7 +408,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                           Sign In / Register
                         </span>
                         <span className="text-[10px] text-orange-400 block font-medium">
-                          Quick WhatsApp OTP Verification
+                          Email Verification Code
                         </span>
                       </div>
                     </div>

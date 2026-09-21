@@ -679,6 +679,13 @@ export const db = {
     return data.users || [];
   },
 
+  findUserByEmail(email) {
+    if (!email) return null;
+    const data = readDb();
+    const cleanEmail = email.trim().toLowerCase();
+    return (data.users || []).find(u => (u.email || '').trim().toLowerCase() === cleanEmail) || null;
+  },
+
   findUserByPhone(phone) {
     const data = readDb();
     const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
@@ -694,22 +701,30 @@ export const db = {
     return (data.users || []).find(u => u.token === token) || null;
   },
 
-  createOrUpdateUser({ phone, name, email, address }) {
+  createOrUpdateUser({ email, phone, name, address }) {
     const data = readDb();
     if (!Array.isArray(data.users)) data.users = [];
     
+    const cleanEmail = (email || '').trim().toLowerCase();
     const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
+
     let user = data.users.find(u => {
-      const uPhone = (u.phone || '').replace(/[^0-9]/g, '').slice(-10);
-      return uPhone && uPhone === cleanPhone;
+      if (cleanEmail && (u.email || '').trim().toLowerCase() === cleanEmail) return true;
+      if (cleanPhone) {
+        const uPhone = (u.phone || '').replace(/[^0-9]/g, '').slice(-10);
+        return uPhone && uPhone === cleanPhone;
+      }
+      return false;
     });
 
     const now = new Date().toISOString();
-    const token = `salik_cust_${Buffer.from(`cust_${Date.now()}_${cleanPhone}`).toString('base64')}`;
+    const identifier = cleanEmail || cleanPhone || Date.now().toString();
+    const token = `salik_cust_${Buffer.from(`cust_${Date.now()}_${identifier}`).toString('base64')}`;
 
     if (user) {
       if (name !== undefined && name.trim()) user.name = name.trim();
-      if (email !== undefined && email.trim()) user.email = email.trim();
+      if (cleanEmail) user.email = cleanEmail;
+      if (phone !== undefined && phone.trim()) user.phone = phone.trim();
       if (address && address.trim()) {
         if (!Array.isArray(user.addresses)) user.addresses = [];
         if (!user.addresses.includes(address.trim())) {
@@ -722,9 +737,9 @@ export const db = {
     } else {
       user = {
         id: `cust_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`,
-        phone: phone || '',
+        email: cleanEmail,
+        phone: phone ? phone.trim() : '',
         name: name ? name.trim() : '',
-        email: email ? email.trim() : '',
         addresses: address && address.trim() ? [address.trim()] : [],
         createdAt: now,
         lastLoginAt: now,
@@ -737,23 +752,26 @@ export const db = {
     return user;
   },
 
-  updateUserProfile(userId, { name, email, addresses }) {
+  updateUserProfile(userId, { name, email, phone, addresses }) {
     const data = readDb();
     const user = (data.users || []).find(u => u.id === userId);
     if (!user) return null;
     if (name !== undefined) user.name = name.trim();
-    if (email !== undefined) user.email = email.trim();
+    if (email !== undefined) user.email = email.trim().toLowerCase();
+    if (phone !== undefined) user.phone = phone.trim();
     if (addresses !== undefined && Array.isArray(addresses)) user.addresses = addresses;
     user.updatedAt = new Date().toISOString();
     writeDb(data);
     return user;
   },
 
-  getUserOrders(phone, userId = null) {
+  getUserOrders({ email, phone, userId } = {}) {
     const data = readDb();
+    const cleanEmail = (email || '').trim().toLowerCase();
     const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
     return (data.orders || []).filter(o => {
       if (userId && o.userId === userId) return true;
+      if (cleanEmail && (o.customerEmail || o.email || '').trim().toLowerCase() === cleanEmail) return true;
       if (cleanPhone) {
         const oPhone = (o.phone || '').replace(/[^0-9]/g, '').slice(-10);
         return oPhone && oPhone === cleanPhone;

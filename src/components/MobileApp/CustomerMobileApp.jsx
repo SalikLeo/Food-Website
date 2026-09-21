@@ -1097,10 +1097,10 @@ export default function CustomerMobileApp({
                         }`}>
                           {user?.name || 'Valued Customer'}
                         </span>
-                        <span className={`text-[10px] font-mono block truncate ${
+                        <span className={`text-[10px] block truncate ${
                           isDark ? 'text-zinc-400' : 'text-zinc-500'
                         }`}>
-                          {user?.phone}
+                          {user?.email || user?.phone}
                         </span>
                       </div>
                     </div>
@@ -1137,7 +1137,7 @@ export default function CustomerMobileApp({
                           Sign In / Register
                         </span>
                         <span className="text-[10px] text-orange-400 block font-medium">
-                          Quick WhatsApp OTP Login
+                          Email Verification Code
                         </span>
                       </div>
                     </div>
