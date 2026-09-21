@@ -42,9 +42,8 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
     return 600;
   }, [allDeals]);
 
-  const freeDeliveryAmount = Number(settings?.freeDeliveryThreshold) > 0
-    ? Number(settings.freeDeliveryThreshold)
-    : 1500;
+  const freeDeliveryEnabled = settings?.freeDeliveryEnabled === true && Number(settings?.freeDeliveryThreshold || 0) > 0;
+  const freeDeliveryAmount = freeDeliveryEnabled ? Number(settings.freeDeliveryThreshold) : 0;
   return (
     <section
       id="home"
@@ -161,7 +160,9 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
                     DEALS FROM RS. {lowestDealPrice.toLocaleString()}
                   </span>
                   <span className={`font-sans ${isCustomerApp ? 'text-xs font-semibold' : 'text-xs sm:text-sm'} md:text-base font-medium text-zinc-600 leading-normal mt-0.5 sm:mt-1.5 block whitespace-nowrap`}>
-                    Free Delivery on order above Rs. {freeDeliveryAmount.toLocaleString()}
+                    {freeDeliveryEnabled
+                      ? `Free Delivery on order above Rs. ${freeDeliveryAmount.toLocaleString()}`
+                      : 'Hot & Fresh Delivery Wah Cantt'}
                   </span>
                 </a>
               </div>

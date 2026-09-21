@@ -455,6 +455,18 @@ export const db = {
         data.settings.bestSellerCategories = defaultCategories;
         changed = true;
       }
+      if (data.settings.baseDeliveryEnabled === undefined) {
+        data.settings.baseDeliveryEnabled = true;
+        changed = true;
+      }
+      if (data.settings.minOrderEnabled === undefined) {
+        data.settings.minOrderEnabled = Number(data.settings.minOrder || 0) > 0;
+        changed = true;
+      }
+      if (data.settings.freeDeliveryEnabled === undefined) {
+        data.settings.freeDeliveryEnabled = Number(data.settings.freeDeliveryThreshold || 0) > 0;
+        changed = true;
+      }
       if (changed) writeDb(data);
     }
     return data.settings;
@@ -490,6 +502,15 @@ export const db = {
     data.settings = {
       ...current,
       ...updates,
+      baseDeliveryEnabled: updates.baseDeliveryEnabled !== undefined
+        ? Boolean(updates.baseDeliveryEnabled)
+        : (current.baseDeliveryEnabled ?? true),
+      minOrderEnabled: updates.minOrderEnabled !== undefined
+        ? Boolean(updates.minOrderEnabled)
+        : (current.minOrderEnabled ?? (Number(current.minOrder || 0) > 0)),
+      freeDeliveryEnabled: updates.freeDeliveryEnabled !== undefined
+        ? Boolean(updates.freeDeliveryEnabled)
+        : (current.freeDeliveryEnabled ?? (Number(current.freeDeliveryThreshold || 0) > 0)),
       deliveryFee: updates.deliveryFee !== undefined ? Number(updates.deliveryFee) : (current.deliveryFee ?? 100),
       minOrder: updates.minOrder !== undefined ? Number(updates.minOrder) : (current.minOrder ?? 500),
       freeDeliveryThreshold: updates.freeDeliveryThreshold !== undefined ? Number(updates.freeDeliveryThreshold) : (current.freeDeliveryThreshold ?? 0),

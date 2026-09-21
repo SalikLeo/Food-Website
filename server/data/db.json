@@ -1140,10 +1140,13 @@
   ],
   "settings": {
     "deliveryFee": 150,
+    "baseDeliveryEnabled": true,
     "minOrder": 0,
-    "freeDeliveryThreshold": 1500,
+    "minOrderEnabled": false,
+    "freeDeliveryThreshold": 0,
+    "freeDeliveryEnabled": false,
     "deliveryNotice": "Delivery available in nearby areas (Wah Model Town, Wah Cantt)",
-    "updatedAt": "2026-09-21T10:04:27.586Z",
+    "updatedAt": "2026-09-21T11:34:36.610Z",
     "floatingButtons": {
       "whatsappWeb": true,
       "whatsappMobile": true,

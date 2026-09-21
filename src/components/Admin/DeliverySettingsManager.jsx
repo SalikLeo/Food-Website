@@ -22,9 +22,15 @@ export default function DeliverySettingsManager({ onRefresh }) {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  const [baseDeliveryEnabled, setBaseDeliveryEnabled] = useState(true);
   const [deliveryFee, setDeliveryFee] = useState(100);
+
+  const [minOrderEnabled, setMinOrderEnabled] = useState(false);
   const [minOrder, setMinOrder] = useState(500);
+
+  const [freeDeliveryEnabled, setFreeDeliveryEnabled] = useState(false);
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(0);
+
   const [deliveryNotice, setDeliveryNotice] = useState(
     'Delivery available in nearby areas (Shaikh Chowk, Itfaq Town, Mansoora, Multan Road)'
   );
@@ -56,9 +62,26 @@ export default function DeliverySettingsManager({ onRefresh }) {
 
       if (settingsRes) {
         if (typeof settingsRes.deliveryFee === 'number') setDeliveryFee(settingsRes.deliveryFee);
+        if (settingsRes.baseDeliveryEnabled !== undefined) {
+          setBaseDeliveryEnabled(Boolean(settingsRes.baseDeliveryEnabled));
+        } else {
+          setBaseDeliveryEnabled(true);
+        }
+
         if (typeof settingsRes.minOrder === 'number') setMinOrder(settingsRes.minOrder);
+        if (settingsRes.minOrderEnabled !== undefined) {
+          setMinOrderEnabled(Boolean(settingsRes.minOrderEnabled));
+        } else {
+          setMinOrderEnabled(Number(settingsRes.minOrder || 0) > 0);
+        }
+
         if (typeof settingsRes.freeDeliveryThreshold === 'number')
           setFreeDeliveryThreshold(settingsRes.freeDeliveryThreshold);
+        if (settingsRes.freeDeliveryEnabled !== undefined) {
+          setFreeDeliveryEnabled(Boolean(settingsRes.freeDeliveryEnabled));
+        } else {
+          setFreeDeliveryEnabled(Number(settingsRes.freeDeliveryThreshold || 0) > 0);
+        }
         if (settingsRes.deliveryNotice) setDeliveryNotice(settingsRes.deliveryNotice);
         if (settingsRes.floatingButtons) {
           setFloatingButtons({
@@ -149,29 +172,47 @@ export default function DeliverySettingsManager({ onRefresh }) {
     setErrorMessage('');
 
     try {
+      const payload = {
+        baseDeliveryEnabled: Boolean(baseDeliveryEnabled),
+        deliveryFee: Math.max(0, Number(deliveryFee) || 0),
+        minOrderEnabled: Boolean(minOrderEnabled),
+        minOrder: Math.max(0, Number(minOrder) || 0),
+        freeDeliveryEnabled: Boolean(freeDeliveryEnabled),
+        freeDeliveryThreshold: Math.max(0, Number(freeDeliveryThreshold) || 0),
+        deliveryNotice: deliveryNotice.trim(),
+        floatingButtons: {
+          whatsappWeb: Boolean(floatingButtons.whatsappWeb),
+          whatsappMobile: Boolean(floatingButtons.whatsappMobile),
+          backToTopWeb: Boolean(floatingButtons.backToTopWeb),
+          backToTopMobile: Boolean(floatingButtons.backToTopMobile),
+          cartWeb: Boolean(floatingButtons.cartWeb),
+          cartMobile: Boolean(floatingButtons.cartMobile)
+        },
+        bestSellerCategories: bestSellerCategories
+      };
+
       const res = await fetch(apiUrl('/api/settings'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          deliveryFee: Math.max(0, Number(deliveryFee) || 0),
-          minOrder: Math.max(0, Number(minOrder) || 0),
-          freeDeliveryThreshold: Math.max(0, Number(freeDeliveryThreshold) || 0),
-          deliveryNotice: deliveryNotice.trim(),
-          floatingButtons: {
-            whatsappWeb: Boolean(floatingButtons.whatsappWeb),
-            whatsappMobile: Boolean(floatingButtons.whatsappMobile),
-            backToTopWeb: Boolean(floatingButtons.backToTopWeb),
-            backToTopMobile: Boolean(floatingButtons.backToTopMobile),
-            cartWeb: Boolean(floatingButtons.cartWeb),
-            cartMobile: Boolean(floatingButtons.cartMobile)
-          },
-          bestSellerCategories: bestSellerCategories
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        setSuccessMessage('Delivery, Floating Buttons & Best Sellers settings updated successfully!');
+        const updated = data.settings || payload;
+
+        // Real-time synchronization across app views and tabs
+        try {
+          localStorage.setItem('salik_delivery_settings', JSON.stringify(updated));
+        } catch {}
+        window.dispatchEvent(new CustomEvent('salik_settings_updated', { detail: updated }));
+        try {
+          const bc = new BroadcastChannel('salik_settings_channel');
+          bc.postMessage({ type: 'SETTINGS_UPDATED', settings: updated });
+          bc.close();
+        } catch {}
+
+        setSuccessMessage('Delivery settings updated successfully and synced live to customer storefront!');
         if (onRefresh) onRefresh();
         setTimeout(() => setSuccessMessage(''), 4000);
       } else {
@@ -216,11 +257,11 @@ export default function DeliverySettingsManager({ onRefresh }) {
         {/* Current Active Badge */}
         <div className="bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-right w-full md:w-auto flex-shrink-0">
           <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-bold block">
-            Current Delivery Charge
+            Current Delivery Status
           </span>
           <span className="font-display text-2xl text-orange-600 font-bold flex items-baseline md:justify-end">
-            {Number(deliveryFee) === 0 ? (
-              'FREE'
+            {!baseDeliveryEnabled || Number(deliveryFee) === 0 ? (
+              <span className="text-emerald-600">FREE</span>
             ) : (
               <>
                 <span className="font-sans font-bold text-base mr-1">Rs.</span>
@@ -228,19 +269,26 @@ export default function DeliverySettingsManager({ onRefresh }) {
               </>
             )}
           </span>
+          <span className="text-[10px] text-zinc-500 block mt-0.5 font-medium">
+            {!baseDeliveryEnabled 
+              ? 'Base fee is OFF (Free delivery for all orders)' 
+              : freeDeliveryEnabled 
+                ? `Free delivery on orders above Rs. ${Number(freeDeliveryThreshold).toLocaleString()}` 
+                : 'No free delivery threshold (standard fee always applies)'}
+          </span>
         </div>
       </div>
 
       {/* Notifications */}
       {successMessage && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-3">
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-3 animate-fade-in">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold flex items-center gap-3">
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold flex items-center gap-3 animate-fade-in">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
@@ -249,30 +297,71 @@ export default function DeliverySettingsManager({ onRefresh }) {
       <form onSubmit={handleSave} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          {/* Section 1: Standard Delivery Fee */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
-            <div>
-              <label className="text-sm font-bold text-zinc-900 block mb-1">
-                Standard Base Delivery Fee (Rs.)
-              </label>
-              <p className="text-xs text-zinc-500">
-                This is the standard delivery amount charged on every customer order.
-              </p>
+          {/* Section 1: Standard Base Delivery Fee */}
+          <div className={`bg-white rounded-2xl p-6 border shadow-2xs space-y-4 flex flex-col justify-between transition-all ${
+            baseDeliveryEnabled ? 'border-orange-200 ring-1 ring-orange-500/10' : 'border-zinc-200 opacity-90'
+          }`}>
+            <div className="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-bold text-zinc-900 block">
+                    1. Base Delivery Fee
+                  </label>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                    baseDeliveryEnabled
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-zinc-100 text-zinc-600 border border-zinc-200'
+                  }`}>
+                    {baseDeliveryEnabled ? 'Active' : 'OFF (Free for all)'}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-500 mt-1">
+                  {baseDeliveryEnabled
+                    ? 'Standard delivery amount charged on each customer order.'
+                    : 'Turned OFF: Delivery fee is completely waived for all customers.'}
+                </p>
+              </div>
+
+              {/* ON/OFF TOGGLE SWITCH */}
+              <button
+                type="button"
+                onClick={() => setBaseDeliveryEnabled(!baseDeliveryEnabled)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  baseDeliveryEnabled ? 'bg-orange-600' : 'bg-zinc-300'
+                }`}
+                title={baseDeliveryEnabled ? 'Click to disable base fee (Free for all)' : 'Click to enable base fee'}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    baseDeliveryEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
 
             <div className="relative w-full max-w-sm">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-orange-600">
+              <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold ${
+                baseDeliveryEnabled ? 'text-orange-600' : 'text-zinc-400'
+              }`}>
                 Rs.
               </span>
               <input
                 type="number"
                 min="0"
                 step="10"
-                value={deliveryFee}
-                onChange={(e) => setDeliveryFee(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 font-bold text-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-2xs"
+                disabled={!baseDeliveryEnabled}
+                value={baseDeliveryEnabled ? deliveryFee : 0}
+                onChange={(e) => {
+                  setDeliveryFee(e.target.value);
+                  if (Number(e.target.value) > 0) setBaseDeliveryEnabled(true);
+                }}
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border font-bold text-lg focus:outline-none transition-all ${
+                  baseDeliveryEnabled
+                    ? 'bg-white border-zinc-300 text-zinc-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-2xs'
+                    : 'bg-zinc-50 border-zinc-200 text-zinc-400 cursor-not-allowed'
+                }`}
                 placeholder="100"
-                required
+                required={baseDeliveryEnabled}
               />
             </div>
 
@@ -283,12 +372,22 @@ export default function DeliverySettingsManager({ onRefresh }) {
               </span>
               <div className="flex flex-wrap gap-2">
                 {presets.map((p) => {
-                  const isSelected = Number(deliveryFee) === p.value;
+                  const isSelected = baseDeliveryEnabled 
+                    ? (Number(deliveryFee) === p.value && p.value > 0)
+                    : (p.value === 0);
                   return (
                     <button
                       key={p.value}
                       type="button"
-                      onClick={() => setDeliveryFee(p.value)}
+                      onClick={() => {
+                        if (p.value === 0) {
+                          setDeliveryFee(0);
+                          setBaseDeliveryEnabled(false);
+                        } else {
+                          setDeliveryFee(p.value);
+                          setBaseDeliveryEnabled(true);
+                        }
+                      }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                         isSelected
                           ? 'bg-orange-600 text-white border border-orange-600 shadow-xs'
@@ -304,27 +403,74 @@ export default function DeliverySettingsManager({ onRefresh }) {
           </div>
 
           {/* Section 2: Minimum Order Limit */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
-            <div>
-              <label className="text-sm font-bold text-zinc-900 block mb-1">
-                Minimum Order Amount for Delivery (Rs.)
-              </label>
-              <p className="text-xs text-zinc-500">
-                Customers must meet this subtotal threshold to qualify for home delivery.
-              </p>
+          <div className={`bg-white rounded-2xl p-6 border shadow-2xs space-y-4 flex flex-col justify-between transition-all ${
+            minOrderEnabled ? 'border-amber-200 ring-1 ring-amber-500/10' : 'border-zinc-200 opacity-90'
+          }`}>
+            <div className="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-bold text-zinc-900 block">
+                    2. Minimum Order Limit
+                  </label>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                    minOrderEnabled
+                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                      : 'bg-zinc-100 text-zinc-600 border border-zinc-200'
+                  }`}>
+                    {minOrderEnabled ? 'Active' : 'OFF (No Minimum)'}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-500 mt-1">
+                  {minOrderEnabled
+                    ? 'Customers must meet this subtotal to order delivery.'
+                    : 'Turned OFF: Customers can place delivery orders of any amount.'}
+                </p>
+              </div>
+
+              {/* ON/OFF TOGGLE SWITCH */}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !minOrderEnabled;
+                  setMinOrderEnabled(next);
+                  if (next && Number(minOrder) === 0) {
+                    setMinOrder(500);
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  minOrderEnabled ? 'bg-amber-600' : 'bg-zinc-300'
+                }`}
+                title={minOrderEnabled ? 'Click to disable minimum order requirement' : 'Click to enable minimum order requirement'}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    minOrderEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
 
             <div className="relative w-full max-w-sm">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-600">
+              <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold ${
+                minOrderEnabled ? 'text-amber-600' : 'text-zinc-400'
+              }`}>
                 Rs.
               </span>
               <input
                 type="number"
                 min="0"
                 step="50"
-                value={minOrder}
-                onChange={(e) => setMinOrder(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 font-bold text-base focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-2xs"
+                disabled={!minOrderEnabled}
+                value={minOrderEnabled ? minOrder : 0}
+                onChange={(e) => {
+                  setMinOrder(e.target.value);
+                  if (Number(e.target.value) > 0) setMinOrderEnabled(true);
+                }}
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border font-bold text-base focus:outline-none transition-all ${
+                  minOrderEnabled
+                    ? 'bg-white border-zinc-300 text-zinc-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 shadow-2xs'
+                    : 'bg-zinc-50 border-zinc-200 text-zinc-400 cursor-not-allowed'
+                }`}
                 placeholder="500"
               />
             </div>
@@ -334,46 +480,111 @@ export default function DeliverySettingsManager({ onRefresh }) {
                 Quick Presets:
               </span>
               <div className="flex flex-wrap gap-2">
-                {[0, 300, 500, 750, 1000].map((amt) => (
-                  <button
-                    key={amt}
-                    type="button"
-                    onClick={() => setMinOrder(amt)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      Number(minOrder) === amt
-                        ? 'bg-amber-600 text-white border border-amber-600 shadow-xs'
-                        : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
-                    }`}
-                  >
-                    {amt === 0 ? 'No Minimum' : `Rs. ${amt}`}
-                  </button>
-                ))}
+                {[0, 300, 500, 750, 1000].map((amt) => {
+                  const isSelected = minOrderEnabled
+                    ? (Number(minOrder) === amt && amt > 0)
+                    : (amt === 0);
+                  return (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => {
+                        if (amt === 0) {
+                          setMinOrder(0);
+                          setMinOrderEnabled(false);
+                        } else {
+                          setMinOrder(amt);
+                          setMinOrderEnabled(true);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-amber-600 text-white border border-amber-600 shadow-xs'
+                          : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
+                      }`}
+                    >
+                      {amt === 0 ? 'No Minimum' : `Rs. ${amt}`}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
 
           {/* Section 3: Optional Free Delivery Threshold */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
-            <div>
-              <label className="text-sm font-bold text-zinc-900 block mb-1">
-                Free Delivery Above Subtotal (Optional)
-              </label>
-              <p className="text-xs text-zinc-500">
-                Automatically waive delivery charges if the customer orders above this amount. Set to 0 to disable.
-              </p>
+          <div className={`bg-white rounded-2xl p-6 border shadow-2xs space-y-4 flex flex-col justify-between transition-all ${
+            freeDeliveryEnabled ? 'border-emerald-200 ring-1 ring-emerald-500/10' : 'border-zinc-200 opacity-90'
+          }`}>
+            <div className="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-bold text-zinc-900 block">
+                    3. Free Delivery Above Subtotal
+                  </label>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                    freeDeliveryEnabled
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-zinc-100 text-zinc-600 border border-zinc-200'
+                  }`}>
+                    {freeDeliveryEnabled ? 'Active' : 'OFF (Disabled)'}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-500 mt-1">
+                  {freeDeliveryEnabled
+                    ? 'Waives delivery charges on orders above this amount & shows progress bar in cart.'
+                    : 'Turned OFF: Free delivery threshold is disabled. No progress bar shown.'}
+                </p>
+              </div>
+
+              {/* ON/OFF TOGGLE SWITCH */}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !freeDeliveryEnabled;
+                  setFreeDeliveryEnabled(next);
+                  if (next && Number(freeDeliveryThreshold) === 0) {
+                    setFreeDeliveryThreshold(1500);
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  freeDeliveryEnabled ? 'bg-emerald-600' : 'bg-zinc-300'
+                }`}
+                title={freeDeliveryEnabled ? 'Click to turn OFF free delivery threshold' : 'Click to turn ON free delivery threshold'}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    freeDeliveryEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
 
             <div className="relative w-full max-w-sm">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-600">
+              <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold ${
+                freeDeliveryEnabled ? 'text-emerald-600' : 'text-zinc-400'
+              }`}>
                 Rs.
               </span>
               <input
                 type="number"
                 min="0"
                 step="100"
-                value={freeDeliveryThreshold}
-                onChange={(e) => setFreeDeliveryThreshold(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 font-bold text-base focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-2xs"
+                disabled={!freeDeliveryEnabled}
+                value={freeDeliveryEnabled ? freeDeliveryThreshold : 0}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFreeDeliveryThreshold(val);
+                  if (Number(val) > 0) {
+                    setFreeDeliveryEnabled(true);
+                  } else {
+                    setFreeDeliveryEnabled(false);
+                  }
+                }}
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border font-bold text-base focus:outline-none transition-all ${
+                  freeDeliveryEnabled
+                    ? 'bg-white border-zinc-300 text-zinc-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-2xs'
+                    : 'bg-zinc-50 border-zinc-200 text-zinc-400 cursor-not-allowed'
+                }`}
                 placeholder="0 (Disabled)"
               />
             </div>
@@ -383,20 +594,33 @@ export default function DeliverySettingsManager({ onRefresh }) {
                 Quick Presets:
               </span>
               <div className="flex flex-wrap gap-2">
-                {[0, 1500, 2000, 2500, 3000].map((amt) => (
-                  <button
-                    key={amt}
-                    type="button"
-                    onClick={() => setFreeDeliveryThreshold(amt)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      Number(freeDeliveryThreshold) === amt
-                        ? 'bg-emerald-600 text-white border border-emerald-600 shadow-xs'
-                        : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
-                    }`}
-                  >
-                    {amt === 0 ? 'Disabled' : `Free above Rs. ${amt}`}
-                  </button>
-                ))}
+                {[0, 1500, 2000, 2500, 3000].map((amt) => {
+                  const isSelected = freeDeliveryEnabled 
+                    ? (Number(freeDeliveryThreshold) === amt && amt > 0)
+                    : (amt === 0);
+                  return (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => {
+                        if (amt === 0) {
+                          setFreeDeliveryThreshold(0);
+                          setFreeDeliveryEnabled(false);
+                        } else {
+                          setFreeDeliveryThreshold(amt);
+                          setFreeDeliveryEnabled(true);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-600 text-white border border-emerald-600 shadow-xs'
+                          : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
+                      }`}
+                    >
+                      {amt === 0 ? 'Disabled' : `Free above Rs. ${amt}`}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

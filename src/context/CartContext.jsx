@@ -149,11 +149,20 @@ export const CartProvider = ({ children }) => {
     setCartItems([]);
   };
 
-  const [settings, setSettings] = useState({
-    deliveryFee: 100,
-    minOrder: 500,
-    freeDeliveryThreshold: 0,
-    deliveryNotice: 'Delivery available in nearby areas'
+  const [settings, setSettings] = useState(() => {
+    try {
+      const cached = localStorage.getItem('salik_delivery_settings');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return {
+      deliveryFee: 100,
+      baseDeliveryEnabled: true,
+      minOrder: 500,
+      minOrderEnabled: true,
+      freeDeliveryThreshold: 0,
+      freeDeliveryEnabled: false,
+      deliveryNotice: 'Delivery available in nearby areas (Wah Model Town, Wah Cantt)'
+    };
   });
 
   const refreshSettings = async () => {
@@ -162,6 +171,9 @@ export const CartProvider = ({ children }) => {
       const data = await res.json();
       if (data && typeof data.deliveryFee === 'number') {
         setSettings(data);
+        try {
+          localStorage.setItem('salik_delivery_settings', JSON.stringify(data));
+        } catch {}
       }
     } catch (e) {
       console.error('Failed to load settings:', e);
@@ -170,20 +182,97 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
     refreshSettings();
+
+    // 1. In-window custom event (fired right after admin saves settings)
+    const handleSettingsUpdated = (e) => {
+      if (e.detail) {
+        setSettings(e.detail);
+        try {
+          localStorage.setItem('salik_delivery_settings', JSON.stringify(e.detail));
+        } catch {}
+      } else {
+        refreshSettings();
+      }
+    };
+    window.addEventListener('salik_settings_updated', handleSettingsUpdated);
+
+    // 2. BroadcastChannel for instant cross-tab sync without page refresh
+    let bc = null;
+    try {
+      bc = new BroadcastChannel('salik_settings_channel');
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'SETTINGS_UPDATED' && event.data?.settings) {
+          setSettings(event.data.settings);
+        } else {
+          refreshSettings();
+        }
+      };
+    } catch {}
+
+    // 3. Storage event for cross-tab sync
+    const handleStorage = (e) => {
+      if (e.key === 'salik_delivery_settings' && e.newValue) {
+        try {
+          setSettings(JSON.parse(e.newValue));
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // 4. Refetch when window regains focus or visibility
+    const handleFocus = () => refreshSettings();
+    window.addEventListener('focus', handleFocus);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') refreshSettings();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // 5. Background polling every 10 seconds for multi-device live sync
+    const pollInterval = setInterval(refreshSettings, 10000);
+
+    return () => {
+      window.removeEventListener('salik_settings_updated', handleSettingsUpdated);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (bc) bc.close();
+      clearInterval(pollInterval);
+    };
   }, []);
 
+  // Refetch fresh settings whenever cart is opened
+  useEffect(() => {
+    if (isCartOpen) {
+      refreshSettings();
+    }
+  }, [isCartOpen]);
+
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const baseDeliveryFee = Number(settings.deliveryFee ?? 100);
-  const freeDeliveryThreshold = Number(settings.freeDeliveryThreshold ?? 0) > 0 
-    ? Number(settings.freeDeliveryThreshold) 
-    : 1500;
-  const isFreeDelivery = subtotal >= freeDeliveryThreshold;
+
+  // 1. Standard Base Delivery Fee Toggle & Amount
+  const baseDeliveryEnabled = settings.baseDeliveryEnabled !== false;
+  const rawBaseDeliveryFee = Number(settings.deliveryFee ?? 100);
+  const baseDeliveryFee = baseDeliveryEnabled ? rawBaseDeliveryFee : 0;
+
+  // 2. Free Delivery Above Subtotal Toggle & Threshold (Strictly 0 / disabled if toggled off)
+  const freeDeliveryEnabled = settings.freeDeliveryEnabled === true && Number(settings.freeDeliveryThreshold || 0) > 0;
+  const freeDeliveryThreshold = freeDeliveryEnabled ? Number(settings.freeDeliveryThreshold) : 0;
+
+  // Delivery is free if base fee is disabled (free for everyone) OR free delivery threshold is reached
+  const isFreeDelivery = (!baseDeliveryEnabled) || (freeDeliveryEnabled && subtotal >= freeDeliveryThreshold);
   const deliveryFee = subtotal > 0 ? (isFreeDelivery ? 0 : baseDeliveryFee) : 0;
   const total = subtotal + deliveryFee;
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const minOrder = Number(settings.minOrder ?? 500);
-  const isMinOrderMet = subtotal >= minOrder;
-  const amountForFreeDelivery = Math.max(0, freeDeliveryThreshold - subtotal);
+
+  // 3. Minimum Order Toggle & Amount
+  const minOrderEnabled = settings.minOrderEnabled !== false && Number(settings.minOrder || 0) > 0;
+  const minOrder = minOrderEnabled ? Number(settings.minOrder) : 0;
+  const isMinOrderMet = (!minOrderEnabled) || (subtotal >= minOrder);
+
+  // Amount needed for free delivery (0 if free delivery feature is toggled off or cart already qualifies)
+  const amountForFreeDelivery = (freeDeliveryEnabled && !isFreeDelivery)
+    ? Math.max(0, freeDeliveryThreshold - subtotal)
+    : 0;
 
   // Format WhatsApp message with order details
   const getWhatsAppMessage = (customerInfo = {}) => {
@@ -230,13 +319,17 @@ Notes: ${customerInfo.notes || 'None'}`
         clearCart,
         subtotal,
         deliveryFee,
+        baseDeliveryFee,
+        baseDeliveryEnabled,
         total,
         itemCount,
         totalItems: itemCount,
         totalPrice: total,
         minOrder,
+        minOrderEnabled,
         isMinOrderMet,
         freeDeliveryThreshold,
+        freeDeliveryEnabled,
         isFreeDelivery,
         amountForFreeDelivery,
         settings,

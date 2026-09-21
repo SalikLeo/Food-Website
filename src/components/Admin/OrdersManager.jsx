@@ -251,9 +251,12 @@ export default function OrdersManager({
     return editItems.reduce((sum, it) => sum + (Number(it.price) * Number(it.quantity || 1)), 0);
   }, [editItems]);
 
-  const freeThreshold = Number(settings?.freeDeliveryThreshold || 0);
-  const baseDeliveryFee = Number(settings?.deliveryFee ?? 100);
-  const calcDeliveryFee = (freeThreshold > 0 && calcSubtotal >= freeThreshold) ? 0 : baseDeliveryFee;
+  const freeDeliveryEnabled = settings?.freeDeliveryEnabled === true && Number(settings?.freeDeliveryThreshold || 0) > 0;
+  const baseDeliveryEnabled = settings?.baseDeliveryEnabled !== false;
+  const freeThreshold = freeDeliveryEnabled ? Number(settings.freeDeliveryThreshold) : 0;
+  const baseDeliveryFee = baseDeliveryEnabled ? Number(settings?.deliveryFee ?? 100) : 0;
+  const isFree = (!baseDeliveryEnabled) || (freeDeliveryEnabled && calcSubtotal >= freeThreshold);
+  const calcDeliveryFee = calcSubtotal > 0 ? (isFree ? 0 : baseDeliveryFee) : 0;
   const calcTotal = calcSubtotal + calcDeliveryFee;
 
   const handleSaveModifiedOrder = async () => {

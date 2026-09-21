@@ -54,6 +54,7 @@ export default function CustomerMobileApp({
     subtotal = 0,
     deliveryFee = 100,
     total = 0,
+    isFreeDelivery = false,
     isMinOrderMet = true,
     minOrder = 500,
     getWhatsAppMessage,
@@ -448,7 +449,7 @@ export default function CustomerMobileApp({
               />
             </div>
             <div className="flex flex-col">
-              <span className={`font-display tracking-wider text-lg font-bold leading-tight flex items-center gap-1.5 ${
+              <span className={`font-montserrat tracking-tight text-lg font-black leading-tight flex items-center gap-1.5 ${
                 isDark ? 'text-white' : 'text-zinc-900'
               }`}>
                 SALIK <span className="text-orange-500">FAST FOOD</span>
@@ -543,7 +544,7 @@ export default function CustomerMobileApp({
                     <span>{promoBanners[activeBannerIndex].badge}</span>
                   </span>
                   
-                  <h3 className="text-xl sm:text-2xl font-display uppercase tracking-wide text-white leading-tight font-bold">
+                  <h3 className="text-xl sm:text-2xl font-montserrat uppercase tracking-tight text-white leading-tight font-black">
                     {promoBanners[activeBannerIndex].title}
                   </h3>
 
@@ -663,7 +664,7 @@ export default function CustomerMobileApp({
               {/* Section Header */}
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className={`text-xl font-display uppercase tracking-wide font-bold ${
+                  <h2 className={`text-lg font-montserrat uppercase tracking-tight font-extrabold ${
                     isDark ? 'text-white' : 'text-zinc-900'
                   }`}>
                     Explore Menu
@@ -739,7 +740,7 @@ export default function CustomerMobileApp({
               <section className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className={`text-xl font-display uppercase tracking-wide font-bold flex items-center gap-1.5 ${
+                    <h2 className={`text-lg font-montserrat uppercase tracking-tight font-extrabold flex items-center gap-1.5 ${
                       isDark ? 'text-white' : 'text-zinc-900'
                     }`}>
                       <Flame className="w-4 h-4 text-orange-500 fill-orange-500" />
@@ -842,7 +843,7 @@ export default function CustomerMobileApp({
 
               <div className="flex items-center justify-between pt-1">
                 <div>
-                  <h2 className={`text-2xl font-display uppercase tracking-wide font-bold flex items-center gap-2 ${
+                  <h2 className={`text-xl sm:text-2xl font-montserrat uppercase tracking-tight font-black flex items-center gap-2 ${
                     isDark ? 'text-white' : 'text-zinc-900'
                   }`}>
                     <span>{searchQuery.trim() ? '🔍' : (categoryEmojis[activeCategory.id] || '🍽️')}</span>
@@ -937,7 +938,7 @@ export default function CustomerMobileApp({
                   <Search className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className={`text-base font-bold font-display uppercase tracking-wider ${
+                  <h3 className={`text-base font-bold font-montserrat uppercase tracking-tight ${
                     isDark ? 'text-white' : 'text-zinc-900'
                   }`}>
                     No Food Items Found
@@ -1304,7 +1305,7 @@ export default function CustomerMobileApp({
                 </div>
 
                 <div className="space-y-1">
-                  <h3 className={`text-lg font-bold font-display uppercase tracking-wider ${
+                  <h3 className={`text-base font-bold font-montserrat uppercase tracking-tight ${
                     isDark ? 'text-white' : 'text-zinc-900'
                   }`}>
                     No Past Orders Yet
@@ -1424,7 +1425,7 @@ export default function CustomerMobileApp({
                           <span className="text-[10px] text-zinc-500 uppercase font-bold block">
                             Total Paid
                           </span>
-                          <span className="font-display text-lg font-bold text-orange-600 leading-tight">
+                          <span className="font-montserrat text-base font-extrabold text-orange-600 leading-tight">
                             Rs. {order.total?.toLocaleString()}
                           </span>
                         </div>
@@ -1487,7 +1488,7 @@ export default function CustomerMobileApp({
             <form onSubmit={handleMobileOnlineOrder} className={`rounded-2xl p-4 sm:p-5 border space-y-4 ${
               isDark ? 'bg-[#15151a] border-white/10 shadow-lg' : 'bg-white border-zinc-200 shadow-sm'
             }`}>
-              <h3 className={`font-display text-lg uppercase tracking-wider font-bold ${
+              <h3 className={`font-montserrat text-base uppercase tracking-tight font-extrabold ${
                 isDark ? 'text-white' : 'text-zinc-900'
               }`}>
                 Delivery Details
@@ -1578,15 +1579,17 @@ export default function CustomerMobileApp({
               }`}>
                 <div className="flex justify-between text-zinc-400">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-white">Rs. {subtotal.toLocaleString()}</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>Rs. {subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-zinc-400">
                   <span>Delivery Fee</span>
-                  <span className="font-semibold text-white">Rs. {deliveryFee.toLocaleString()}</span>
+                  <span className={`font-semibold ${(deliveryFee === 0 || isFreeDelivery) ? 'text-emerald-500 font-bold' : (isDark ? 'text-white' : 'text-zinc-900')}`}>
+                    {(deliveryFee === 0 || isFreeDelivery) ? 'FREE' : `Rs. ${deliveryFee.toLocaleString()}`}
+                  </span>
                 </div>
-                <div className="flex justify-between items-baseline pt-2 border-t border-white/10">
-                  <span className="font-bold text-sm text-white">Total Amount</span>
-                  <span className="font-display text-xl font-bold text-orange-500">
+                <div className={`flex justify-between items-baseline pt-2 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
+                  <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>Total Amount</span>
+                  <span className="font-montserrat text-xl font-extrabold text-orange-500">
                     Rs. {total.toLocaleString()}
                   </span>
                 </div>
@@ -1685,7 +1688,7 @@ export default function CustomerMobileApp({
                     className="w-10 h-10 object-contain rounded-full border border-orange-500/50"
                   />
                   <div>
-                    <h3 className={`font-display tracking-wider font-bold leading-tight ${
+                    <h3 className={`font-montserrat tracking-tight font-black leading-tight ${
                       isDark ? 'text-white' : 'text-zinc-900'
                     }`}>
                       SALIK FAST FOOD
