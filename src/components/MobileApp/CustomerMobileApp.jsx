@@ -2372,52 +2372,67 @@ export default function CustomerMobileApp({
                   role="button"
                   tabIndex={0}
                   aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                  className={`w-full py-2.5 px-4 rounded-2xl flex items-center justify-center gap-4 cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
+                  className={`w-full py-2.5 px-4 sm:px-5 rounded-2xl flex items-center justify-between cursor-pointer select-none transition-all duration-300 active:scale-[0.99] ${
                     isDark 
-                      ? 'bg-[#1e232d] border border-white/5 shadow-inner' 
+                      ? 'bg-[#181d26] border border-white/10 shadow-inner' 
                       : 'bg-[#edf0f5] border border-zinc-200/90 shadow-2xs'
                   }`}
                 >
-                  {/* Sun Icon */}
-                  <div className={`transition-all duration-300 flex items-center justify-center ${
-                    !isDark 
-                      ? 'text-zinc-800 scale-105' 
-                      : 'text-zinc-500 opacity-40 hover:opacity-60'
-                  }`}>
-                    <svg className="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="4.5" />
-                      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-                    </svg>
-                  </div>
+                  {/* Sun Icon (Left Side) */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isDark) toggleTheme();
+                    }}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                      !isDark 
+                        ? 'bg-amber-400/20 text-amber-500 shadow-2xs scale-105' 
+                        : 'text-zinc-500/50 hover:text-zinc-400 hover:bg-white/5'
+                    }`}
+                    title="Light Mode"
+                    aria-label="Light Mode"
+                  >
+                    <Sun className={`w-5 h-5 transition-transform duration-300 ${!isDark ? 'text-amber-500 fill-amber-400 rotate-0' : 'text-zinc-500/60 -rotate-45'}`} />
+                  </button>
 
-                  {/* Inset Neumorphic Track */}
+                  {/* Inset Neumorphic Track (Center) */}
                   <div 
-                    className={`relative w-20 h-10 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
+                    className={`relative w-18 h-9 sm:w-20 sm:h-10 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
                       isDark 
-                        ? 'bg-[#141720] shadow-[inset_3px_3px_6px_rgba(0,0,0,0.7),inset_-1px_-1px_3px_rgba(255,255,255,0.06)]' 
+                        ? 'bg-[#12151e] shadow-[inset_3px_3px_6px_rgba(0,0,0,0.7),inset_-1px_-1px_3px_rgba(255,255,255,0.06)]' 
                         : 'bg-[#d5dae3] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.18),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]'
                     }`}
                   >
                     {/* Floating Sliding Knob */}
                     <div 
-                      className={`w-8 h-8 rounded-full transition-transform duration-300 ease-out transform ${
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-transform duration-300 ease-out transform ${
                         isDark 
-                          ? 'translate-x-10 bg-[#4f5768] shadow-[2px_3px_8px_rgba(0,0,0,0.6),-1px_-1px_3px_rgba(255,255,255,0.08)]' 
+                          ? 'translate-x-9 sm:translate-x-10 bg-[#3b4252] shadow-[2px_3px_8px_rgba(0,0,0,0.6),-1px_-1px_3px_rgba(255,255,255,0.08)]' 
                           : 'translate-x-0 bg-[#ffffff] shadow-[2px_3px_6px_rgba(0,0,0,0.18),-1px_-1px_2px_rgba(255,255,255,0.9)]'
                       }`}
                     />
                   </div>
 
-                  {/* Slim Crescent Moon Icon */}
-                  <div className={`transition-all duration-300 flex items-center justify-center ${
-                    isDark 
-                      ? 'text-zinc-200 scale-105' 
-                      : 'text-zinc-400 opacity-40 hover:opacity-60'
-                  }`}>
-                    <svg className="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  {/* Crescent Moon Icon (Right Side) */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isDark) toggleTheme();
+                    }}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                      isDark 
+                        ? 'bg-amber-400/15 text-amber-300 shadow-2xs scale-105' 
+                        : 'text-zinc-400/50 hover:text-zinc-600 hover:bg-black/5'
+                    }`}
+                    title="Dark Mode"
+                    aria-label="Dark Mode"
+                  >
+                    <svg className={`w-5 h-5 transition-transform duration-300 ${isDark ? 'text-amber-300 fill-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.4)] rotate-0' : 'text-zinc-400/60 fill-zinc-400/60 rotate-12'}`} viewBox="0 0 24 24">
                       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                     </svg>
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>
