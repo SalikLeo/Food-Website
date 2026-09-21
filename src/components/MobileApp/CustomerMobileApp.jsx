@@ -12,6 +12,13 @@ import WhatsAppIcon from '../WhatsAppIcon';
 import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
 import { App as CapApp } from '@capacitor/app';
+import { 
+  getStoredCustomerUser, 
+  setStoredCustomerUser, 
+  clearStoredCustomerUser, 
+  triggerGoogleLogin,
+  getGoogleClientId 
+} from '../../services/googleAuth';
 
 // High quality category dish image mapping
 const categoryImages = {
@@ -129,6 +136,72 @@ export default function CustomerMobileApp({
   const [checkoutError, setCheckoutError] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmType, setConfirmType] = useState('online'); // 'online' | 'whatsapp'
+  
+  // Google Customer User authentication state
+  const [customerUser, setCustomerUser] = useState(() => getStoredCustomerUser());
+  const [showGoogleSetupModal, setShowGoogleSetupModal] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Sync customer user name to checkout form if empty
+  useEffect(() => {
+    if (customerUser?.name && !checkoutForm.name) {
+      setCheckoutForm(prev => ({
+        ...prev,
+        name: customerUser.name
+      }));
+    }
+  }, [customerUser]);
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      await triggerGoogleLogin({
+        onSuccess: (user) => {
+          setCustomerUser(user);
+          setGoogleLoading(false);
+          setReorderToast(`Signed in as ${user.name}`);
+          setCheckoutForm(prev => ({
+            ...prev,
+            name: prev.name || user.name
+          }));
+        },
+        onError: (err) => {
+          setGoogleLoading(false);
+          console.warn('Google sign-in:', err);
+        },
+        onConfigRequired: () => {
+          setGoogleLoading(false);
+          setShowGoogleSetupModal(true);
+        }
+      });
+    } catch (e) {
+      setGoogleLoading(false);
+      console.error(e);
+    }
+  };
+
+  const handleCustomerLogout = () => {
+    clearStoredCustomerUser();
+    setCustomerUser(null);
+    setReorderToast('Logged out of Google');
+  };
+
+  const handleSetDemoUser = () => {
+    const demoUser = {
+      name: 'M. Salik Leo',
+      email: 'salik.fastfood@gmail.com',
+      picture: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
+      loginMethod: 'google_demo'
+    };
+    setStoredCustomerUser(demoUser);
+    setCustomerUser(demoUser);
+    setShowGoogleSetupModal(false);
+    setReorderToast('Demo Google Login active!');
+    setCheckoutForm(prev => ({
+      ...prev,
+      name: prev.name || demoUser.name
+    }));
+  };
 
   // Listen for checkout click from CartDrawer
   useEffect(() => {
@@ -168,6 +241,10 @@ export default function CustomerMobileApp({
     const setupBack = async () => {
       try {
         backHandle = await CapApp.addListener('backButton', ({ canGoBack }) => {
+          if (showGoogleSetupModal) {
+            setShowGoogleSetupModal(false);
+            return;
+          }
           if (showConfirmModal) {
             setShowConfirmModal(false);
             return;
@@ -204,7 +281,7 @@ export default function CustomerMobileApp({
         backHandle.remove();
       }
     };
-  }, [showConfirmModal, mobileMenuOpen, searchQuery, currentView, setIsCartOpen]);
+  }, [showGoogleSetupModal, showConfirmModal, mobileMenuOpen, searchQuery, currentView, setIsCartOpen]);
 
 
   // Auto-rotate promo banners (pauses while dragging)
@@ -1734,6 +1811,22 @@ export default function CustomerMobileApp({
                 Delivery Details
               </h3>
 
+              {customerUser && (
+                <div className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
+                  isDark ? 'bg-orange-950/20 border-orange-500/30 text-zinc-300' : 'bg-orange-50 border-orange-200 text-zinc-800'
+                }`}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {customerUser.picture ? (
+                      <img src={customerUser.picture} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <User className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                    )}
+                    <span className="truncate">Ordering as <strong>{customerUser.name}</strong></span>
+                  </div>
+                  <span className="text-[10px] text-orange-500 font-bold uppercase flex-shrink-0">Google Verified</span>
+                </div>
+              )}
+
               <div>
                 <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
                   isDark ? 'text-zinc-300' : 'text-zinc-700'
@@ -2152,7 +2245,7 @@ export default function CustomerMobileApp({
 
             </div>
 
-            {/* Bottom Quick Contact Buttons */}
+            {/* Bottom Quick Contact & Account Actions */}
             <div className={`space-y-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
               <a
                 href="https://wa.me/923095369472"
@@ -2172,6 +2265,83 @@ export default function CustomerMobileApp({
                 <Phone className="w-4 h-4" />
                 <span>Call Now</span>
               </a>
+
+              {/* Google Login / Authenticated User Profile */}
+              {customerUser ? (
+                <div className={`p-2.5 sm:p-3 rounded-2xl border flex items-center justify-between gap-2.5 ${
+                  isDark ? 'bg-white/5 border-white/10' : 'bg-zinc-50 border-zinc-200'
+                }`}>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {customerUser.picture ? (
+                      <img
+                        src={customerUser.picture}
+                        alt={customerUser.name}
+                        className="w-9 h-9 rounded-full object-cover border border-orange-500/60 flex-shrink-0"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white font-bold flex items-center justify-center text-sm flex-shrink-0 shadow-xs">
+                        {customerUser.name?.[0] || 'U'}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs font-bold truncate ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                          {customerUser.name}
+                        </span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" title="Active" />
+                      </div>
+                      <div className={`text-[10px] truncate ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                        {customerUser.email || 'Logged in with Google'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCustomerLogout}
+                    className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold border transition-colors cursor-pointer active:scale-95 flex-shrink-0 ${
+                      isDark 
+                        ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' 
+                        : 'border-red-200 text-red-600 hover:bg-red-50'
+                    }`}
+                    title="Sign Out"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={googleLoading}
+                  className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer ${
+                    isDark 
+                      ? 'bg-white hover:bg-zinc-100 text-zinc-900' 
+                      : 'bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-300'
+                  }`}
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                    />
+                  </svg>
+                  <span>{googleLoading ? 'Connecting...' : 'Login with Google'}</span>
+                </button>
+              )}
             </div>
 
           </div>
@@ -2182,7 +2352,86 @@ export default function CustomerMobileApp({
       <OrderSuccessModal />
 
       {/* ============================================================== */}
-      {/* 6. ORDER CONFIRMATION MODAL */}
+      {/* 6. GOOGLE SIGN-IN SETUP & DEMO MODAL */}
+      {/* ============================================================== */}
+      {showGoogleSetupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity"
+            onClick={() => setShowGoogleSetupModal(false)}
+          />
+
+          <div className={`relative w-full max-w-sm rounded-3xl p-5 sm:p-6 border shadow-2xl z-10 space-y-4 animate-scale-in ${
+            isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
+          }`}>
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-white p-1.5 flex items-center justify-center shadow-xs">
+                  <svg className="w-full h-full" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-montserrat font-bold text-sm leading-tight">Google Sign-In</h3>
+                  <span className="text-[10px] text-orange-500 font-semibold uppercase">Configuration Ready</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowGoogleSetupModal(false)}
+                className={`w-7 h-7 rounded-full flex items-center justify-center cursor-pointer ${
+                  isDark ? 'bg-white/10 text-zinc-300 hover:text-white' : 'bg-zinc-100 text-zinc-600 hover:text-black'
+                }`}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`p-3.5 rounded-2xl text-xs space-y-2 leading-relaxed ${
+              isDark ? 'bg-white/5 border border-white/5 text-zinc-300' : 'bg-zinc-50 border border-zinc-200 text-zinc-700'
+            }`}>
+              <p className="font-semibold text-orange-500">
+                To connect your Google account:
+              </p>
+              <p>
+                Provide your <strong>Google OAuth Web Client ID</strong> in your <code className="bg-orange-500/20 px-1 py-0.5 rounded text-[11px] text-orange-400">.env</code> file:
+              </p>
+              <div className="p-2 rounded-xl bg-black/50 border border-white/10 font-mono text-[10px] text-amber-300 break-all select-all">
+                VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+              </div>
+              <p className="text-[11px] text-zinc-400">
+                You can get this free from Google Cloud Console &gt; APIs &amp; Services &gt; Credentials &gt; OAuth 2.0 Client IDs.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={handleSetDemoUser}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Try Demo Account Login</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowGoogleSetupModal(false)}
+                className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border cursor-pointer active:scale-95 transition-transform ${
+                  isDark ? 'border-white/10 hover:bg-white/5 text-zinc-400' : 'border-zinc-200 hover:bg-zinc-100 text-zinc-600'
+                }`}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* 7. ORDER CONFIRMATION MODAL */}
       {/* ============================================================== */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
