@@ -315,53 +315,55 @@ export default function ProductManager({ products = [], categories = [], onRefre
     <div className="space-y-6">
       
       {/* Top action bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          {/* Search */}
-          <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-2xs"
-            />
-          </div>
-
-          {/* Category Filter */}
-          <select
-            value={selectedCat}
-            onChange={(e) => setSelectedCat(e.target.value)}
-            className="py-2 px-3 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 focus:outline-none focus:border-orange-500 shadow-2xs"
-          >
-            <option value="all">All Categories ({products.length})</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.label} ({products.filter(p => p.category === c.id).length})
-              </option>
-            ))}
-          </select>
+      <div className="space-y-3">
+        {/* Full-width Search Bar */}
+        <div className="relative w-full">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-2xs"
+          />
         </div>
 
-        {/* Action Buttons: Manage Categories & Upload New Product */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            onClick={() => {
-              setCatFeedback(null);
-              setEditingCatId(null);
-              setIsCategoryModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-300 text-zinc-800 font-bold text-xs uppercase tracking-wider shadow-2xs transition-all hover:border-zinc-400 cursor-pointer"
-            title="Add, edit, or remove categories"
-          >
-            <FolderTree className="w-4 h-4 text-orange-600" />
-            <span>Manage Categories</span>
-          </button>
+        {/* Categories Controls & Actions */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            {/* Category Filter Dropdown */}
+            <select
+              value={selectedCat}
+              onChange={(e) => setSelectedCat(e.target.value)}
+              className="w-full sm:w-auto py-2.5 px-3 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 focus:outline-none focus:border-orange-500 shadow-2xs cursor-pointer font-medium"
+            >
+              <option value="all">All Categories ({products.length})</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.label} ({products.filter(p => p.category === c.id).length})
+                </option>
+              ))}
+            </select>
 
+            {/* Manage Categories Button (under categories dropdown on mobile) */}
+            <button
+              onClick={() => {
+                setCatFeedback(null);
+                setEditingCatId(null);
+                setIsCategoryModalOpen(true);
+              }}
+              className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-300 text-zinc-800 font-bold text-xs uppercase tracking-wider shadow-2xs transition-all hover:border-zinc-400 cursor-pointer"
+              title="Add, edit, or remove categories"
+            >
+              <FolderTree className="w-4 h-4 text-orange-600" />
+              <span>Manage Categories</span>
+            </button>
+          </div>
+
+          {/* Upload New Product Button */}
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow transition-all hover:scale-105 cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow transition-all active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Upload New Product</span>

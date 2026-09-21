@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar } from 'lucide-react';
+import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft } from 'lucide-react';
+import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
 
 // Helper to format date to local YYYY-MM-DD
@@ -84,6 +85,56 @@ export default function OrdersManager({
   const [isSaving, setIsSaving] = useState(false);
   const [isComboboxOpen, setIsComboboxOpen] = useState(false);
   const comboboxRef = useRef(null);
+
+  // In-App Receipt Modal State
+  const [viewingReceiptOrder, setViewingReceiptOrder] = useState(null);
+
+  // Native Android hardware/gesture back button listener (Capacitor)
+  useEffect(() => {
+    let backHandle = null;
+
+    const setupCapacitorBack = async () => {
+      try {
+        backHandle = await CapApp.addListener('backButton', ({ canGoBack }) => {
+          if (viewingReceiptOrder) {
+            setViewingReceiptOrder(null);
+            return;
+          }
+          if (modifyingOrder) {
+            setModifyingOrder(null);
+            return;
+          }
+          if (canGoBack) {
+            window.history.back();
+          }
+        });
+      } catch {
+        // Not running in native Capacitor shell
+      }
+    };
+
+    setupCapacitorBack();
+
+    return () => {
+      if (backHandle && typeof backHandle.remove === 'function') {
+        backHandle.remove();
+      }
+    };
+  }, [viewingReceiptOrder, modifyingOrder]);
+
+  // Browser / WebView history popstate handler
+  useEffect(() => {
+    if (viewingReceiptOrder) {
+      window.history.pushState({ modal: 'salik-receipt' }, '');
+      const handlePop = () => {
+        setViewingReceiptOrder(null);
+      };
+      window.addEventListener('popstate', handlePop);
+      return () => {
+        window.removeEventListener('popstate', handlePop);
+      };
+    }
+  }, [viewingReceiptOrder]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -305,11 +356,10 @@ export default function OrdersManager({
     }
   };
 
-  const handlePrint = (order) => {
-    const printWin = window.open('', '_blank', 'width=450,height=750');
+  const generateReceiptHtml = (order) => {
     const orderDate = formatOrderDateTime(order.createdAt);
 
-    const printHtml = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -332,11 +382,11 @@ export default function OrdersManager({
       width: 74mm;
       max-width: 74mm;
       margin: 0 auto;
-      padding: 8px 2px 16px 2px;
+      padding: 4px 2px 12px 2px;
       color: #000;
       background: #fff;
-      font-size: 10.5px;
-      line-height: 1.35;
+      font-size: 10px;
+      line-height: 1.3;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -348,195 +398,140 @@ export default function OrdersManager({
       text-align: center;
       padding-bottom: 7px;
       border-bottom: 1px dashed #000;
-      margin-bottom: 8px;
     }
     .brand-title {
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      font-size: 14px;
+      font-weight: 700;
       text-transform: uppercase;
-      line-height: 1.2;
+      letter-spacing: 0.5px;
+      margin-bottom: 1px;
     }
     .brand-tagline {
-      font-size: 8.5px;
+      font-size: 9px;
       font-weight: 500;
-      letter-spacing: 1.2px;
-      color: #444;
       text-transform: uppercase;
-      margin-top: 2px;
+      letter-spacing: 0.5px;
       margin-bottom: 3px;
     }
     .contact-info {
-      font-size: 8.5px;
-      color: #333;
-      line-height: 1.35;
+      font-size: 9px;
+      margin-bottom: 4px;
     }
     .order-badge {
       display: inline-block;
-      margin-top: 5px;
-      padding: 2px 8px;
-      border: 1px solid #000;
-      font-size: 9.5px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      font-size: 8.5px;
+      font-weight: 700;
       text-transform: uppercase;
-      border-radius: 3px;
-      background: #fff;
+      border: 1px solid #000;
+      padding: 1px 5px;
+      border-radius: 2px;
     }
 
-    /* Meta Info Box - Pure White, Clean Border */
+    /* Meta Info Box */
     .meta-box {
-      border: 1px solid #000;
-      border-radius: 3px;
-      padding: 6px 7px;
-      margin-bottom: 8px;
-      font-size: 9.5px;
-      background: #fff;
+      padding: 6px 0;
+      border-bottom: 1px dashed #000;
     }
     .meta-row {
       display: flex;
       justify-content: space-between;
+      font-size: 10px;
       margin-bottom: 2px;
     }
-    .meta-row:last-child {
-      margin-bottom: 0;
-    }
-    .meta-label {
-      color: #444;
-      font-weight: 400;
-      flex-shrink: 0;
-    }
-    .meta-value {
-      font-weight: 600;
-      color: #000;
-      text-align: right;
-    }
+    .meta-label { font-weight: 600; }
+    .meta-value { text-align: right; }
+
     .address-block {
-      border-top: 1px dashed #bbb;
-      margin-top: 4px;
-      padding-top: 4px;
+      margin-top: 3px;
       font-size: 9.5px;
     }
     .address-text {
-      font-weight: 600;
-      color: #000;
-      line-height: 1.25;
       margin-top: 1px;
-    }
-    .notes-box {
-      margin-top: 4px;
-      padding: 3px 5px;
-      background: #fff;
-      border: 1px solid #888;
-      border-radius: 2px;
-      font-size: 9px;
-      color: #000;
+      word-break: break-word;
     }
 
-    /* Bordered Items Table - No Grey Highlight */
+    .notes-box {
+      margin-top: 3px;
+      font-size: 9px;
+      padding: 2px 4px;
+      border-left: 2px solid #000;
+      background: #fdfdfd;
+    }
+
+    /* Items Table */
     .items-table {
       width: 100%;
       border-collapse: collapse;
-      margin: 8px 0;
-      font-size: 9.5px;
-      background: #fff;
-    }
-    .items-table th,
-    .items-table td {
-      border: 1px solid #000;
-      padding: 4px 3px;
-      vertical-align: middle;
-      background: #fff;
+      margin-top: 6px;
+      font-size: 10px;
     }
     .items-table th {
-      font-weight: 600;
+      font-weight: 700;
+      text-align: left;
+      padding: 4px 1px;
+      border-bottom: 1px solid #000;
+      border-top: 1px solid #000;
       text-transform: uppercase;
       font-size: 8.5px;
-      letter-spacing: 0.3px;
     }
-    .col-num {
-      width: 16px;
-      text-align: center;
-      color: #444;
-      font-size: 8.5px;
+    .items-table td {
+      padding: 4px 1px;
+      vertical-align: top;
+      border-bottom: 1px dotted #ccc;
     }
-    .col-item {
-      text-align: left;
-    }
-    .col-qty {
-      width: 26px;
-      text-align: center;
-      font-weight: 600;
-    }
-    .col-price {
-      width: 42px;
-      text-align: right;
-      font-size: 9px;
-    }
-    .col-total {
-      width: 48px;
-      text-align: right;
-      font-weight: 600;
-    }
+    .items-table .col-num { width: 14px; }
+    .items-table .col-qty { width: 18px; text-align: center; font-weight: 600; }
+    .items-table .col-price { width: 34px; text-align: right; }
+    .items-table .col-total { width: 44px; text-align: right; font-weight: 600; }
+    
     .item-name {
-      font-weight: 500;
-      line-height: 1.2;
+      font-weight: 600;
     }
     .item-size {
-      font-size: 8px;
-      color: #555;
-      font-weight: 400;
-      margin-top: 1px;
+      font-size: 8.5px;
+      color: #333;
     }
 
-    /* Totals Box - Pure White, Clean Border */
+    /* Totals Box */
     .totals-box {
-      border: 1px solid #000;
-      border-radius: 3px;
-      padding: 5px 7px;
-      margin: 8px 0 10px 0;
-      background: #fff;
+      padding: 6px 0;
+      border-bottom: 1px dashed #000;
+      font-size: 10.5px;
     }
     .totals-row {
       display: flex;
       justify-content: space-between;
-      font-size: 10px;
-      padding: 2px 0;
+      margin-bottom: 3px;
     }
     .grand-total-row {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      border-top: 1px solid #000;
-      margin-top: 3px;
-      padding-top: 4px;
       font-size: 12.5px;
       font-weight: 700;
+      padding-top: 4px;
+      border-top: 1px solid #000;
+      margin-top: 2px;
     }
 
     /* Footer */
     .receipt-footer {
       text-align: center;
-      border-top: 1px dashed #000;
-      padding-top: 7px;
-      margin-top: 6px;
-      font-size: 8.5px;
-      color: #333;
-      line-height: 1.4;
+      padding-top: 8px;
+      font-size: 9px;
     }
     .cut-line {
-      margin-top: 10px;
+      margin-top: 8px;
+      font-size: 8px;
       text-align: center;
-      font-size: 8.5px;
-      color: #666;
       letter-spacing: 2px;
+      color: #666;
     }
 
     @media print {
       body {
         width: 100%;
         max-width: 100%;
-        padding: 2px 0;
+        padding: 0;
       }
     }
   </style>
@@ -588,7 +583,7 @@ export default function OrdersManager({
     ` : ''}
   </div>
 
-  <!-- Items Table with Proper Borders (No Grey Fill) -->
+  <!-- Items Table -->
   <table class="items-table">
     <thead>
       <tr>
@@ -642,22 +637,36 @@ export default function OrdersManager({
   </div>
 </body>
 </html>`;
+  };
 
-    printWin.document.open();
-    printWin.document.write(printHtml);
-    printWin.document.close();
-    printWin.focus();
-
-    if (printWin.document.fonts && printWin.document.fonts.ready) {
-      printWin.document.fonts.ready.then(() => {
-        setTimeout(() => {
-          printWin.print();
-        }, 150);
-      });
-    } else {
+  const handlePrintReceipt = (order) => {
+    try {
+      let iframe = document.getElementById('receipt-print-iframe');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'receipt-print-iframe';
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+      }
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(generateReceiptHtml(order));
+      doc.close();
       setTimeout(() => {
-        printWin.print();
-      }, 350);
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch (e) {
+          console.error('Print error:', e);
+        }
+      }, 250);
+    } catch (e) {
+      console.error('Print iframe error:', e);
     }
   };
 
@@ -1164,11 +1173,11 @@ export default function OrdersManager({
                           <option value="Cancelled">Cancelled</option>
                         </select>
 
-                        {/* Print Receipt */}
+                        {/* View Receipt Modal */}
                         <button
-                          onClick={() => handlePrint(order)}
-                          className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors"
-                          title="Print Receipt"
+                          onClick={() => setViewingReceiptOrder(order)}
+                          className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer"
+                          title="View Receipt"
                         >
                           <Printer className="w-3.5 h-3.5" />
                         </button>
@@ -1318,9 +1327,9 @@ export default function OrdersManager({
                         </select>
 
                         <button
-                          onClick={() => handlePrint(order)}
-                          className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors"
-                          title="Print Receipt"
+                          onClick={() => setViewingReceiptOrder(order)}
+                          className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer"
+                          title="View Receipt"
                         >
                           <Printer className="w-4 h-4" />
                         </button>
@@ -1739,6 +1748,140 @@ export default function OrdersManager({
             </div>
 
           </div>
+        </div>
+      )}
+
+      {/* IN-APP RECEIPT MODAL */}
+      {viewingReceiptOrder && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-2 sm:p-4 animate-tab-fade">
+          
+          {/* Top Control Bar with Back and Print */}
+          <div className="w-full max-w-[420px] bg-zinc-900 text-white rounded-2xl p-3 mb-3 flex items-center justify-between shadow-2xl border border-white/10 sticky top-2 z-10">
+            <button
+              type="button"
+              onClick={() => setViewingReceiptOrder(null)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95"
+            >
+              <ArrowLeft className="w-4 h-4 text-orange-500" />
+              <span>Back to Orders</span>
+            </button>
+
+            <span className="text-xs font-bold text-zinc-300">
+              Receipt #{viewingReceiptOrder.id}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => handlePrintReceipt(viewingReceiptOrder)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print</span>
+            </button>
+          </div>
+
+          {/* Thermal Receipt Paper Card */}
+          <div className="w-full max-w-[420px] bg-white text-black p-5 sm:p-6 rounded-2xl shadow-2xl border border-zinc-300 font-mono text-[11px] leading-relaxed mb-8">
+            
+            {/* Store Header */}
+            <div className="text-center pb-3 border-b border-dashed border-black">
+              <h2 className="text-lg font-black tracking-wider uppercase">SALIK FAST FOOD</h2>
+              <p className="text-[10px] text-zinc-600 uppercase font-semibold">Taste That You Need</p>
+              <p className="text-[10px] text-zinc-600 mt-1">
+                Wah Model Town, Wah Cantt<br />
+                Phone: 0309-5369472
+              </p>
+              <div className="mt-2 inline-block px-3 py-0.5 border border-black font-bold uppercase tracking-wider text-[10px]">
+                {viewingReceiptOrder.paymentMethod ? viewingReceiptOrder.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}
+              </div>
+            </div>
+
+            {/* Order Metadata Box */}
+            <div className="py-3 border-b border-dashed border-black space-y-1">
+              <div className="flex justify-between">
+                <span className="font-bold">Order ID:</span>
+                <span>#{viewingReceiptOrder.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-bold">Date & Time:</span>
+                <span>{formatOrderDateTime(viewingReceiptOrder.createdAt)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-bold">Customer:</span>
+                <span>{viewingReceiptOrder.customerName || 'Walk-in Customer'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-bold">Phone:</span>
+                <span>{viewingReceiptOrder.phone || '-'}</span>
+              </div>
+              {viewingReceiptOrder.address && (
+                <div className="pt-1">
+                  <span className="font-bold block">Delivery Address:</span>
+                  <span className="block text-[10px] leading-tight text-zinc-800">{viewingReceiptOrder.address}</span>
+                </div>
+              )}
+              {viewingReceiptOrder.notes && (
+                <div className="pt-1 text-[10px] italic">
+                  <span className="font-bold not-italic">Notes:</span> {viewingReceiptOrder.notes}
+                </div>
+              )}
+            </div>
+
+            {/* Items Table */}
+            <div className="py-3 border-b border-dashed border-black">
+              <table className="w-full text-left text-[11px]">
+                <thead>
+                  <tr className="border-b border-black font-bold uppercase text-[9.5px]">
+                    <th className="pb-1 w-6">#</th>
+                    <th className="pb-1">Item</th>
+                    <th className="pb-1 text-center w-8">Qty</th>
+                    <th className="pb-1 text-right w-12">Rate</th>
+                    <th className="pb-1 text-right w-14">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200">
+                  {(viewingReceiptOrder.items || []).map((it, idx) => (
+                    <tr key={idx} className="align-top">
+                      <td className="py-1 text-zinc-500">{idx + 1}</td>
+                      <td className="py-1 pr-1 font-sans font-medium text-xs">
+                        {it.name}
+                        {it.size && <span className="block font-mono text-[9.5px] text-zinc-500">Size: {it.size}</span>}
+                      </td>
+                      <td className="py-1 text-center font-bold">{it.quantity}</td>
+                      <td className="py-1 text-right">{Number(it.price).toLocaleString()}</td>
+                      <td className="py-1 text-right font-bold">{(Number(it.price) * Number(it.quantity)).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Totals */}
+            <div className="py-3 border-b border-dashed border-black space-y-1 font-bold">
+              <div className="flex justify-between text-zinc-700">
+                <span>Subtotal</span>
+                <span>Rs. {(viewingReceiptOrder.subtotal || 0).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-zinc-700">
+                <span>Delivery Charges</span>
+                <span>{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${Number(viewingReceiptOrder.deliveryFee).toLocaleString()}`}</span>
+              </div>
+              <div className="flex justify-between text-sm font-black pt-1 border-t border-black text-black">
+                <span>TOTAL PAYABLE</span>
+                <span>Rs. {(viewingReceiptOrder.total || 0).toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center pt-3 text-[10px] space-y-1 text-zinc-600">
+              <p className="font-bold text-black">Thank you for ordering with Salik Fast Food!</p>
+              <p>Please check your order upon receiving.</p>
+              <p>For complaints or feedback, contact: 0309-5369472</p>
+              <p className="text-zinc-400 pt-1 tracking-widest">✂ - - - - - - - - - - - - - - - - - - - - -</p>
+            </div>
+
+          </div>
+
         </div>
       )}
 

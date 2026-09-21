@@ -40,6 +40,58 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   });
   const [loading, setLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [statsTimeFilter, setStatsTimeFilter] = useState('today'); // 'today' | 'monthly' | 'all'
+
+  // Format local date string YYYY-MM-DD
+  const getLocalDateStr = (d) => {
+    if (!d) return '';
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const filteredOrdersForStats = useMemo(() => {
+    const now = new Date();
+    const todayStr = getLocalDateStr(now);
+    const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    if (statsTimeFilter === 'today') {
+      return orders.filter(o => o.createdAt && getLocalDateStr(o.createdAt) === todayStr);
+    }
+    if (statsTimeFilter === 'monthly') {
+      return orders.filter(o => o.createdAt && getLocalDateStr(o.createdAt).slice(0, 7) === thisMonthStr);
+    }
+    return orders;
+  }, [orders, statsTimeFilter]);
+
+  const displayStats = useMemo(() => {
+    if (statsTimeFilter === 'all') {
+      return {
+        totalProducts: stats.totalProducts || products.length,
+        totalDeals: stats.totalDeals || (deals.length + (familyDeal ? 1 : 0)),
+        totalOrders: stats.totalOrders || orders.length,
+        pendingOrders: orders.filter(o => o.status === 'Pending').length,
+        totalRevenue: stats.totalRevenue || orders.filter(o => o.status !== 'Cancelled').reduce((sum, o) => sum + (Number(o.total) || 0), 0)
+      };
+    }
+
+    const totalOrders = filteredOrdersForStats.length;
+    const pendingOrders = filteredOrdersForStats.filter(o => o.status === 'Pending').length;
+    const totalRevenue = filteredOrdersForStats
+      .filter(o => o.status !== 'Cancelled')
+      .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+
+    return {
+      totalProducts: stats.totalProducts || products.length,
+      totalDeals: stats.totalDeals || (deals.length + (familyDeal ? 1 : 0)),
+      totalOrders,
+      pendingOrders,
+      totalRevenue
+    };
+  }, [statsTimeFilter, filteredOrdersForStats, stats, products.length, deals.length, familyDeal, orders]);
 
   // Derived counts for tab buttons
   const pendingOrdersCount = useMemo(() => {
@@ -116,10 +168,10 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#d5d8de] text-zinc-900">
+    <div className="min-h-screen bg-[#d5d8de] text-zinc-900 admin-app-container">
       
       {/* Top Navbar */}
-      <header className="bg-white border-b border-zinc-300/80 text-zinc-900 sticky top-0 z-30 shadow-xs">
+      <header className="bg-white border-b border-zinc-300/80 text-zinc-900 sticky top-0 z-30 shadow-xs mobile-app-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
@@ -170,81 +222,129 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8">
         
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          
-          <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-              <Package className="w-5 h-5" />
-            </div>
+        {/* Stats Section with Time Filter Buttons */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                Total Products
-              </span>
-              <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
-                {stats.totalProducts || products.length}
-              </span>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600">
+                Performance Overview
+              </h2>
+            </div>
+
+            {/* Time Filter Buttons: Today, Monthly, All Time */}
+            <div className="flex items-center gap-1 p-1 bg-white border border-zinc-300/80 rounded-xl shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setStatsTimeFilter('today')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  statsTimeFilter === 'today'
+                    ? 'bg-orange-600 text-white shadow-xs'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatsTimeFilter('monthly')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  statsTimeFilter === 'monthly'
+                    ? 'bg-orange-600 text-white shadow-xs'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatsTimeFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  statsTimeFilter === 'all'
+                    ? 'bg-orange-600 text-white shadow-xs'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
+              >
+                All Time
+              </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Flame className="w-5 h-5" />
+          {/* Stats Cards Row */}
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+            
+            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                <Package className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
+                  Total Products
+                </span>
+                <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
+                  {displayStats.totalProducts}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                Total Deals
-              </span>
-              <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
-                {stats.totalDeals || (deals.length + (familyDeal ? 1 : 0))}
-              </span>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5" />
+            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <Flame className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
+                  Total Deals
+                </span>
+                <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
+                  {displayStats.totalDeals}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                Total Orders
-              </span>
-              <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
-                {stats.totalOrders || orders.length}
-              </span>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Clock className="w-5 h-5" />
+            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <ShoppingBag className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
+                  {statsTimeFilter === 'today' ? 'Today Orders' : statsTimeFilter === 'monthly' ? 'Monthly Orders' : 'Total Orders'}
+                </span>
+                <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
+                  {displayStats.totalOrders}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                Pending Orders
-              </span>
-              <span className="font-sans text-2xl text-amber-600 font-bold block leading-tight">
-                {orders.filter(o => o.status === 'Pending').length}
-              </span>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5 col-span-2 lg:col-span-1">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <DollarSign className="w-5 h-5" />
+            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
+                  Pending Orders
+                </span>
+                <span className="font-sans text-2xl text-amber-600 font-bold block leading-tight">
+                  {displayStats.pendingOrders}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
-                Total Revenue
-              </span>
-              <span className="font-sans text-xl font-bold text-emerald-700 block leading-tight">
-                Rs. {(stats.totalRevenue || 0).toLocaleString()}
-              </span>
-            </div>
-          </div>
 
+            <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5 col-span-2 lg:col-span-1">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <DollarSign className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
+                  {statsTimeFilter === 'today' ? 'Today Revenue' : statsTimeFilter === 'monthly' ? 'Monthly Revenue' : 'Total Revenue'}
+                </span>
+                <span className="font-sans text-xl font-bold text-emerald-700 block leading-tight">
+                  Rs. {displayStats.totalRevenue.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+          </div>
         </div>
 
         {/* Tab Navigation */}
