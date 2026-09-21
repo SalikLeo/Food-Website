@@ -721,7 +721,7 @@ export default function CustomerMobileApp({
               />
             </div>
             <div className="flex flex-col">
-              <span className={`font-montserrat tracking-tight text-lg font-black leading-tight flex items-center gap-1.5 ${
+              <span className={`font-montserrat tracking-tight text-lg font-bold leading-tight flex items-center gap-1.5 ${
                 isDark ? 'text-white' : 'text-zinc-900'
               }`}>
                 SALIK <span className="text-orange-500">FAST FOOD</span>
@@ -774,7 +774,7 @@ export default function CustomerMobileApp({
       {/* ============================================================== */}
       {/* 2. MAIN APP CONTENT CONTAINER */}
       {/* ============================================================== */}
-      <main className="px-4 pt-1 sm:pt-1.5 space-y-3.5">
+      <main className="px-4 pt-4 sm:pt-4.5 space-y-4">
         
         {/* VIEW A: HOME DASHBOARD (Hero Promo + 2-Column Categories Grid) */}
         {currentView === 'home' && (
@@ -1109,18 +1109,22 @@ export default function CustomerMobileApp({
           <div className="space-y-4 animate-tab-fade">
             
             {/* Dedicated Back to Main Page Header Card */}
-            <div className={`rounded-2xl p-4 border flex items-center justify-between ${
-              isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
-            }`}>
-              <button
-                onClick={() => switchView('home')}
-                className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider active:opacity-75 transition-opacity cursor-pointer ${
-                  isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'
+            <div 
+              role="button"
+              tabIndex={0}
+              onClick={() => switchView('home')}
+              className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
+                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+              }`}
+            >
+              <div
+                className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-600'
                 }`}
               >
-                <ArrowLeft className="w-4 h-4 text-orange-500" />
+                <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
                 <span>Back to Main Page</span>
-              </button>
+              </div>
 
               <span className="text-xs font-semibold text-orange-500">
                 {searchQuery.trim() ? `${categoryProducts.length} Items Found` : `${categoryProducts.length} Items Available`}
@@ -1417,18 +1421,22 @@ export default function CustomerMobileApp({
         {currentView === 'deals' && (
           <div className="space-y-4 animate-tab-fade">
             
-            <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
-              isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
-            }`}>
-              <button
-                onClick={() => switchView('home')}
-                className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider active:opacity-75 transition-opacity cursor-pointer ${
-                  isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'
+            <div 
+              role="button"
+              tabIndex={0}
+              onClick={() => switchView('home')}
+              className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
+                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+              }`}
+            >
+              <div
+                className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-600'
                 }`}
               >
-                <ArrowLeft className="w-4 h-4 text-orange-500" />
+                <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
                 <span>Back to Menu</span>
-              </button>
+              </div>
 
               <span className="text-xs font-semibold text-orange-500">
                 {deals.length + (familyDeal ? 1 : 0)} Combo Deals
@@ -1550,18 +1558,22 @@ export default function CustomerMobileApp({
           <div className="space-y-4 animate-tab-fade">
             
             {/* Header */}
-            <div className={`rounded-2xl p-4 border flex items-center justify-between ${
-              isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
-            }`}>
-              <button
-                onClick={() => switchView('home')}
-                className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider active:opacity-75 transition-opacity cursor-pointer ${
-                  isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'
+            <div 
+              role="button"
+              tabIndex={0}
+              onClick={() => switchView('home')}
+              className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
+                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+              }`}
+            >
+              <div
+                className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-600'
                 }`}
               >
-                <ArrowLeft className="w-4 h-4 text-orange-500" />
+                <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
                 <span>Back to Menu</span>
-              </button>
+              </div>
 
               <span className="text-xs font-semibold text-orange-500">
                 {recentOrders.length} {recentOrders.length === 1 ? 'Order' : 'Orders'}
@@ -1804,21 +1816,25 @@ export default function CustomerMobileApp({
         {currentView === 'checkout' && (
           <div className="space-y-4 animate-tab-fade">
             
-            <div className={`rounded-2xl p-4 border flex items-center justify-between ${
-              isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
-            }`}>
-              <button
-                onClick={() => {
-                  switchView('home');
-                  setIsCartOpen(true);
-                }}
-                className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider active:opacity-75 transition-opacity cursor-pointer ${
-                  isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'
+            <div 
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                switchView('home');
+                setIsCartOpen(true);
+              }}
+              className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
+                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+              }`}
+            >
+              <div
+                className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-600'
                 }`}
               >
-                <ArrowLeft className="w-4 h-4 text-orange-500" />
+                <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
                 <span>Back to Cart</span>
-              </button>
+              </div>
 
               <span className="text-xs font-bold text-orange-500">
                 Checkout ({totalItems} items)
@@ -2123,7 +2139,7 @@ export default function CustomerMobileApp({
                     className="w-10 h-10 object-contain rounded-full border border-orange-500/50"
                   />
                   <div>
-                    <h3 className={`font-montserrat tracking-tight font-black leading-tight ${
+                    <h3 className={`font-montserrat tracking-tight font-bold leading-tight ${
                       isDark ? 'text-white' : 'text-zinc-900'
                     }`}>
                       SALIK FAST FOOD
