@@ -135,6 +135,25 @@ export default function CustomerMobileApp({
     return () => window.removeEventListener('salik_open_checkout', handleOpenCheckout);
   }, []);
 
+  // Lock background scroll and handle ESC key when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
+
   // Auto-rotate promo banners (pauses while dragging)
   useEffect(() => {
     if (currentView !== 'home' || isDragging) return;
@@ -1818,18 +1837,27 @@ export default function CustomerMobileApp({
       </div>
 
       {/* ============================================================== */}
-      {/* 5. SIDE DRAWER MENU */}
+      {/* 5. SIDE DRAWER MENU (Smooth Slide-In & Slide-Out Animation) */}
       {/* ============================================================== */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex">
-          <div 
-            onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity animate-backdrop-fade" 
-          />
-          
-          <div className={`relative ml-auto w-4/5 max-w-sm h-full border-l p-6 flex flex-col justify-between shadow-2xl z-10 animate-slide-left transition-colors ${
-            isDark ? 'bg-[#121216] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
-          }`}>
+      <div 
+        className={`fixed inset-0 z-50 flex transition-all duration-300 ease-in-out ${
+          mobileMenuOpen 
+            ? 'opacity-100 pointer-events-auto visible' 
+            : 'opacity-0 pointer-events-none invisible'
+        }`}
+      >
+        <div 
+          onClick={() => setMobileMenuOpen(false)}
+          className={`fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity duration-300 ease-in-out ${
+            mobileMenuOpen ? 'opacity-100' : 'opacity-0'
+          }`} 
+        />
+        
+        <div className={`relative ml-auto w-4/5 max-w-sm h-full border-l p-6 flex flex-col justify-between shadow-2xl z-10 transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        } ${
+          isDark ? 'bg-[#121216] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
+        }`}>
             <div className="space-y-5">
               
               {/* Drawer Top Header */}
@@ -2015,7 +2043,6 @@ export default function CustomerMobileApp({
 
           </div>
         </div>
-      )}
 
       {/* Cart & Modals */}
       <CartDrawer />
