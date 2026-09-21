@@ -538,7 +538,7 @@ export default function CustomerMobileApp({
   ];
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 mobile-app-container ${
+    <div className={`min-h-screen mobile-app-container ${
       isDark 
         ? 'bg-[#0e0e11] text-white selection:bg-orange-500 selection:text-white' 
         : 'bg-[#f4f5f8] text-zinc-900 selection:bg-orange-500 selection:text-white'
@@ -563,7 +563,7 @@ export default function CustomerMobileApp({
       {/* ============================================================== */}
       {/* 1. TOP APP BAR (Native Mobile App Header with Safe-Area Inset) */}
       {/* ============================================================== */}
-      <header className={`sticky top-0 left-0 right-0 z-40 backdrop-blur-md border-b mobile-app-header px-4 transition-colors duration-200 ${
+      <header className={`sticky top-0 left-0 right-0 z-40 backdrop-blur-md border-b mobile-app-header px-4 ${
         isDark 
           ? 'bg-[#121216]/95 border-white/10 shadow-lg' 
           : 'bg-white/95 border-zinc-200/90 shadow-xs'
@@ -608,7 +608,7 @@ export default function CustomerMobileApp({
             {/* Quick Light/Dark Toggle in Header */}
             <button
               onClick={toggleTheme}
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 cursor-pointer ${
+              className={`w-9 h-9 rounded-xl border flex items-center justify-center active:scale-95 cursor-pointer ${
                 isDark 
                   ? 'bg-zinc-800/80 hover:bg-zinc-700/80 border-white/10 text-amber-400' 
                   : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-700 shadow-2xs'
@@ -624,20 +624,21 @@ export default function CustomerMobileApp({
               href="https://wa.me/923095369472"
               target="_blank"
               rel="noopener noreferrer"
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 shadow-2xs ${
+              className={`w-9 h-9 rounded-xl border flex items-center justify-center active:scale-95 shadow-2xs ${
                 isDark 
                   ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/30 text-emerald-400' 
                   : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600'
               }`}
-              title="Chat on WhatsApp"
+              aria-label="WhatsApp Support"
             >
-              <WhatsAppIcon className="w-5 h-5 fill-current" />
+              <WhatsAppIcon className="w-4 h-4 fill-emerald-500" />
             </a>
 
-            {/* Side Drawer Toggle */}
+            {/* Side Drawer Menu Trigger Button */}
             <button
+              id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(true)}
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 cursor-pointer ${
+              className={`w-9 h-9 rounded-xl border flex items-center justify-center active:scale-95 cursor-pointer ${
                 isDark 
                   ? 'bg-zinc-800/80 hover:bg-zinc-700/80 border-white/10 text-white' 
                   : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-800 shadow-2xs'
@@ -655,7 +656,7 @@ export default function CustomerMobileApp({
       {/* ============================================================== */}
       {/* 2. MAIN APP CONTENT CONTAINER */}
       {/* ============================================================== */}
-      <main className="px-4 pt-3.5 space-y-5">
+      <main className="px-4 pt-2 space-y-4">
         
         {/* VIEW A: HOME DASHBOARD (Hero Promo + 2-Column Categories Grid) */}
         {currentView === 'home' && (
@@ -780,7 +781,7 @@ export default function CustomerMobileApp({
                     : 'bg-white border border-zinc-200 text-zinc-800 shadow-2xs hover:bg-zinc-50'
                 }`}
               >
-                <span>🍕 Explore Menu</span>
+                <span>🍕 Menu</span>
               </button>
 
               <button
@@ -871,14 +872,12 @@ export default function CustomerMobileApp({
                           : 'bg-white border border-zinc-200/90 shadow-xs hover:border-orange-400 hover:shadow-md'
                       }`}
                     >
-                      {/* Appetizing Centered Food Photo on Clean Plate */}
-                      <div className={`w-full aspect-[4/3] rounded-2xl overflow-hidden flex items-center justify-center p-1.5 mb-2 relative ${
-                        isDark ? 'bg-black/30' : 'bg-zinc-50'
-                      }`}>
+                      {/* Appetizing Centered Food Photo on Card */}
+                      <div className="w-full aspect-[4/3] flex items-center justify-center p-1 mb-2 relative">
                         <img
                           src={catImg}
                           alt={cat.label}
-                          className="w-full h-full object-contain rounded-xl overflow-hidden transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
+                          className="w-full h-full object-contain rounded-xl transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
                           onError={(e) => {
                             e.target.src = '/assets/images/cat-burgers-CfWIZ4YN.jpg';
                           }}
@@ -1968,13 +1967,13 @@ export default function CustomerMobileApp({
                   <button
                     type="button"
                     onClick={toggleTheme}
-                    className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                    className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent focus:outline-hidden ${
                       isDark ? 'bg-zinc-700' : 'bg-orange-600'
                     }`}
                     aria-label="Toggle theme mode"
                   >
                     <span
-                      className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out flex items-center justify-center text-xs ${
+                      className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 flex items-center justify-center text-xs ${
                         isDark ? 'translate-x-0' : 'translate-x-5'
                       }`}
                     >
