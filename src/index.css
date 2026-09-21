@@ -211,3 +211,26 @@
   -webkit-user-select: text;
 }
 
+/* Periodic Cart Reminder Bounce (every 2.8 seconds) */
+@keyframes reminderBounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  12% {
+    transform: translateY(-9px) scale(1.08);
+  }
+  22% {
+    transform: translateY(0) scale(0.96);
+  }
+  32% {
+    transform: translateY(-4px) scale(1.03);
+  }
+  42% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-reminder-bounce {
+  animation: reminderBounce 2.8s ease-in-out infinite;
+}
+

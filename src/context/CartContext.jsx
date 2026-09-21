@@ -232,6 +232,8 @@ Notes: ${customerInfo.notes || 'None'}`
         deliveryFee,
         total,
         itemCount,
+        totalItems: itemCount,
+        totalPrice: total,
         minOrder,
         isMinOrderMet,
         freeDeliveryThreshold,

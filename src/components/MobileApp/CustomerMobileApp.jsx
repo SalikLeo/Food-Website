@@ -43,8 +43,9 @@ export default function CustomerMobileApp({
 }) {
   const { 
     addToCart, 
-    totalItems, 
-    totalPrice, 
+    itemCount = 0,
+    totalItems: rawTotalItems, 
+    totalPrice: rawTotalPrice, 
     setIsCartOpen,
     recentOrders = [],
     saveRecentOrder,
@@ -60,6 +61,9 @@ export default function CustomerMobileApp({
     setLastOrder,
     setOrderModalOpen
   } = useCart();
+
+  const totalItems = rawTotalItems || itemCount || (cartItems || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const totalPrice = rawTotalPrice || total || subtotal;
 
   // Theme state: 'dark' | 'light' (persisted in localStorage)
   const [theme, setTheme] = useState(() => {
@@ -1626,21 +1630,32 @@ export default function CustomerMobileApp({
         <button
           id="floating-cart-btn"
           onClick={() => setIsCartOpen(true)}
-          className="relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-orange-600 hover:bg-orange-500 text-white shadow-2xl border border-orange-400/40 active:scale-95 transition-all cursor-pointer"
+          className={`relative w-14 h-14 rounded-full bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-500 text-white shadow-2xl border-2 border-white/30 flex items-center justify-center active:scale-90 transition-all duration-200 cursor-pointer group ${
+            totalItems > 0 
+              ? 'animate-reminder-bounce shadow-[0_10px_28px_rgba(234,88,12,0.65)]' 
+              : 'shadow-[0_8px_20px_rgba(0,0,0,0.3)]'
+          }`}
+          aria-label={`Cart with ${totalItems} items`}
+          title={`Cart: ${totalItems} items (Rs. ${totalPrice.toLocaleString()})`}
         >
-          <div className="relative">
-            <ShoppingBag className="w-5 h-5 fill-white/20" />
+          {/* Subtle pulsating radar ripple ring when cart has items */}
+          {totalItems > 0 && (
+            <span 
+              className="absolute inset-0 rounded-full bg-orange-500 opacity-40 animate-ping pointer-events-none" 
+              style={{ animationDuration: '2.8s' }} 
+            />
+          )}
+
+          <div className="relative flex items-center justify-center">
+            <ShoppingBag className="w-6 h-6 text-white drop-shadow-sm group-hover:scale-105 transition-transform" strokeWidth={2.3} />
+            
+            {/* Cart item count badge */}
             {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-white text-orange-600 font-extrabold text-[10px] flex items-center justify-center shadow-md animate-scale-in">
+              <span className="absolute -top-3.5 -right-3.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-zinc-950 text-white font-black text-[11px] flex items-center justify-center shadow-lg border-2 border-white animate-scale-in">
                 {totalItems}
               </span>
             )}
           </div>
-          {totalPrice > 0 && (
-            <span className="font-extrabold text-xs tracking-wider border-l border-white/20 pl-2">
-              Rs. {totalPrice.toLocaleString()}
-            </span>
-          )}
         </button>
       </div>
 
