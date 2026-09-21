@@ -520,7 +520,7 @@ export default function CustomerMobileApp({
         
         {/* VIEW A: HOME DASHBOARD (Hero Promo + 2-Column Categories Grid) */}
         {currentView === 'home' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6 animate-tab-fade">
             
             {/* Promo Hero Banner Slider */}
             <div className={`relative rounded-3xl overflow-hidden shadow-xl border ${
@@ -675,8 +675,8 @@ export default function CustomerMobileApp({
                 </div>
 
                 <button
-                  onClick={() => switchView('category', 'pizza')}
-                  className="text-xs font-bold text-orange-600 hover:text-orange-500 uppercase tracking-wider flex items-center gap-0.5 active:opacity-75 transition-opacity cursor-pointer"
+                  onClick={() => switchView('category', 'all')}
+                  className="text-xs font-bold text-orange-600 hover:text-orange-500 uppercase tracking-wider flex items-center gap-0.5 active:scale-95 transition-all cursor-pointer"
                 >
                   <span>VIEW ALL</span>
                   <ChevronRight className="w-4 h-4" />
@@ -817,7 +817,7 @@ export default function CustomerMobileApp({
 
         {/* VIEW B: DEDICATED CATEGORY ITEMS VIEW */}
         {currentView === 'category' && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-4 animate-tab-fade">
             
             {/* Category Navigation Header */}
             <div className={`rounded-2xl p-4 border space-y-3 transition-colors ${
@@ -1140,7 +1140,7 @@ export default function CustomerMobileApp({
 
         {/* VIEW C: DEALS VIEW */}
         {currentView === 'deals' && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-4 animate-tab-fade">
             
             <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
               isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
@@ -1272,7 +1272,7 @@ export default function CustomerMobileApp({
         {/* VIEW D: RECENT ORDERS & HISTORY (WITH ONE-TAP REORDER) */}
         {/* ============================================================== */}
         {currentView === 'orders' && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-4 animate-tab-fade">
             
             {/* Header */}
             <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
@@ -1430,12 +1430,11 @@ export default function CustomerMobileApp({
                           </span>
                         </div>
 
-                        {/* REORDER BUTTON (As Requested!) */}
+                        {/* REORDER BUTTON */}
                         <button
                           onClick={() => handleReorderOrder(order)}
                           className="px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" />
                           <span>⚡ Reorder</span>
                         </button>
                       </div>
@@ -1453,7 +1452,7 @@ export default function CustomerMobileApp({
         {/* VIEW E: MOBILE CHECKOUT VIEW */}
         {/* ============================================================== */}
         {currentView === 'checkout' && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-4 animate-tab-fade">
             
             <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
               isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
@@ -1669,7 +1668,7 @@ export default function CustomerMobileApp({
         <div className="fixed inset-0 z-50 flex">
           <div 
             onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity" 
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity animate-backdrop-fade" 
           />
           
           <div className={`relative ml-auto w-4/5 max-w-sm h-full border-l p-6 flex flex-col justify-between shadow-2xl z-10 animate-slide-left transition-colors ${
@@ -1700,7 +1699,7 @@ export default function CustomerMobileApp({
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer active:scale-90 ${
                     isDark ? 'bg-white/10 text-zinc-400 hover:text-white' : 'bg-zinc-100 text-zinc-600 hover:text-zinc-900'
                   }`}
                 >
@@ -1760,7 +1759,7 @@ export default function CustomerMobileApp({
                     switchView('home');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors active:scale-[0.98] cursor-pointer ${
                     currentView === 'home'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
@@ -1775,7 +1774,7 @@ export default function CustomerMobileApp({
                     switchView('deals');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border active:scale-[0.98] transition-all cursor-pointer ${
                     currentView === 'deals'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -1792,16 +1791,16 @@ export default function CustomerMobileApp({
 
                 <button
                   onClick={() => {
-                    switchView('category', 'pizza');
+                    switchView('category', 'all');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors active:scale-[0.98] cursor-pointer ${
                     currentView === 'category'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                   }`}
                 >
-                  <span>🍕 Explore Menu</span>
+                  <span>🍽️ Explore Menu</span>
                   <ChevronRight className="w-4 h-4 text-zinc-400" />
                 </button>
 
@@ -1811,7 +1810,7 @@ export default function CustomerMobileApp({
                     switchView('orders');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border transition-all cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border transition-all active:scale-[0.98] cursor-pointer ${
                     currentView === 'orders'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -1842,19 +1841,19 @@ export default function CustomerMobileApp({
                 href="https://wa.me/923095369472"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-98 transition-transform cursor-pointer"
               >
                 <WhatsAppIcon className="w-4 h-4 fill-white" />
                 <span>WhatsApp Order</span>
               </a>
               <a
                 href="tel:03095369472"
-                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer ${
+                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all ${
                   isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800'
                 }`}
               >
                 <Phone className="w-4 h-4" />
-                <span>Call Hotline</span>
+                <span>Call Now</span>
               </a>
             </div>
 
