@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, ArrowLeft, Plus, Minus, Flame, 
   MessageCircle, Menu, X, ShoppingBag, 
-  Clock, MapPin, ChevronRight, Check, Sparkles, Phone,
+  Clock, MapPin, ChevronRight, ChevronDown, Check, Sparkles, Phone,
   Sun, Moon, RotateCcw, PackageCheck, Receipt, AlertCircle
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
@@ -98,6 +98,15 @@ export default function CustomerMobileApp({
   // Selected sizes and quantities per product
   const [selectedSizes, setSelectedSizes] = useState({});
   const [quantities, setQuantities] = useState({});
+
+  // Accordion state for order items dropdown in Recent Orders
+  const [expandedOrders, setExpandedOrders] = useState({});
+  const toggleOrderExpanded = (orderId) => {
+    setExpandedOrders(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
 
   // Checkout form state
   const [checkoutForm, setCheckoutForm] = useState({
@@ -1364,7 +1373,7 @@ export default function CustomerMobileApp({
                       <div className="flex items-center justify-between pb-3 border-b border-white/5">
                         <div className="flex items-center gap-2">
                           <Receipt className="w-4 h-4 text-orange-500" />
-                          <span className={`font-mono text-xs font-bold ${
+                          <span className={`font-montserrat text-xs font-extrabold tracking-tight ${
                             isDark ? 'text-white' : 'text-zinc-900'
                           }`}>
                             #{order.id}
@@ -1395,29 +1404,67 @@ export default function CustomerMobileApp({
                         )}
                       </div>
 
-                      {/* Items Summary */}
-                      <div className={`my-2.5 p-3 rounded-xl space-y-1.5 ${
-                        isDark ? 'bg-black/40 border border-white/5' : 'bg-zinc-50 border border-zinc-200/60'
-                      }`}>
-                        {itemsList.map((item, itemIdx) => (
-                          <div key={itemIdx} className="flex items-center justify-between text-xs">
-                            <span className={`truncate mr-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                              <strong className="text-orange-500 font-bold mr-1">{item.quantity}x</strong>
-                              {item.name}
-                              {item.size && (
-                                <span className="text-[10px] text-zinc-400 ml-1">
-                                  ({typeof item.size === 'string' ? item.size : item.size?.label})
-                                </span>
-                              )}
+                      {/* Items Summary Collapsible Dropdown */}
+                      {itemsList.length > 0 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => toggleOrderExpanded(order.id || idx)}
+                            className={`w-full my-2.5 px-3 py-2 rounded-xl flex items-center justify-between text-xs transition-all active:scale-[0.99] cursor-pointer ${
+                              isDark 
+                                ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5' 
+                                : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200/80'
+                            }`}
+                          >
+                            <span className="flex items-center gap-1.5 font-montserrat">
+                              <span className="text-xs">🛍️</span>
+                              <span className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                                {itemsList.length} {itemsList.length === 1 ? 'Item' : 'Items'}
+                              </span>
+                              <span className="text-[11px] text-zinc-400 font-normal">
+                                ({expandedOrders[order.id || idx] ? 'Hide Details' : 'View Details'})
+                              </span>
                             </span>
-                            <span className={`font-semibold font-mono flex-shrink-0 ${
-                              isDark ? 'text-zinc-300' : 'text-zinc-700'
-                            }`}>
-                              Rs. {(item.price * item.quantity).toLocaleString()}
-                            </span>
+                            <ChevronDown className={`w-4 h-4 text-orange-500 transition-transform duration-300 ease-in-out ${
+                              expandedOrders[order.id || idx] ? 'rotate-180' : 'rotate-0'
+                            }`} />
+                          </button>
+
+                          {/* Smooth Collapsible Container */}
+                          <div
+                            className={`grid transition-all duration-300 ease-in-out ${
+                              expandedOrders[order.id || idx] 
+                                ? 'grid-rows-[1fr] opacity-100 mb-3' 
+                                : 'grid-rows-[0fr] opacity-0 mb-0 pointer-events-none'
+                            }`}
+                          >
+                            <div className="overflow-hidden">
+                              <div className={`p-3 rounded-xl space-y-2 border ${
+                                isDark ? 'bg-black/40 border-white/5' : 'bg-zinc-50 border-zinc-200/60'
+                              }`}>
+                                {itemsList.map((item, itemIdx) => (
+                                  <div key={itemIdx} className="flex items-center justify-between py-0.5 text-xs">
+                                    <span className={`truncate mr-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                      <strong className="text-orange-500 font-montserrat font-bold mr-1.5">{item.quantity}x</strong>
+                                      <span className="font-medium">{item.name}</span>
+                                      {item.size && (
+                                        <span className="text-[10px] text-zinc-400 ml-1">
+                                          ({typeof item.size === 'string' ? item.size : item.size?.label})
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span className={`font-montserrat font-bold text-xs flex-shrink-0 ${
+                                      isDark ? 'text-zinc-300' : 'text-zinc-800'
+                                    }`}>
+                                      Rs. {(item.price * item.quantity).toLocaleString()}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                        ))}
-                      </div>
+                        </>
+                      )}
 
                       {/* Order Footer: Total & REORDER Button */}
                       <div className="flex items-center justify-between pt-1 gap-3">
