@@ -68,9 +68,18 @@ export default function OrderSection() {
   }, [showConfirmModal]);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '').slice(0, 11);
+      setFormData(prev => ({
+        ...prev,
+        phone: digitsOnly
+      }));
+      return;
+    }
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
   };
 
@@ -79,12 +88,13 @@ export default function OrderSection() {
       setErrorMsg('Please add at least one item to your cart from the menu or deals.');
       return false;
     }
-    if (!formData.name.trim()) {
+    if (!formData.name?.trim()) {
       setErrorMsg('Please enter your full name.');
       return false;
     }
-    if (!formData.phone.trim() || formData.phone.length < 10) {
-      setErrorMsg('Please enter a valid phone number (e.g. 0323-1234567).');
+    const cleanPhone = (formData.phone || '').replace(/\D/g, '');
+    if (cleanPhone.length !== 11) {
+      setErrorMsg('Please enter a valid 11-digit phone number (e.g. 03001234567).');
       return false;
     }
     if (!formData.address.trim()) {
@@ -254,13 +264,17 @@ export default function OrderSection() {
                   </label>
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={11}
                     name="phone"
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="03xx-xxxxxxx"
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                    placeholder="03001234567"
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-montserrat tracking-wide transition-all"
                   />
+                  <span className="text-[10px] text-zinc-400 mt-1 block">11-digit mobile number (e.g. 03001234567)</span>
                 </div>
               </div>
 
@@ -431,16 +445,6 @@ export default function OrderSection() {
                   )}
                 </div>
 
-                <span
-                  className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider inline-block mb-2 ${
-                    confirmType === 'whatsapp'
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                  }`}
-                >
-                  {confirmType === 'whatsapp' ? 'Confirm WhatsApp Order' : 'Confirm Order Details'}
-                </span>
-
                 <h3 className="font-display text-2xl sm:text-3xl uppercase tracking-wide text-white">
                   Ready to place your order?
                 </h3>
@@ -494,7 +498,7 @@ export default function OrderSection() {
                   <span>Price</span>
                 </div>
 
-                <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 py-1">
+                <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 py-1 modal-items-scroll">
                   {cartItems.map((item) => (
                     <div key={item.cartKey} className="flex justify-between text-zinc-300">
                       <span className="truncate max-w-[220px]">

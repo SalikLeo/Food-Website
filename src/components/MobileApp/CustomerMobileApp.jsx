@@ -345,8 +345,17 @@ export default function CustomerMobileApp({
   // Mobile Checkout - Validate & Open Confirmation Modal
   const handleMobileOnlineOrder = (e) => {
     if (e) e.preventDefault();
-    if (!checkoutForm.name || !checkoutForm.phone || !checkoutForm.address) {
-      setCheckoutError('Please fill in Name, Phone, and Delivery Address');
+    if (!checkoutForm.name?.trim()) {
+      setCheckoutError('Please enter your Name');
+      return;
+    }
+    const cleanPhone = (checkoutForm.phone || '').replace(/\D/g, '');
+    if (cleanPhone.length !== 11) {
+      setCheckoutError('Please enter a valid 11-digit phone number (e.g. 03001234567)');
+      return;
+    }
+    if (!checkoutForm.address?.trim()) {
+      setCheckoutError('Please enter your Delivery Address');
       return;
     }
     setCheckoutError('');
@@ -356,8 +365,13 @@ export default function CustomerMobileApp({
 
   // Mobile WhatsApp Checkout - Validate & Open Confirmation Modal
   const handleMobileWhatsAppOrder = () => {
-    if (!checkoutForm.name || !checkoutForm.phone) {
-      setCheckoutError('Please provide your Name and Phone Number');
+    if (!checkoutForm.name?.trim()) {
+      setCheckoutError('Please enter your Name');
+      return;
+    }
+    const cleanPhone = (checkoutForm.phone || '').replace(/\D/g, '');
+    if (cleanPhone.length !== 11) {
+      setCheckoutError('Please enter a valid 11-digit phone number (e.g. 03001234567)');
       return;
     }
     setCheckoutError('');
@@ -1721,16 +1735,25 @@ export default function CustomerMobileApp({
                 </label>
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={11}
                   required
                   value={checkoutForm.phone}
-                  onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value })}
-                  placeholder="0309-xxxxxxx"
-                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                  onChange={(e) => setCheckoutForm({ 
+                    ...checkoutForm, 
+                    phone: e.target.value.replace(/\D/g, '').slice(0, 11) 
+                  })}
+                  placeholder="03001234567"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 font-montserrat tracking-wide ${
                     isDark 
                       ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
                       : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
                   }`}
                 />
+                <span className={`text-[10px] mt-1 block ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                  11 digits mobile number (e.g. 03001234567)
+                </span>
               </div>
 
               <div>
@@ -2085,7 +2108,7 @@ export default function CustomerMobileApp({
           />
 
           {/* Modal Card */}
-          <div className={`relative w-full max-w-sm rounded-3xl p-5 sm:p-6 border shadow-2xl z-10 animate-scale-in max-h-[90vh] overflow-y-auto ${
+          <div className={`relative w-full max-w-sm rounded-3xl p-5 sm:p-6 border shadow-2xl z-10 animate-scale-in max-h-[90vh] overflow-y-auto modal-items-scroll ${
             isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
           }`}>
             {/* Close Button */}
@@ -2116,16 +2139,6 @@ export default function CustomerMobileApp({
                   <CheckCircle2 className="w-6 h-6" />
                 )}
               </div>
-
-              <span
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider inline-block mb-1.5 ${
-                  confirmType === 'whatsapp'
-                    ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
-                    : 'bg-orange-500/15 text-orange-500 border border-orange-500/30'
-                }`}
-              >
-                {confirmType === 'whatsapp' ? 'Confirm WhatsApp Order' : 'Confirm Online Order'}
-              </span>
 
               <h3 className={`font-montserrat font-extrabold text-lg uppercase tracking-tight ${
                 isDark ? 'text-white' : 'text-zinc-900'
@@ -2210,7 +2223,7 @@ export default function CustomerMobileApp({
                 <span>Price</span>
               </div>
 
-              <div className="max-h-28 overflow-y-auto space-y-1.5 pr-1 py-0.5">
+              <div className="max-h-28 overflow-y-auto space-y-1.5 pr-1 py-0.5 modal-items-scroll">
                 {cartItems.map((item, idx) => (
                   <div key={item.cartKey || item.id || idx} className="flex justify-between items-center text-[11px]">
                     <span className="truncate max-w-[190px]">
