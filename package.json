@@ -5,15 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev:customer": "cross-env VITE_APP_MODE=customer vite",
+    "dev:admin": "cross-env VITE_APP_MODE=admin vite",
     "client": "vite",
     "start": "node server/index.js",
     "server": "node server/index.js",
     "build": "vite build",
     "build:customer": "cross-env VITE_APP_MODE=customer vite build --outDir Mobile/customer/www && cd Mobile/customer && npx cap copy android",
     "build:admin": "cross-env VITE_APP_MODE=admin vite build --outDir Mobile/admin/www && cd Mobile/admin && npx cap copy android",
+    "preview": "vite preview",
+    "preview:customer": "vite preview --outDir Mobile/customer/www",
+    "preview:admin": "vite preview --outDir Mobile/admin/www",
     "open:customer": "cd Mobile/customer && npx cap open android",
-    "open:admin": "cd Mobile/admin && npx cap open android",
-    "preview": "vite preview"
+    "open:admin": "cd Mobile/admin && npx cap open android"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
