@@ -88,7 +88,7 @@ export default function CartDrawer() {
         }`}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-zinc-200/80 flex items-center justify-between bg-white flex-shrink-0">
+        <div className="px-6 py-5 border-b border-zinc-200/80 flex items-center justify-between bg-white flex-shrink-0 mobile-side-drawer-top">
           <h3 className="font-montserrat text-xl uppercase tracking-tight font-extrabold text-zinc-900 flex items-center gap-1.5">
             <span>YOUR CART</span>
             {itemCount > 0 && <span className="text-[#e53e10]">({itemCount})</span>}
@@ -200,7 +200,7 @@ export default function CartDrawer() {
 
         {/* Footer Summary & Checkout */}
         {cartItems.length > 0 && (
-          <div className="p-5 sm:p-6 bg-[#faf9f6] border-t border-zinc-200/80 space-y-3.5 flex-shrink-0">
+          <div className="p-5 sm:p-6 bg-[#faf9f6] border-t border-zinc-200/80 space-y-3.5 flex-shrink-0 mobile-side-drawer-bottom">
             {/* Free Delivery Incentive Message - only shown until unlocked */}
             {freeDeliveryThreshold > 0 && subtotal < freeDeliveryThreshold && (
               <div className="p-3 rounded-xl bg-emerald-50/90 border border-emerald-200/80 text-emerald-950 text-xs">

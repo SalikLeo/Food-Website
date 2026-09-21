@@ -524,7 +524,7 @@ export default function CustomerMobileApp({
   ];
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 pb-28 ${
+    <div className={`min-h-screen transition-colors duration-200 mobile-app-container ${
       isDark 
         ? 'bg-[#0e0e11] text-white selection:bg-orange-500 selection:text-white' 
         : 'bg-[#f4f5f8] text-zinc-900 selection:bg-orange-500 selection:text-white'
@@ -549,7 +549,7 @@ export default function CustomerMobileApp({
       {/* ============================================================== */}
       {/* 1. TOP APP BAR (Native Mobile App Header with Safe-Area Inset) */}
       {/* ============================================================== */}
-      <header className={`sticky top-0 left-0 right-0 z-40 backdrop-blur-md border-b pt-[max(env(safe-area-inset-top,0px),0.75rem)] pb-3 px-4 transition-colors duration-200 ${
+      <header className={`sticky top-0 left-0 right-0 z-40 backdrop-blur-md border-b mobile-app-header px-4 transition-colors duration-200 ${
         isDark 
           ? 'bg-[#121216]/95 border-white/10 shadow-lg' 
           : 'bg-white/95 border-zinc-200/90 shadow-xs'
@@ -1828,7 +1828,7 @@ export default function CustomerMobileApp({
       {/* ============================================================== */}
       {/* 4. FLOATING CART ACTION BUTTON (Bottom-Right FAB) */}
       {/* ============================================================== */}
-      <div className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-40">
+      <div className="fixed right-4 z-40 mobile-floating-cart">
         <button
           id="floating-cart-btn"
           onClick={() => setIsCartOpen(true)}
@@ -1878,7 +1878,7 @@ export default function CustomerMobileApp({
           }`} 
         />
         
-        <div className={`relative ml-auto w-4/5 max-w-sm h-full border-l p-6 flex flex-col justify-between shadow-2xl z-10 transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        <div className={`relative ml-auto w-4/5 max-w-sm h-full border-l px-6 flex flex-col justify-between shadow-2xl z-10 transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] mobile-side-drawer-top mobile-side-drawer-bottom ${
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         } ${
           isDark ? 'bg-[#121216] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
