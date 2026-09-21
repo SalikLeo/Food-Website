@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Search, ArrowLeft, Plus, Minus, Flame, 
   MessageCircle, Menu, X, ShoppingBag, 
@@ -92,7 +92,14 @@ export default function CustomerMobileApp({
   const [selectedCatId, setSelectedCatId] = useState('pizza');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Promo Hero Banner Slider state & drag tracking
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef(0);
+  const dragStartY = useRef(0);
+  const isPointerDown = useRef(false);
+  const hasDragged = useRef(false);
   const [reorderToast, setReorderToast] = useState('');
 
   // Selected sizes and quantities per product
@@ -128,14 +135,75 @@ export default function CustomerMobileApp({
     return () => window.removeEventListener('salik_open_checkout', handleOpenCheckout);
   }, []);
 
-  // Auto-rotate promo banners
+  // Auto-rotate promo banners (pauses while dragging)
   useEffect(() => {
-    if (currentView !== 'home') return;
+    if (currentView !== 'home' || isDragging) return;
     const interval = setInterval(() => {
       setActiveBannerIndex(prev => (prev + 1) % 3);
     }, 4500);
     return () => clearInterval(interval);
-  }, [currentView]);
+  }, [currentView, isDragging, activeBannerIndex]);
+
+  // Banner click-to-drag handlers for Next/Previous slide
+  const handleBannerPointerDown = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    isPointerDown.current = true;
+    hasDragged.current = false;
+    dragStartX.current = e.clientX;
+    dragStartY.current = e.clientY;
+  };
+
+  const handleBannerPointerMove = (e) => {
+    if (!isPointerDown.current) return;
+    const deltaX = e.clientX - dragStartX.current;
+    const deltaY = e.clientY - dragStartY.current;
+
+    // Check if user is attempting vertical page scroll
+    if (!hasDragged.current) {
+      if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 8) {
+        isPointerDown.current = false;
+        return;
+      }
+      if (Math.abs(deltaX) > 8) {
+        hasDragged.current = true;
+        setIsDragging(true);
+      }
+    }
+
+    if (hasDragged.current) {
+      setDragOffset(deltaX);
+    }
+  };
+
+  const handleBannerPointerUp = () => {
+    if (!isPointerDown.current && !hasDragged.current) return;
+    isPointerDown.current = false;
+
+    if (hasDragged.current) {
+      setIsDragging(false);
+      const threshold = 40;
+      if (dragOffset < -threshold) {
+        // Dragged left -> next slide
+        setActiveBannerIndex(prev => (prev + 1) % 3);
+      } else if (dragOffset > threshold) {
+        // Dragged right -> prev slide
+        setActiveBannerIndex(prev => (prev - 1 + 3) % 3);
+      }
+      setDragOffset(0);
+      setTimeout(() => {
+        hasDragged.current = false;
+      }, 60);
+    }
+  };
+
+  const handleBannerPointerCancel = () => {
+    isPointerDown.current = false;
+    setIsDragging(false);
+    setDragOffset(0);
+    setTimeout(() => {
+      hasDragged.current = false;
+    }, 60);
+  };
 
   // Scroll to top on view changes
   const switchView = (view, catId = null) => {
@@ -535,73 +603,106 @@ export default function CustomerMobileApp({
         {currentView === 'home' && (
           <div className="space-y-6 animate-tab-fade">
             
-            {/* Promo Hero Banner Slider */}
-            <div className={`relative rounded-3xl overflow-hidden shadow-xl border ${
-              isDark 
-                ? 'border-white/10 bg-gradient-to-br from-orange-950/70 via-zinc-900 to-[#160d0d]' 
-                : 'border-orange-500/30 bg-gradient-to-br from-orange-600 via-amber-600 to-red-600 shadow-lg text-white'
-            }`}>
+            {/* Promo Hero Banner Slider with Click-to-Drag */}
+            <div 
+              className={`relative rounded-3xl overflow-hidden shadow-xl border select-none cursor-grab active:cursor-grabbing touch-pan-y ${
+                isDark 
+                  ? 'border-white/10 bg-gradient-to-br from-orange-950/70 via-zinc-900 to-[#160d0d]' 
+                  : 'border-orange-500/30 bg-gradient-to-br from-orange-600 via-amber-600 to-red-600 shadow-lg text-white'
+              }`}
+              onPointerDown={handleBannerPointerDown}
+              onPointerMove={handleBannerPointerMove}
+              onPointerUp={handleBannerPointerUp}
+              onPointerCancel={handleBannerPointerCancel}
+            >
               
               {/* Background Glow */}
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-orange-600/30 blur-3xl rounded-full pointer-events-none" />
               <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-red-600/25 blur-3xl rounded-full pointer-events-none" />
 
-              <div className="relative z-10 p-5 flex items-center justify-between gap-3">
-                <div className="flex-1 space-y-1.5">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase border ${
-                    isDark 
-                      ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' 
-                      : 'bg-white/20 text-white border-white/30 backdrop-blur-xs'
-                  }`}>
-                    <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
-                    <span>{promoBanners[activeBannerIndex].badge}</span>
-                  </span>
-                  
-                  <h3 className="text-xl sm:text-2xl font-montserrat uppercase tracking-tight text-white leading-tight font-black">
-                    {promoBanners[activeBannerIndex].title}
-                  </h3>
-
-                  <p className="text-xs text-white/90 font-medium line-clamp-1">
-                    {promoBanners[activeBannerIndex].tagline}
-                  </p>
-
-                  <div className="pt-2 flex items-center gap-3">
-                    <span className="text-amber-300 font-sans font-extrabold text-base">
-                      {promoBanners[activeBannerIndex].price}
-                    </span>
-                    <button
-                      onClick={promoBanners[activeBannerIndex].action}
-                      className={`px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer ${
+              {/* Sliding Carousel Track */}
+              <div 
+                className="flex items-stretch w-full relative z-10"
+                style={{
+                  transform: `translateX(calc(-${activeBannerIndex * 100}% + ${dragOffset}px))`,
+                  transition: isDragging ? 'none' : 'transform 350ms cubic-bezier(0.2, 0.9, 0.3, 1)'
+                }}
+              >
+                {promoBanners.map((banner, idx) => (
+                  <div 
+                    key={banner.id || idx}
+                    className="w-full flex-shrink-0 p-5 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex-1 space-y-1.5 min-w-0">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase border ${
                         isDark 
-                          ? 'bg-orange-600 hover:bg-orange-500 text-white' 
-                          : 'bg-white hover:bg-zinc-100 text-orange-700 shadow-sm'
-                      }`}
-                    >
-                      {promoBanners[activeBannerIndex].actionText}
-                    </button>
-                  </div>
-                </div>
+                          ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' 
+                          : 'bg-white/20 text-white border-white/30 backdrop-blur-xs'
+                      }`}>
+                        <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
+                        <span>{banner.badge}</span>
+                      </span>
+                      
+                      <h3 className="text-xl sm:text-2xl font-montserrat uppercase tracking-tight text-white leading-tight font-black truncate">
+                        {banner.title}
+                      </h3>
 
-                {/* Banner Thumbnail */}
-                <div className="w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 relative">
-                  <img
-                    src={promoBanners[activeBannerIndex].image}
-                    alt={promoBanners[activeBannerIndex].title}
-                    className="w-full h-full object-contain drop-shadow-2xl transform hover:scale-105 transition-transform"
-                    onError={(e) => {
-                      e.target.src = '/assets/images/cat-burgers-CfWIZ4YN.jpg';
-                    }}
-                  />
-                </div>
+                      <p className="text-xs text-white/90 font-medium line-clamp-1">
+                        {banner.tagline}
+                      </p>
+
+                      <div className="pt-2 flex items-center gap-3">
+                        <span className="text-amber-300 font-sans font-extrabold text-base flex-shrink-0">
+                          {banner.price}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            if (hasDragged.current) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return;
+                            }
+                            banner.action();
+                          }}
+                          className={`px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer ${
+                            isDark 
+                              ? 'bg-orange-600 hover:bg-orange-500 text-white' 
+                              : 'bg-white hover:bg-zinc-100 text-orange-700 shadow-sm'
+                          }`}
+                        >
+                          {banner.actionText}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Banner Thumbnail */}
+                    <div className="w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 relative pointer-events-none select-none">
+                      <img
+                        src={banner.image}
+                        alt={banner.title}
+                        draggable="false"
+                        className="w-full h-full object-contain drop-shadow-2xl"
+                        onError={(e) => {
+                          e.target.src = '/assets/images/cat-burgers-CfWIZ4YN.jpg';
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Slider Dots */}
-              <div className="flex items-center justify-center gap-1.5 pb-2.5">
+              <div className="relative z-20 flex items-center justify-center gap-1.5 pb-2.5">
                 {promoBanners.map((_, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setActiveBannerIndex(idx)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveBannerIndex(idx);
+                    }}
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                       activeBannerIndex === idx 
                         ? (isDark ? 'w-6 bg-orange-500' : 'w-6 bg-white') 
                         : (isDark ? 'w-2 bg-white/20' : 'w-2 bg-white/40')
