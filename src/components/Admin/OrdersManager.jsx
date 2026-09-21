@@ -97,6 +97,10 @@ export default function OrdersManager({
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [isSharingWhatsApp, setIsSharingWhatsApp] = useState(false);
 
+  // Status Change Confirmation Modal State (for Delivered Orders)
+  const [statusChangeConfirmModal, setStatusChangeConfirmModal] = useState(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
   // Sync receipt state with AdminDashboard header visibility and modal stack
   useEffect(() => {
     if (typeof onReceiptOpenChange === 'function') {
@@ -123,13 +127,44 @@ export default function OrdersManager({
     }
   }, [modifyingOrder]);
 
+  // Sync status change confirm modal with modal stack
+  useEffect(() => {
+    if (statusChangeConfirmModal) {
+      const closer = () => setStatusChangeConfirmModal(null);
+      window.__salikModalStack = window.__salikModalStack || [];
+      window.__salikModalStack.push(closer);
+      return () => {
+        window.__salikModalStack = (window.__salikModalStack || []).filter(fn => fn !== closer);
+      };
+    }
+  }, [statusChangeConfirmModal]);
+
   // Sync modal state with AdminDashboard back handler
   useEffect(() => {
-    window.__salikAdminModalOpen = Boolean(viewingReceiptOrder || modifyingOrder);
+    window.__salikAdminModalOpen = Boolean(viewingReceiptOrder || modifyingOrder || statusChangeConfirmModal);
     return () => {
       window.__salikAdminModalOpen = false;
     };
-  }, [viewingReceiptOrder, modifyingOrder]);
+  }, [viewingReceiptOrder, modifyingOrder, statusChangeConfirmModal]);
+
+  // Handle desktop ESC key to dismiss topmost modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (statusChangeConfirmModal) {
+          setStatusChangeConfirmModal(null);
+        } else if (viewingReceiptOrder) {
+          setViewingReceiptOrder(null);
+        } else if (modifyingOrder) {
+          handleCloseModifyModal();
+        }
+      }
+    };
+    if (statusChangeConfirmModal || viewingReceiptOrder || modifyingOrder) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [statusChangeConfirmModal, viewingReceiptOrder, modifyingOrder]);
 
   // Native Android hardware/gesture back button listener (Capacitor)
   useEffect(() => {
@@ -138,6 +173,10 @@ export default function OrdersManager({
     const setupCapacitorBack = async () => {
       try {
         backHandle = await CapApp.addListener('backButton', ({ canGoBack }) => {
+          if (statusChangeConfirmModal) {
+            setStatusChangeConfirmModal(null);
+            return;
+          }
           if (viewingReceiptOrder) {
             setViewingReceiptOrder(null);
             return;
@@ -159,7 +198,7 @@ export default function OrdersManager({
         backHandle.remove();
       }
     };
-  }, [viewingReceiptOrder, modifyingOrder]);
+  }, [viewingReceiptOrder, modifyingOrder, statusChangeConfirmModal]);
 
 
 
@@ -394,6 +433,27 @@ export default function OrdersManager({
       }
     } catch {
       alert('Error updating status');
+    }
+  };
+
+  const onSelectStatus = (order, newStatus) => {
+    if (!order || order.status === newStatus) return;
+    if (order.status === 'Delivered') {
+      setStatusChangeConfirmModal({ order, newStatus });
+      return;
+    }
+    handleStatusChange(order.id, newStatus);
+  };
+
+  const handleConfirmStatusChange = async () => {
+    if (!statusChangeConfirmModal || isUpdatingStatus) return;
+    const { order, newStatus } = statusChangeConfirmModal;
+    setIsUpdatingStatus(true);
+    try {
+      await handleStatusChange(order.id, newStatus);
+      setStatusChangeConfirmModal(null);
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -1242,7 +1302,7 @@ export default function OrdersManager({
                         {/* Status Dropdown */}
                         <select
                           value={order.status}
-                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                          onChange={(e) => onSelectStatus(order, e.target.value)}
                           className="px-2.5 py-1 rounded-full text-xs font-bold border focus:outline-none bg-emerald-50 text-emerald-700 border-emerald-200 cursor-pointer"
                         >
                           <option value="Pending">Pending</option>
@@ -1385,7 +1445,7 @@ export default function OrdersManager({
                         {/* Status Dropdown */}
                         <select
                           value={order.status}
-                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                          onChange={(e) => onSelectStatus(order, e.target.value)}
                           className={`px-3 py-1 rounded-full text-xs font-bold border focus:outline-none cursor-pointer ${
                             order.status === 'Pending'
                               ? 'bg-amber-50 text-amber-800 border-amber-200'
@@ -2019,6 +2079,121 @@ export default function OrdersManager({
         </div>
       )}
 
+      {/* CONFIRM STATUS CHANGE FOR DELIVERED ORDER MODAL */}
+      {statusChangeConfirmModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => {
+            if (!isUpdatingStatus) setStatusChangeConfirmModal(null);
+          }}
+        >
+          <div
+            className="relative bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-zinc-200 space-y-4 animate-in zoom-in-95 duration-150 text-left my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Close Button */}
+            <button
+              type="button"
+              disabled={isUpdatingStatus}
+              onClick={() => setStatusChangeConfirmModal(null)}
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-500 hover:text-zinc-800 flex items-center justify-center cursor-pointer transition-colors active:scale-95 disabled:opacity-50"
+              title="Close"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Icon + Title */}
+            <div className="flex items-start gap-3.5 pr-6">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-zinc-900 leading-snug">
+                  Change Delivered Order Status?
+                </h3>
+                <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
+                  This order has already been marked as <strong className="text-emerald-700 font-semibold">Delivered</strong>. Are you sure you want to change its status?
+                </p>
+              </div>
+            </div>
+
+            {/* Order Details Preview Box */}
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-200/60">
+                <span className="text-zinc-500 font-medium">Order ID:</span>
+                <span className="font-sans font-bold text-zinc-900 text-sm">
+                  #{statusChangeConfirmModal.order.id}
+                </span>
+              </div>
+
+              {statusChangeConfirmModal.order.customerName && (
+                <div className="flex items-center justify-between pb-2 border-b border-zinc-200/60">
+                  <span className="text-zinc-500 font-medium">Customer:</span>
+                  <span className="font-semibold text-zinc-900">
+                    {statusChangeConfirmModal.order.customerName}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-200/60">
+                <span className="text-zinc-500 font-medium">Total Amount:</span>
+                <span className="font-semibold text-orange-600 text-sm">
+                  Rs. {formatPrice(statusChangeConfirmModal.order.total)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pt-0.5">
+                <span className="text-zinc-500 font-medium">Status Change:</span>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    Delivered
+                  </span>
+                  <span className="text-zinc-400 font-bold">→</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                    statusChangeConfirmModal.newStatus === 'Pending'
+                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                      : statusChangeConfirmModal.newStatus === 'Preparing'
+                      ? 'bg-blue-100 text-blue-800 border-blue-300'
+                      : statusChangeConfirmModal.newStatus === 'Out for Delivery'
+                      ? 'bg-purple-100 text-purple-800 border-purple-300'
+                      : 'bg-red-100 text-red-800 border-red-300'
+                  }`}>
+                    {statusChangeConfirmModal.newStatus}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={isUpdatingStatus}
+                onClick={() => setStatusChangeConfirmModal(null)}
+                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 font-bold text-xs transition-colors cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                No, Keep Delivered
+              </button>
+              <button
+                type="button"
+                disabled={isUpdatingStatus}
+                onClick={handleConfirmStatusChange}
+                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
+              >
+                {isUpdatingStatus ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+                    <span>Updating...</span>
+                  </>
+                ) : (
+                  <span>Yes, Change Status</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
