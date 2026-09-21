@@ -956,6 +956,51 @@
   },
   "orders": [
     {
+      "id": "ORD-707903-35",
+      "customerName": "Ali",
+      "phone": "035453441",
+      "address": "wah",
+      "notes": "",
+      "paymentMethod": "Cash on Delivery",
+      "items": [
+        {
+          "cartKey": "sand-chicken-default",
+          "id": "sand-chicken",
+          "name": "Chicken Sandwich",
+          "category": "sandwiches",
+          "size": null,
+          "price": 300,
+          "image": "/assets/images/p-sand-chicken-Db_PbbjM.jpg",
+          "quantity": 1
+        },
+        {
+          "cartKey": "sand-pizza-default",
+          "id": "sand-pizza",
+          "name": "Pizza Sandwich",
+          "category": "sandwiches",
+          "size": null,
+          "price": 400,
+          "image": "/assets/images/p-sand-pizza-C_jDpYrf.jpg",
+          "quantity": 1
+        },
+        {
+          "cartKey": "sand-malai-default",
+          "id": "sand-malai",
+          "name": "Malai Boti Sandwich",
+          "category": "sandwiches",
+          "size": null,
+          "price": 350,
+          "image": "/assets/images/p-sand-malai-CBRNkQ8v.jpg",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 1050,
+      "deliveryFee": 200,
+      "total": 1250,
+      "status": "Pending",
+      "createdAt": "2026-09-21T12:28:27.903Z"
+    },
+    {
       "id": "ORD-560855-48",
       "customerName": "Taimoor Khan",
       "phone": "03001234567",
@@ -1139,14 +1184,14 @@
     }
   ],
   "settings": {
-    "deliveryFee": 150,
+    "deliveryFee": 200,
     "baseDeliveryEnabled": true,
     "minOrder": 0,
     "minOrderEnabled": false,
     "freeDeliveryThreshold": 0,
     "freeDeliveryEnabled": false,
     "deliveryNotice": "Delivery available in nearby areas (Wah Model Town, Wah Cantt)",
-    "updatedAt": "2026-09-21T11:34:36.610Z",
+    "updatedAt": "2026-09-21T12:28:17.755Z",
     "floatingButtons": {
       "whatsappWeb": true,
       "whatsappMobile": true,

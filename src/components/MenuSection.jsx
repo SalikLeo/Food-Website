@@ -25,7 +25,13 @@ export default function MenuSection({ categories = [], products = [] }) {
     if (selectedCategory && selectedCategory !== 'all') {
       list = list.filter(p => p.category === selectedCategory);
     }
-    return list;
+
+    // Move sold out items (inStock === false) to the bottom of the list
+    return [...list].sort((a, b) => {
+      const aSold = a.inStock === false ? 1 : 0;
+      const bSold = b.inStock === false ? 1 : 0;
+      return aSold - bSold;
+    });
   }, [products, selectedCategory, searchQuery]);
 
   // Size helper

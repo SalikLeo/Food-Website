@@ -3,7 +3,7 @@ import {
   Search, ArrowLeft, Plus, Minus, Flame, 
   MessageCircle, Menu, X, ShoppingBag, 
   Clock, MapPin, ChevronRight, ChevronDown, Check, Sparkles, Phone,
-  Sun, Moon, RotateCcw, PackageCheck, Receipt, AlertCircle
+  Sun, Moon, RotateCcw, PackageCheck, Receipt, AlertCircle, Ban
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { apiUrl } from '../../config/api';
@@ -348,21 +348,25 @@ export default function CustomerMobileApp({
   // Filter products for category view (with Global Search across all categories)
   const categoryProducts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
+    let list = products || [];
     if (q) {
       // Global search across ALL categories
-      return (products || []).filter(p => {
+      list = list.filter(p => {
         const nameMatch = p.name && p.name.toLowerCase().includes(q);
         const descMatch = p.description && p.description.toLowerCase().includes(q);
         const catMatch = p.category && p.category.toLowerCase().includes(q);
         return nameMatch || descMatch || catMatch;
       });
-    }
-    // When no search query, filter by selected category
-    let list = products || [];
-    if (selectedCatId && selectedCatId !== 'all') {
+    } else if (selectedCatId && selectedCatId !== 'all') {
       list = list.filter(p => p.category === selectedCatId);
     }
-    return list;
+
+    // Move sold out items (inStock === false) to the bottom of the list
+    return [...list].sort((a, b) => {
+      const aSoldOut = a.inStock === false ? 1 : 0;
+      const bSoldOut = b.inStock === false ? 1 : 0;
+      return aSoldOut - bSoldOut;
+    });
   }, [products, selectedCatId, searchQuery]);
 
   // Current active category object
@@ -1132,7 +1136,11 @@ export default function CustomerMobileApp({
                               : 'bg-orange-600 hover:bg-orange-500 text-white shadow-md active:scale-95'
                           }`}
                         >
-                          <Plus className="w-4 h-4" />
+                          {isOutOfStock ? (
+                            <Ban className="w-3.5 h-3.5" />
+                          ) : (
+                            <Plus className="w-4 h-4" />
+                          )}
                           <span>{isOutOfStock ? 'Sold Out' : `Add ${qty > 1 ? `(${qty})` : ''}`}</span>
                         </button>
 

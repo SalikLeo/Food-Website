@@ -45,14 +45,21 @@ export default function BestSellersSection({ products = [], categories = [], set
 
   // Fallback if API hasn't returned yet: filter products by allowed categories
   const displayItems = useMemo(() => {
+    let items = [];
     if (bestSellers && bestSellers.length > 0) {
-      return bestSellers.slice(0, 4);
+      items = bestSellers;
+    } else {
+      items = (products || []).filter((p) => {
+        const cat = (p.category || '').toLowerCase();
+        return allowedCategories.includes(cat);
+      });
     }
-    const eligible = (products || []).filter((p) => {
-      const cat = (p.category || '').toLowerCase();
-      return allowedCategories.includes(cat);
-    });
-    return eligible.slice(0, 4);
+    // Move sold out items (inStock === false) to the bottom
+    return [...items].sort((a, b) => {
+      const aSold = a.inStock === false ? 1 : 0;
+      const bSold = b.inStock === false ? 1 : 0;
+      return aSold - bSold;
+    }).slice(0, 4);
   }, [bestSellers, products, allowedCategories]);
 
   // Size helper
