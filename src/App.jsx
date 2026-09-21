@@ -15,6 +15,7 @@ import FloatingMobileCart from './components/FloatingMobileCart';
 import OrderSuccessModal from './components/OrderSuccessModal';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
+import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
 import { CartProvider } from './context/CartContext';
 import { apiUrl, APP_MODE, isCustomerApp } from './config/api';
 
@@ -105,11 +106,19 @@ export default function App() {
             onBackToStore={handleExitAdmin}
           />
         )
+      ) : isCustomerApp ? (
+        <CustomerMobileApp
+          categories={categories}
+          products={products}
+          deals={deals}
+          familyDeal={familyDeal}
+          settings={settings}
+        />
       ) : (
-        <div className={`min-h-screen bg-[#0d0d0e] text-white selection:bg-orange-500 selection:text-white ${isCustomerApp ? 'is-mobile-app' : ''}`}>
+        <div className="min-h-screen bg-[#0d0d0e] text-white selection:bg-orange-500 selection:text-white">
           <Header
             onAdminClick={handleOpenAdmin}
-            hideAdmin={isCustomerApp || APP_MODE === 'customer'}
+            hideAdmin={false}
           />
           
           <main>
