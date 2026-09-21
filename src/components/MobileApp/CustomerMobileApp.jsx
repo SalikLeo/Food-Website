@@ -3,7 +3,8 @@ import {
   Search, ArrowLeft, Plus, Minus, Flame, 
   MessageCircle, Menu, X, ShoppingBag, 
   Clock, MapPin, ChevronRight, ChevronDown, Check, Sparkles, Phone,
-  Sun, Moon, RotateCcw, PackageCheck, Receipt, AlertCircle, Ban
+  Sun, Moon, RotateCcw, PackageCheck, Receipt, AlertCircle, Ban,
+  User, CheckCircle2, Send
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { apiUrl } from '../../config/api';
@@ -125,6 +126,8 @@ export default function CustomerMobileApp({
   });
   const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmType, setConfirmType] = useState('online'); // 'online' | 'whatsapp'
 
   // Listen for checkout click from CartDrawer
   useEffect(() => {
@@ -135,16 +138,20 @@ export default function CustomerMobileApp({
     return () => window.removeEventListener('salik_open_checkout', handleOpenCheckout);
   }, []);
 
-  // Lock background scroll and handle ESC key when mobile menu is open
+  // Lock background scroll and handle ESC key when mobile menu or confirmation modal is open
   useEffect(() => {
-    if (mobileMenuOpen) {
+    if (mobileMenuOpen || showConfirmModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && mobileMenuOpen) {
-        setMobileMenuOpen(false);
+      if (e.key === 'Escape') {
+        if (showConfirmModal) {
+          setShowConfirmModal(false);
+        } else if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -152,7 +159,7 @@ export default function CustomerMobileApp({
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, showConfirmModal]);
 
   // Auto-rotate promo banners (pauses while dragging)
   useEffect(() => {
@@ -335,13 +342,31 @@ export default function CustomerMobileApp({
     }
   };
 
-  // Mobile Checkout Submit
-  const handleMobileOnlineOrder = async (e) => {
-    e.preventDefault();
+  // Mobile Checkout - Validate & Open Confirmation Modal
+  const handleMobileOnlineOrder = (e) => {
+    if (e) e.preventDefault();
     if (!checkoutForm.name || !checkoutForm.phone || !checkoutForm.address) {
       setCheckoutError('Please fill in Name, Phone, and Delivery Address');
       return;
     }
+    setCheckoutError('');
+    setConfirmType('online');
+    setShowConfirmModal(true);
+  };
+
+  // Mobile WhatsApp Checkout - Validate & Open Confirmation Modal
+  const handleMobileWhatsAppOrder = () => {
+    if (!checkoutForm.name || !checkoutForm.phone) {
+      setCheckoutError('Please provide your Name and Phone Number');
+      return;
+    }
+    setCheckoutError('');
+    setConfirmType('whatsapp');
+    setShowConfirmModal(true);
+  };
+
+  // Execute Direct Online Order after user confirmation
+  const executeMobileOnlineOrder = async () => {
     setCheckoutSubmitting(true);
     setCheckoutError('');
 
@@ -366,6 +391,7 @@ export default function CustomerMobileApp({
 
       const data = await res.json();
       if (res.ok && data.success) {
+        setShowConfirmModal(false);
         if (typeof setLastOrder === 'function') setLastOrder(data.order);
         if (typeof saveRecentOrder === 'function') saveRecentOrder(data.order);
         if (typeof setOrderModalOpen === 'function') setOrderModalOpen(true);
@@ -373,22 +399,20 @@ export default function CustomerMobileApp({
         setCheckoutForm({ name: '', phone: '', address: '', notes: '', paymentMethod: 'Cash on Delivery' });
         switchView('orders');
       } else {
+        setShowConfirmModal(false);
         setCheckoutError(data.error || 'Failed to place order. Try again or use WhatsApp.');
       }
     } catch (err) {
       console.error(err);
+      setShowConfirmModal(false);
       setCheckoutError('Network error. Please try WhatsApp ordering.');
     } finally {
       setCheckoutSubmitting(false);
     }
   };
 
-  // Mobile WhatsApp Checkout Submit
-  const handleMobileWhatsAppOrder = () => {
-    if (!checkoutForm.name || !checkoutForm.phone) {
-      setCheckoutError('Please provide your Name and Phone Number');
-      return;
-    }
+  // Execute WhatsApp Checkout after user confirmation
+  const executeMobileWhatsAppOrder = () => {
     const waOrder = {
       id: `WA-${Date.now().toString().slice(-4)}`,
       customerName: checkoutForm.name,
@@ -415,7 +439,7 @@ export default function CustomerMobileApp({
         body: JSON.stringify({
           customerName: checkoutForm.name,
           phone: checkoutForm.phone,
-          address: checkoutForm.address,
+          address: checkoutForm.address || 'Wah Cantt',
           notes: checkoutForm.notes,
           paymentMethod: `${checkoutForm.paymentMethod} (WhatsApp)`,
           items: cartItems,
@@ -426,6 +450,7 @@ export default function CustomerMobileApp({
       });
     } catch {}
 
+    setShowConfirmModal(false);
     const msg = getWhatsAppMessage ? getWhatsAppMessage(checkoutForm) : `Order from ${checkoutForm.name}`;
     window.open(`https://wa.me/923095369472?text=${msg}`, '_blank');
     if (typeof clearCart === 'function') clearCart();
@@ -2047,6 +2072,230 @@ export default function CustomerMobileApp({
       {/* Cart & Modals */}
       <CartDrawer />
       <OrderSuccessModal />
+
+      {/* ============================================================== */}
+      {/* 6. ORDER CONFIRMATION MODAL */}
+      {/* ============================================================== */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop Overlay */}
+          <div
+            onClick={() => !checkoutSubmitting && setShowConfirmModal(false)}
+            className="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity duration-200 animate-tab-fade"
+          />
+
+          {/* Modal Card */}
+          <div className={`relative w-full max-w-sm rounded-3xl p-5 sm:p-6 border shadow-2xl z-10 animate-scale-in max-h-[90vh] overflow-y-auto ${
+            isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
+          }`}>
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => !checkoutSubmitting && setShowConfirmModal(false)}
+              disabled={checkoutSubmitting}
+              className={`absolute top-4 right-4 p-2 rounded-xl transition-colors disabled:opacity-40 cursor-pointer ${
+                isDark ? 'text-zinc-400 hover:text-white hover:bg-white/10' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+              }`}
+              aria-label="Close confirmation modal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="text-center mb-4">
+              <div
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2.5 ${
+                  confirmType === 'whatsapp'
+                    ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-500'
+                    : 'bg-orange-500/15 border border-orange-500/30 text-orange-500'
+                }`}
+              >
+                {confirmType === 'whatsapp' ? (
+                  <WhatsAppIcon className="w-6 h-6 fill-emerald-500" />
+                ) : (
+                  <CheckCircle2 className="w-6 h-6" />
+                )}
+              </div>
+
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider inline-block mb-1.5 ${
+                  confirmType === 'whatsapp'
+                    ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
+                    : 'bg-orange-500/15 text-orange-500 border border-orange-500/30'
+                }`}
+              >
+                {confirmType === 'whatsapp' ? 'Confirm WhatsApp Order' : 'Confirm Online Order'}
+              </span>
+
+              <h3 className={`font-montserrat font-extrabold text-lg uppercase tracking-tight ${
+                isDark ? 'text-white' : 'text-zinc-900'
+              }`}>
+                Review Your Order
+              </h3>
+              <p className={`text-[11px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                Please verify your details before placing the order.
+              </p>
+            </div>
+
+            {/* Customer & Address Review Box */}
+            <div className={`rounded-2xl p-3.5 border text-xs space-y-2 mb-3.5 ${
+              isDark ? 'bg-black/40 border-white/10' : 'bg-zinc-50 border-zinc-200'
+            }`}>
+              <div className={`flex items-center justify-between pb-1.5 border-b ${
+                isDark ? 'border-white/5' : 'border-zinc-200'
+              }`}>
+                <span className={`flex items-center gap-1.5 text-[11px] ${
+                  isDark ? 'text-zinc-400' : 'text-zinc-500'
+                }`}>
+                  <User className="w-3.5 h-3.5 text-orange-500" /> Customer
+                </span>
+                <span className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                  {checkoutForm.name}
+                </span>
+              </div>
+
+              <div className={`flex items-center justify-between pb-1.5 border-b ${
+                isDark ? 'border-white/5' : 'border-zinc-200'
+              }`}>
+                <span className={`flex items-center gap-1.5 text-[11px] ${
+                  isDark ? 'text-zinc-400' : 'text-zinc-500'
+                }`}>
+                  <Phone className="w-3.5 h-3.5 text-orange-500" /> Phone
+                </span>
+                <span className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                  {checkoutForm.phone}
+                </span>
+              </div>
+
+              <div className={`flex items-start justify-between pb-1.5 border-b ${
+                isDark ? 'border-white/5' : 'border-zinc-200'
+              }`}>
+                <span className={`flex items-center gap-1.5 text-[11px] flex-shrink-0 ${
+                  isDark ? 'text-zinc-400' : 'text-zinc-500'
+                }`}>
+                  <MapPin className="w-3.5 h-3.5 text-orange-500" /> Address
+                </span>
+                <span className={`font-semibold text-right max-w-[180px] leading-tight text-[11px] ${
+                  isDark ? 'text-zinc-200' : 'text-zinc-700'
+                }`}>
+                  {checkoutForm.address || 'Wah Cantt'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px]">
+                <span className={isDark ? 'text-zinc-400' : 'text-zinc-500'}>Payment</span>
+                <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  {confirmType === 'whatsapp' ? `${checkoutForm.paymentMethod} (WhatsApp)` : checkoutForm.paymentMethod}
+                </span>
+              </div>
+
+              {checkoutForm.notes && (
+                <div className={`pt-1.5 border-t text-[11px] italic ${
+                  isDark ? 'border-white/5 text-zinc-400' : 'border-zinc-200 text-zinc-500'
+                }`}>
+                  <strong className={`not-italic font-semibold ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>Note: </strong>
+                  {checkoutForm.notes}
+                </div>
+              )}
+            </div>
+
+            {/* Items Summary & Total Box */}
+            <div className={`rounded-2xl p-3.5 border text-xs space-y-2 mb-4 ${
+              isDark ? 'bg-black/40 border-white/10' : 'bg-zinc-50 border-zinc-200'
+            }`}>
+              <div className={`flex items-center justify-between text-[10px] font-bold uppercase tracking-wider pb-1 border-b ${
+                isDark ? 'text-zinc-400 border-white/5' : 'text-zinc-500 border-zinc-200'
+              }`}>
+                <span>Selected Items ({cartItems.reduce((s, i) => s + (i.quantity || 1), 0)})</span>
+                <span>Price</span>
+              </div>
+
+              <div className="max-h-28 overflow-y-auto space-y-1.5 pr-1 py-0.5">
+                {cartItems.map((item, idx) => (
+                  <div key={item.cartKey || item.id || idx} className="flex justify-between items-center text-[11px]">
+                    <span className="truncate max-w-[190px]">
+                      <strong className={isDark ? 'text-white' : 'text-zinc-900'}>{item.quantity || 1}×</strong>{' '}
+                      <span className={isDark ? 'text-zinc-300' : 'text-zinc-800'}>{item.name}</span>
+                      {item.size && (
+                        <span className="text-orange-500 text-[10px] ml-1">({typeof item.size === 'object' ? item.size.label : item.size})</span>
+                      )}
+                    </span>
+                    <span className={`font-semibold flex-shrink-0 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                      Rs. {((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className={`pt-2 border-t space-y-1 text-[11px] ${
+                isDark ? 'border-white/5 text-zinc-400' : 'border-zinc-200 text-zinc-500'
+              }`}>
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-800'}`}>Rs. {subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery Fee</span>
+                  <span className={(deliveryFee === 0 || isFreeDelivery) ? 'text-emerald-500 font-bold' : (isDark ? 'text-white' : 'text-zinc-800 font-semibold')}>
+                    {(deliveryFee === 0 || isFreeDelivery) ? 'FREE' : `Rs. ${deliveryFee.toLocaleString()}`}
+                  </span>
+                </div>
+              </div>
+
+              <div className={`pt-2 border-t flex justify-between items-baseline font-montserrat ${
+                isDark ? 'border-white/10' : 'border-zinc-200'
+              }`}>
+                <span className={`text-xs uppercase tracking-wider font-semibold ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  TOTAL TO PAY
+                </span>
+                <span className="text-lg font-extrabold text-orange-500">
+                  Rs. {total.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-2">
+              {confirmType === 'online' ? (
+                <button
+                  type="button"
+                  onClick={executeMobileOnlineOrder}
+                  disabled={checkoutSubmitting}
+                  className="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{checkoutSubmitting ? 'Placing Order...' : 'Yes, Confirm & Place Order'}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={executeMobileWhatsAppOrder}
+                  disabled={checkoutSubmitting}
+                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <WhatsAppIcon className="w-4 h-4 fill-white" />
+                  <span>Yes, Confirm & Send on WhatsApp</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => !checkoutSubmitting && setShowConfirmModal(false)}
+                disabled={checkoutSubmitting}
+                className={`w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer ${
+                  isDark 
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white' 
+                    : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-900'
+                }`}
+              >
+                Change / Edit Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
