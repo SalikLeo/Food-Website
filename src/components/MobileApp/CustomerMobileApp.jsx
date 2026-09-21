@@ -702,11 +702,11 @@ export default function CustomerMobileApp({
       {/* ============================================================== */}
       {/* 2. MAIN APP CONTENT CONTAINER */}
       {/* ============================================================== */}
-      <main className="px-4 pt-2 space-y-4">
+      <main className="px-4 pt-1 sm:pt-1.5 space-y-3.5">
         
         {/* VIEW A: HOME DASHBOARD (Hero Promo + 2-Column Categories Grid) */}
         {currentView === 'home' && (
-          <div className="space-y-6 animate-tab-fade">
+          <div className="space-y-4 animate-tab-fade">
             
             {/* Promo Hero Banner Slider with Click-to-Drag */}
             <div 
@@ -748,11 +748,11 @@ export default function CustomerMobileApp({
                         <span>{banner.badge}</span>
                       </span>
                       
-                      <h3 className="text-xl sm:text-2xl font-montserrat uppercase tracking-tight text-white leading-tight font-bold truncate">
+                      <h3 className="text-lg sm:text-2xl font-montserrat uppercase tracking-tight text-white leading-tight font-bold break-words line-clamp-2">
                         {banner.title}
                       </h3>
 
-                      <p className="text-xs text-white/90 font-medium line-clamp-1">
+                      <p className="text-xs text-white/90 font-medium line-clamp-2">
                         {banner.tagline}
                       </p>
 
@@ -912,7 +912,7 @@ export default function CustomerMobileApp({
                     <div
                       key={cat.id}
                       onClick={() => switchView('category', cat.id)}
-                      className={`group rounded-2xl p-3.5 sm:p-4 text-center cursor-pointer transition-all duration-200 active:scale-[0.97] flex flex-col items-center justify-between ${
+                      className={`group rounded-2xl p-3.5 sm:p-4 text-center cursor-pointer active:scale-[0.97] transition-transform flex flex-col items-center justify-between ${
                         isDark 
                           ? 'bg-[#18181f] border border-white/10 shadow-md hover:border-orange-500/50 hover:shadow-xl' 
                           : 'bg-white border border-zinc-200/90 shadow-xs hover:border-orange-400 hover:shadow-md'
@@ -932,7 +932,7 @@ export default function CustomerMobileApp({
 
                       {/* Title & Count */}
                       <div className="w-full text-center">
-                        <h4 className={`font-bold text-sm sm:text-base leading-tight truncate transition-colors ${
+                        <h4 className={`font-bold text-sm sm:text-base leading-tight truncate ${
                           isDark 
                             ? 'text-white group-hover:text-orange-400' 
                             : 'text-zinc-900 group-hover:text-orange-600'
@@ -980,7 +980,7 @@ export default function CustomerMobileApp({
                   {deals.slice(0, 4).map((deal) => (
                     <div
                       key={deal.id}
-                      className={`min-w-[240px] max-w-[240px] rounded-2xl p-3.5 flex flex-col justify-between flex-shrink-0 transition-all ${
+                      className={`min-w-[240px] max-w-[240px] rounded-2xl p-3.5 flex flex-col justify-between flex-shrink-0 ${
                         isDark 
                           ? 'bg-[#16161b] border border-white/10 shadow-lg' 
                           : 'bg-white border border-zinc-200 shadow-sm'
@@ -1018,7 +1018,7 @@ export default function CustomerMobileApp({
 
                       <button
                         onClick={(e) => handleAddDeal(deal, e)}
-                        className="w-full py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Add Deal</span>
@@ -1037,7 +1037,7 @@ export default function CustomerMobileApp({
           <div className="space-y-4 animate-tab-fade">
             
             {/* Dedicated Back to Main Page Header Card */}
-            <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
+            <div className={`rounded-2xl p-4 border flex items-center justify-between ${
               isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
             }`}>
               <button
@@ -1056,7 +1056,7 @@ export default function CustomerMobileApp({
             </div>
 
             {/* Category Search Header Card */}
-            <div className={`rounded-2xl p-3 sm:p-4 border transition-colors ${
+            <div className={`rounded-2xl p-3 sm:p-4 border ${
               isDark 
                 ? 'bg-[#141418] border-white/10' 
                 : 'bg-white border-zinc-200 shadow-2xs'
@@ -1173,7 +1173,7 @@ export default function CustomerMobileApp({
                   return (
                     <div
                       key={product.id}
-                      className={`rounded-2xl p-3.5 border transition-all ${
+                      className={`rounded-2xl p-3.5 border ${
                         isOutOfStock 
                           ? (isDark ? 'bg-[#15151a] border-red-900/30 opacity-75' : 'bg-zinc-50 border-zinc-200 opacity-75')
                           : isDark 
@@ -1221,7 +1221,7 @@ export default function CustomerMobileApp({
                                   isDark 
                                     ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
                                     : 'bg-orange-50 text-orange-700 border border-orange-200'
-                                }`}>
+                                }}`}>
                                   {categoryEmojis[product.category] || '🍽️'} {product.category}
                                 </span>
                               )}
@@ -1252,7 +1252,7 @@ export default function CustomerMobileApp({
 
                       {/* Sizes Selector Capsule Track (Website Design) */}
                       {hasSizes && !isOutOfStock && (
-                        <div className={`mt-3 p-1 rounded-full flex items-center justify-between gap-1 border transition-colors ${
+                        <div className={`mt-3 p-1 rounded-full flex items-center justify-between gap-1 border ${
                           isDark ? 'bg-zinc-800/80 border-white/10' : 'bg-[#f5f1eb] border-[#eee8df]/80'
                         }`}>
                           {product.sizes.map((s, idx) => {
@@ -1420,7 +1420,7 @@ export default function CustomerMobileApp({
               {deals.map((deal) => (
                 <div
                   key={deal.id}
-                  className={`rounded-2xl p-4 border shadow-md space-y-3 transition-colors ${
+                  className={`rounded-2xl p-4 border shadow-md space-y-3 ${
                     isDark ? 'bg-[#15151a] border-white/10' : 'bg-white border-zinc-200'
                   }`}
                 >
@@ -1459,7 +1459,7 @@ export default function CustomerMobileApp({
 
                   <button
                     onClick={(e) => handleAddDeal(deal, e)}
-                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add {deal.name}</span>
@@ -1478,7 +1478,7 @@ export default function CustomerMobileApp({
           <div className="space-y-4 animate-tab-fade">
             
             {/* Header */}
-            <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
+            <div className={`rounded-2xl p-4 border flex items-center justify-between ${
               isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
             }`}>
               <button
@@ -1557,7 +1557,7 @@ export default function CustomerMobileApp({
                   return (
                     <div
                       key={order.id || idx}
-                      className={`rounded-2xl p-4 border transition-all ${
+                      className={`rounded-2xl p-4 border ${
                         isDark 
                           ? 'bg-[#15151a] border-white/10 shadow-lg' 
                           : 'bg-white border-zinc-200 shadow-xs'
@@ -1604,7 +1604,7 @@ export default function CustomerMobileApp({
                           <button
                             type="button"
                             onClick={() => toggleOrderExpanded(order.id || idx)}
-                            className={`w-full my-2.5 px-3 py-2 rounded-xl flex items-center justify-between text-xs transition-all active:scale-[0.99] cursor-pointer ${
+                            className={`w-full my-2.5 px-3 py-2 rounded-xl flex items-center justify-between text-xs active:scale-[0.99] transition-transform cursor-pointer ${
                               isDark 
                                 ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5' 
                                 : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200/80'
@@ -1674,7 +1674,7 @@ export default function CustomerMobileApp({
                         {/* REORDER BUTTON */}
                         <button
                           onClick={() => handleReorderOrder(order)}
-                          className="px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                          className="px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer"
                         >
                           <span>⚡ Reorder</span>
                         </button>
@@ -1695,7 +1695,7 @@ export default function CustomerMobileApp({
         {currentView === 'checkout' && (
           <div className="space-y-4 animate-tab-fade">
             
-            <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
+            <div className={`rounded-2xl p-4 border flex items-center justify-between ${
               isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
             }`}>
               <button
@@ -1820,6 +1820,58 @@ export default function CustomerMobileApp({
                       : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
                   }`}
                 />
+              </div>
+
+              {/* Payment Method Selector */}
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  Payment Method
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCheckoutForm(prev => ({ ...prev, paymentMethod: 'Cash on Delivery' }))}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform cursor-pointer ${
+                      checkoutForm.paymentMethod === 'Cash on Delivery'
+                        ? 'bg-orange-600 text-white border-orange-500 shadow-xs'
+                        : isDark
+                          ? 'bg-black/40 border-white/10 text-zinc-300 hover:bg-white/5'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
+                    }`}
+                  >
+                    <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+                      checkoutForm.paymentMethod === 'Cash on Delivery' ? 'border-white bg-white' : 'border-zinc-400'
+                    }`}>
+                      {checkoutForm.paymentMethod === 'Cash on Delivery' && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-600" />
+                      )}
+                    </span>
+                    <span>Cash on Delivery</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCheckoutForm(prev => ({ ...prev, paymentMethod: 'Online Payment' }))}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform cursor-pointer ${
+                      checkoutForm.paymentMethod === 'Online Payment'
+                        ? 'bg-orange-600 text-white border-orange-500 shadow-xs'
+                        : isDark
+                          ? 'bg-black/40 border-white/10 text-zinc-300 hover:bg-white/5'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
+                    }`}
+                  >
+                    <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+                      checkoutForm.paymentMethod === 'Online Payment' ? 'border-white bg-white' : 'border-zinc-400'
+                    }`}>
+                      {checkoutForm.paymentMethod === 'Online Payment' && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-600" />
+                      )}
+                    </span>
+                    <span>Online Payment</span>
+                  </button>
+                </div>
               </div>
 
               {/* Order Bill Summary */}
@@ -1967,7 +2019,7 @@ export default function CustomerMobileApp({
               </div>
 
               {/* Theme Mode Toggle Card in Menu */}
-              <div className={`p-3.5 rounded-2xl border transition-all ${
+              <div className={`p-3.5 rounded-2xl border ${
                 isDark ? 'bg-white/5 border-white/10' : 'bg-zinc-50 border-zinc-200 shadow-2xs'
               }`}>
                 <div className="flex items-center justify-between">
@@ -2012,20 +2064,23 @@ export default function CustomerMobileApp({
               </div>
 
               {/* Navigation Links: Home, Deals, Menu, RECENT ORDERS */}
-              <nav className="space-y-2">
+              <nav className="space-y-2.5">
                 <button
                   onClick={() => {
                     switchView('home');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors active:scale-[0.98] cursor-pointer ${
+                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'home'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                   }`}
                 >
-                  <span>🏠 Home & Categories</span>
-                  <ChevronRight className="w-4 h-4 text-zinc-400" />
+                  <span className="flex items-center gap-2">
+                    <span className="text-base">🏠</span>
+                    <span>Home & Categories</span>
+                  </span>
+                  <ChevronRight className="w-5 h-5 text-zinc-400" />
                 </button>
 
                 <button
@@ -2033,7 +2088,7 @@ export default function CustomerMobileApp({
                     switchView('deals');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border active:scale-[0.98] transition-all cursor-pointer ${
+                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'deals'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -2041,11 +2096,11 @@ export default function CustomerMobileApp({
                         : 'bg-orange-50 text-orange-700 border-orange-200'
                   }`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    <Flame className="w-4 h-4 fill-orange-500" />
+                  <span className="flex items-center gap-2">
+                    <Flame className="w-5 h-5 fill-orange-500 text-orange-500" />
                     <span>Saver Deals</span>
                   </span>
-                  <ChevronRight className="w-4 h-4 text-orange-500" />
+                  <ChevronRight className="w-5 h-5 text-orange-500" />
                 </button>
 
                 <button
@@ -2053,14 +2108,17 @@ export default function CustomerMobileApp({
                     switchView('category', 'all');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors active:scale-[0.98] cursor-pointer ${
+                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'category'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                   }`}
                 >
-                  <span>🍽️ Explore Menu</span>
-                  <ChevronRight className="w-4 h-4 text-zinc-400" />
+                  <span className="flex items-center gap-2">
+                    <span className="text-base">🍽️</span>
+                    <span>Explore Menu</span>
+                  </span>
+                  <ChevronRight className="w-5 h-5 text-zinc-400" />
                 </button>
 
                 {/* RECENT ORDERS (Added here replacing the old store details!) */}
@@ -2069,7 +2127,7 @@ export default function CustomerMobileApp({
                     switchView('orders');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border transition-all active:scale-[0.98] cursor-pointer ${
+                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'orders'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -2078,16 +2136,16 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <RotateCcw className="w-4 h-4 text-orange-500" />
+                    <RotateCcw className="w-5 h-5 text-orange-500" />
                     <span>Recent Orders</span>
                   </span>
                   <div className="flex items-center gap-1.5">
                     {recentOrders.length > 0 && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-600 text-white font-bold">
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-600 text-white font-bold">
                         {recentOrders.length}
                       </span>
                     )}
-                    <ChevronRight className="w-4 h-4 text-zinc-400" />
+                    <ChevronRight className="w-5 h-5 text-zinc-400" />
                   </div>
                 </button>
               </nav>

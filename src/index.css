@@ -321,8 +321,8 @@
 
 /* Mobile Safe Area & Inset Adjustments (Notch & Navigation Bar) */
 .mobile-app-header {
-  padding-top: max(env(safe-area-inset-top, 0px), 0.35rem);
-  padding-bottom: 0.45rem;
+  padding-top: max(env(safe-area-inset-top, 0px), 0.2rem);
+  padding-bottom: 0.35rem;
 }
 
 .mobile-app-container {
@@ -330,7 +330,7 @@
 }
 
 .admin-app-container {
-  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 7rem), 7.5rem);
+  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 7.5rem), 8rem);
 }
 
 

@@ -24,14 +24,16 @@ import { apiUrl, APP_MODE } from '../../config/api';
 import { App as CapApp } from '@capacitor/app';
 
 export default function AdminDashboard({ onLogout, onBackToStore }) {
-  const [activeTab, setActiveTab] = useState('products');
-  const [tabHistory, setTabHistory] = useState(['products']);
+  const [activeTab, setActiveTab] = useState('orders');
+  const [tabHistory, setTabHistory] = useState(['orders']);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   const switchTab = (tab) => {
     if (tab === activeTab) return;
     setActiveTab(tab);
     setTabHistory(prev => (prev[prev.length - 1] === tab ? prev : [...prev, tab]));
   };
+
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -138,14 +140,20 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     const setupBack = async () => {
       try {
         backHandle = await CapApp.addListener('backButton', ({ canGoBack }) => {
-          // If a modal or receipt is open in a child component (OrdersManager, etc.), let it handle the back action
-          if (window.__salikAdminModalOpen) {
-            return;
+          // 1. If any modal or receipt is open on the modal stack, close the topmost modal
+          if (window.__salikModalStack && window.__salikModalStack.length > 0) {
+            const closeTopModal = window.__salikModalStack.pop();
+            if (typeof closeTopModal === 'function') {
+              closeTopModal();
+              return;
+            }
           }
+          // 2. If logout confirmation modal is open
           if (showLogoutConfirm) {
             setShowLogoutConfirm(false);
             return;
           }
+          // 3. If tabHistory has previous tabs, go to previous tab
           if (tabHistory.length > 1) {
             const nextHistory = tabHistory.slice(0, -1);
             const prevTab = nextHistory[nextHistory.length - 1];
@@ -153,11 +161,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             setActiveTab(prevTab);
             return;
           }
-          if (canGoBack) {
-            window.history.back();
-          } else {
-            CapApp.exitApp();
+          // 4. If current tab is not default 'orders', go to default 'orders'
+          if (activeTab !== 'orders') {
+            setActiveTab('orders');
+            setTabHistory(['orders']);
+            return;
           }
+          // 5. Default tab ('orders') with no history -> exit app
+          CapApp.exitApp();
         });
       } catch (e) {
         console.warn('Capacitor App listener not active:', e);
@@ -169,7 +180,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         backHandle.remove();
       }
     };
-  }, [showLogoutConfirm, tabHistory]);
+  }, [showLogoutConfirm, tabHistory, activeTab]);
+
 
 
   const fetchData = async () => {
@@ -217,61 +229,63 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#d5d8de] text-zinc-900 admin-app-container">
+    <div className="min-h-screen bg-[#d5d8de] text-zinc-900 mobile-app-container">
       
-      {/* Top Navbar */}
-      <header className="bg-white border-b border-zinc-300/80 text-zinc-900 sticky top-0 z-30 shadow-xs mobile-app-header">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img
-              src="/assets/salik-logo.png"
-              alt="Salik Fast Food"
-              className="h-10 w-auto object-contain"
-            />
-            <div>
-              <h1 className="font-display tracking-wider text-xl uppercase leading-none text-zinc-900">
-                Salik Fast Food Admin
-              </h1>
-              <span className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">
-                Store Administrator
-              </span>
+      {/* Top Navbar (hidden when viewing receipt) */}
+      {!isReceiptOpen && (
+        <header className="bg-white border-b border-zinc-300/80 text-zinc-900 sticky top-0 z-30 shadow-xs mobile-app-header">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img
+                src="/assets/salik-logo.png"
+                alt="Salik Fast Food"
+                className="h-10 w-auto object-contain"
+              />
+              <div>
+                <h1 className="font-display tracking-wider text-xl uppercase leading-none text-zinc-900">
+                  Salik Fast Food Admin
+                </h1>
+                <span className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">
+                  Store Administrator
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 transition-colors"
+                title="Refresh Data"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-600' : ''}`} />
+              </button>
+
+              {APP_MODE !== 'admin' && (
+                <button
+                  onClick={onBackToStore}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-xs font-semibold text-zinc-800 transition-colors cursor-pointer"
+                >
+                  <Store className="w-4 h-4 text-orange-600" />
+                  <span className="hidden sm:inline">Storefront</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => setShowLogoutConfirm(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-semibold text-red-700 transition-colors cursor-pointer"
+                title="Logout of Admin Panel"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 transition-colors"
-              title="Refresh Data"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-600' : ''}`} />
-            </button>
-
-            {APP_MODE !== 'admin' && (
-              <button
-                onClick={onBackToStore}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-xs font-semibold text-zinc-800 transition-colors cursor-pointer"
-              >
-                <Store className="w-4 h-4 text-orange-600" />
-                <span className="hidden sm:inline">Storefront</span>
-              </button>
-            )}
-
-            <button
-              onClick={() => setShowLogoutConfirm(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-semibold text-red-700 transition-colors cursor-pointer"
-              title="Logout of Admin Panel"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8 pb-32 sm:pb-36">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8">
         
         {/* Stats Section with Time Filter Buttons */}
         <div className="space-y-3">
@@ -371,20 +385,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           </div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation (Orders first, Menu second) */}
         <div className="grid grid-cols-2 sm:flex sm:flex-row sm:items-center gap-2 sm:gap-2.5 border-b border-zinc-300/80 pb-3 w-full">
-          <button
-            onClick={() => switchTab('products')}
-            className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'products'
-                ? 'bg-orange-600 text-white shadow-sm'
-                : 'bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 shadow-2xs'
-            }`}
-          >
-            <Package className="w-4 h-4 flex-shrink-0" />
-            <span>Menu ({products.length})</span>
-          </button>
-
           <button
             onClick={() => switchTab('orders')}
             className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
@@ -398,6 +400,18 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             {pendingOrdersCount > 0 && (
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
             )}
+          </button>
+
+          <button
+            onClick={() => switchTab('products')}
+            className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'products'
+                ? 'bg-orange-600 text-white shadow-sm'
+                : 'bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 shadow-2xs'
+            }`}
+          >
+            <Package className="w-4 h-4 flex-shrink-0" />
+            <span>Menu ({products.length})</span>
           </button>
 
           <button
@@ -468,6 +482,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               familyDeal={familyDeal}
               settings={settings}
               onRefresh={fetchData}
+              onReceiptOpenChange={setIsReceiptOpen}
             />
           )}
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft } from 'lucide-react';
+import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
 
@@ -52,8 +52,10 @@ export default function OrdersManager({
   deals = [],
   familyDeal = null,
   settings = {},
-  onRefresh
+  onRefresh,
+  onReceiptOpenChange
 }) {
+
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
 
@@ -88,6 +90,32 @@ export default function OrdersManager({
 
   // In-App Receipt Modal State
   const [viewingReceiptOrder, setViewingReceiptOrder] = useState(null);
+
+  // Sync receipt state with AdminDashboard header visibility and modal stack
+  useEffect(() => {
+    if (typeof onReceiptOpenChange === 'function') {
+      onReceiptOpenChange(Boolean(viewingReceiptOrder));
+    }
+    if (viewingReceiptOrder) {
+      const closer = () => setViewingReceiptOrder(null);
+      window.__salikModalStack = window.__salikModalStack || [];
+      window.__salikModalStack.push(closer);
+      return () => {
+        window.__salikModalStack = (window.__salikModalStack || []).filter(fn => fn !== closer);
+      };
+    }
+  }, [viewingReceiptOrder, onReceiptOpenChange]);
+
+  useEffect(() => {
+    if (modifyingOrder) {
+      const closer = () => setModifyingOrder(null);
+      window.__salikModalStack = window.__salikModalStack || [];
+      window.__salikModalStack.push(closer);
+      return () => {
+        window.__salikModalStack = (window.__salikModalStack || []).filter(fn => fn !== closer);
+      };
+    }
+  }, [modifyingOrder]);
 
   // Sync modal state with AdminDashboard back handler
   useEffect(() => {
@@ -126,6 +154,7 @@ export default function OrdersManager({
       }
     };
   }, [viewingReceiptOrder, modifyingOrder]);
+
 
 
   // Browser / WebView history popstate handler
@@ -697,6 +726,46 @@ export default function OrdersManager({
       console.error('Print iframe error:', e);
     }
   };
+
+  const handleDownloadReceipt = (order) => {
+    try {
+      const html = generateReceiptHtml(order);
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Receipt-ORD-${order.id || 'order'}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Download receipt error:', e);
+    }
+  };
+
+  const handleShareWhatsApp = (order) => {
+    try {
+      const itemsList = (order.items || []).map(it => `• ${it.quantity}x ${it.name}${it.size ? ` (${it.size})` : ''} - Rs. ${Number(it.price) * Number(it.quantity)}`).join('\n');
+      const msg = `*SALIK FAST FOOD - RECEIPT #${order.id}*\n\n` +
+        `*Customer:* ${order.customerName || 'Customer'}\n` +
+        `*Phone:* ${order.phone || '-'}\n` +
+        (order.address ? `*Address:* ${order.address}\n` : '') +
+        `*Date:* ${formatOrderDateTime(order.createdAt)}\n\n` +
+        `*ORDER ITEMS:*\n${itemsList}\n\n` +
+        `*Subtotal:* Rs. ${(order.subtotal || 0).toLocaleString()}\n` +
+        `*Delivery Charges:* ${Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${Number(order.deliveryFee).toLocaleString()}`}\n` +
+        `*TOTAL PAYABLE:* Rs. ${(order.total || 0).toLocaleString()}\n` +
+        `*Payment Method:* ${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}\n\n` +
+        `Thank you for ordering with Salik Fast Food!`;
+      const cleanPhone = (order.phone || '').replace(/\D/g, '');
+      const url = cleanPhone ? `https://wa.me/${cleanPhone.startsWith('0') ? '92' + cleanPhone.slice(1) : cleanPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    } catch (e) {
+      console.error('WhatsApp share error:', e);
+    }
+  };
+
 
   const handleOpenDatePicker = () => {
     if (dateInputRef.current) {
@@ -1781,41 +1850,27 @@ export default function OrdersManager({
 
       {/* IN-APP RECEIPT MODAL */}
       {viewingReceiptOrder && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-2 sm:p-4 pb-32 sm:pb-36 animate-tab-fade">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-2 sm:p-4 pb-28 sm:pb-32 animate-tab-fade">
           
-          {/* Top Control Bar with Back and Print */}
-          <div className="w-full max-w-[420px] bg-zinc-900 text-white rounded-2xl p-3 mb-3 flex items-center justify-between shadow-2xl border border-white/10 sticky top-2 z-10">
+          {/* Thermal Receipt Paper Card */}
+          <div className="relative w-full max-w-[420px] bg-white text-black p-5 sm:p-6 rounded-2xl shadow-2xl border border-zinc-300 font-sans text-xs leading-relaxed my-auto">
+            
+            {/* Small Cross Button on Top Right to Close */}
             <button
               type="button"
               onClick={() => setViewingReceiptOrder(null)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95"
+              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 text-zinc-600 hover:text-black flex items-center justify-center cursor-pointer active:scale-90 transition-all shadow-2xs z-10"
+              title="Close Receipt"
+              aria-label="Close Receipt"
             >
-              <ArrowLeft className="w-4 h-4 text-orange-500" />
-              <span>Back to Orders</span>
+              <X className="w-4 h-4" />
             </button>
 
-            <span className="text-xs font-bold text-zinc-300">
-              Receipt #{viewingReceiptOrder.id}
-            </span>
-
-            <button
-              type="button"
-              onClick={() => handlePrintReceipt(viewingReceiptOrder)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print</span>
-            </button>
-          </div>
-
-          {/* Thermal Receipt Paper Card */}
-          <div className="w-full max-w-[420px] bg-white text-black p-5 sm:p-6 rounded-2xl shadow-2xl border border-zinc-300 font-mono text-[11px] leading-relaxed mb-8">
-            
             {/* Store Header */}
-            <div className="text-center pb-3 border-b border-dashed border-black">
+            <div className="text-center pb-3 border-b border-dashed border-black font-sans">
               <h2 className="text-lg font-black tracking-wider uppercase">SALIK FAST FOOD</h2>
-              <p className="text-[10px] text-zinc-600 uppercase font-semibold">Taste That You Need</p>
-              <p className="text-[10px] text-zinc-600 mt-1">
+              <p className="text-[11px] text-zinc-700 uppercase font-semibold">Taste That You Need</p>
+              <p className="text-[10.5px] text-zinc-600 mt-0.5">
                 Wah Model Town, Wah Cantt<br />
                 Phone: 0309-5369472
               </p>
@@ -1825,10 +1880,10 @@ export default function OrdersManager({
             </div>
 
             {/* Order Metadata Box */}
-            <div className="py-3 border-b border-dashed border-black space-y-1">
+            <div className="py-3 border-b border-dashed border-black space-y-1 font-sans text-xs">
               <div className="flex justify-between">
                 <span className="font-bold">Order ID:</span>
-                <span>#{viewingReceiptOrder.id}</span>
+                <span className="font-semibold">#{viewingReceiptOrder.id}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-bold">Date & Time:</span>
@@ -1836,7 +1891,7 @@ export default function OrdersManager({
               </div>
               <div className="flex justify-between">
                 <span className="font-bold">Customer:</span>
-                <span>{viewingReceiptOrder.customerName || 'Walk-in Customer'}</span>
+                <span className="font-semibold">{viewingReceiptOrder.customerName || 'Walk-in Customer'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-bold">Phone:</span>
@@ -1845,11 +1900,11 @@ export default function OrdersManager({
               {viewingReceiptOrder.address && (
                 <div className="pt-1">
                   <span className="font-bold block">Delivery Address:</span>
-                  <span className="block text-[10px] leading-tight text-zinc-800">{viewingReceiptOrder.address}</span>
+                  <span className="block text-[11px] leading-tight text-zinc-800">{viewingReceiptOrder.address}</span>
                 </div>
               )}
               {viewingReceiptOrder.notes && (
-                <div className="pt-1 text-[10px] italic">
+                <div className="pt-1 text-[11px] italic">
                   <span className="font-bold not-italic">Notes:</span> {viewingReceiptOrder.notes}
                 </div>
               )}
@@ -1897,14 +1952,14 @@ export default function OrdersManager({
             </div>
 
             {/* Totals */}
-            <div className="py-3 border-b border-dashed border-black space-y-1 font-bold">
+            <div className="py-3 border-b border-dashed border-black space-y-1 font-sans text-xs">
               <div className="flex justify-between text-zinc-700">
-                <span>Subtotal</span>
-                <span>Rs. {(viewingReceiptOrder.subtotal || 0).toLocaleString()}</span>
+                <span className="font-medium">Subtotal</span>
+                <span className="font-bold">Rs. {(viewingReceiptOrder.subtotal || 0).toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-zinc-700">
-                <span>Delivery Charges</span>
-                <span>{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${Number(viewingReceiptOrder.deliveryFee).toLocaleString()}`}</span>
+                <span className="font-medium">Delivery Charges</span>
+                <span className="font-bold">{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${Number(viewingReceiptOrder.deliveryFee).toLocaleString()}`}</span>
               </div>
               <div className="flex justify-between text-sm font-black pt-1 border-t border-black text-black">
                 <span>TOTAL PAYABLE</span>
@@ -1918,10 +1973,42 @@ export default function OrdersManager({
               <p className="text-zinc-500 pt-1 tracking-widest font-mono text-[10px]">✂ - - - - - - - - - - - - - - - - - - - - -</p>
             </div>
 
+            {/* Bottom Actions: Download, WhatsApp Share, Print */}
+            <div className="mt-4 pt-3 border-t border-dashed border-black/40 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => handleDownloadReceipt(viewingReceiptOrder)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+              >
+                <Download className="w-3.5 h-3.5 text-orange-400" />
+                <span>Download</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleShareWhatsApp(viewingReceiptOrder)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-white" />
+                <span>WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handlePrintReceipt(viewingReceiptOrder)}
+                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+                title="Print Receipt"
+              >
+                <Printer className="w-3.5 h-3.5 text-white" />
+                <span className="hidden sm:inline">Print</span>
+              </button>
+            </div>
+
           </div>
 
         </div>
       )}
+
 
     </div>
   );
