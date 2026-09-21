@@ -2372,9 +2372,9 @@ export default function CustomerMobileApp({
                   role="button"
                   tabIndex={0}
                   aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                  className={`w-full py-2.5 px-4 sm:px-5 rounded-2xl flex items-center justify-between cursor-pointer select-none transition-all duration-300 active:scale-[0.99] ${
+                  className={`w-full py-2.5 px-4 rounded-2xl flex items-center justify-between cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
                     isDark 
-                      ? 'bg-[#181d26] border border-white/10 shadow-inner' 
+                      ? 'bg-[#1e232d] border border-white/5 shadow-inner' 
                       : 'bg-[#edf0f5] border border-zinc-200/90 shadow-2xs'
                   }`}
                 >
@@ -2398,17 +2398,17 @@ export default function CustomerMobileApp({
 
                   {/* Inset Neumorphic Track (Center) */}
                   <div 
-                    className={`relative w-18 h-9 sm:w-20 sm:h-10 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
+                    className={`relative w-20 h-10 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
                       isDark 
-                        ? 'bg-[#12151e] shadow-[inset_3px_3px_6px_rgba(0,0,0,0.7),inset_-1px_-1px_3px_rgba(255,255,255,0.06)]' 
+                        ? 'bg-[#141720] shadow-[inset_3px_3px_6px_rgba(0,0,0,0.7),inset_-1px_-1px_3px_rgba(255,255,255,0.06)]' 
                         : 'bg-[#d5dae3] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.18),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]'
                     }`}
                   >
                     {/* Floating Sliding Knob */}
                     <div 
-                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-transform duration-300 ease-out transform ${
+                      className={`w-8 h-8 rounded-full transition-transform duration-300 ease-out transform ${
                         isDark 
-                          ? 'translate-x-9 sm:translate-x-10 bg-[#3b4252] shadow-[2px_3px_8px_rgba(0,0,0,0.6),-1px_-1px_3px_rgba(255,255,255,0.08)]' 
+                          ? 'translate-x-10 bg-[#4f5768] shadow-[2px_3px_8px_rgba(0,0,0,0.6),-1px_-1px_3px_rgba(255,255,255,0.08)]' 
                           : 'translate-x-0 bg-[#ffffff] shadow-[2px_3px_6px_rgba(0,0,0,0.18),-1px_-1px_2px_rgba(255,255,255,0.9)]'
                       }`}
                     />
