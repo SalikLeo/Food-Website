@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, ShoppingBag, Plus, Minus, Tag, Check, Ban, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/formatters';
 
 export default function MenuSection({ categories = [], products = [] }) {
   const { addToCart } = useCart();
@@ -208,7 +209,7 @@ export default function MenuSection({ categories = [], products = [] }) {
                           {product.name}
                         </h4>
                         <span className="font-bold text-sm sm:text-base text-red-600 flex-shrink-0 tracking-tight">
-                          Rs. {activePrice.toLocaleString()}
+                          Rs. {formatPrice(activePrice)}
                         </span>
                       </div>
 

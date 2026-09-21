@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Flame, Check, Plus, Minus, ShoppingBag, MessageCircle, Users, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/formatters';
 
 function isFamilyDeal(deal) {
   if (!deal) return false;
@@ -40,7 +41,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
     if (!deal) return;
     const itemsText = (deal.includes || []).join(', ');
     const text = encodeURIComponent(
-      `Assalam o Alaikum Salik Fast Food! I want to order ${deal.name || 'the Family Deal'} (${itemsText}) — Rs. ${deal.price?.toLocaleString()}.`
+      `Assalam o Alaikum Salik Fast Food! I want to order ${deal.name || 'the Family Deal'} (${itemsText}) — Rs. ${formatPrice(deal.price)}.`
     );
     window.open(`https://wa.me/923095369472?text=${text}`, '_blank');
   };
@@ -131,7 +132,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             : 'text-xs sm:text-sm px-2.5 py-1 rounded-md'
                         }`}
                       >
-                        Rs. {deal.price.toLocaleString()}
+                        Rs. {formatPrice(deal.price)}
                       </div>
                     </div>
 
@@ -278,7 +279,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             </h3>
                             <span className="text-2xl sm:text-3xl font-display text-orange-600 font-bold flex items-baseline">
                               <span className="font-sans text-lg sm:text-xl font-bold mr-1">Rs.</span>
-                              <span>{deal.price?.toLocaleString()}</span>
+                              <span>{formatPrice(deal.price)}</span>
                             </span>
                           </div>
 
@@ -340,7 +341,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                           </span>
                           <span className="font-display text-2xl text-amber-400 font-bold flex items-baseline">
                             <span className="font-sans text-base font-bold mr-1">Rs.</span>
-                            <span>{deal.price?.toLocaleString()}</span>
+                            <span>{formatPrice(deal.price)}</span>
                           </span>
                         </div>
 

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import WhatsAppIcon from '../WhatsAppIcon';
 import { apiUrl } from '../../config/api';
+import { formatPrice } from '../../utils/formatters';
 
 export default function DeliverySettingsManager({ onRefresh }) {
   const [loading, setLoading] = useState(false);
@@ -265,7 +266,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
             ) : (
               <>
                 <span className="font-sans font-bold text-base mr-1">Rs.</span>
-                <span>{Number(deliveryFee).toLocaleString()}</span>
+                <span>{formatPrice(deliveryFee)}</span>
               </>
             )}
           </span>
@@ -273,7 +274,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
             {!baseDeliveryEnabled 
               ? 'Base fee is OFF (Free delivery for all orders)' 
               : freeDeliveryEnabled 
-                ? `Free delivery on orders above Rs. ${Number(freeDeliveryThreshold).toLocaleString()}` 
+                ? `Free delivery on orders above Rs. ${formatPrice(freeDeliveryThreshold)}` 
                 : 'No free delivery threshold (standard fee always applies)'}
           </span>
         </div>
@@ -1174,7 +1175,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
                           {item.category}
                         </span>
                         <span className="text-xs font-bold text-red-600 font-display">
-                          Rs. {Number(item.price || (item.sizes && item.sizes[0]?.price) || 0).toLocaleString()}
+                          Rs. {formatPrice(item.price || (item.sizes && item.sizes[0]?.price) || 0)}
                         </span>
                       </div>
                     </div>

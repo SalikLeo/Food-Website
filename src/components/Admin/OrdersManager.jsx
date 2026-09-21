@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
+import { formatPrice } from '../../utils/formatters';
 
 // Helper to format date to local YYYY-MM-DD
 const getLocalDateStr = (d) => {
@@ -661,8 +662,8 @@ export default function OrdersManager({
             ${it.size ? `<div class="item-size">Size: ${it.size}</div>` : ''}
           </td>
           <td class="col-qty">${it.quantity}</td>
-          <td class="col-price">${Number(it.price).toLocaleString()}</td>
-          <td class="col-total">${(Number(it.price) * Number(it.quantity)).toLocaleString()}</td>
+          <td class="col-price">${formatPrice(it.price)}</td>
+          <td class="col-total">${formatPrice(Number(it.price) * Number(it.quantity))}</td>
         </tr>
       `).join('')}
     </tbody>
@@ -672,17 +673,17 @@ export default function OrdersManager({
   <div class="totals-box">
     <div class="totals-row">
       <span>Subtotal</span>
-      <span class="bold">Rs. ${(order.subtotal || 0).toLocaleString()}</span>
+      <span class="bold">Rs. ${formatPrice(order.subtotal || 0)}</span>
     </div>
     <div class="totals-row">
       <span>Delivery Charges</span>
       <span class="bold">
-        ${Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${Number(order.deliveryFee).toLocaleString()}`}
+        ${Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(order.deliveryFee)}`}
       </span>
     </div>
     <div class="grand-total-row">
       <span>TOTAL PAYABLE</span>
-      <span>Rs. ${(order.total || 0).toLocaleString()}</span>
+      <span>Rs. ${formatPrice(order.total || 0)}</span>
     </div>
   </div>
 
@@ -746,16 +747,16 @@ export default function OrdersManager({
 
   const handleShareWhatsApp = (order) => {
     try {
-      const itemsList = (order.items || []).map(it => `• ${it.quantity}x ${it.name}${it.size ? ` (${it.size})` : ''} - Rs. ${Number(it.price) * Number(it.quantity)}`).join('\n');
+      const itemsList = (order.items || []).map(it => `• ${it.quantity}x ${it.name}${it.size ? ` (${it.size})` : ''} - Rs. ${formatPrice(Number(it.price) * Number(it.quantity))}`).join('\n');
       const msg = `*SALIK FAST FOOD - RECEIPT #${order.id}*\n\n` +
         `*Customer:* ${order.customerName || 'Customer'}\n` +
         `*Phone:* ${order.phone || '-'}\n` +
         (order.address ? `*Address:* ${order.address}\n` : '') +
         `*Date:* ${formatOrderDateTime(order.createdAt)}\n\n` +
         `*ORDER ITEMS:*\n${itemsList}\n\n` +
-        `*Subtotal:* Rs. ${(order.subtotal || 0).toLocaleString()}\n` +
-        `*Delivery Charges:* ${Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${Number(order.deliveryFee).toLocaleString()}`}\n` +
-        `*TOTAL PAYABLE:* Rs. ${(order.total || 0).toLocaleString()}\n` +
+        `*Subtotal:* Rs. ${formatPrice(order.subtotal || 0)}\n` +
+        `*Delivery Charges:* ${Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(order.deliveryFee)}`}\n` +
+        `*TOTAL PAYABLE:* Rs. ${formatPrice(order.total || 0)}\n` +
         `*Payment Method:* ${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}\n\n` +
         `Thank you for ordering with Salik Fast Food!`;
       const cleanPhone = (order.phone || '').replace(/\D/g, '');
@@ -1088,7 +1089,7 @@ export default function OrdersManager({
             </span>
             <span className="text-zinc-300">•</span>
             <span className="text-zinc-600">
-              {salesLabel} <strong className="text-emerald-600 font-bold">Rs. {dateFilteredRevenue.toLocaleString()}</strong>
+              {salesLabel} <strong className="text-emerald-600 font-bold">Rs. {formatPrice(dateFilteredRevenue)}</strong>
             </span>
           </div>
 
@@ -1253,7 +1254,7 @@ export default function OrdersManager({
                         <div className="text-right">
                           <span className="text-[11px] text-zinc-500 mr-1.5 hidden sm:inline">Total:</span>
                           <span className="font-medium text-sm sm:text-base text-orange-600">
-                            Rs. {order.total?.toLocaleString()}
+                            Rs. {formatPrice(order.total)}
                           </span>
                         </div>
 
@@ -1333,12 +1334,12 @@ export default function OrdersManager({
                               </div>
 
                               <div className="flex items-center justify-start md:justify-end gap-2 text-xs text-zinc-500">
-                                <span>Subtotal: Rs. {(order.subtotal || 0).toLocaleString()}</span>
+                                <span>Subtotal: Rs. {formatPrice(order.subtotal || 0)}</span>
                                 <span>•</span>
                                 <span>
                                   Delivery:{' '}
                                   <strong className={Number(order.deliveryFee) === 0 ? 'text-emerald-600 font-semibold' : 'text-zinc-800'}>
-                                    {Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${(order.deliveryFee || 0).toLocaleString()}`}
+                                    {Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(order.deliveryFee || 0)}`}
                                   </strong>
                                 </span>
                               </div>
@@ -1346,7 +1347,7 @@ export default function OrdersManager({
                               <div className="pt-0.5 flex items-center justify-start md:justify-end gap-1.5">
                                 <span className="text-zinc-500 font-medium text-xs">Total:</span>
                                 <span className="text-base sm:text-lg text-orange-600 font-medium">
-                                  Rs. {order.total?.toLocaleString()}
+                                  Rs. {formatPrice(order.total)}
                                 </span>
                               </div>
                             </div>
@@ -1365,7 +1366,7 @@ export default function OrdersManager({
                                     {it.size && <span className="text-orange-600 ml-1 font-semibold">({it.size})</span>}
                                   </div>
                                   <span className="font-bold text-zinc-800">
-                                    Rs. {(it.price * it.quantity).toLocaleString()}
+                                    Rs. {formatPrice(it.price * it.quantity)}
                                   </span>
                                 </div>
                               ))}
@@ -1467,12 +1468,12 @@ export default function OrdersManager({
                         </div>
 
                         <div className="flex items-center justify-start md:justify-end gap-2 text-xs text-zinc-500">
-                          <span>Subtotal: Rs. {(order.subtotal || 0).toLocaleString()}</span>
+                          <span>Subtotal: Rs. {formatPrice(order.subtotal || 0)}</span>
                           <span>•</span>
                           <span>
                             Delivery:{' '}
                             <strong className={Number(order.deliveryFee) === 0 ? 'text-emerald-600 font-semibold' : 'text-zinc-800'}>
-                              {Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${(order.deliveryFee || 0).toLocaleString()}`}
+                              {Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(order.deliveryFee || 0)}`}
                             </strong>
                           </span>
                         </div>
@@ -1480,7 +1481,7 @@ export default function OrdersManager({
                         <div className="pt-0.5 flex items-center justify-start md:justify-end gap-1.5">
                           <span className="text-zinc-500 font-medium text-xs">Total:</span>
                           <span className="text-base sm:text-lg text-orange-600 font-medium">
-                            Rs. {order.total?.toLocaleString()}
+                            Rs. {formatPrice(order.total)}
                           </span>
                         </div>
                       </div>
@@ -1499,7 +1500,7 @@ export default function OrdersManager({
                               {it.size && <span className="text-orange-600 ml-1 font-semibold">({it.size})</span>}
                             </div>
                             <span className="font-bold text-zinc-800">
-                              Rs. {(it.price * it.quantity).toLocaleString()}
+                              Rs. {formatPrice(it.price * it.quantity)}
                             </span>
                           </div>
                         ))}
@@ -1596,7 +1597,7 @@ export default function OrdersManager({
 
                         <div className="flex items-center gap-3 flex-shrink-0">
                           <span className="font-bold text-zinc-900">
-                            Rs. {(item.price * item.quantity).toLocaleString()}
+                            Rs. {formatPrice(item.price * item.quantity)}
                           </span>
                           <button
                             type="button"
@@ -1797,12 +1798,12 @@ export default function OrdersManager({
               <div className="bg-zinc-50 rounded-2xl p-4 border border-zinc-200 space-y-2 text-xs">
                 <div className="flex justify-between text-zinc-600">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-zinc-900">Rs. {calcSubtotal.toLocaleString()}</span>
+                  <span className="font-semibold text-zinc-900">Rs. {formatPrice(calcSubtotal)}</span>
                 </div>
                 <div className="flex justify-between text-zinc-600">
                   <span>Delivery Fee</span>
                   <span className={calcDeliveryFee === 0 ? 'text-emerald-600 font-bold' : 'font-semibold text-zinc-900'}>
-                    {calcDeliveryFee === 0 ? 'FREE (Threshold Met)' : `Rs. ${calcDeliveryFee.toLocaleString()}`}
+                    {calcDeliveryFee === 0 ? 'FREE (Threshold Met)' : `Rs. ${formatPrice(calcDeliveryFee)}`}
                   </span>
                 </div>
                 <div className="pt-2 border-t border-zinc-200 flex justify-between items-baseline">
@@ -1810,7 +1811,7 @@ export default function OrdersManager({
                     Updated Total:
                   </span>
                   <span className="text-xl text-orange-600 font-medium">
-                    Rs. {calcTotal.toLocaleString()}
+                    Rs. {formatPrice(calcTotal)}
                   </span>
                 </div>
               </div>
@@ -1940,10 +1941,10 @@ export default function OrdersManager({
                         {it.quantity}
                       </td>
                       <td className="py-1.5 px-1.5 border-r border-black text-right font-sans text-xs text-zinc-800">
-                        {Number(it.price).toLocaleString()}
+                        {formatPrice(it.price)}
                       </td>
                       <td className="py-1.5 px-2 text-right font-sans font-bold text-xs text-black">
-                        {(Number(it.price) * Number(it.quantity)).toLocaleString()}
+                        {formatPrice(Number(it.price) * Number(it.quantity))}
                       </td>
                     </tr>
                   ))}
@@ -1955,15 +1956,15 @@ export default function OrdersManager({
             <div className="py-3 border-b border-dashed border-black space-y-1 font-sans text-xs">
               <div className="flex justify-between text-zinc-700">
                 <span className="font-medium">Subtotal</span>
-                <span className="font-bold">Rs. {(viewingReceiptOrder.subtotal || 0).toLocaleString()}</span>
+                <span className="font-bold">Rs. {formatPrice(viewingReceiptOrder.subtotal || 0)}</span>
               </div>
               <div className="flex justify-between text-zinc-700">
                 <span className="font-medium">Delivery Charges</span>
-                <span className="font-bold">{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${Number(viewingReceiptOrder.deliveryFee).toLocaleString()}`}</span>
+                <span className="font-bold">{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(viewingReceiptOrder.deliveryFee)}`}</span>
               </div>
               <div className="flex justify-between text-sm font-black pt-1 border-t border-black text-black">
                 <span>TOTAL PAYABLE</span>
-                <span>Rs. {(viewingReceiptOrder.total || 0).toLocaleString()}</span>
+                <span>Rs. {formatPrice(viewingReceiptOrder.total || 0)}</span>
               </div>
             </div>
 

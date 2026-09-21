@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiUrl } from '../config/api';
 import { flyItemToCart } from '../utils/flyToCart';
+import { formatPrice } from '../utils/formatters';
 
 const CartContext = createContext();
 
@@ -295,9 +296,9 @@ Order time: ${dateStr}
 ${itemsList || '(No items selected)'}
 
 -------------------------
-Subtotal: Rs. ${subtotal.toLocaleString()}
-Delivery Fee: ${isFreeDelivery ? 'FREE (Special Promo)' : `Rs. ${deliveryFee.toLocaleString()}`}
-*Total: Rs. ${total.toLocaleString()}*
+Subtotal: Rs. ${formatPrice(subtotal)}
+Delivery Fee: ${isFreeDelivery ? 'FREE (Special Promo)' : `Rs. ${formatPrice(deliveryFee)}`}
+*Total: Rs. ${formatPrice(total)}*
 Payment Method: ${customerInfo.paymentMethod || 'Cash on Delivery'}
 
 Name: ${customerInfo.name || '-'}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Edit2, Trash2, UploadCloud, Search, Check, X, Image as ImageIcon, FolderTree, Save, Undo2 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
+import { formatPrice } from '../../utils/formatters';
 
 export default function ProductManager({ products = [], categories = [], onRefresh }) {
   const [search, setSearch] = useState('');
@@ -423,13 +424,13 @@ export default function ProductManager({ products = [], categories = [], onRefre
                         {product.sizes.map(s => (
                           <div key={s.label} className="text-[11px] text-zinc-700">
                             <span className="text-zinc-400">{s.label}:</span>{' '}
-                            <span className="font-bold text-zinc-900">Rs. {s.price}</span>
+                            <span className="font-bold text-zinc-900">Rs. {formatPrice(s.price)}</span>
                           </div>
                         ))}
                       </div>
                     ) : (
                       <span className="font-bold text-zinc-900 text-sm">
-                        Rs. {product.price?.toLocaleString()}
+                        Rs. {formatPrice(product.price)}
                       </span>
                     )}
                   </td>

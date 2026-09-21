@@ -11,6 +11,8 @@ import { apiUrl } from '../../config/api';
 import WhatsAppIcon from '../WhatsAppIcon';
 import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
+import CustomerReceiptModal from '../CustomerReceiptModal';
+import { formatPrice } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
 import { 
   getStoredCustomerUser, 
@@ -143,6 +145,7 @@ export default function CustomerMobileApp({
   const [customerUser, setCustomerUser] = useState(() => getStoredCustomerUser());
   const [showGoogleSetupModal, setShowGoogleSetupModal] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [viewingReceiptOrder, setViewingReceiptOrder] = useState(null);
 
   // Sync customer user name to checkout form if empty
   useEffect(() => {
@@ -219,14 +222,16 @@ export default function CustomerMobileApp({
 
   // Lock background scroll and handle ESC key when mobile menu or confirmation modal is open
   useEffect(() => {
-    if (mobileMenuOpen || showConfirmModal) {
+    if (mobileMenuOpen || showConfirmModal || viewingReceiptOrder) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        if (showConfirmModal) {
+        if (viewingReceiptOrder) {
+          setViewingReceiptOrder(null);
+        } else if (showConfirmModal) {
           setShowConfirmModal(false);
         } else if (mobileMenuOpen) {
           setMobileMenuOpen(false);
@@ -238,7 +243,7 @@ export default function CustomerMobileApp({
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mobileMenuOpen, showConfirmModal]);
+  }, [mobileMenuOpen, showConfirmModal, viewingReceiptOrder]);
 
   // Handle native Android hardware back button
   useEffect(() => {
@@ -246,6 +251,10 @@ export default function CustomerMobileApp({
     const setupBack = async () => {
       try {
         backHandle = await CapApp.addListener('backButton', ({ canGoBack }) => {
+          if (viewingReceiptOrder) {
+            setViewingReceiptOrder(null);
+            return;
+          }
           if (showGoogleSetupModal) {
             setShowGoogleSetupModal(false);
             return;
@@ -291,7 +300,7 @@ export default function CustomerMobileApp({
         backHandle.remove();
       }
     };
-  }, [showGoogleSetupModal, showConfirmModal, orderModalOpen, isCartOpen, mobileMenuOpen, searchQuery, currentView, setIsCartOpen, setOrderModalOpen]);
+  }, [viewingReceiptOrder, showGoogleSetupModal, showConfirmModal, orderModalOpen, isCartOpen, mobileMenuOpen, searchQuery, currentView, setIsCartOpen, setOrderModalOpen]);
 
 
   // Auto-rotate promo banners (pauses while dragging)
@@ -642,7 +651,7 @@ export default function CustomerMobileApp({
       id: 'family',
       badge: 'POPULAR FEAST',
       title: 'Family Feast Combo',
-      price: familyDeal?.price ? `Rs. ${familyDeal.price.toLocaleString()}` : 'Rs. 1,999',
+      price: familyDeal?.price ? `Rs. ${formatPrice(familyDeal.price)}` : 'Rs. 1999',
       tagline: 'Pizza, Burgers & 1.5L Drink',
       image: familyDeal?.image || '/assets/images/deal-family.png',
       action: () => switchView('deals'),
@@ -1314,7 +1323,7 @@ export default function CustomerMobileApp({
                           {/* Price */}
                           <div className="mt-2 flex items-baseline gap-1.5">
                             <span className="text-orange-600 font-sans font-extrabold text-base leading-none">
-                              Rs. {displayPrice?.toLocaleString()}
+                              Rs. {formatPrice(displayPrice)}
                             </span>
                             {hasSizes && (
                               <span className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
@@ -1459,7 +1468,7 @@ export default function CustomerMobileApp({
                     👑 MEGA FAMILY SAVER
                   </span>
                   <span className={`text-lg font-extrabold font-sans ${isDark ? 'text-amber-400' : 'text-white'}`}>
-                    Rs. {familyDeal.price?.toLocaleString()}
+                    Rs. {formatPrice(familyDeal.price)}
                   </span>
                 </div>
 
@@ -1659,35 +1668,43 @@ export default function CustomerMobileApp({
                       <div className="flex items-center justify-between pb-3 border-b border-white/5">
                         <div className="flex items-center gap-2">
                           <Receipt className="w-4 h-4 text-orange-500" />
-                          <span className={`font-montserrat text-xs font-extrabold tracking-tight ${
-                            isDark ? 'text-white' : 'text-zinc-900'
+                          <span className={`font-sans text-xs sm:text-sm font-semibold tracking-normal ${
+                            isDark ? 'text-zinc-200' : 'text-zinc-800'
                           }`}>
                             #{order.id}
                           </span>
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                            order.status?.toLowerCase().includes('whatsapp')
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                          <button
+                            type="button"
+                            onClick={() => setViewingReceiptOrder(order)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
+                              isDark
+                                ? 'bg-zinc-800/90 hover:bg-zinc-700 text-zinc-200 border-white/10 shadow-xs'
+                                : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200 shadow-xs'
+                            }`}
+                          >
+                            <Receipt className="w-3 h-3 text-orange-500" />
+                            <span>Receipt</span>
+                          </button>
+
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
+                            order.status?.toLowerCase().includes('delivered')
+                              ? (isDark ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-700 border-emerald-200')
+                              : (isDark ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-amber-50 text-amber-700 border-amber-200')
                           }`}>
                             {order.status || 'Pending'}
                           </span>
                         </div>
                       </div>
 
-                      {/* Date & Address */}
-                      <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-2 pb-1">
+                      {/* Date */}
+                      <div className="flex items-center text-[11px] text-zinc-400 pt-2 pb-1">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3 text-zinc-500" />
                           <span>{orderDate}</span>
                         </span>
-                        {order.address && (
-                          <span className="truncate max-w-[150px]">
-                            📍 {order.address}
-                          </span>
-                        )}
                       </div>
 
                       {/* Items Summary Collapsible Dropdown */}
@@ -1742,7 +1759,7 @@ export default function CustomerMobileApp({
                                     <span className={`font-montserrat font-bold text-xs flex-shrink-0 ${
                                       isDark ? 'text-zinc-300' : 'text-zinc-800'
                                     }`}>
-                                      Rs. {(item.price * item.quantity).toLocaleString()}
+                                      Rs. {formatPrice(item.price * item.quantity)}
                                     </span>
                                   </div>
                                 ))}
@@ -1754,7 +1771,7 @@ export default function CustomerMobileApp({
                                   <div className="flex items-center justify-between text-[11px]">
                                     <span className={isDark ? 'text-zinc-400' : 'text-zinc-500'}>Items Subtotal</span>
                                     <span className={`font-semibold ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                                      Rs. {orderItemsSubtotal.toLocaleString()}
+                                      Rs. {formatPrice(orderItemsSubtotal)}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between text-[11px]">
@@ -1764,7 +1781,7 @@ export default function CustomerMobileApp({
                                         ? 'text-emerald-500 font-bold' 
                                         : (isDark ? 'text-zinc-300' : 'text-zinc-700')
                                     }`}>
-                                      {orderDeliveryFee === 0 ? 'FREE' : `Rs. ${orderDeliveryFee.toLocaleString()}`}
+                                      {orderDeliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(orderDeliveryFee)}`}
                                     </span>
                                   </div>
                                 </div>
@@ -1777,27 +1794,19 @@ export default function CustomerMobileApp({
                       {/* Order Footer: Total & REORDER Button */}
                       <div className="flex items-center justify-between pt-1 gap-3">
                         <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-zinc-500 uppercase font-bold block">
-                              Total Paid
-                            </span>
-                            {orderDeliveryFee > 0 && (
-                              <span className={`text-[10px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                                (incl. Rs. {orderDeliveryFee.toLocaleString()} delivery)
-                              </span>
-                            )}
-                          </div>
                           <span className="font-montserrat text-base font-extrabold text-orange-600 leading-tight">
-                            Rs. {order.total?.toLocaleString()}
+                            Rs. {formatPrice(order.total)}
                           </span>
                         </div>
 
                         {/* REORDER BUTTON */}
                         <button
+                          type="button"
                           onClick={() => handleReorderOrder(order)}
                           className="px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer"
                         >
-                          <span>⚡ Reorder</span>
+                          <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>Reorder</span>
                         </button>
                       </div>
 
@@ -2021,18 +2030,18 @@ export default function CustomerMobileApp({
               }`}>
                 <div className="flex justify-between text-zinc-400">
                   <span>Subtotal</span>
-                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>Rs. {subtotal.toLocaleString()}</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>Rs. {formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-zinc-400">
                   <span>Delivery Fee</span>
                   <span className={`font-semibold ${(deliveryFee === 0 || isFreeDelivery) ? 'text-emerald-500 font-bold' : (isDark ? 'text-white' : 'text-zinc-900')}`}>
-                    {(deliveryFee === 0 || isFreeDelivery) ? 'FREE' : `Rs. ${deliveryFee.toLocaleString()}`}
+                    {(deliveryFee === 0 || isFreeDelivery) ? 'FREE' : `Rs. ${formatPrice(deliveryFee)}`}
                   </span>
                 </div>
                 <div className={`flex justify-between items-baseline pt-2 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
                   <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>Total Amount</span>
                   <span className="font-montserrat text-xl font-extrabold text-orange-500">
-                    Rs. {total.toLocaleString()}
+                    Rs. {formatPrice(total)}
                   </span>
                 </div>
               </div>
@@ -2081,7 +2090,7 @@ export default function CustomerMobileApp({
               : 'shadow-[0_8px_20px_rgba(0,0,0,0.3)]'
           }`}
           aria-label={`Cart with ${totalItems} items`}
-          title={`Cart: ${totalItems} items (Rs. ${totalPrice.toLocaleString()})`}
+          title={`Cart: ${totalItems} items (Rs. ${formatPrice(totalPrice)})`}
         >
           {/* Subtle pulsating radar ripple ring when cart has items */}
           {totalItems > 0 && (
@@ -2629,7 +2638,7 @@ export default function CustomerMobileApp({
                       )}
                     </span>
                     <span className={`font-semibold flex-shrink-0 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                      Rs. {((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                      Rs. {formatPrice((item.price || 0) * (item.quantity || 1))}
                     </span>
                   </div>
                 ))}
@@ -2640,12 +2649,12 @@ export default function CustomerMobileApp({
               }`}>
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-800'}`}>Rs. {subtotal.toLocaleString()}</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-800'}`}>Rs. {formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Fee</span>
                   <span className={(deliveryFee === 0 || isFreeDelivery) ? 'text-emerald-500 font-bold' : (isDark ? 'text-white' : 'text-zinc-800 font-semibold')}>
-                    {(deliveryFee === 0 || isFreeDelivery) ? 'FREE' : `Rs. ${deliveryFee.toLocaleString()}`}
+                    {(deliveryFee === 0 || isFreeDelivery) ? 'FREE' : `Rs. ${formatPrice(deliveryFee)}`}
                   </span>
                 </div>
               </div>
@@ -2659,7 +2668,7 @@ export default function CustomerMobileApp({
                   TOTAL TO PAY
                 </span>
                 <span className="text-lg font-extrabold text-orange-500">
-                  Rs. {total.toLocaleString()}
+                  Rs. {formatPrice(total)}
                 </span>
               </div>
             </div>
@@ -2703,6 +2712,14 @@ export default function CustomerMobileApp({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Order Receipt Modal */}
+      {viewingReceiptOrder && (
+        <CustomerReceiptModal
+          order={viewingReceiptOrder}
+          onClose={() => setViewingReceiptOrder(null)}
+        />
       )}
 
     </div>

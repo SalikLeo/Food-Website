@@ -977,8 +977,9 @@
       "subtotal": 1600,
       "deliveryFee": 200,
       "total": 1800,
-      "status": "Pending",
-      "createdAt": "2026-09-21T15:14:06.603Z"
+      "status": "Delivered",
+      "createdAt": "2026-09-21T15:14:06.603Z",
+      "updatedAt": "2026-09-21T21:17:55.847Z"
     },
     {
       "id": "ORD-037664-92",
@@ -1002,8 +1003,9 @@
       "subtotal": 4000,
       "deliveryFee": 200,
       "total": 4200,
-      "status": "Pending",
-      "createdAt": "2026-09-21T13:57:17.665Z"
+      "status": "Delivered",
+      "createdAt": "2026-09-21T13:57:17.665Z",
+      "updatedAt": "2026-09-21T21:17:57.641Z"
     },
     {
       "id": "ORD-707903-35",

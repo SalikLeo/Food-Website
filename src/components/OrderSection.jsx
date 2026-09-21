@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/formatters';
 import { apiUrl } from '../config/api';
 
 export default function OrderSection() {
@@ -370,7 +371,7 @@ export default function OrderSection() {
                       )}
                     </div>
                     <span className="font-semibold text-orange-400 font-sans">
-                      Rs. {(item.price * item.quantity).toLocaleString()}
+                      Rs. {formatPrice(item.price * item.quantity)}
                     </span>
                   </div>
                 ))}
@@ -381,13 +382,13 @@ export default function OrderSection() {
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span className="text-zinc-200 font-semibold">
-                  Rs. {subtotal.toLocaleString()}
+                  Rs. {formatPrice(subtotal)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery fee</span>
                 <span className={`font-semibold ${isFreeDelivery ? 'text-emerald-400 font-bold' : 'text-zinc-200'}`}>
-                  {isFreeDelivery ? 'FREE (Promotion)' : `Rs. ${deliveryFee.toLocaleString()}`}
+                  {isFreeDelivery ? 'FREE (Promotion)' : `Rs. ${formatPrice(deliveryFee)}`}
                 </span>
               </div>
               <div className="flex justify-between items-baseline pt-4 border-t border-zinc-800/80">
@@ -396,7 +397,7 @@ export default function OrderSection() {
                 </span>
                 <span className="font-montserrat text-2xl text-amber-400 font-extrabold flex items-baseline">
                   <span className="text-base font-bold mr-1">Rs.</span>
-                  <span>{total.toLocaleString()}</span>
+                  <span>{formatPrice(total)}</span>
                 </span>
               </div>
             </div>
@@ -506,7 +507,7 @@ export default function OrderSection() {
                         {item.size && <span className="text-orange-400 text-[11px] ml-1">({item.size})</span>}
                       </span>
                       <span className="font-semibold text-zinc-200">
-                        Rs. {(item.price * item.quantity).toLocaleString()}
+                        Rs. {formatPrice(item.price * item.quantity)}
                       </span>
                     </div>
                   ))}
@@ -515,19 +516,19 @@ export default function OrderSection() {
                 <div className="pt-2 border-t border-zinc-800 space-y-1 text-zinc-400 text-[11px]">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span className="font-semibold text-zinc-200">Rs. {subtotal.toLocaleString()}</span>
+                    <span className="font-semibold text-zinc-200">Rs. {formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Delivery Fee</span>
                     <span className={isFreeDelivery ? 'text-emerald-400 font-bold' : 'text-zinc-200 font-semibold'}>
-                      {isFreeDelivery ? 'FREE (Promotion)' : `Rs. ${deliveryFee.toLocaleString()}`}
+                      {isFreeDelivery ? 'FREE (Promotion)' : `Rs. ${formatPrice(deliveryFee)}`}
                     </span>
                   </div>
                 </div>
 
                 <div className="pt-2.5 border-t border-zinc-800 flex justify-between items-baseline font-montserrat">
                   <span className="text-xs uppercase tracking-wider text-zinc-300 font-semibold">TOTAL TO PAY</span>
-                  <span className="text-xl font-extrabold text-amber-400">Rs. {total.toLocaleString()}</span>
+                  <span className="text-xl font-extrabold text-amber-400">Rs. {formatPrice(total)}</span>
                 </div>
               </div>
 

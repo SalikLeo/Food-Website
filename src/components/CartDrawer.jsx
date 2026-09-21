@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, Plus, Minus, Trash2, Truck, AlertTriangle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/formatters';
 
 export default function CartDrawer() {
   const {
@@ -189,7 +190,7 @@ export default function CartDrawer() {
                     </div>
 
                     <span className="font-montserrat font-bold text-xs sm:text-sm text-[#e53e10]">
-                      Rs. {(item.price * item.quantity).toLocaleString()}
+                      Rs. {formatPrice(item.price * item.quantity)}
                     </span>
                   </div>
                 </div>
@@ -209,7 +210,7 @@ export default function CartDrawer() {
                     <span className="flex items-center gap-1.5 text-emerald-900">
                       <Truck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                       <span>
-                        Add <strong className="font-bold text-emerald-700">Rs. {amountForFreeDelivery.toLocaleString()}</strong> more in cart for <strong className="font-bold text-emerald-700">FREE delivery</strong>
+                        Add <strong className="font-bold text-emerald-700">Rs. {formatPrice(amountForFreeDelivery)}</strong> more in cart for <strong className="font-bold text-emerald-700">FREE delivery</strong>
                       </span>
                     </span>
                     <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">
@@ -229,19 +230,19 @@ export default function CartDrawer() {
             {!isMinOrderMet && (
               <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold text-center">
                 Minimum order for home delivery is Rs. {minOrder}. Add Rs.{' '}
-                {(minOrder - subtotal).toLocaleString()} more to qualify.
+                {formatPrice(minOrder - subtotal)} more to qualify.
               </div>
             )}
 
             <div className="space-y-2 text-xs font-montserrat">
               <div className="flex justify-between text-zinc-600">
                 <span className="font-medium">Subtotal</span>
-                <span className="font-bold text-zinc-900">Rs. {subtotal.toLocaleString()}</span>
+                <span className="font-bold text-zinc-900">Rs. {formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between text-zinc-600">
                 <span className="font-medium">Delivery fee</span>
                 <span className={`font-bold ${isFreeDelivery ? 'text-emerald-600' : 'text-zinc-900'}`}>
-                  {isFreeDelivery ? 'FREE' : `Rs. ${deliveryFee.toLocaleString()}`}
+                  {isFreeDelivery ? 'FREE' : `Rs. ${formatPrice(deliveryFee)}`}
                 </span>
               </div>
               <div className="flex justify-between items-baseline pt-2.5 border-t border-zinc-200">
@@ -250,7 +251,7 @@ export default function CartDrawer() {
                 </span>
                 <span className="font-montserrat text-2xl text-[#e53e10] font-extrabold flex items-baseline">
                   <span className="text-base font-extrabold mr-1">Rs.</span>
-                  <span>{total.toLocaleString()}</span>
+                  <span>{formatPrice(total)}</span>
                 </span>
               </div>
             </div>

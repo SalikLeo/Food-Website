@@ -12,6 +12,7 @@ import {
   Flame,
   PieChart
 } from 'lucide-react';
+import { formatPrice } from '../../utils/formatters';
 
 export default function ItemSalesManager({
   orders = [],
@@ -247,7 +248,7 @@ export default function ItemSalesManager({
               {stats.topEarner ? stats.topEarner.name : 'No sales yet'}
             </span>
             <span className="text-xs text-emerald-700 font-bold">
-              {stats.topEarner ? `Rs. ${stats.topEarner.totalRevenue.toLocaleString()}` : '—'}
+              {stats.topEarner ? `Rs. ${formatPrice(stats.topEarner.totalRevenue)}` : '—'}
             </span>
           </div>
         </div>
@@ -262,7 +263,7 @@ export default function ItemSalesManager({
               Total Food Items Sold
             </span>
             <span className="font-sans text-2xl text-zinc-900 font-bold block leading-tight">
-              {stats.totalUnits.toLocaleString()}
+              {formatPrice(stats.totalUnits)}
             </span>
             <span className="text-[11px] text-zinc-500 block">
               across {filteredOrders.length} orders
@@ -280,7 +281,7 @@ export default function ItemSalesManager({
               Food Sales Revenue
             </span>
             <span className="font-sans text-2xl text-orange-600 font-bold block leading-tight">
-              Rs. {stats.totalRev.toLocaleString()}
+              Rs. {formatPrice(stats.totalRev)}
             </span>
             <span className="text-[11px] text-zinc-500 block">
               {stats.uniqueSold} distinct dishes ordered
@@ -469,7 +470,7 @@ export default function ItemSalesManager({
                       {/* Units Sold */}
                       <td className="px-4 py-3.5 text-center">
                         <span className="font-sans text-base font-bold text-zinc-900 block leading-tight">
-                          {item.totalQty.toLocaleString()}
+                          {formatPrice(item.totalQty)}
                         </span>
                         <span className="text-[10px] text-zinc-500 uppercase font-medium">
                           sold
@@ -479,11 +480,11 @@ export default function ItemSalesManager({
                       {/* Total Revenue */}
                       <td className="px-5 py-3.5 text-right">
                         <span className="font-sans text-sm font-semibold text-orange-600 block leading-tight">
-                          Rs. {item.totalRevenue.toLocaleString()}
+                          Rs. {formatPrice(item.totalRevenue)}
                         </span>
                         {item.totalQty > 0 && (
                           <span className="text-[10px] text-zinc-400">
-                            avg Rs. {Math.round(item.totalRevenue / item.totalQty).toLocaleString()} / unit
+                            avg Rs. {formatPrice(Math.round(item.totalRevenue / item.totalQty))} / unit
                           </span>
                         )}
                       </td>

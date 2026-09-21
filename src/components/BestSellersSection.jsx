@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ShoppingBag, Plus, Minus, Zap, Flame, Ban } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { apiUrl } from '../config/api';
+import { formatPrice } from '../utils/formatters';
 
 export default function BestSellersSection({ products = [], categories = [], settings = null }) {
   const { addToCart } = useCart();
@@ -203,7 +204,7 @@ export default function BestSellersSection({ products = [], categories = [], set
                         {product.name}
                       </h4>
                       <span className="font-bold text-sm sm:text-base text-red-600 flex-shrink-0 tracking-tight">
-                        Rs. {activePrice.toLocaleString()}
+                        Rs. {formatPrice(activePrice)}
                       </span>
                     </div>
 

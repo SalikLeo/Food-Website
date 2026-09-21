@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Flame, Clock, Star, Utensils } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { apiUrl, isCustomerApp } from '../config/api';
+import { formatPrice } from '../utils/formatters';
 
 export default function Hero({ products: propProducts = [], deals: propDeals = [] }) {
   const { settings } = useCart();
@@ -157,11 +158,11 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
                   aria-label="View Deals"
                 >
                   <span className={`font-display font-bold ${isCustomerApp ? 'text-[1.75rem] leading-none' : 'text-xl sm:text-3xl'} md:text-4xl text-gradient-orange tracking-tight uppercase inline-block pr-2`}>
-                    DEALS FROM RS. {lowestDealPrice.toLocaleString()}
+                    DEALS FROM RS. {formatPrice(lowestDealPrice)}
                   </span>
                   <span className={`font-sans ${isCustomerApp ? 'text-xs font-semibold' : 'text-xs sm:text-sm'} md:text-base font-medium text-zinc-600 leading-normal mt-0.5 sm:mt-1.5 block whitespace-nowrap`}>
                     {freeDeliveryEnabled
-                      ? `Free Delivery on order above Rs. ${freeDeliveryAmount.toLocaleString()}`
+                      ? `Free Delivery on order above Rs. ${formatPrice(freeDeliveryAmount)}`
                       : 'Hot & Fresh Delivery Wah Cantt'}
                   </span>
                 </a>

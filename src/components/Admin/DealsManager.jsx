@@ -14,6 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
+import { formatPrice } from '../../utils/formatters';
 
 const PRESET_DEAL_IMAGES = [
   { label: 'Family Deal Bundle', src: '/assets/deal-family.png' },
@@ -837,7 +838,7 @@ export default function DealsManager({
                       isFam ? 'text-amber-600' : 'text-orange-600'
                     }`}
                   >
-                    Rs. {deal.price?.toLocaleString()}
+                    Rs. {formatPrice(deal.price)}
                   </span>
                 </div>
 
@@ -923,7 +924,7 @@ export default function DealsManager({
             </h3>
 
             <p className="text-xs text-zinc-600 text-center mt-2 mb-4 leading-relaxed">
-              Are you sure you want to delete this deal (<strong>Rs. {deleteConfirmDeal.price?.toLocaleString()}</strong>)? It will be removed from your website and mobile app.
+              Are you sure you want to delete this deal (<strong>Rs. {formatPrice(deleteConfirmDeal.price)}</strong>)? It will be removed from your website and mobile app.
             </p>
 
             <div className="flex items-center justify-end gap-3">

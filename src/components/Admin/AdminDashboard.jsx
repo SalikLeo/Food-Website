@@ -21,6 +21,7 @@ import DeliverySettingsManager from './DeliverySettingsManager';
 import ItemSalesManager from './ItemSalesManager';
 import ReviewManager from './ReviewManager';
 import { apiUrl, APP_MODE } from '../../config/api';
+import { formatPrice } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
 
 export default function AdminDashboard({ onLogout, onBackToStore }) {
@@ -377,7 +378,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                   Revenue
                 </span>
                 <span className="font-sans text-xs sm:text-xl font-bold text-emerald-700 block leading-tight truncate">
-                  Rs. {displayStats.totalRevenue.toLocaleString()}
+                  Rs. {formatPrice(displayStats.totalRevenue)}
                 </span>
               </div>
             </div>

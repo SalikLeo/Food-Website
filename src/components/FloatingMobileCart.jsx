@@ -2,6 +2,7 @@ import React from 'react';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { isCustomerApp } from '../config/api';
+import { formatPrice } from '../utils/formatters';
 
 export default function FloatingMobileCart() {
   const { itemCount, subtotal, isCartOpen, setIsCartOpen } = useCart();
@@ -47,7 +48,7 @@ export default function FloatingMobileCart() {
               <span>{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</span>
               <span className="text-zinc-500">•</span>
               <span className="font-bold text-white tracking-tight">
-                Rs. {subtotal.toLocaleString()}
+                Rs. {formatPrice(subtotal)}
               </span>
             </div>
             <span className="text-[10px] text-orange-400 font-medium tracking-wide">
