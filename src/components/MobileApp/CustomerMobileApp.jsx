@@ -662,7 +662,7 @@ export default function CustomerMobileApp({
                         <span>{banner.badge}</span>
                       </span>
                       
-                      <h3 className="text-xl sm:text-2xl font-montserrat uppercase tracking-tight text-white leading-tight font-black truncate">
+                      <h3 className="text-xl sm:text-2xl font-montserrat uppercase tracking-tight text-white leading-tight font-bold truncate">
                         {banner.title}
                       </h3>
 
@@ -1762,7 +1762,7 @@ export default function CustomerMobileApp({
                   </span>
                 </div>
                 <div className={`flex justify-between items-baseline pt-2 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
-                  <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>Total Amount</span>
+                  <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>Total Amount</span>
                   <span className="font-montserrat text-xl font-extrabold text-orange-500">
                     Rs. {total.toLocaleString()}
                   </span>

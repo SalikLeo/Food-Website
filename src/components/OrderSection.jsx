@@ -377,7 +377,7 @@ export default function OrderSection() {
                 </span>
               </div>
               <div className="flex justify-between items-baseline pt-4 border-t border-zinc-800/80">
-                <span className="font-montserrat text-sm font-extrabold text-white uppercase tracking-wider">
+                <span className="font-montserrat text-sm font-semibold text-white uppercase tracking-wider">
                   TOTAL
                 </span>
                 <span className="font-montserrat text-2xl text-amber-400 font-extrabold flex items-baseline">
@@ -522,7 +522,7 @@ export default function OrderSection() {
                 </div>
 
                 <div className="pt-2.5 border-t border-zinc-800 flex justify-between items-baseline font-montserrat">
-                  <span className="text-xs uppercase tracking-wider text-zinc-300 font-extrabold">TOTAL TO PAY</span>
+                  <span className="text-xs uppercase tracking-wider text-zinc-300 font-semibold">TOTAL TO PAY</span>
                   <span className="text-xl font-extrabold text-amber-400">Rs. {total.toLocaleString()}</span>
                 </div>
               </div>

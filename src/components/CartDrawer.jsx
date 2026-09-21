@@ -245,10 +245,10 @@ export default function CartDrawer() {
                 </span>
               </div>
               <div className="flex justify-between items-baseline pt-2.5 border-t border-zinc-200">
-                <span className="font-montserrat text-sm uppercase tracking-wider text-zinc-900 font-extrabold">
+                <span className="font-montserrat text-sm uppercase tracking-wider text-zinc-900 font-semibold">
                   TOTAL
                 </span>
-                <span className="font-montserrat text-2xl text-[#e53e10] font-black flex items-baseline">
+                <span className="font-montserrat text-2xl text-[#e53e10] font-extrabold flex items-baseline">
                   <span className="text-base font-extrabold mr-1">Rs.</span>
                   <span>{total.toLocaleString()}</span>
                 </span>
