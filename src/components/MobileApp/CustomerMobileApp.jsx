@@ -55,6 +55,7 @@ export default function CustomerMobileApp({
     itemCount = 0,
     totalItems: rawTotalItems, 
     totalPrice: rawTotalPrice, 
+    isCartOpen = false,
     setIsCartOpen,
     recentOrders = [],
     saveRecentOrder,
@@ -69,6 +70,7 @@ export default function CustomerMobileApp({
     getWhatsAppMessage,
     clearCart,
     setLastOrder,
+    orderModalOpen = false,
     setOrderModalOpen
   } = useCart();
 
@@ -252,12 +254,17 @@ export default function CustomerMobileApp({
             setShowConfirmModal(false);
             return;
           }
+          if (orderModalOpen) {
+            if (typeof setOrderModalOpen === 'function') setOrderModalOpen(false);
+            return;
+          }
+          if (isCartOpen) {
+            if (typeof setIsCartOpen === 'function') setIsCartOpen(false);
+            return;
+          }
           if (mobileMenuOpen) {
             setMobileMenuOpen(false);
             return;
-          }
-          if (typeof setIsCartOpen === 'function') {
-            setIsCartOpen(false);
           }
           if (searchQuery.trim()) {
             setSearchQuery('');
@@ -284,7 +291,7 @@ export default function CustomerMobileApp({
         backHandle.remove();
       }
     };
-  }, [showGoogleSetupModal, showConfirmModal, mobileMenuOpen, searchQuery, currentView, setIsCartOpen]);
+  }, [showGoogleSetupModal, showConfirmModal, orderModalOpen, isCartOpen, mobileMenuOpen, searchQuery, currentView, setIsCartOpen, setOrderModalOpen]);
 
 
   // Auto-rotate promo banners (pauses while dragging)
@@ -728,52 +735,37 @@ export default function CustomerMobileApp({
             </div>
           </div>
 
-          {/* Right Action Icons: Quick Theme Toggle, WhatsApp & Side Drawer */}
-          <div className="flex items-center gap-2">
-            
-            {/* Quick Light/Dark Toggle in Header */}
-            <button
-              onClick={toggleTheme}
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center active:scale-95 cursor-pointer ${
-                isDark 
-                  ? 'bg-zinc-800/80 hover:bg-zinc-700/80 border-white/10 text-amber-400' 
-                  : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-700 shadow-2xs'
-              }`}
-              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              aria-label="Toggle theme"
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
+          {/* Right Action Icons: WhatsApp & Side Drawer */}
+          <div className="flex items-center gap-2.5">
 
             {/* WhatsApp Direct Chat */}
             <a
               href="https://wa.me/923095369472"
               target="_blank"
               rel="noopener noreferrer"
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center active:scale-95 shadow-2xs ${
+              className={`w-10 h-10 rounded-xl border flex items-center justify-center active:scale-95 shadow-2xs transition-transform ${
                 isDark 
                   ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/30 text-emerald-400' 
                   : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600'
               }`}
               aria-label="WhatsApp Support"
             >
-              <WhatsAppIcon className="w-4 h-4 fill-emerald-500" />
+              <WhatsAppIcon className="w-5 h-5 fill-emerald-500" />
             </a>
 
             {/* Side Drawer Menu Trigger Button */}
             <button
               id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(true)}
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center active:scale-95 cursor-pointer ${
+              className={`w-10 h-10 rounded-xl border flex items-center justify-center active:scale-95 cursor-pointer transition-transform ${
                 isDark 
                   ? 'bg-zinc-800/80 hover:bg-zinc-700/80 border-white/10 text-white' 
                   : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-800 shadow-2xs'
               }`}
               aria-label="Open menu"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-5.5 h-5.5" />
             </button>
-
           </div>
 
         </div>
