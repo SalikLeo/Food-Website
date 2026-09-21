@@ -695,13 +695,13 @@ export default function CustomerMobileApp({
                       }`}
                     >
                       {/* Appetizing Centered Food Photo on Clean Plate */}
-                      <div className={`w-full aspect-[4/3] rounded-xl overflow-hidden flex items-center justify-center p-1.5 mb-2 relative ${
+                      <div className={`w-full aspect-[4/3] rounded-2xl overflow-hidden flex items-center justify-center p-1.5 mb-2 relative ${
                         isDark ? 'bg-black/30' : 'bg-zinc-50'
                       }`}>
                         <img
                           src={catImg}
                           alt={cat.label}
-                          className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
+                          className="w-full h-full object-contain rounded-xl overflow-hidden transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
                           onError={(e) => {
                             e.target.src = '/assets/images/cat-burgers-CfWIZ4YN.jpg';
                           }}
@@ -976,13 +976,13 @@ export default function CustomerMobileApp({
                       <div className="flex gap-3.5">
                         
                         {/* Food Image */}
-                        <div className={`w-24 h-24 rounded-xl overflow-hidden border flex-shrink-0 relative ${
+                        <div className={`w-24 h-24 rounded-2xl overflow-hidden border flex-shrink-0 relative ${
                           isDark ? 'bg-black/40 border-white/5' : 'bg-zinc-50 border-zinc-200'
                         }`}>
                           <img
                             src={product.image || '/assets/images/cat-pizza-BmV7hCev.jpg'}
                             alt={product.name}
-                            className={`w-full h-full object-cover ${isOutOfStock ? 'grayscale' : ''}`}
+                            className={`w-full h-full object-cover rounded-xl ${isOutOfStock ? 'grayscale' : ''}`}
                             onError={(e) => {
                               e.target.src = '/assets/images/cat-pizza-BmV7hCev.jpg';
                             }}
