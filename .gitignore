@@ -6,6 +6,8 @@ node_modules/
 # Production build artifacts
 dist/
 dist-ssr/
+APKs/
+*.apk
 
 # Environment files
 .env
