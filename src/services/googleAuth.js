@@ -6,7 +6,10 @@ const STORAGE_KEY = 'salik_customer_user';
  * Get configured Google OAuth Client ID from Vite environment variables
  */
 export function getGoogleClientId() {
-  return import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+  return (
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    '272845957801-6kr91o68g9m00acgmhboi1opc1kp32mt.apps.googleusercontent.com'
+  );
 }
 
 /**
@@ -151,7 +154,22 @@ export async function triggerGoogleLogin({ onSuccess, onError, onConfigRequired 
       const tokenClient = gsi.oauth2.initTokenClient({
         client_id: clientId,
         scope: 'email profile openid',
+        error_callback: (err) => {
+          console.error('Google OAuth token error:', err);
+          if (typeof onError === 'function') {
+            const msg = err?.message || err?.type || 'Google Sign-In failed or popup was blocked.';
+            onError(msg);
+          }
+        },
         callback: async (tokenResponse) => {
+          if (tokenResponse && tokenResponse.error) {
+            console.error('Google token error response:', tokenResponse);
+            if (typeof onError === 'function') {
+              onError(tokenResponse.error_description || tokenResponse.error || 'Google Sign-In cancelled.');
+            }
+            return;
+          }
+
           if (tokenResponse && tokenResponse.access_token) {
             try {
               const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {

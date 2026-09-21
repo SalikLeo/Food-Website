@@ -168,6 +168,9 @@ export default function CustomerMobileApp({
         onError: (err) => {
           setGoogleLoading(false);
           console.warn('Google sign-in:', err);
+          if (err && typeof err === 'string' && !err.includes('popup_closed_by_user')) {
+            setReorderToast(err);
+          }
         },
         onConfigRequired: () => {
           setGoogleLoading(false);
