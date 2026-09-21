@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import { registerPlugin, Capacitor } from '@capacitor/core';
+import { formatReceiptPaymentBadge } from '../utils/formatters';
 
 // Register the custom ReceiptBridge plugin (native Android)
 const ReceiptBridge = registerPlugin('ReceiptBridge');
@@ -84,7 +85,7 @@ export function drawReceiptCanvas(order) {
   curY += 32;
 
   // Payment method badge
-  const payMethod = (order.paymentMethod || 'CASH ON DELIVERY').toUpperCase();
+  const payMethod = formatReceiptPaymentBadge(order.paymentMethod);
   ctx.font = 'bold 18px sans-serif';
   const badgeW = ctx.measureText(payMethod).width + 30;
   const badgeH = 32;
@@ -370,7 +371,7 @@ export async function shareReceiptImageWhatsApp(element, order) {
     `*Subtotal:* Rs. ${formatPrice(subtotal)}\n` +
     `*Delivery Charges:* ${deliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(deliveryFee)}`}\n` +
     `*TOTAL PAYABLE:* Rs. ${formatPrice(total)}\n` +
-    `*Payment Method:* ${(order.paymentMethod || 'CASH ON DELIVERY').toUpperCase()}\n\n` +
+    `*Payment Method:* ${formatReceiptPaymentBadge(order.paymentMethod)}\n\n` +
     `Thank you for ordering with Salik Fast Food!`;
 
   // 1. Native Android App: Open WhatsApp directly with image attached

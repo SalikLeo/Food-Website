@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Download, MessageCircle, Loader2, Check } from 'lucide-react';
-import { formatPrice } from '../utils/formatters';
+import { formatPrice, formatReceiptPaymentBadge } from '../utils/formatters';
 import { downloadReceiptImage, shareReceiptImageWhatsApp } from '../services/receiptImageService';
 
 export default function CustomerReceiptModal({ order, onClose }) {
@@ -85,7 +85,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
     <h1>SALIK FAST FOOD</h1>
     <p>Taste That You Need</p>
     <p>Wah Model Town, Wah Cantt • Phone: 0309-5369472</p>
-    <div class="badge">${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}</div>
+    <div class="badge">${formatReceiptPaymentBadge(order.paymentMethod)}</div>
   </div>
   <div class="meta">
     <div class="meta-row"><span class="bold">Order ID:</span><span>#${order.id}</span></div>
@@ -188,7 +188,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
               Phone: 0309-5369472
             </p>
             <div className="mt-2 inline-block px-2.5 py-0.5 border border-black font-bold uppercase tracking-wider text-[9.5px]">
-              {order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}
+              {formatReceiptPaymentBadge(order.paymentMethod)}
             </div>
           </div>
 

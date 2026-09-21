@@ -1126,7 +1126,7 @@
       "phone": "03095369472",
       "address": "Wah Model Town",
       "notes": "",
-      "paymentMethod": "Easypaisa",
+      "paymentMethod": "Online Payment",
       "items": [
         {
           "cartKey": "family-deal-default",
@@ -1152,7 +1152,7 @@
       "phone": "03095369472",
       "address": "Wah Model Town",
       "notes": "",
-      "paymentMethod": "Easypaisa",
+      "paymentMethod": "Online Payment",
       "items": [
         {
           "cartKey": "pizza-3-Large",

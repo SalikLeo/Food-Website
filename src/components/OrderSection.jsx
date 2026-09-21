@@ -319,7 +319,7 @@ export default function OrderSection() {
                   className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-white"
                 >
                   <option value="Cash on Delivery">Cash on Delivery</option>
-                  <option value="EasyPaisa">EasyPaisa</option>
+                  <option value="Online Payment">Online Payment</option>
                 </select>
               </div>
 

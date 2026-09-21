@@ -16,4 +16,26 @@ export function formatPrice(val) {
   return sign + abs.toLocaleString('en-IN');
 }
 
+/**
+ * Format payment method:
+ * Replaces legacy 'EasyPaisa' or 'Easypaisa' with 'Online Payment'.
+ */
+export function formatPaymentMethod(method) {
+  if (!method) return 'Cash on Delivery';
+  const str = String(method).trim();
+  if (/easypaisa/i.test(str)) {
+    return str.replace(/easypaisa/gi, 'Online Payment');
+  }
+  return str;
+}
+
+/**
+ * Format payment method badge text for receipts (all-caps):
+ * e.g. 'ONLINE PAYMENT', 'CASH ON DELIVERY'
+ */
+export function formatReceiptPaymentBadge(method) {
+  const formatted = formatPaymentMethod(method);
+  return formatted ? formatted.toUpperCase() : 'CASH ON DELIVERY';
+}
+
 export default formatPrice;

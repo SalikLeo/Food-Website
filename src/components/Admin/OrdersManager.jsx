@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle, Loader2 } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
-import { formatPrice } from '../../utils/formatters';
+import { formatPrice, formatPaymentMethod, formatReceiptPaymentBadge } from '../../utils/formatters';
 import { downloadReceiptImage, shareReceiptImageWhatsApp } from '../../services/receiptImageService';
 
 // Helper to format date to local YYYY-MM-DD
@@ -670,7 +670,7 @@ export default function OrdersManager({
       Phone: 0309-5369472
     </div>
     <div class="order-badge">
-      ${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}
+      ${formatReceiptPaymentBadge(order.paymentMethod)}
     </div>
   </div>
 
@@ -1371,7 +1371,7 @@ export default function OrdersManager({
                             <div className="md:text-right space-y-1">
                               <div>
                                 <span className="text-zinc-500 text-[11px]">Payment: </span>
-                                <span className="font-semibold text-zinc-800">{order.paymentMethod}</span>
+                                <span className="font-semibold text-zinc-800">{formatPaymentMethod(order.paymentMethod)}</span>
                               </div>
 
                               <div className="flex items-center justify-start md:justify-end gap-2 text-xs text-zinc-500">
@@ -1505,7 +1505,7 @@ export default function OrdersManager({
                       <div className="md:text-right space-y-1">
                         <div>
                           <span className="text-zinc-500 text-[11px]">Payment: </span>
-                          <span className="font-semibold text-zinc-800">{order.paymentMethod}</span>
+                          <span className="font-semibold text-zinc-800">{formatPaymentMethod(order.paymentMethod)}</span>
                         </div>
 
                         <div className="flex items-center justify-start md:justify-end gap-2 text-xs text-zinc-500">
@@ -1919,7 +1919,7 @@ export default function OrdersManager({
                   Phone: 0309-5369472
                 </p>
                 <div className="mt-2 inline-block px-3 py-0.5 border border-black font-bold uppercase tracking-wider text-[10px]">
-                  {viewingReceiptOrder.paymentMethod ? viewingReceiptOrder.paymentMethod.toUpperCase() : 'CASH ON DELIVERY'}
+                  {formatReceiptPaymentBadge(viewingReceiptOrder.paymentMethod)}
                 </div>
               </div>
 
