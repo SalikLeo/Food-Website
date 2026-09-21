@@ -12,14 +12,18 @@ import {
   Info,
   MapPin,
   ChevronRight,
-  Star
+  Star,
+  User,
+  Clock
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
+import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { isCustomerApp } from '../config/api';
 
 export default function Header({ onAdminClick, hideAdmin = false }) {
   const { itemCount, setIsCartOpen } = useCart();
+  const { user, isLoggedIn, setAuthModalOpen, setProfileModalOpen, setOrdersModalOpen, orders } = useCustomerAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
@@ -226,7 +230,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               <button
                 id="header-cart-btn"
                 onClick={() => setIsCartOpen(true)}
-                className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50 transition-all focus:outline-none"
+                className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50 transition-all focus:outline-none cursor-pointer"
                 aria-label="View Cart"
               >
                 <ShoppingBag className="w-5 h-5 text-zinc-200" />
@@ -235,6 +239,40 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                     {itemCount}
                   </span>
                 )}
+              </button>
+            )}
+
+            {/* Customer Recent Orders Trigger (Web only) */}
+            {!isCustomerApp && (
+              <button
+                onClick={() => setOrdersModalOpen(true)}
+                className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-amber-400 hover:border-amber-500/50 transition-all focus:outline-none cursor-pointer"
+                title="Recent Orders & Reorder"
+                aria-label="Recent Orders"
+              >
+                <Clock className="w-5 h-5" />
+                {orders.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-black text-[11px] font-bold flex items-center justify-center shadow-xs">
+                    {orders.length}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Customer Profile / Sign In Button (Web only) */}
+            {!isCustomerApp && (
+              <button
+                onClick={() => isLoggedIn ? setProfileModalOpen(true) : setAuthModalOpen(true)}
+                className={`hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                  isLoggedIn
+                    ? 'bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 border-orange-500/40'
+                    : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border-zinc-800 hover:border-zinc-700'
+                }`}
+                title={isLoggedIn ? 'View Profile' : 'Sign In with WhatsApp'}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>{isLoggedIn ? (user?.name ? user.name.split(' ')[0] : 'Profile') : 'Sign In'}</span>
+                {isLoggedIn && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
               </button>
             )}
 
@@ -326,7 +364,81 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               </div>
 
               {/* Scrollable Navigation & Content Area */}
-              <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+              <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+                {/* Customer Account / Sign In Box */}
+                {isLoggedIn ? (
+                  <div className="p-3.5 rounded-2xl bg-[#1a1a20] border border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 text-white font-bold flex items-center justify-center text-sm shadow-xs flex-shrink-0">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : 'S'}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-bold text-white truncate block">
+                          {user?.name || 'Valued Customer'}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 font-mono block truncate">
+                          {user?.phone}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setProfileModalOpen(true);
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl bg-orange-600/20 hover:bg-orange-600 text-orange-400 hover:text-white text-[11px] font-bold tracking-wide transition-all border border-orange-500/30 flex-shrink-0 cursor-pointer"
+                    >
+                      Profile
+                    </button>
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setAuthModalOpen(true);
+                    }}
+                    className="p-3.5 rounded-2xl bg-orange-600/10 border border-orange-500/30 hover:bg-orange-600/15 cursor-pointer transition-all flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-xs">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-white block">
+                          Sign In / Register
+                        </span>
+                        <span className="text-[10px] text-orange-400 block font-medium">
+                          Quick WhatsApp OTP Verification
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-orange-500" />
+                  </div>
+                )}
+
+                {/* Recent Orders Shortcut in Drawer */}
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setOrdersModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25 hover:bg-amber-500/20 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
+                      <Clock className="w-4 h-4" />
+                    </span>
+                    <span>Recent Orders & Reorder</span>
+                  </div>
+                  {orders.length > 0 ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-black">
+                      {orders.length}
+                    </span>
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-amber-500" />
+                  )}
+                </button>
+
                 {/* Navigation Section */}
                 <div className="space-y-1.5">
                   {navLinks.map((item) => {

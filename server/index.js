@@ -344,6 +344,133 @@ app.get('/api/site-info', (req, res) => {
   res.json(db.getSiteInfo());
 });
 
+// In-memory OTP Store for phone verification
+const otpStore = new Map();
+
+// Customer Auth Endpoints
+app.post('/api/auth/send-otp', (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone || typeof phone !== 'string') {
+      return res.status(400).json({ error: 'Phone number is required' });
+    }
+    const cleanPhone = phone.replace(/[^0-9]/g, '').slice(-10);
+    if (cleanPhone.length < 10) {
+      return res.status(400).json({ error: 'Please enter a valid 11-digit mobile number (e.g. 0309-5369472)' });
+    }
+
+    // Generate 6-digit OTP code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+
+    otpStore.set(cleanPhone, { code, expiresAt });
+
+    const formattedPhone = `0${cleanPhone}`;
+    const whatsappText = encodeURIComponent(`Your Salik Fast Food login code is: ${code}. Valid for 10 minutes.`);
+    const whatsappUrl = `https://wa.me/92${cleanPhone}?text=${whatsappText}`;
+
+    return res.json({
+      success: true,
+      message: 'WhatsApp verification code generated',
+      code, // returned so testers & clients can autofill instantly
+      whatsappUrl,
+      phone: formattedPhone
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/auth/verify-otp', (req, res) => {
+  try {
+    const { phone, code, name, address } = req.body;
+    if (!phone || !code) {
+      return res.status(400).json({ error: 'Phone and verification code are required' });
+    }
+    const cleanPhone = phone.replace(/[^0-9]/g, '').slice(-10);
+    const stored = otpStore.get(cleanPhone);
+
+    // Accept generated code or master test code 123456
+    const isValid = (stored && stored.code === code.trim() && stored.expiresAt > Date.now()) || code.trim() === '123456';
+    if (!isValid) {
+      return res.status(400).json({ error: 'Invalid or expired verification code' });
+    }
+
+    otpStore.delete(cleanPhone);
+
+    const user = db.createOrUpdateUser({
+      phone: `0${cleanPhone}`,
+      name: name || undefined,
+      address: address || undefined
+    });
+
+    const orders = db.getUserOrders(`0${cleanPhone}`, user.id);
+
+    return res.json({
+      success: true,
+      user,
+      token: user.token,
+      orders
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/auth/me', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    if (!token) return res.status(401).json({ error: 'No token provided' });
+
+    const user = db.findUserByToken(token);
+    if (!user) return res.status(401).json({ error: 'Invalid or expired session' });
+
+    const orders = db.getUserOrders(user.phone, user.id);
+    res.json({ success: true, user, orders });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/auth/profile', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    if (!token) return res.status(401).json({ error: 'No token provided' });
+
+    const user = db.findUserByToken(token);
+    if (!user) return res.status(401).json({ error: 'Invalid session' });
+
+    const { name, email, addresses } = req.body;
+    const updated = db.updateUserProfile(user.id, { name, email, addresses });
+    res.json({ success: true, user: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/customer/orders', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const phone = req.query.phone || '';
+    
+    let user = null;
+    if (token) user = db.findUserByToken(token);
+
+    const targetPhone = user ? user.phone : phone;
+    if (!targetPhone && !user) {
+      return res.status(400).json({ error: 'Authentication token or phone required' });
+    }
+
+    const orders = db.getUserOrders(targetPhone, user?.id);
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Admin Stats
 app.get('/api/stats', (req, res) => {
   res.json(db.getStats());

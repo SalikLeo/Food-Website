@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
+import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { apiUrl } from '../config/api';
 
 export default function OrderSection() {
@@ -30,6 +31,8 @@ export default function OrderSection() {
     isFreeDelivery
   } = useCart();
 
+  const { user, token, fetchOrders } = useCustomerAuth();
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -37,6 +40,18 @@ export default function OrderSection() {
     notes: '',
     paymentMethod: 'Cash on Delivery'
   });
+
+  // Prepopulate form if customer is logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: prev.name || user.name || '',
+        phone: prev.phone || user.phone || '',
+        address: prev.address || (user.addresses && user.addresses[0]) || ''
+      }));
+    }
+  }, [user]);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -114,7 +129,11 @@ export default function OrderSection() {
   const executePlaceOrder = async () => {
     setLoading(true);
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
       const payload = {
+        userId: user?.id,
         customerName: formData.name,
         phone: formData.phone,
         address: formData.address,
@@ -128,7 +147,7 @@ export default function OrderSection() {
 
       const res = await fetch(apiUrl('/api/orders'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
       });
 
@@ -138,10 +157,11 @@ export default function OrderSection() {
         setLastOrder(data.order);
         setOrderModalOpen(true);
         clearCart();
+        if (fetchOrders) fetchOrders();
         setFormData({
-          name: '',
-          phone: '',
-          address: '',
+          name: user?.name || '',
+          phone: user?.phone || '',
+          address: (user?.addresses && user.addresses[0]) || '',
           notes: '',
           paymentMethod: 'Cash on Delivery'
         });
@@ -247,9 +267,35 @@ export default function OrderSection() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-2">
-                  Delivery Address *
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider">
+                    Delivery Address *
+                  </label>
+                  {user?.addresses && user.addresses.length > 0 && (
+                    <span className="text-[11px] text-orange-600 font-semibold">Saved Addresses</span>
+                  )}
+                </div>
+
+                {user?.addresses && user.addresses.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {user.addresses.map((addr, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, address: addr }))}
+                        className={`text-xs px-2.5 py-1 rounded-lg border transition-all truncate max-w-full cursor-pointer ${
+                          formData.address === addr
+                            ? 'bg-orange-50 border-orange-400 text-orange-700 font-semibold'
+                            : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-600'
+                        }`}
+                        title={addr}
+                      >
+                        📍 {addr}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <input
                   type="text"
                   name="address"

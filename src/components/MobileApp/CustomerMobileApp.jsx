@@ -3,9 +3,10 @@ import {
   Search, ArrowLeft, Plus, Minus, Flame, 
   MessageCircle, Menu, X, ShoppingBag, 
   Clock, MapPin, ChevronRight, Check, Sparkles, Phone,
-  Sun, Moon
+  Sun, Moon, User, Repeat
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { apiUrl } from '../../config/api';
 import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
@@ -41,6 +42,14 @@ export default function CustomerMobileApp({
   settings = null 
 }) {
   const { addToCart, totalItems, totalPrice, setIsCartOpen } = useCart();
+  const { 
+    user, 
+    isLoggedIn, 
+    setAuthModalOpen, 
+    setProfileModalOpen, 
+    setOrdersModalOpen, 
+    orders 
+  } = useCustomerAuth();
 
   // Theme state: 'dark' | 'light' (persisted in localStorage)
   const [theme, setTheme] = useState(() => {
@@ -268,6 +277,25 @@ export default function CustomerMobileApp({
             >
               <MessageCircle className="w-5 h-5 fill-emerald-400/20" />
             </a>
+
+            {/* Profile / Sign In Quick Button */}
+            <button
+              onClick={() => isLoggedIn ? setProfileModalOpen(true) : setAuthModalOpen(true)}
+              className={`relative w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 cursor-pointer ${
+                isLoggedIn
+                  ? 'bg-orange-600/20 border-orange-500/40 text-orange-400'
+                  : isDark 
+                    ? 'bg-zinc-800/80 hover:bg-zinc-700/80 border-white/10 text-zinc-300' 
+                    : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-700 shadow-2xs'
+              }`}
+              title={isLoggedIn ? 'View Profile' : 'Sign In'}
+              aria-label="User Account"
+            >
+              <User className="w-4 h-4" />
+              {isLoggedIn && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-[#121216]" />
+              )}
+            </button>
 
             {/* Side Drawer Toggle */}
             <button
@@ -1053,6 +1081,71 @@ export default function CustomerMobileApp({
                 </button>
               </div>
 
+              {/* User Profile / Sign-in Card */}
+              {isLoggedIn ? (
+                <div className={`p-3.5 rounded-2xl border transition-all ${
+                  isDark ? 'bg-white/5 border-white/10' : 'bg-zinc-50 border-zinc-200 shadow-2xs'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 text-white font-bold flex items-center justify-center text-sm shadow-xs flex-shrink-0">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : 'S'}
+                      </div>
+                      <div className="min-w-0">
+                        <span className={`text-xs font-bold truncate block ${
+                          isDark ? 'text-white' : 'text-zinc-900'
+                        }`}>
+                          {user?.name || 'Valued Customer'}
+                        </span>
+                        <span className={`text-[10px] font-mono block truncate ${
+                          isDark ? 'text-zinc-400' : 'text-zinc-500'
+                        }`}>
+                          {user?.phone}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setProfileModalOpen(true);
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl bg-orange-600/20 hover:bg-orange-600 text-orange-400 hover:text-white text-[11px] font-bold tracking-wide transition-all border border-orange-500/30 flex-shrink-0 cursor-pointer"
+                    >
+                      Profile
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setAuthModalOpen(true);
+                  }}
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                    isDark ? 'bg-orange-600/10 border-orange-500/30 hover:bg-orange-600/15' : 'bg-orange-50 border-orange-200 hover:bg-orange-100/70'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-xs">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className={`text-xs font-bold block ${
+                          isDark ? 'text-white' : 'text-zinc-900'
+                        }`}>
+                          Sign In / Register
+                        </span>
+                        <span className="text-[10px] text-orange-400 block font-medium">
+                          Quick WhatsApp OTP Login
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-orange-500" />
+                  </div>
+                </div>
+              )}
+
               {/* Theme Mode Toggle Card in Menu (As Requested!) */}
               <div className={`p-3.5 rounded-2xl border transition-all ${
                 isDark ? 'bg-white/5 border-white/10' : 'bg-zinc-50 border-zinc-200 shadow-2xs'
@@ -1100,6 +1193,31 @@ export default function CustomerMobileApp({
 
               {/* Navigation Links */}
               <nav className="space-y-2">
+                {/* Recent Orders Item with Reorder badge */}
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setOrdersModalOpen(true);
+                  }}
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border cursor-pointer transition-all ${
+                    isDark 
+                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' 
+                      : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-500" />
+                    <span>🕒 Recent Orders & Reorder</span>
+                  </span>
+                  {orders.length > 0 ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-black">
+                      {orders.length}
+                    </span>
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-amber-500" />
+                  )}
+                </button>
+
                 <button
                   onClick={() => {
                     switchView('home');
@@ -1144,24 +1262,6 @@ export default function CustomerMobileApp({
                   <ChevronRight className="w-4 h-4 text-zinc-400" />
                 </button>
               </nav>
-
-              {/* Store Details */}
-              <div className={`rounded-2xl p-4 border space-y-2.5 text-xs ${
-                isDark ? 'bg-black/30 border-white/5 text-zinc-400' : 'bg-zinc-50 border-zinc-200 text-zinc-600'
-              }`}>
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
-                  <span>Wah Model Town, Wah Cantt</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                  <span>12:00 PM – 2:00 AM (Daily)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                  <a href="tel:03095369472" className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>0309-5369472</a>
-                </div>
-              </div>
 
             </div>
 
