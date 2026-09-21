@@ -1174,7 +1174,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
                         <span className="text-[10px] text-zinc-500 capitalize block">
                           {item.category}
                         </span>
-                        <span className="text-xs font-bold text-red-600 font-display">
+                        <span className="inline-block text-xs sm:text-sm font-extrabold text-red-600 font-sans tracking-tight mt-0.5">
                           Rs. {formatPrice(item.price || (item.sizes && item.sizes[0]?.price) || 0)}
                         </span>
                       </div>
