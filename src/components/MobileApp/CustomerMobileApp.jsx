@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { apiUrl } from '../../config/api';
+import WhatsAppIcon from '../WhatsAppIcon';
 import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
 
@@ -330,27 +331,33 @@ export default function CustomerMobileApp({
     switchView('orders');
   };
 
-  // Filter products for category view
+  // Filter products for category view (with Global Search across all categories)
   const categoryProducts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      // Global search across ALL categories
+      return (products || []).filter(p => {
+        const nameMatch = p.name && p.name.toLowerCase().includes(q);
+        const descMatch = p.description && p.description.toLowerCase().includes(q);
+        const catMatch = p.category && p.category.toLowerCase().includes(q);
+        return nameMatch || descMatch || catMatch;
+      });
+    }
+    // When no search query, filter by selected category
     let list = products || [];
     if (selectedCatId && selectedCatId !== 'all') {
       list = list.filter(p => p.category === selectedCatId);
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(p => 
-        p.name.toLowerCase().includes(q) || 
-        (p.description && p.description.toLowerCase().includes(q))
-      );
     }
     return list;
   }, [products, selectedCatId, searchQuery]);
 
   // Current active category object
-  const activeCategory = categories.find(c => c.id === selectedCatId) || categories[0] || {
-    id: 'pizza',
-    label: 'Pizza'
-  };
+  const activeCategory = selectedCatId === 'all'
+    ? { id: 'all', label: 'All Items', blurb: 'Explore our complete food menu' }
+    : (categories.find(c => c.id === selectedCatId) || categories[0] || {
+        id: 'pizza',
+        label: 'Pizza'
+      });
 
   // Promo Banners data
   const promoBanners = [
@@ -476,11 +483,11 @@ export default function CustomerMobileApp({
               className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 shadow-2xs ${
                 isDark 
                   ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/30 text-emerald-400' 
-                  : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-700'
+                  : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600'
               }`}
               title="Chat on WhatsApp"
             >
-              <MessageCircle className="w-5 h-5 fill-emerald-400/20" />
+              <WhatsAppIcon className="w-5 h-5 fill-current" />
             </a>
 
             {/* Side Drawer Toggle */}
@@ -589,14 +596,14 @@ export default function CustomerMobileApp({
             {/* Quick Action Navigation Bar */}
             <div className="grid grid-cols-3 gap-2">
               <button
-                onClick={() => switchView('category', 'pizza')}
+                onClick={() => switchView('category', 'all')}
                 className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
                   isDark 
                     ? 'bg-zinc-900/90 border border-white/10 text-zinc-200 hover:bg-zinc-800' 
                     : 'bg-white border border-zinc-200 text-zinc-800 shadow-2xs hover:bg-zinc-50'
                 }`}
               >
-                <span>🍕 All Menu</span>
+                <span>🍕 Explore Menu</span>
               </button>
 
               <button
@@ -624,6 +631,26 @@ export default function CustomerMobileApp({
               </button>
             </div>
 
+            {/* Global Search Bar on Home Screen */}
+            <div className="relative w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Search food across all categories..."
+                value={searchQuery}
+                onFocus={() => switchView('category', 'all')}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  switchView('category', 'all');
+                }}
+                className={`w-full pl-10 pr-4 py-2.5 rounded-2xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all ${
+                  isDark 
+                    ? 'bg-[#141418] border-white/10 text-white placeholder-zinc-500 shadow-sm' 
+                    : 'bg-white border-zinc-200 text-zinc-900 placeholder-zinc-400 shadow-2xs'
+                }`}
+              />
+            </div>
+
             {/* ============================================================== */}
             {/* 3. EXPLORE MENU (2-Column Category Grid Matching User Image) */}
             {/* ============================================================== */}
@@ -638,7 +665,7 @@ export default function CustomerMobileApp({
                     Explore Menu
                   </h2>
                   <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                    Tap any category to view full menu and order
+                    Tap any category to explore menu and order
                   </p>
                 </div>
 
@@ -805,7 +832,7 @@ export default function CustomerMobileApp({
                 </button>
 
                 <span className="text-xs font-semibold text-orange-500">
-                  {categoryProducts.length} Available
+                  {searchQuery.trim() ? `${categoryProducts.length} Results` : `${categoryProducts.length} Available`}
                 </span>
               </div>
 
@@ -814,26 +841,27 @@ export default function CustomerMobileApp({
                   <h2 className={`text-2xl font-display uppercase tracking-wide font-bold flex items-center gap-2 ${
                     isDark ? 'text-white' : 'text-zinc-900'
                   }`}>
-                    <span>{categoryEmojis[activeCategory.id] || '🍽️'}</span>
-                    <span>{activeCategory.label}</span>
+                    <span>{searchQuery.trim() ? '🔍' : (categoryEmojis[activeCategory.id] || '🍽️')}</span>
+                    <span>{searchQuery.trim() ? 'Global Search' : activeCategory.label}</span>
                   </h2>
-                  {activeCategory.blurb && (
-                    <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                      {activeCategory.blurb}
-                    </p>
-                  )}
+                  <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                    {searchQuery.trim() 
+                      ? `Searching all categories for "${searchQuery}"`
+                      : (activeCategory.blurb || 'Browse delicious items below')
+                    }
+                  </p>
                 </div>
               </div>
 
-              {/* Search Bar */}
+              {/* Global Search Bar */}
               <div className="relative w-full pt-1">
-                <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400`} />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <input
                   type="text"
-                  placeholder={`Search ${activeCategory.label}...`}
+                  placeholder="Search food across all categories (Pizza, Burgers, Shawarma...)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all ${
+                  className={`w-full pl-10 pr-16 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all ${
                     isDark 
                       ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
                       : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
@@ -842,8 +870,8 @@ export default function CustomerMobileApp({
                 {searchQuery && (
                   <button 
                     onClick={() => setSearchQuery('')}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs cursor-pointer ${
-                      isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-400 hover:text-zinc-800'
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer ${
+                      isDark ? 'bg-zinc-800 text-zinc-300 hover:text-white' : 'bg-zinc-200 text-zinc-700 hover:bg-zinc-300'
                     }`}
                   >
                     Clear
@@ -854,8 +882,24 @@ export default function CustomerMobileApp({
 
             {/* Horizontal Category Switcher Bar (Pills) */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 category-scroll scrollbar-none">
+              <button
+                onClick={() => {
+                  setSelectedCatId('all');
+                  setSearchQuery('');
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 cursor-pointer ${
+                  selectedCatId === 'all' && !searchQuery.trim()
+                    ? 'bg-orange-600 text-white shadow-md'
+                    : isDark
+                      ? 'bg-[#18181e] text-zinc-400 border border-white/5 hover:text-white'
+                      : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50 shadow-2xs'
+                }`}
+              >
+                <span>🍽️</span>
+                <span>ALL</span>
+              </button>
               {categories.map((c) => {
-                const isActive = selectedCatId === c.id;
+                const isActive = selectedCatId === c.id && !searchQuery.trim();
                 return (
                   <button
                     key={c.id}
@@ -880,18 +924,34 @@ export default function CustomerMobileApp({
 
             {/* Product Cards List */}
             {categoryProducts.length === 0 ? (
-              <div className={`rounded-2xl p-8 border text-center space-y-2 ${
+              <div className={`rounded-2xl p-8 border text-center space-y-3 ${
                 isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
               }`}>
-                <p className={`text-sm ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                  No items found matching your search.
-                </p>
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="text-orange-600 font-bold text-xs uppercase tracking-wider cursor-pointer"
-                >
-                  Clear Search
-                </button>
+                <div className={`w-12 h-12 rounded-2xl mx-auto flex items-center justify-center ${
+                  isDark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-50 text-orange-600'
+                }`}>
+                  <Search className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className={`text-base font-bold font-display uppercase tracking-wider ${
+                    isDark ? 'text-white' : 'text-zinc-900'
+                  }`}>
+                    No Food Items Found
+                  </h3>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                    {searchQuery.trim()
+                      ? `No dishes found matching "${searchQuery}" across any category.`
+                      : 'No items available in this category yet.'}
+                  </p>
+                </div>
+                {searchQuery.trim() && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-95 transition-all"
+                  >
+                    Clear Search
+                  </button>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -942,11 +1002,22 @@ export default function CustomerMobileApp({
                         {/* Product Details */}
                         <div className="flex-1 flex flex-col justify-between min-w-0">
                           <div>
-                            <h4 className={`font-bold text-base leading-tight truncate ${
-                              isDark ? 'text-white' : 'text-zinc-900'
-                            }`}>
-                              {product.name}
-                            </h4>
+                            <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                              <h4 className={`font-bold text-base leading-tight truncate ${
+                                isDark ? 'text-white' : 'text-zinc-900'
+                              }`}>
+                                {product.name}
+                              </h4>
+                              {(searchQuery.trim() || selectedCatId === 'all') && product.category && (
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                                  isDark 
+                                    ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
+                                    : 'bg-orange-50 text-orange-700 border border-orange-200'
+                                }`}>
+                                  {categoryEmojis[product.category] || '🍽️'} {product.category}
+                                </span>
+                              )}
+                            </div>
                             {product.description && (
                               <p className={`text-[11px] line-clamp-2 mt-1 leading-snug ${
                                 isDark ? 'text-zinc-400' : 'text-zinc-600'
@@ -1526,7 +1597,7 @@ export default function CustomerMobileApp({
                   onClick={handleMobileWhatsAppOrder}
                   className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <MessageCircle className="w-4 h-4 fill-white" />
+                  <WhatsAppIcon className="w-4 h-4 fill-white" />
                   <span>Send Order via WhatsApp</span>
                 </button>
 
@@ -1712,7 +1783,7 @@ export default function CustomerMobileApp({
                       : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                   }`}
                 >
-                  <span>🍕 Full Menu</span>
+                  <span>🍕 Explore Menu</span>
                   <ChevronRight className="w-4 h-4 text-zinc-400" />
                 </button>
 
@@ -1755,7 +1826,7 @@ export default function CustomerMobileApp({
                 rel="noopener noreferrer"
                 className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg cursor-pointer"
               >
-                <MessageCircle className="w-4 h-4 fill-white" />
+                <WhatsAppIcon className="w-4 h-4 fill-white" />
                 <span>WhatsApp Order</span>
               </a>
               <a
