@@ -1222,22 +1222,12 @@ export default function OrdersManager({
                         <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-shrink-0">
                           <CheckCircle2 className="w-4 h-4" />
                         </div>
-                        <span className="font-mono font-bold text-xs sm:text-sm text-zinc-900">
+                        <span className="font-sans font-bold text-xs sm:text-sm text-zinc-900">
                           #{order.id}
                         </span>
                         <span className="text-[11px] sm:text-xs text-zinc-500 font-medium">
                           {formatOrderDateTime(order.createdAt)}
                         </span>
-                        <span className="text-zinc-300 hidden sm:inline">•</span>
-                        <span className="text-xs font-bold text-zinc-900">
-                          {order.customerName}
-                        </span>
-                        <a
-                          href={`tel:${order.phone}`}
-                          className="text-xs text-orange-600 hover:underline hidden sm:inline font-medium"
-                        >
-                          ({order.phone})
-                        </a>
                         <span className="text-zinc-300 hidden md:inline">•</span>
                         <span className="text-xs text-zinc-500 hidden md:inline">
                           {order.items?.reduce((acc, it) => acc + (it.quantity || 1), 0)} items
@@ -1375,7 +1365,7 @@ export default function OrdersManager({
                   <div className="p-5 space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-100">
                       <div className="flex items-center gap-3">
-                        <span className="font-mono font-bold text-sm text-orange-600">
+                        <span className="font-sans font-bold text-sm text-orange-600">
                           #{order.id}
                         </span>
                         <span className="text-xs text-zinc-500 font-medium">
@@ -1520,7 +1510,7 @@ export default function OrdersManager({
                   <span className="font-display text-xl uppercase tracking-wider text-zinc-900">
                     Edit Order
                   </span>
-                  <span className="font-mono font-bold text-xs text-orange-700 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-md">
+                  <span className="font-sans font-bold text-xs text-orange-700 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-md">
                     #{modifyingOrder.id}
                   </span>
                 </div>
