@@ -77,9 +77,36 @@ export default function OrderSuccessModal() {
             ))}
           </div>
 
+          {/* Subtotal & Delivery Fee Calculation Breakdown */}
+          {(() => {
+            const calculatedSubtotal = (lastOrder.items || []).reduce(
+              (sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1),
+              0
+            );
+            const subtotal = lastOrder.subtotal !== undefined ? Number(lastOrder.subtotal) : calculatedSubtotal;
+            const deliveryFee = lastOrder.deliveryFee !== undefined 
+              ? Number(lastOrder.deliveryFee) 
+              : Math.max(0, (Number(lastOrder.total) || 0) - subtotal);
+
+            return (
+              <div className="pt-2 border-t border-zinc-800/80 space-y-1 text-xs">
+                <div className="flex justify-between text-zinc-400">
+                  <span>Items Subtotal</span>
+                  <span className="text-zinc-200 font-medium">Rs. {subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-zinc-400">
+                  <span>Delivery Fee</span>
+                  <span className={deliveryFee === 0 ? 'text-emerald-400 font-bold' : 'text-zinc-200 font-medium'}>
+                    {deliveryFee === 0 ? 'FREE' : `Rs. ${deliveryFee.toLocaleString()}`}
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="pt-2 border-t border-zinc-800 flex justify-between font-bold text-sm">
             <span className="text-white">Total Amount</span>
-            <span className="text-amber-400">Rs. {lastOrder.total?.toLocaleString()}</span>
+            <span className="text-amber-400 font-montserrat text-base">Rs. {lastOrder.total?.toLocaleString()}</span>
           </div>
         </div>
 

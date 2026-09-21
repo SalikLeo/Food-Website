@@ -1631,6 +1631,14 @@ export default function CustomerMobileApp({
                       })
                     : 'Recent Order';
 
+                  const orderItemsSubtotal = order.subtotal !== undefined
+                    ? Number(order.subtotal)
+                    : itemsList.reduce((sum, it) => sum + ((Number(it.price) || 0) * (Number(it.quantity) || 1)), 0);
+
+                  const orderDeliveryFee = order.deliveryFee !== undefined
+                    ? Number(order.deliveryFee)
+                    : Math.max(0, (Number(order.total) || 0) - orderItemsSubtotal);
+
                   return (
                     <div
                       key={order.id || idx}
@@ -1731,6 +1739,28 @@ export default function CustomerMobileApp({
                                     </span>
                                   </div>
                                 ))}
+
+                                {/* Subtotal & Delivery Charges Breakdown */}
+                                <div className={`pt-2 mt-1 border-t space-y-1 text-xs ${
+                                  isDark ? 'border-white/10' : 'border-zinc-200'
+                                }`}>
+                                  <div className="flex items-center justify-between text-[11px]">
+                                    <span className={isDark ? 'text-zinc-400' : 'text-zinc-500'}>Items Subtotal</span>
+                                    <span className={`font-semibold ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                                      Rs. {orderItemsSubtotal.toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-[11px]">
+                                    <span className={isDark ? 'text-zinc-400' : 'text-zinc-500'}>Delivery Charges</span>
+                                    <span className={`font-semibold ${
+                                      orderDeliveryFee === 0 
+                                        ? 'text-emerald-500 font-bold' 
+                                        : (isDark ? 'text-zinc-300' : 'text-zinc-700')
+                                    }`}>
+                                      {orderDeliveryFee === 0 ? 'FREE' : `Rs. ${orderDeliveryFee.toLocaleString()}`}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1740,9 +1770,16 @@ export default function CustomerMobileApp({
                       {/* Order Footer: Total & REORDER Button */}
                       <div className="flex items-center justify-between pt-1 gap-3">
                         <div>
-                          <span className="text-[10px] text-zinc-500 uppercase font-bold block">
-                            Total Paid
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-zinc-500 uppercase font-bold block">
+                              Total Paid
+                            </span>
+                            {orderDeliveryFee > 0 && (
+                              <span className={`text-[10px] font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                                (incl. Rs. {orderDeliveryFee.toLocaleString()} delivery)
+                              </span>
+                            )}
+                          </div>
                           <span className="font-montserrat text-base font-extrabold text-orange-600 leading-tight">
                             Rs. {order.total?.toLocaleString()}
                           </span>
