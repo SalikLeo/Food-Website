@@ -79,18 +79,20 @@ export default function CustomerMobileApp({
   const totalItems = rawTotalItems || itemCount || (cartItems || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
   const totalPrice = rawTotalPrice || total || subtotal;
 
-  // Theme state: 'dark' | 'light' (persisted in localStorage)
+  // Theme state: 'light' | 'dark' (persisted in localStorage, default 'light')
   const [theme, setTheme] = useState(() => {
     try {
-      const saved = localStorage.getItem('salik_app_theme');
-      return saved === 'light' || saved === 'dark' ? saved : 'dark';
+      const savedV2 = localStorage.getItem('salik_app_theme_v2');
+      if (savedV2 === 'light' || savedV2 === 'dark') return savedV2;
+      return 'light';
     } catch {
-      return 'dark';
+      return 'light';
     }
   });
 
   useEffect(() => {
     try {
+      localStorage.setItem('salik_app_theme_v2', theme);
       localStorage.setItem('salik_app_theme', theme);
     } catch (e) {
       console.error(e);
@@ -976,10 +978,14 @@ export default function CustomerMobileApp({
 
                 <button
                   onClick={() => switchView('category', 'all')}
-                  className="text-xs font-bold text-orange-600 hover:text-orange-500 uppercase tracking-wider flex items-center gap-0.5 active:scale-95 transition-all cursor-pointer"
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 ${
+                    isDark
+                      ? 'bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 border border-orange-500/30'
+                      : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200/90'
+                  }`}
                 >
                   <span>VIEW ALL</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
                 </button>
               </div>
 
@@ -1050,10 +1056,14 @@ export default function CustomerMobileApp({
                   </div>
                   <button
                     onClick={() => switchView('deals')}
-                    className="text-xs font-bold text-orange-600 uppercase tracking-wider flex items-center gap-0.5 cursor-pointer"
+                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 ${
+                      isDark
+                        ? 'bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 border border-orange-500/30'
+                        : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200/90'
+                    }`}
                   >
                     <span>ALL DEALS</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
                 </div>
 
@@ -2371,12 +2381,12 @@ export default function CustomerMobileApp({
                   {/* Sun Icon */}
                   <div className={`transition-all duration-300 flex items-center justify-center ${
                     !isDark 
-                      ? 'text-zinc-700 scale-105' 
+                      ? 'text-zinc-800 scale-105' 
                       : 'text-zinc-500 opacity-40 hover:opacity-60'
                   }`}>
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="4.5" />
-                      <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.93 4.93l1.8 1.8M17.27 17.27l1.8 1.8M4.93 19.07l1.8-1.8M17.27 6.73l1.8-1.8" />
+                      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
                     </svg>
                   </div>
 
@@ -2398,16 +2408,14 @@ export default function CustomerMobileApp({
                     />
                   </div>
 
-                  {/* Moon with Stars Icon */}
+                  {/* Slim Crescent Moon Icon */}
                   <div className={`transition-all duration-300 flex items-center justify-center ${
                     isDark 
-                      ? 'text-zinc-300 scale-105' 
+                      ? 'text-zinc-200 scale-105' 
                       : 'text-zinc-400 opacity-40 hover:opacity-60'
                   }`}>
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 3.2A8 8 0 1 0 20.8 10 7 7 0 0 1 14 3.2Z" />
-                      <path d="M19 3.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" fill="currentColor" stroke="none" />
-                      <path d="M22 8l.4.9.9.4-.9.4-.4.9-.4-.9-.9-.4.9-.4z" fill="currentColor" stroke="none" />
+                    <svg className="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                     </svg>
                   </div>
                 </div>
