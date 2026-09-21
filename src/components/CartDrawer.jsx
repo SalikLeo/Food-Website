@@ -52,6 +52,9 @@ export default function CartDrawer() {
     if (orderSec) {
       orderSec.scrollIntoView({ behavior: 'smooth' });
     }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('salik_open_checkout'));
+    }
   };
 
   const handleBrowseMenu = () => {

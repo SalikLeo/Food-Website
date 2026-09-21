@@ -3,10 +3,9 @@ import {
   Search, ArrowLeft, Plus, Minus, Flame, 
   MessageCircle, Menu, X, ShoppingBag, 
   Clock, MapPin, ChevronRight, Check, Sparkles, Phone,
-  Sun, Moon, User, Repeat
+  Sun, Moon, RotateCcw, PackageCheck, Receipt, AlertCircle
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
-import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { apiUrl } from '../../config/api';
 import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
@@ -41,15 +40,25 @@ export default function CustomerMobileApp({
   familyDeal = null,
   settings = null 
 }) {
-  const { addToCart, totalItems, totalPrice, setIsCartOpen } = useCart();
   const { 
-    user, 
-    isLoggedIn, 
-    setAuthModalOpen, 
-    setProfileModalOpen, 
-    setOrdersModalOpen, 
-    orders 
-  } = useCustomerAuth();
+    addToCart, 
+    totalItems, 
+    totalPrice, 
+    setIsCartOpen,
+    recentOrders = [],
+    saveRecentOrder,
+    reorder,
+    cartItems = [],
+    subtotal = 0,
+    deliveryFee = 100,
+    total = 0,
+    isMinOrderMet = true,
+    minOrder = 500,
+    getWhatsAppMessage,
+    clearCart,
+    setLastOrder,
+    setOrderModalOpen
+  } = useCart();
 
   // Theme state: 'dark' | 'light' (persisted in localStorage)
   const [theme, setTheme] = useState(() => {
@@ -72,16 +81,37 @@ export default function CustomerMobileApp({
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
-  // Navigation states: 'home' | 'category' | 'deals'
+  // Navigation states: 'home' | 'category' | 'deals' | 'orders' | 'checkout'
   const [currentView, setCurrentView] = useState('home');
   const [selectedCatId, setSelectedCatId] = useState('pizza');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const [reorderToast, setReorderToast] = useState('');
 
   // Selected sizes and quantities per product
   const [selectedSizes, setSelectedSizes] = useState({});
   const [quantities, setQuantities] = useState({});
+
+  // Checkout form state
+  const [checkoutForm, setCheckoutForm] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    notes: '',
+    paymentMethod: 'Cash on Delivery'
+  });
+  const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
+
+  // Listen for checkout click from CartDrawer
+  useEffect(() => {
+    const handleOpenCheckout = () => {
+      switchView('checkout');
+    };
+    window.addEventListener('salik_open_checkout', handleOpenCheckout);
+    return () => window.removeEventListener('salik_open_checkout', handleOpenCheckout);
+  }, []);
 
   // Auto-rotate promo banners
   useEffect(() => {
@@ -139,6 +169,165 @@ export default function CustomerMobileApp({
       category: 'deals',
       description: (deal.includes || []).join(' + ')
     }, null, 1, e?.currentTarget);
+  };
+
+  // Reorder entire past order
+  const handleReorderOrder = (order) => {
+    if (typeof reorder === 'function') {
+      reorder(order);
+    } else {
+      (order.items || []).forEach(item => {
+        addToCart({
+          id: item.id || item.cartKey || item.name,
+          name: item.name,
+          price: item.price,
+          image: item.image,
+          category: item.category || 'menu',
+          inStock: true
+        }, item.size || null, item.quantity || 1);
+      });
+      setIsCartOpen(true);
+    }
+    setReorderToast(`Items from Order #${order.id || 'recent'} added to cart!`);
+    setTimeout(() => setReorderToast(''), 4000);
+  };
+
+  // Create sample order if none exists so user can test immediately
+  const handleLoadSampleOrder = () => {
+    const sample = {
+      id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: new Date().toISOString(),
+      status: 'Delivered',
+      total: 1050,
+      deliveryFee: 100,
+      subtotal: 950,
+      items: [
+        {
+          id: 'burger-zinger',
+          name: 'Zinger Burger',
+          price: 320,
+          quantity: 2,
+          size: null,
+          image: '/assets/images/cat-burgers-CfWIZ4YN.jpg'
+        },
+        {
+          id: 'fries-regular',
+          name: 'Crispy Fries',
+          price: 180,
+          quantity: 1,
+          size: null,
+          image: '/assets/images/cat-fries-DyVY4OBM.jpg'
+        },
+        {
+          id: 'drink-500ml',
+          name: 'Coke 500ml',
+          price: 130,
+          quantity: 1,
+          size: null,
+          image: '/assets/images/coke-500ml.png'
+        }
+      ]
+    };
+    if (typeof saveRecentOrder === 'function') {
+      saveRecentOrder(sample);
+    }
+  };
+
+  // Mobile Checkout Submit
+  const handleMobileOnlineOrder = async (e) => {
+    e.preventDefault();
+    if (!checkoutForm.name || !checkoutForm.phone || !checkoutForm.address) {
+      setCheckoutError('Please fill in Name, Phone, and Delivery Address');
+      return;
+    }
+    setCheckoutSubmitting(true);
+    setCheckoutError('');
+
+    try {
+      const payload = {
+        customerName: checkoutForm.name,
+        phone: checkoutForm.phone,
+        address: checkoutForm.address,
+        notes: checkoutForm.notes,
+        paymentMethod: checkoutForm.paymentMethod,
+        items: cartItems,
+        subtotal,
+        deliveryFee,
+        total
+      };
+
+      const res = await fetch(apiUrl('/api/orders'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (typeof setLastOrder === 'function') setLastOrder(data.order);
+        if (typeof saveRecentOrder === 'function') saveRecentOrder(data.order);
+        if (typeof setOrderModalOpen === 'function') setOrderModalOpen(true);
+        if (typeof clearCart === 'function') clearCart();
+        setCheckoutForm({ name: '', phone: '', address: '', notes: '', paymentMethod: 'Cash on Delivery' });
+        switchView('orders');
+      } else {
+        setCheckoutError(data.error || 'Failed to place order. Try again or use WhatsApp.');
+      }
+    } catch (err) {
+      console.error(err);
+      setCheckoutError('Network error. Please try WhatsApp ordering.');
+    } finally {
+      setCheckoutSubmitting(false);
+    }
+  };
+
+  // Mobile WhatsApp Checkout Submit
+  const handleMobileWhatsAppOrder = () => {
+    if (!checkoutForm.name || !checkoutForm.phone) {
+      setCheckoutError('Please provide your Name and Phone Number');
+      return;
+    }
+    const waOrder = {
+      id: `WA-${Date.now().toString().slice(-4)}`,
+      customerName: checkoutForm.name,
+      phone: checkoutForm.phone,
+      address: checkoutForm.address || 'Wah Cantt',
+      notes: checkoutForm.notes || '',
+      paymentMethod: `${checkoutForm.paymentMethod} (WhatsApp)`,
+      items: [...cartItems],
+      subtotal,
+      deliveryFee,
+      total,
+      createdAt: new Date().toISOString(),
+      status: 'WhatsApp Order'
+    };
+
+    if (typeof saveRecentOrder === 'function') saveRecentOrder(waOrder);
+    if (typeof setLastOrder === 'function') setLastOrder(waOrder);
+
+    // Save to server in background
+    try {
+      fetch(apiUrl('/api/orders'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: checkoutForm.name,
+          phone: checkoutForm.phone,
+          address: checkoutForm.address,
+          notes: checkoutForm.notes,
+          paymentMethod: `${checkoutForm.paymentMethod} (WhatsApp)`,
+          items: cartItems,
+          subtotal,
+          deliveryFee,
+          total
+        })
+      });
+    } catch {}
+
+    const msg = getWhatsAppMessage ? getWhatsAppMessage(checkoutForm) : `Order from ${checkoutForm.name}`;
+    window.open(`https://wa.me/923095369472?text=${msg}`, '_blank');
+    if (typeof clearCart === 'function') clearCart();
+    switchView('orders');
   };
 
   // Filter products for category view
@@ -203,6 +392,22 @@ export default function CustomerMobileApp({
         ? 'bg-[#0e0e11] text-white selection:bg-orange-500 selection:text-white' 
         : 'bg-[#f4f5f8] text-zinc-900 selection:bg-orange-500 selection:text-white'
     }`}>
+
+      {/* Reorder Notification Toast */}
+      {reorderToast && (
+        <div className="fixed top-16 left-4 right-4 z-50 animate-slide-down flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-orange-600 text-white shadow-2xl border border-orange-400">
+          <div className="flex items-center gap-2.5 text-xs font-bold">
+            <Check className="w-4 h-4 text-white flex-shrink-0" />
+            <span>{reorderToast}</span>
+          </div>
+          <button 
+            onClick={() => setReorderToast('')}
+            className="w-6 h-6 rounded-full bg-black/20 flex items-center justify-center text-white"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
       
       {/* ============================================================== */}
       {/* 1. TOP APP BAR (Native Mobile App Header with Safe-Area Inset) */}
@@ -277,25 +482,6 @@ export default function CustomerMobileApp({
             >
               <MessageCircle className="w-5 h-5 fill-emerald-400/20" />
             </a>
-
-            {/* Profile / Sign In Quick Button */}
-            <button
-              onClick={() => isLoggedIn ? setProfileModalOpen(true) : setAuthModalOpen(true)}
-              className={`relative w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 cursor-pointer ${
-                isLoggedIn
-                  ? 'bg-orange-600/20 border-orange-500/40 text-orange-400'
-                  : isDark 
-                    ? 'bg-zinc-800/80 hover:bg-zinc-700/80 border-white/10 text-zinc-300' 
-                    : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-700 shadow-2xs'
-              }`}
-              title={isLoggedIn ? 'View Profile' : 'Sign In'}
-              aria-label="User Account"
-            >
-              <User className="w-4 h-4" />
-              {isLoggedIn && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-[#121216]" />
-              )}
-            </button>
 
             {/* Side Drawer Toggle */}
             <button
@@ -400,7 +586,7 @@ export default function CustomerMobileApp({
               </div>
             </div>
 
-            {/* Quick Action Navigation Bar (Menu / Deals / WhatsApp) */}
+            {/* Quick Action Navigation Bar */}
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => switchView('category', 'pizza')}
@@ -425,17 +611,17 @@ export default function CustomerMobileApp({
                 <span>Deals</span>
               </button>
 
-              <a
-                href="tel:03095369472"
+              <button
+                onClick={() => switchView('orders')}
                 className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
                   isDark 
                     ? 'bg-zinc-900/90 border border-white/10 text-zinc-200 hover:bg-zinc-800' 
                     : 'bg-white border border-zinc-200 text-zinc-800 shadow-2xs hover:bg-zinc-50'
                 }`}
               >
-                <Phone className={`w-3.5 h-3.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`} />
-                <span>Call Store</span>
-              </a>
+                <Clock className="w-3.5 h-3.5 text-orange-500" />
+                <span>Orders</span>
+              </button>
             </div>
 
             {/* ============================================================== */}
@@ -576,7 +762,7 @@ export default function CustomerMobileApp({
                       </div>
 
                       <p className={`text-[11px] line-clamp-2 my-2 min-h-[32px] ${
-                        isDark ? 'text-zinc-400' : 'text-zinc-600'
+                        isDark ? 'text-zinc-300' : 'text-zinc-600'
                       }`}>
                         {(deal.includes || []).join(' + ')}
                       </p>
@@ -641,9 +827,7 @@ export default function CustomerMobileApp({
 
               {/* Search Bar */}
               <div className="relative w-full pt-1">
-                <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                  isDark ? 'text-zinc-400' : 'text-zinc-400'
-                }`} />
+                <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400`} />
                 <input
                   type="text"
                   placeholder={`Search ${activeCategory.label}...`}
@@ -1008,6 +1192,360 @@ export default function CustomerMobileApp({
           </div>
         )}
 
+        {/* ============================================================== */}
+        {/* VIEW D: RECENT ORDERS & HISTORY (WITH ONE-TAP REORDER) */}
+        {/* ============================================================== */}
+        {currentView === 'orders' && (
+          <div className="space-y-4 animate-fade-in">
+            
+            {/* Header */}
+            <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
+              isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
+            }`}>
+              <button
+                onClick={() => switchView('home')}
+                className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider active:opacity-75 transition-opacity cursor-pointer ${
+                  isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'
+                }`}
+              >
+                <ArrowLeft className="w-4 h-4 text-orange-500" />
+                <span>Back to Menu</span>
+              </button>
+
+              <span className="text-xs font-semibold text-orange-500">
+                {recentOrders.length} {recentOrders.length === 1 ? 'Order' : 'Orders'}
+              </span>
+            </div>
+
+            {/* Empty State */}
+            {recentOrders.length === 0 ? (
+              <div className={`rounded-3xl p-8 border text-center space-y-4 ${
+                isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-sm'
+              }`}>
+                <div className={`w-16 h-16 rounded-3xl mx-auto flex items-center justify-center ${
+                  isDark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-50 text-orange-600'
+                }`}>
+                  <PackageCheck className="w-8 h-8" />
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className={`text-lg font-bold font-display uppercase tracking-wider ${
+                    isDark ? 'text-white' : 'text-zinc-900'
+                  }`}>
+                    No Past Orders Yet
+                  </h3>
+                  <p className={`text-xs max-w-xs mx-auto leading-relaxed ${
+                    isDark ? 'text-zinc-400' : 'text-zinc-600'
+                  }`}>
+                    Orders placed on the app will appear here with a 1-tap <strong>Reorder</strong> button to order your favorites again quickly!
+                  </p>
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                  <button
+                    onClick={() => switchView('home')}
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
+                  >
+                    Browse Menu
+                  </button>
+                  <button
+                    onClick={handleLoadSampleOrder}
+                    className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
+                      isDark 
+                        ? 'bg-zinc-800 border-white/10 text-zinc-300 hover:text-white' 
+                        : 'bg-zinc-100 border-zinc-200 text-zinc-700 hover:bg-zinc-200'
+                    }`}
+                  >
+                    Load Sample Order
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Recent Orders List */
+              <div className="space-y-3.5">
+                {recentOrders.map((order, idx) => {
+                  const itemsList = order.items || [];
+                  const orderDate = order.createdAt 
+                    ? new Date(order.createdAt).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })
+                    : 'Recent Order';
+
+                  return (
+                    <div
+                      key={order.id || idx}
+                      className={`rounded-2xl p-4 border transition-all ${
+                        isDark 
+                          ? 'bg-[#15151a] border-white/10 shadow-lg' 
+                          : 'bg-white border-zinc-200 shadow-xs'
+                      }`}
+                    >
+                      {/* Top Order Meta */}
+                      <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                        <div className="flex items-center gap-2">
+                          <Receipt className="w-4 h-4 text-orange-500" />
+                          <span className={`font-mono text-xs font-bold ${
+                            isDark ? 'text-white' : 'text-zinc-900'
+                          }`}>
+                            #{order.id}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                            order.status?.toLowerCase().includes('whatsapp')
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                          }`}>
+                            {order.status || 'Pending'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Date & Address */}
+                      <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-2 pb-1">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-zinc-500" />
+                          <span>{orderDate}</span>
+                        </span>
+                        {order.address && (
+                          <span className="truncate max-w-[150px]">
+                            📍 {order.address}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Items Summary */}
+                      <div className={`my-2.5 p-3 rounded-xl space-y-1.5 ${
+                        isDark ? 'bg-black/40 border border-white/5' : 'bg-zinc-50 border border-zinc-200/60'
+                      }`}>
+                        {itemsList.map((item, itemIdx) => (
+                          <div key={itemIdx} className="flex items-center justify-between text-xs">
+                            <span className={`truncate mr-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                              <strong className="text-orange-500 font-bold mr-1">{item.quantity}x</strong>
+                              {item.name}
+                              {item.size && (
+                                <span className="text-[10px] text-zinc-400 ml-1">
+                                  ({typeof item.size === 'string' ? item.size : item.size?.label})
+                                </span>
+                              )}
+                            </span>
+                            <span className={`font-semibold font-mono flex-shrink-0 ${
+                              isDark ? 'text-zinc-300' : 'text-zinc-700'
+                            }`}>
+                              Rs. {(item.price * item.quantity).toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Order Footer: Total & REORDER Button */}
+                      <div className="flex items-center justify-between pt-1 gap-3">
+                        <div>
+                          <span className="text-[10px] text-zinc-500 uppercase font-bold block">
+                            Total Paid
+                          </span>
+                          <span className="font-display text-lg font-bold text-orange-600 leading-tight">
+                            Rs. {order.total?.toLocaleString()}
+                          </span>
+                        </div>
+
+                        {/* REORDER BUTTON (As Requested!) */}
+                        <button
+                          onClick={() => handleReorderOrder(order)}
+                          className="px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>⚡ Reorder</span>
+                        </button>
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* VIEW E: MOBILE CHECKOUT VIEW */}
+        {/* ============================================================== */}
+        {currentView === 'checkout' && (
+          <div className="space-y-4 animate-fade-in">
+            
+            <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
+              isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
+            }`}>
+              <button
+                onClick={() => {
+                  switchView('home');
+                  setIsCartOpen(true);
+                }}
+                className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider active:opacity-75 transition-opacity cursor-pointer ${
+                  isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'
+                }`}
+              >
+                <ArrowLeft className="w-4 h-4 text-orange-500" />
+                <span>Back to Cart</span>
+              </button>
+
+              <span className="text-xs font-bold text-orange-500">
+                Checkout ({totalItems} items)
+              </span>
+            </div>
+
+            {/* Error Alert */}
+            {checkoutError && (
+              <div className="p-3.5 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <span>{checkoutError}</span>
+              </div>
+            )}
+
+            {/* Delivery Form */}
+            <form onSubmit={handleMobileOnlineOrder} className={`rounded-2xl p-4 sm:p-5 border space-y-4 ${
+              isDark ? 'bg-[#15151a] border-white/10 shadow-lg' : 'bg-white border-zinc-200 shadow-sm'
+            }`}>
+              <h3 className={`font-display text-lg uppercase tracking-wider font-bold ${
+                isDark ? 'text-white' : 'text-zinc-900'
+              }`}>
+                Delivery Details
+              </h3>
+
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  Your Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={checkoutForm.name}
+                  onChange={(e) => setCheckoutForm({ ...checkoutForm, name: e.target.value })}
+                  placeholder="e.g. M. Salik"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                    isDark 
+                      ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
+                      : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={checkoutForm.phone}
+                  onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value })}
+                  placeholder="0309-xxxxxxx"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                    isDark 
+                      ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
+                      : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  Delivery Address *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={checkoutForm.address}
+                  onChange={(e) => setCheckoutForm({ ...checkoutForm, address: e.target.value })}
+                  placeholder="House #, Street, Area in Wah Cantt"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                    isDark 
+                      ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
+                      : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  Special Instructions (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={checkoutForm.notes}
+                  onChange={(e) => setCheckoutForm({ ...checkoutForm, notes: e.target.value })}
+                  placeholder="Extra spicy, less sauce, ring bell twice..."
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                    isDark 
+                      ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
+                      : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                  }`}
+                />
+              </div>
+
+              {/* Order Bill Summary */}
+              <div className={`p-3.5 rounded-xl space-y-1.5 text-xs ${
+                isDark ? 'bg-black/40 border border-white/5' : 'bg-zinc-50 border border-zinc-200'
+              }`}>
+                <div className="flex justify-between text-zinc-400">
+                  <span>Subtotal</span>
+                  <span className="font-semibold text-white">Rs. {subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-zinc-400">
+                  <span>Delivery Fee</span>
+                  <span className="font-semibold text-white">Rs. {deliveryFee.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-baseline pt-2 border-t border-white/10">
+                  <span className="font-bold text-sm text-white">Total Amount</span>
+                  <span className="font-display text-xl font-bold text-orange-500">
+                    Rs. {total.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2.5 pt-2">
+                
+                {/* 1. WhatsApp Instant Checkout */}
+                <button
+                  type="button"
+                  onClick={handleMobileWhatsAppOrder}
+                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4 fill-white" />
+                  <span>Send Order via WhatsApp</span>
+                </button>
+
+                {/* 2. Direct Online Order */}
+                <button
+                  type="submit"
+                  disabled={checkoutSubmitting}
+                  className="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>{checkoutSubmitting ? 'Placing Order...' : 'Confirm & Place Order'}</span>
+                </button>
+
+              </div>
+            </form>
+
+          </div>
+        )}
+
       </main>
 
       {/* ============================================================== */}
@@ -1036,7 +1574,7 @@ export default function CustomerMobileApp({
       </div>
 
       {/* ============================================================== */}
-      {/* 5. SIDE DRAWER MENU (Theme Toggle, Links, Restaurant Info) */}
+      {/* 5. SIDE DRAWER MENU */}
       {/* ============================================================== */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex">
@@ -1081,72 +1619,7 @@ export default function CustomerMobileApp({
                 </button>
               </div>
 
-              {/* User Profile / Sign-in Card */}
-              {isLoggedIn ? (
-                <div className={`p-3.5 rounded-2xl border transition-all ${
-                  isDark ? 'bg-white/5 border-white/10' : 'bg-zinc-50 border-zinc-200 shadow-2xs'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 text-white font-bold flex items-center justify-center text-sm shadow-xs flex-shrink-0">
-                        {user?.name ? user.name.charAt(0).toUpperCase() : 'S'}
-                      </div>
-                      <div className="min-w-0">
-                        <span className={`text-xs font-bold truncate block ${
-                          isDark ? 'text-white' : 'text-zinc-900'
-                        }`}>
-                          {user?.name || 'Valued Customer'}
-                        </span>
-                        <span className={`text-[10px] block truncate ${
-                          isDark ? 'text-zinc-400' : 'text-zinc-500'
-                        }`}>
-                          {user?.email || user?.phone}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setProfileModalOpen(true);
-                      }}
-                      className="px-2.5 py-1.5 rounded-xl bg-orange-600/20 hover:bg-orange-600 text-orange-400 hover:text-white text-[11px] font-bold tracking-wide transition-all border border-orange-500/30 flex-shrink-0 cursor-pointer"
-                    >
-                      Profile
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div 
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setAuthModalOpen(true);
-                  }}
-                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
-                    isDark ? 'bg-orange-600/10 border-orange-500/30 hover:bg-orange-600/15' : 'bg-orange-50 border-orange-200 hover:bg-orange-100/70'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-xs">
-                        <User className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className={`text-xs font-bold block ${
-                          isDark ? 'text-white' : 'text-zinc-900'
-                        }`}>
-                          Sign In / Register
-                        </span>
-                        <span className="text-[10px] text-orange-400 block font-medium">
-                          Email Verification Code
-                        </span>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-orange-500" />
-                  </div>
-                </div>
-              )}
-
-              {/* Theme Mode Toggle Card in Menu (As Requested!) */}
+              {/* Theme Mode Toggle Card in Menu */}
               <div className={`p-3.5 rounded-2xl border transition-all ${
                 isDark ? 'bg-white/5 border-white/10' : 'bg-zinc-50 border-zinc-200 shadow-2xs'
               }`}>
@@ -1191,40 +1664,17 @@ export default function CustomerMobileApp({
                 </div>
               </div>
 
-              {/* Navigation Links */}
+              {/* Navigation Links: Home, Deals, Menu, RECENT ORDERS */}
               <nav className="space-y-2">
-                {/* Recent Orders Item with Reorder badge */}
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setOrdersModalOpen(true);
-                  }}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border cursor-pointer transition-all ${
-                    isDark 
-                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20' 
-                      : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-500" />
-                    <span>🕒 Recent Orders & Reorder</span>
-                  </span>
-                  {orders.length > 0 ? (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-black">
-                      {orders.length}
-                    </span>
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-amber-500" />
-                  )}
-                </button>
-
                 <button
                   onClick={() => {
                     switchView('home');
                     setMobileMenuOpen(false);
                   }}
                   className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors cursor-pointer ${
-                    isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
+                    currentView === 'home'
+                      ? 'bg-orange-600 text-white shadow-sm'
+                      : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                   }`}
                 >
                   <span>🏠 Home & Categories</span>
@@ -1237,9 +1687,11 @@ export default function CustomerMobileApp({
                     setMobileMenuOpen(false);
                   }}
                   className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border cursor-pointer ${
-                    isDark 
-                      ? 'bg-orange-600/15 text-orange-400 border-orange-500/30' 
-                      : 'bg-orange-50 text-orange-700 border-orange-200'
+                    currentView === 'deals'
+                      ? 'bg-orange-600 text-white shadow-sm border-orange-500'
+                      : isDark 
+                        ? 'bg-orange-600/15 text-orange-400 border-orange-500/30' 
+                        : 'bg-orange-50 text-orange-700 border-orange-200'
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -1255,17 +1707,47 @@ export default function CustomerMobileApp({
                     setMobileMenuOpen(false);
                   }}
                   className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors cursor-pointer ${
-                    isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
+                    currentView === 'category'
+                      ? 'bg-orange-600 text-white shadow-sm'
+                      : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                   }`}
                 >
                   <span>🍕 Full Menu</span>
                   <ChevronRight className="w-4 h-4 text-zinc-400" />
                 </button>
+
+                {/* RECENT ORDERS (Added here replacing the old store details!) */}
+                <button
+                  onClick={() => {
+                    switchView('orders');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-between border transition-all cursor-pointer ${
+                    currentView === 'orders'
+                      ? 'bg-orange-600 text-white shadow-sm border-orange-500'
+                      : isDark 
+                        ? 'bg-white/5 hover:bg-white/10 text-white border-white/5' 
+                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4 text-orange-500" />
+                    <span>Recent Orders</span>
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {recentOrders.length > 0 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-600 text-white font-bold">
+                        {recentOrders.length}
+                      </span>
+                    )}
+                    <ChevronRight className="w-4 h-4 text-zinc-400" />
+                  </div>
+                </button>
               </nav>
 
             </div>
 
-            {/* Bottom Actions in Drawer */}
+            {/* Bottom Quick Contact Buttons */}
             <div className={`space-y-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
               <a
                 href="https://wa.me/923095369472"

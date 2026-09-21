@@ -390,19 +390,9 @@ export const db = {
   createOrder(orderData) {
     const data = readDb();
     const id = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(10 + Math.random() * 90)}`;
-    
-    // Auto-link userId if customer exists by phone
-    let userId = orderData.userId || null;
-    if (!userId && orderData.phone && Array.isArray(data.users)) {
-      const cleanPhone = (orderData.phone || '').replace(/[^0-9]/g, '').slice(-10);
-      const user = data.users.find(u => (u.phone || '').replace(/[^0-9]/g, '').slice(-10) === cleanPhone);
-      if (user) userId = user.id;
-    }
-
     const newOrder = {
       id,
       ...orderData,
-      userId,
       status: 'Pending', // Pending | Preparing | Out for Delivery | Delivered | Cancelled
       createdAt: new Date().toISOString()
     };
@@ -671,112 +661,5 @@ export const db = {
       totalRevenue,
       totalReviews: reviews.length
     };
-  },
-
-  // Customers / Users
-  getUsers() {
-    const data = readDb();
-    return data.users || [];
-  },
-
-  findUserByEmail(email) {
-    if (!email) return null;
-    const data = readDb();
-    const cleanEmail = email.trim().toLowerCase();
-    return (data.users || []).find(u => (u.email || '').trim().toLowerCase() === cleanEmail) || null;
-  },
-
-  findUserByPhone(phone) {
-    const data = readDb();
-    const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
-    return (data.users || []).find(u => {
-      const uPhone = (u.phone || '').replace(/[^0-9]/g, '').slice(-10);
-      return uPhone && uPhone === cleanPhone;
-    }) || null;
-  },
-
-  findUserByToken(token) {
-    if (!token) return null;
-    const data = readDb();
-    return (data.users || []).find(u => u.token === token) || null;
-  },
-
-  createOrUpdateUser({ email, phone, name, address }) {
-    const data = readDb();
-    if (!Array.isArray(data.users)) data.users = [];
-    
-    const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
-
-    let user = data.users.find(u => {
-      if (cleanEmail && (u.email || '').trim().toLowerCase() === cleanEmail) return true;
-      if (cleanPhone) {
-        const uPhone = (u.phone || '').replace(/[^0-9]/g, '').slice(-10);
-        return uPhone && uPhone === cleanPhone;
-      }
-      return false;
-    });
-
-    const now = new Date().toISOString();
-    const identifier = cleanEmail || cleanPhone || Date.now().toString();
-    const token = `salik_cust_${Buffer.from(`cust_${Date.now()}_${identifier}`).toString('base64')}`;
-
-    if (user) {
-      if (name !== undefined && name.trim()) user.name = name.trim();
-      if (cleanEmail) user.email = cleanEmail;
-      if (phone !== undefined && phone.trim()) user.phone = phone.trim();
-      if (address && address.trim()) {
-        if (!Array.isArray(user.addresses)) user.addresses = [];
-        if (!user.addresses.includes(address.trim())) {
-          user.addresses.unshift(address.trim());
-        }
-      }
-      user.lastLoginAt = now;
-      user.token = token;
-      user.updatedAt = now;
-    } else {
-      user = {
-        id: `cust_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`,
-        email: cleanEmail,
-        phone: phone ? phone.trim() : '',
-        name: name ? name.trim() : '',
-        addresses: address && address.trim() ? [address.trim()] : [],
-        createdAt: now,
-        lastLoginAt: now,
-        token
-      };
-      data.users.push(user);
-    }
-
-    writeDb(data);
-    return user;
-  },
-
-  updateUserProfile(userId, { name, email, phone, addresses }) {
-    const data = readDb();
-    const user = (data.users || []).find(u => u.id === userId);
-    if (!user) return null;
-    if (name !== undefined) user.name = name.trim();
-    if (email !== undefined) user.email = email.trim().toLowerCase();
-    if (phone !== undefined) user.phone = phone.trim();
-    if (addresses !== undefined && Array.isArray(addresses)) user.addresses = addresses;
-    user.updatedAt = new Date().toISOString();
-    writeDb(data);
-    return user;
-  },
-
-  getUserOrders({ email, phone, userId } = {}) {
-    const data = readDb();
-    const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanPhone = (phone || '').replace(/[^0-9]/g, '').slice(-10);
-    return (data.orders || []).filter(o => {
-      if (userId && o.userId === userId) return true;
-      if (cleanEmail && (o.customerEmail || o.email || '').trim().toLowerCase() === cleanEmail) return true;
-      if (cleanPhone) {
-        const oPhone = (o.phone || '').replace(/[^0-9]/g, '').slice(-10);
-        return oPhone && oPhone === cleanPhone;
-      }
-      return false;
-    });
   }
 };

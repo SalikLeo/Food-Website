@@ -17,10 +17,6 @@ import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
 import { CartProvider } from './context/CartContext';
-import { CustomerAuthProvider } from './context/CustomerAuthContext';
-import CustomerAuthModal from './components/Auth/CustomerAuthModal';
-import CustomerProfileModal from './components/Auth/CustomerProfileModal';
-import RecentOrdersModal from './components/Orders/RecentOrdersModal';
 import { apiUrl, APP_MODE, isCustomerApp } from './config/api';
 
 export default function App() {
@@ -98,58 +94,51 @@ export default function App() {
 
   return (
     <CartProvider>
-      <CustomerAuthProvider>
-        {isAdminView ? (
-          isAdminAuthenticated ? (
-            <AdminDashboard
-              onLogout={handleAdminLogout}
-              onBackToStore={handleExitAdmin}
-            />
-          ) : (
-            <AdminLogin
-              onLogin={() => setIsAdminAuthenticated(true)}
-              onBackToStore={handleExitAdmin}
-            />
-          )
-        ) : isCustomerApp ? (
-          <CustomerMobileApp
-            categories={categories}
-            products={products}
-            deals={deals}
-            familyDeal={familyDeal}
-            settings={settings}
+      {isAdminView ? (
+        isAdminAuthenticated ? (
+          <AdminDashboard
+            onLogout={handleAdminLogout}
+            onBackToStore={handleExitAdmin}
           />
         ) : (
-          <div className="min-h-screen bg-[#0d0d0e] text-white selection:bg-orange-500 selection:text-white">
-            <Header
-              onAdminClick={handleOpenAdmin}
-              hideAdmin={false}
-            />
-            
-            <main>
-              <Hero products={products} deals={deals} />
-              <BestSellersSection products={products} categories={categories} settings={settings} />
-              <DealsSection deals={deals} familyDeal={familyDeal} />
-              <MenuSection categories={categories} products={products} />
-              <OrderSection />
-              <AboutSection />
-              <ReviewsSection />
-              <ContactSection />
-              <FaqSection faqs={faqs} />
-            </main>
+          <AdminLogin
+            onLogin={() => setIsAdminAuthenticated(true)}
+            onBackToStore={handleExitAdmin}
+          />
+        )
+      ) : isCustomerApp ? (
+        <CustomerMobileApp
+          categories={categories}
+          products={products}
+          deals={deals}
+          familyDeal={familyDeal}
+          settings={settings}
+        />
+      ) : (
+        <div className="min-h-screen bg-[#0d0d0e] text-white selection:bg-orange-500 selection:text-white">
+          <Header
+            onAdminClick={handleOpenAdmin}
+            hideAdmin={false}
+          />
+          
+          <main>
+            <Hero products={products} deals={deals} />
+            <BestSellersSection products={products} categories={categories} settings={settings} />
+            <DealsSection deals={deals} familyDeal={familyDeal} />
+            <MenuSection categories={categories} products={products} />
+            <OrderSection />
+            <AboutSection />
+            <ReviewsSection />
+            <ContactSection />
+            <FaqSection faqs={faqs} />
+          </main>
 
-            <Footer categories={categories} settings={settings} />
-            <CartDrawer />
-            <FloatingMobileCart />
-            <OrderSuccessModal />
-          </div>
-        )}
-
-        {/* Global Customer Auth & Orders Modals */}
-        <CustomerAuthModal />
-        <CustomerProfileModal />
-        <RecentOrdersModal />
-      </CustomerAuthProvider>
+          <Footer categories={categories} settings={settings} />
+          <CartDrawer />
+          <FloatingMobileCart />
+          <OrderSuccessModal />
+        </div>
+      )}
     </CartProvider>
   );
 }

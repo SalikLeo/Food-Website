@@ -18,6 +18,15 @@ export const CartProvider = ({ children }) => {
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [lastOrder, setLastOrder] = useState(null);
 
+  const [recentOrders, setRecentOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salik_recent_orders');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   useEffect(() => {
     try {
       localStorage.setItem('salik_cart', JSON.stringify(cartItems));
@@ -25,6 +34,39 @@ export const CartProvider = ({ children }) => {
       console.error(e);
     }
   }, [cartItems]);
+
+  const saveRecentOrder = (order) => {
+    if (!order || !order.items) return;
+    setRecentOrders(prev => {
+      const filtered = prev.filter(o => o.id !== order.id);
+      const updated = [order, ...filtered].slice(0, 20);
+      try {
+        localStorage.setItem('salik_recent_orders', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
+
+  const reorder = (order) => {
+    if (!order || !order.items || order.items.length === 0) return;
+    order.items.forEach(item => {
+      addToCart(
+        {
+          id: item.id || item.cartKey || item.name,
+          name: item.name,
+          price: item.price,
+          image: item.image,
+          category: item.category || 'menu',
+          inStock: true
+        },
+        item.size || null,
+        item.quantity || 1
+      );
+    });
+    setIsCartOpen(true);
+  };
 
   const addToCart = (product, selectedSize = null, quantity = 1, options = null) => {
     if (!product || product.inStock === false) {
@@ -201,7 +243,10 @@ Notes: ${customerInfo.notes || 'None'}`
         orderModalOpen,
         setOrderModalOpen,
         lastOrder,
-        setLastOrder
+        setLastOrder,
+        recentOrders,
+        saveRecentOrder,
+        reorder
       }}
     >
       {children}
