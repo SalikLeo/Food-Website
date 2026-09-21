@@ -1242,8 +1242,8 @@
     "minOrderEnabled": false,
     "freeDeliveryThreshold": 0,
     "freeDeliveryEnabled": false,
-    "deliveryNotice": "Delivery available in nearby areas (Wah Model Town, Wah Cantt)",
-    "updatedAt": "2026-09-21T12:28:17.755Z",
+    "deliveryNotice": "bike delivery",
+    "updatedAt": "2026-09-21T21:42:27.998Z",
     "floatingButtons": {
       "whatsappWeb": true,
       "whatsappMobile": true,
@@ -1259,7 +1259,8 @@
       "sandwiches",
       "fries",
       "wings",
-      "nuggets"
+      "nuggets",
+      "special"
     ]
   },
   "reviews": [

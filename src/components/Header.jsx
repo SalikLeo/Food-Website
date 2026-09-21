@@ -31,6 +31,11 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
   const [activeHash, setActiveHash] = useState('');
   const [customerUser, setCustomerUser] = useState(() => getStoredCustomerUser());
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);

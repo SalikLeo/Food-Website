@@ -52,6 +52,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   });
   const [loading, setLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showStorefrontConfirm, setShowStorefrontConfirm] = useState(false);
   const [statsTimeFilter, setStatsTimeFilter] = useState('today'); // 'today' | 'monthly' | 'all'
 
   // Format local date string YYYY-MM-DD
@@ -127,13 +128,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setShowLogoutConfirm(false);
+        setShowStorefrontConfirm(false);
       }
     };
-    if (showLogoutConfirm) {
+    if (showLogoutConfirm || showStorefrontConfirm) {
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showLogoutConfirm]);
+  }, [showLogoutConfirm, showStorefrontConfirm]);
 
   // Handle native Android hardware back button
   useEffect(() => {
@@ -149,9 +151,13 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               return;
             }
           }
-          // 2. If logout confirmation modal is open
+          // 2. If confirmation modals are open
           if (showLogoutConfirm) {
             setShowLogoutConfirm(false);
+            return;
+          }
+          if (showStorefrontConfirm) {
+            setShowStorefrontConfirm(false);
             return;
           }
           // 3. If tabHistory has previous tabs, go to previous tab
@@ -181,7 +187,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         backHandle.remove();
       }
     };
-  }, [showLogoutConfirm, tabHistory, activeTab]);
+  }, [showLogoutConfirm, showStorefrontConfirm, tabHistory, activeTab]);
 
 
 
@@ -242,11 +248,11 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                 alt="Salik Fast Food"
                 className="h-10 w-auto object-contain"
               />
-              <div>
-                <h1 className="font-sans text-sm sm:text-base font-extrabold uppercase tracking-wider leading-tight text-zinc-900">
+              <div className="flex flex-col justify-center">
+                <h1 className="font-sans text-base sm:text-lg font-black uppercase tracking-tight text-zinc-900 leading-none">
                   Salik Fast Food Admin
                 </h1>
-                <span className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">
+                <span className="text-[10px] sm:text-[11px] text-orange-600 font-extrabold uppercase tracking-wider mt-0.5 block leading-tight">
                   Store Administrator
                 </span>
               </div>
@@ -264,8 +270,9 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
               {APP_MODE !== 'admin' && (
                 <button
-                  onClick={onBackToStore}
+                  onClick={() => setShowStorefrontConfirm(true)}
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-xs font-semibold text-zinc-800 transition-colors cursor-pointer"
+                  title="Go to Storefront"
                 >
                   <Store className="w-4 h-4 text-orange-600" />
                   <span className="hidden sm:inline">Storefront</span>
@@ -563,6 +570,53 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               >
                 <LogOut className="w-4 h-4" />
                 <span>Yes, Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Storefront Navigation Confirmation Modal */}
+      {showStorefrontConfirm && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setShowStorefrontConfirm(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-zinc-200 space-y-4 animate-in zoom-in-95 duration-150 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center mx-auto">
+              <Store className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-zinc-900">
+                Go to Storefront?
+              </h3>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Are you sure you want to leave the admin panel and return to the customer food store?
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowStorefrontConfirm(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowStorefrontConfirm(false);
+                  onBackToStore();
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Store className="w-4 h-4" />
+                <span>Yes, Go to Store</span>
               </button>
             </div>
           </div>
