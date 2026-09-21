@@ -540,7 +540,7 @@ export default function CustomerMobileApp({
   return (
     <div className={`min-h-screen mobile-app-container ${
       isDark 
-        ? 'bg-[#0e0e11] text-white selection:bg-orange-500 selection:text-white' 
+        ? 'dark bg-[#0e0e11] text-white selection:bg-orange-500 selection:text-white' 
         : 'bg-[#f4f5f8] text-zinc-900 selection:bg-orange-500 selection:text-white'
     }`}>
 
@@ -930,7 +930,7 @@ export default function CustomerMobileApp({
                   </button>
                 </div>
 
-                <div className="flex gap-3.5 overflow-x-auto pb-2 scrollbar-none category-scroll">
+                <div className="flex gap-3.5 overflow-x-auto pb-3.5 category-scroll">
                   {deals.slice(0, 4).map((deal) => (
                     <div
                       key={deal.id}
@@ -990,29 +990,32 @@ export default function CustomerMobileApp({
         {currentView === 'category' && (
           <div className="space-y-4 animate-tab-fade">
             
-            {/* Category Navigation Header */}
+            {/* Dedicated Back to Main Page Header Card */}
+            <div className={`rounded-2xl p-4 border flex items-center justify-between transition-colors ${
+              isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
+            }`}>
+              <button
+                onClick={() => switchView('home')}
+                className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider active:opacity-75 transition-opacity cursor-pointer ${
+                  isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'
+                }`}
+              >
+                <ArrowLeft className="w-4 h-4 text-orange-500" />
+                <span>Back to Main Page</span>
+              </button>
+
+              <span className="text-xs font-semibold text-orange-500">
+                {searchQuery.trim() ? `${categoryProducts.length} Results` : `${categoryProducts.length} Available`}
+              </span>
+            </div>
+
+            {/* Category Navigation & Search Header Card */}
             <div className={`rounded-2xl p-4 border space-y-3 transition-colors ${
               isDark 
                 ? 'bg-[#141418] border-white/10' 
                 : 'bg-white border-zinc-200 shadow-2xs'
             }`}>
               <div className="flex items-center justify-between">
-                <button
-                  onClick={() => switchView('home')}
-                  className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider active:opacity-75 transition-opacity cursor-pointer ${
-                    isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-900'
-                  }`}
-                >
-                  <ArrowLeft className="w-4 h-4 text-orange-500" />
-                  <span>Back to Categories</span>
-                </button>
-
-                <span className="text-xs font-semibold text-orange-500">
-                  {searchQuery.trim() ? `${categoryProducts.length} Results` : `${categoryProducts.length} Available`}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
                 <div>
                   <h2 className={`text-xl sm:text-2xl font-montserrat uppercase tracking-tight font-black flex items-center gap-2 ${
                     isDark ? 'text-white' : 'text-zinc-900'
@@ -1057,7 +1060,7 @@ export default function CustomerMobileApp({
             </div>
 
             {/* Horizontal Category Switcher Bar (Pills) */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 category-scroll scrollbar-none">
+            <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-0.5 category-scroll">
               <button
                 onClick={() => {
                   setSelectedCatId('all');
@@ -1218,31 +1221,27 @@ export default function CustomerMobileApp({
 
                       </div>
 
-                      {/* Sizes Chips (if applicable) */}
+                      {/* Sizes Selector Capsule Track (Website Design) */}
                       {hasSizes && !isOutOfStock && (
-                        <div className={`mt-3 pt-2.5 border-t flex items-center gap-1.5 overflow-x-auto pb-0.5 ${
-                          isDark ? 'border-white/5' : 'border-zinc-100'
+                        <div className={`mt-3 p-1 rounded-full flex items-center justify-between gap-1 border transition-colors ${
+                          isDark ? 'bg-zinc-800/80 border-white/10' : 'bg-[#f5f1eb] border-[#eee8df]/80'
                         }`}>
-                          <span className={`text-[10px] uppercase font-bold mr-1 flex-shrink-0 ${
-                            isDark ? 'text-zinc-500' : 'text-zinc-400'
-                          }`}>
-                            Size:
-                          </span>
                           {product.sizes.map((s, idx) => {
                             const isSelected = (size?.label || '').toLowerCase() === s.label.toLowerCase();
                             return (
                               <button
                                 key={idx}
+                                type="button"
                                 onClick={() => handleSelectSize(product.id, s)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer ${
+                                className={`flex-1 py-1.5 px-3 rounded-full text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
                                   isSelected
-                                    ? 'bg-orange-600 text-white shadow-xs'
+                                    ? 'bg-gradient-to-r from-[#d93409] to-[#ea580c] text-white shadow-xs'
                                     : isDark
-                                      ? 'bg-zinc-800 text-zinc-400 hover:text-white'
-                                      : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                                      ? 'text-zinc-400 hover:text-white bg-transparent'
+                                      : 'text-[#635d56] hover:text-zinc-900 bg-transparent'
                                 }`}
                               >
-                                {s.label} · Rs. {s.price}
+                                {s.label}
                               </button>
                             );
                           })}
