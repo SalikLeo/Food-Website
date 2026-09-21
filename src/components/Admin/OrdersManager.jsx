@@ -1112,7 +1112,7 @@ export default function OrdersManager({
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
               <span>
-                Notice: You have <strong>{pendingOutsideTodayCount} pending {pendingOutsideTodayCount === 1 ? 'order' : 'orders'}</strong> from prior dates that require attention.
+                You have <strong>{pendingOutsideTodayCount} pending {pendingOutsideTodayCount === 1 ? 'order' : 'orders'}</strong>
               </span>
             </div>
             <button
