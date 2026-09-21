@@ -761,7 +761,7 @@ export default function CustomerMobileApp({
               }`}
               aria-label="WhatsApp Support"
             >
-              <WhatsAppIcon className="w-5 h-5 fill-emerald-500" />
+              <WhatsAppIcon className="w-6 h-6 fill-emerald-500" />
             </a>
 
             {/* Side Drawer Menu Trigger Button */}
