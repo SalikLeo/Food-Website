@@ -60,9 +60,6 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
     setCustomerUser(null);
   };
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
