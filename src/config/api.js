@@ -1,8 +1,8 @@
 // Centralized API configuration and App Mode helper
 // Works across Web, Local Android (Wi-Fi), and Cloud (Hostinger/VPS)
 
-// Fallback to local machine Wi-Fi IP if not explicitly set in environment
-const DEFAULT_MOBILE_API = 'http://192.168.1.13:5000';
+// Live Render Cloud Backend
+const DEFAULT_MOBILE_API = 'https://food-website-8epf.onrender.com';
 
 export const APP_MODE = import.meta.env.VITE_APP_MODE || 'web'; // 'web' | 'customer' | 'admin'
 

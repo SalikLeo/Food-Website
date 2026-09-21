@@ -91,7 +91,7 @@ export default function Footer({ categories = [], settings = null }) {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src="/assets/mehrban-logo.png"
+                src="/assets/salik-logo.png"
                 alt="Salik Fast Food"
                 className="h-10 w-auto object-contain"
               />

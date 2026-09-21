@@ -123,7 +123,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="/assets/mehrban-logo.png"
+              src="/assets/salik-logo.png"
               alt="Salik Fast Food"
               className="h-10 w-auto object-contain"
             />

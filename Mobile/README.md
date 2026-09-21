@@ -1,11 +1,11 @@
-# MP Fast Food — Mobile Apps (Customer & Admin)
+# Salik Fast Food — Mobile Apps (Customer & Admin)
 
-This directory contains the complete Android mobile application projects for **MP Fast Food**, powered by Capacitor:
+This directory contains the complete Android mobile application projects for **Salik Fast Food**, powered by Capacitor:
 
 | App | Target Folder | Package ID | Description |
 | :--- | :--- | :--- | :--- |
-| **Customer App** | `Mobile/customer/` | `com.mehrban.customer` | Full customer food ordering storefront, deals, menu, cart, and WhatsApp checkout. Admin access is hidden. |
-| **Admin POS App** | `Mobile/admin/` | `com.mehrban.admin` | Dedicated staff/cashier app that launches directly into the Admin Dashboard for order management and receipt printing. |
+| **Customer App** | `Mobile/customer/` | `com.salik.customer` | Full customer food ordering storefront, deals, menu, cart, and WhatsApp checkout. Admin access is hidden. |
+| **Admin POS App** | `Mobile/admin/` | `com.salik.admin` | Dedicated staff/cashier app that launches directly into the Admin Dashboard for order management and receipt printing. |
 
 ---
 

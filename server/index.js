@@ -353,8 +353,8 @@ app.get('/api/stats', (req, res) => {
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
   // Secure default passcode
-  if (password === 'admin123' || password === 'mehrban123' || password === 'mehrban') {
-    return res.json({ success: true, token: 'mehrban-auth-token-valid' });
+  if (password === 'admin123' || password === 'salik123' || password === 'salik' || password === 'mehrban123' || password === 'mehrban') {
+    return res.json({ success: true, token: 'salik-auth-token-valid' });
   }
   return res.status(401).json({ error: 'Invalid admin credentials' });
 });

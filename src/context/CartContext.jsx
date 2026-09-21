@@ -7,7 +7,7 @@ const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(() => {
     try {
-      const saved = localStorage.getItem('mehrban_cart');
+      const saved = localStorage.getItem('salik_cart') || localStorage.getItem('mehrban_cart');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -20,7 +20,7 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('mehrban_cart', JSON.stringify(cartItems));
+      localStorage.setItem('salik_cart', JSON.stringify(cartItems));
     } catch (e) {
       console.error(e);
     }

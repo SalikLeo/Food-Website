@@ -20,10 +20,11 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        localStorage.setItem('salik_admin_token', data.token);
         localStorage.setItem('mehrban_admin_token', data.token);
         onLogin();
       } else {
-        setError(data.error || 'Invalid passcode. Default passcode is "mehrban123"');
+        setError(data.error || 'Invalid passcode. Default passcode is "admin123" or "salik123"');
       }
     } catch {
       setError('Unable to reach server. Please ensure backend is running.');
@@ -46,7 +47,7 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
 
         <div className="text-center mb-8">
           <img
-            src="/assets/mehrban-logo.png"
+            src="/assets/salik-logo.png"
             alt="Salik Fast Food"
             className="h-16 w-auto mx-auto mb-4 object-contain"
           />
@@ -76,13 +77,13 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin passcode (e.g. mehrban123)"
+                placeholder="Enter admin passcode (e.g. salik123)"
                 className="w-full pl-4 pr-10 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-2xs"
               />
               <Lock className="w-4 h-4 text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
             </div>
             <span className="text-[11px] text-zinc-500 mt-1.5 block">
-              Default password: <code className="text-orange-600 font-bold">mehrban123</code> or <code className="text-orange-600 font-bold">admin123</code>
+              Default password: <code className="text-orange-600 font-bold">salik123</code> or <code className="text-orange-600 font-bold">admin123</code>
             </span>
           </div>
 

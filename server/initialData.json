@@ -437,7 +437,7 @@
     },
     {
       "id": "pizza-special-3",
-      "name": "Mehrban Special",
+      "name": "Salik Special",
       "description": "Our signature loaded special pizza",
       "category": "pizza",
       "image": "/assets/images/p-pizza-special-CuXHdKll.jpg",
@@ -817,7 +817,7 @@
     },
     {
       "id": "shawarma-special",
-      "name": "Mehrban Special Shawarma",
+      "name": "Salik Special Shawarma",
       "category": "shawarma",
       "description": "Loaded chicken, cheese and our special sauce",
       "image": "/assets/images/p-shawarma-special-CvEPCaT5.jpg",
@@ -1037,15 +1037,15 @@
   ],
   "faqs": [
     {
-      "q": "Where is Mehrban Fast Food located?",
-      "a": "Mehrban Fast Food is located in Wah Model Town, Wah Cantt."
+      "q": "Where is Salik Fast Food located?",
+      "a": "Salik Fast Food is located in Wah Model Town, Wah Cantt."
     },
     {
-      "q": "What food does Mehrban Fast Food offer?",
+      "q": "What food does Salik Fast Food offer?",
       "a": "The menu covers pizza and special pizza, zinger and grill burgers, chicken shawarma, sandwiches, fries, hot wings, chicken nuggets, special items and combo deals."
     },
     {
-      "q": "Does Mehrban Fast Food deliver in Wah Cantt?",
+      "q": "Does Salik Fast Food deliver in Wah Cantt?",
       "a": "Yes — home delivery is available in nearby areas of Wah Cantt. Minimum order is Rs. 500 and the delivery fee is Rs. 100."
     },
     {
@@ -1053,16 +1053,16 @@
       "a": "Please call to confirm today's timings — call 0309-5369472."
     },
     {
-      "q": "How can I contact Mehrban Fast Food?",
+      "q": "How can I contact Salik Fast Food?",
       "a": "Call 0309-5369472, or send your order on WhatsApp."
     },
     {
-      "q": "Where can I see the Mehrban Fast Food menu and prices?",
+      "q": "Where can I see the Salik Fast Food menu and prices?",
       "a": "The full menu with current prices is on this website — every category has its own tab with item photos and prices."
     }
   ],
   "siteInfo": {
-    "name": "Mehrban Fast Food",
+    "name": "Salik Fast Food",
     "tagline": "Taste That You Need",
     "address": "Wah Model Town, Wah Cantt",
     "phones": [

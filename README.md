@@ -1,6 +1,6 @@
-# 🍔 Mehrban Fast Food Website
+# 🍔 Salik Fast Food Website
 
-A modern, fast, and responsive full-stack food ordering and restaurant management web application built for **Mehrban Fast Food**.
+A modern, fast, and responsive full-stack food ordering and restaurant management web application built for **Salik Fast Food**.
 
 ---
 

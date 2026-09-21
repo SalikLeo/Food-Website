@@ -26,7 +26,7 @@ export default function App() {
   });
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
-    return Boolean(localStorage.getItem('mehrban_admin_token'));
+    return Boolean(localStorage.getItem('salik_admin_token') || localStorage.getItem('mehrban_admin_token'));
   });
 
   const [categories, setCategories] = useState([]);
@@ -86,6 +86,7 @@ export default function App() {
   };
 
   const handleAdminLogout = () => {
+    localStorage.removeItem('salik_admin_token');
     localStorage.removeItem('mehrban_admin_token');
     setIsAdminAuthenticated(false);
   };

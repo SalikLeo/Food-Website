@@ -111,7 +111,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
           {/* Logo & Store Info */}
           <a href="#" className="flex items-center gap-2.5 sm:gap-3 group">
             <img
-              src="/assets/mehrban-logo.png"
+              src="/assets/salik-logo.png"
               alt="Salik Fast Food"
               className={`${isCustomerApp ? 'h-9 w-auto' : 'h-12 w-auto'} object-contain transition-transform duration-200 group-hover:scale-105`}
             />
@@ -301,7 +301,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               <div className="px-5 py-4 sm:px-6 sm:py-5 pt-[max(env(safe-area-inset-top,0px),1rem)] border-b border-zinc-800/80 flex items-center justify-between bg-[#141418]">
                 <div className="flex items-center gap-3">
                   <img
-                    src="/assets/mehrban-logo.png"
+                    src="/assets/salik-logo.png"
                     alt="Salik Fast Food"
                     className="h-10 w-auto object-contain"
                   />
