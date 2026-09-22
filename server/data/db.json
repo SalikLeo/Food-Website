@@ -1265,6 +1265,45 @@
   },
   "reviews": [
     {
+      "id": "rev-1790068067250-5mv0",
+      "name": "Ali",
+      "location": "wah",
+      "platform": "In-App Order Review",
+      "rating": 5,
+      "date": "Just now",
+      "avatar": "A",
+      "avatarBg": "bg-rose-600",
+      "itemOrdered": "1x Chicken Sandwich, 1x Pizza Sandwich, 1x Malai Boti Sandwich",
+      "comment": "Delicious food and great service!",
+      "createdAt": "2026-09-22T09:07:47.250Z"
+    },
+    {
+      "id": "rev-1790068063128-jhku",
+      "name": "s",
+      "location": "s",
+      "platform": "In-App Order Review",
+      "rating": 5,
+      "date": "Just now",
+      "avatar": "S",
+      "avatarBg": "bg-purple-600",
+      "itemOrdered": "5x Chicken Supreme",
+      "comment": "Delicious food and great service!",
+      "createdAt": "2026-09-22T09:07:43.128Z"
+    },
+    {
+      "id": "rev-1790068053822-nnad",
+      "name": "a",
+      "location": "a",
+      "platform": "In-App Order Review",
+      "rating": 4,
+      "date": "Just now",
+      "avatar": "A",
+      "avatarBg": "bg-orange-600",
+      "itemOrdered": "2x Chicken Fajita",
+      "comment": "Delicious food and great service!",
+      "createdAt": "2026-09-22T09:07:33.822Z"
+    },
+    {
       "id": "rev-1",
       "name": "Usman Tariq",
       "location": "Wah Model Town Phase 1",

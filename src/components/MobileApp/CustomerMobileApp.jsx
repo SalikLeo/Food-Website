@@ -2099,11 +2099,11 @@ export default function CustomerMobileApp({
                   const comment = getOrderComment(order.id);
 
                   const ratingDescriptions = {
-                    5: '⭐ Outstanding! Highly Recommended',
-                    4: '⭐ Very Good! Loved the food',
-                    3: '⭐ Average / Okay experience',
-                    2: '⭐ Below Average, needs work',
-                    1: '⭐ Not Satisfied'
+                    5: 'Outstanding! Highly Recommended',
+                    4: 'Very Good! Loved the food',
+                    3: 'Average / Okay experience',
+                    2: 'Below Average, needs work',
+                    1: 'Not Satisfied'
                   };
 
                   return (
@@ -2119,7 +2119,7 @@ export default function CustomerMobileApp({
                       <div className="flex items-center justify-between pb-3 border-b border-white/5">
                         <div className="flex items-center gap-2">
                           <Receipt className="w-4 h-4 text-orange-500" />
-                          <span className={`font-mono font-bold text-xs sm:text-sm ${
+                          <span className={`font-sans font-bold text-xs sm:text-sm ${
                             isDark ? 'text-white' : 'text-zinc-900'
                           }`}>
                             #{order.id}
@@ -2127,7 +2127,7 @@ export default function CustomerMobileApp({
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className={`text-[11px] font-mono ${
+                          <span className={`font-sans text-[11px] sm:text-xs font-medium ${
                             isDark ? 'text-zinc-400' : 'text-zinc-500'
                           }`}>
                             {orderDate}
@@ -2145,7 +2145,7 @@ export default function CustomerMobileApp({
                             Items Ordered:
                           </span>
                           <span className="font-extrabold text-orange-500">
-                            {formatPrice(order.total || 0)}
+                            Rs. {formatPrice(order.total || 0)}
                           </span>
                         </div>
                         <p className={`text-xs line-clamp-2 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
