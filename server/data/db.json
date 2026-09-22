@@ -1007,8 +1007,9 @@
       "subtotal": 6900,
       "deliveryFee": 200,
       "total": 7100,
-      "status": "Pending",
-      "createdAt": "2026-09-22T12:13:38.065Z"
+      "status": "Delivered",
+      "createdAt": "2026-09-22T12:13:38.065Z",
+      "updatedAt": "2026-09-22T12:16:49.276Z"
     },
     {
       "id": "ORD-646603-41",
@@ -1127,8 +1128,9 @@
       "deliveryFee": 50,
       "total": 750,
       "userId": "cust_1789890560845_520",
-      "status": "Pending",
-      "createdAt": "2026-09-20T07:49:20.855Z"
+      "status": "Delivered",
+      "createdAt": "2026-09-20T07:49:20.855Z",
+      "updatedAt": "2026-09-22T12:16:51.284Z"
     },
     {
       "id": "ORD-984535-92",
@@ -1224,9 +1226,9 @@
       "subtotal": 2400,
       "deliveryFee": 0,
       "total": 2400,
-      "status": "Preparing",
+      "status": "Delivered",
       "createdAt": "2026-09-17T21:55:45.351Z",
-      "updatedAt": "2026-09-21T21:39:33.016Z"
+      "updatedAt": "2026-09-22T12:17:20.140Z"
     },
     {
       "id": "ORD-825128-38",
@@ -1260,9 +1262,9 @@
       "subtotal": 1430,
       "deliveryFee": 100,
       "total": 1530,
-      "status": "Preparing",
+      "status": "Delivered",
       "createdAt": "2026-09-17T19:20:25.128Z",
-      "updatedAt": "2026-09-21T21:38:38.864Z"
+      "updatedAt": "2026-09-22T12:17:21.917Z"
     },
     {
       "id": "ORD-541573-17",

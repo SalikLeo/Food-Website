@@ -1581,19 +1581,19 @@ export default function OrdersManager({
               <div className="py-2.5 border-b border-dashed border-zinc-400 space-y-1 font-sans text-xs">
                 <div className="flex justify-between">
                   <span className="font-bold">Order ID:</span>
-                  <span className="font-semibold">#{viewingReceiptOrder.id && viewingReceiptOrder.id.startsWith('#') ? viewingReceiptOrder.id.slice(1) : viewingReceiptOrder.id}</span>
+                  <span className="font-bold">#{viewingReceiptOrder.id && viewingReceiptOrder.id.startsWith('#') ? viewingReceiptOrder.id.slice(1) : viewingReceiptOrder.id}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-bold">Date & Time:</span>
-                  <span>{formatOrderDateTime(viewingReceiptOrder.createdAt)}</span>
+                  <span className="font-bold">{formatOrderDateTime(viewingReceiptOrder.createdAt)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-bold">Customer:</span>
-                  <span className="font-semibold">{viewingReceiptOrder.customerName || 'Walk-in Customer'}</span>
+                  <span className="font-bold">{viewingReceiptOrder.customerName || 'Walk-in Customer'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-bold">Phone:</span>
-                  <span>{viewingReceiptOrder.phone || '-'}</span>
+                  <span className="font-bold">{viewingReceiptOrder.phone || '-'}</span>
                 </div>
                 {viewingReceiptOrder.address && (
                   <div className="pt-0.5">

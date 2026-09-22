@@ -216,19 +216,19 @@ export default function CustomerReceiptModal({ order, onClose }) {
           <div className="py-2.5 border-b border-dashed border-zinc-400 space-y-1 font-sans text-xs">
             <div className="flex justify-between">
               <span className="font-bold">Order ID:</span>
-              <span className="font-semibold">#{order.id && order.id.startsWith('#') ? order.id.slice(1) : order.id}</span>
+              <span className="font-bold">#{order.id}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-bold">Date & Time:</span>
-              <span>{orderDate}</span>
+              <span className="font-bold">{orderDate}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-bold">Customer:</span>
-              <span className="font-semibold">{order.customerName || 'Customer'}</span>
+              <span className="font-bold">{order.customerName || 'Customer'}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-bold">Phone:</span>
-              <span>{order.phone || '-'}</span>
+              <span className="font-bold">{order.phone || '-'}</span>
             </div>
             {order.address && (
               <div className="pt-0.5">

@@ -159,24 +159,24 @@ export function drawReceiptCanvas(order, scale = 2) {
 
   // --- Order Metadata ---
   ctx.textBaseline = 'alphabetic';
-  const drawMetaLine = (label, val, isValBold = false) => {
+  const drawMetaLine = (label, val) => {
     ctx.textAlign = 'left';
     ctx.font = `700 20px ${fontSans}`;
     ctx.fillStyle = '#000000';
     ctx.fillText(label, padX, curY);
 
     ctx.textAlign = 'right';
-    ctx.font = isValBold ? `700 20px ${fontSans}` : `500 20px ${fontSans}`;
-    ctx.fillStyle = '#18181b';
+    ctx.font = `700 20px ${fontSans}`;
+    ctx.fillStyle = '#000000';
     ctx.fillText(val || '-', width - padX, curY);
     curY += 30;
   };
 
   const cleanOrderId = order.id ? (order.id.startsWith('#') ? order.id.slice(1) : order.id) : '0';
-  drawMetaLine('Order ID:', `#${cleanOrderId}`, true);
-  drawMetaLine('Date & Time:', formatOrderDateTime(order.createdAt), false);
-  drawMetaLine('Customer:', order.customerName || 'Walk-in Customer', true);
-  drawMetaLine('Phone:', order.phone || '-', false);
+  drawMetaLine('Order ID:', `#${cleanOrderId}`);
+  drawMetaLine('Date & Time:', formatOrderDateTime(order.createdAt));
+  drawMetaLine('Customer:', order.customerName || 'Walk-in Customer');
+  drawMetaLine('Phone:', order.phone || '-');
 
   if (order.address) {
     ctx.textAlign = 'left';
