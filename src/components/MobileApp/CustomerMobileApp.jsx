@@ -1267,7 +1267,7 @@ export default function CustomerMobileApp({
                           {deal.name}
                         </span>
                         <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-                          Rs. {deal.price}
+                          Rs. {deal.price} Only
                         </span>
                       </div>
 
@@ -1662,7 +1662,7 @@ export default function CustomerMobileApp({
                       : (featuredDeal.name ? `👑 ${featuredDeal.name.toUpperCase()}` : '🔥 SPECIAL DEAL')}
                   </span>
                   <span className={`text-lg font-bold font-sans ${isDark ? 'text-amber-400' : 'text-white'}`}>
-                    Rs. {formatPrice(featuredDeal.price)}
+                    Rs. {formatPrice(featuredDeal.price)} Only
                   </span>
                 </div>
 
@@ -1728,7 +1728,7 @@ export default function CustomerMobileApp({
                       {deal.name}
                     </span>
                     <span className={`text-base font-bold font-sans ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-                      Rs. {formatPrice(deal.price)}
+                      Rs. {formatPrice(deal.price)} Only
                     </span>
                   </div>
 

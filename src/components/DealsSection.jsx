@@ -123,7 +123,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             : 'text-xs sm:text-sm px-2.5 py-1 rounded-md'
                         }`}
                       >
-                        Rs. {formatPrice(deal.price)}
+                        Rs. {formatPrice(deal.price)} Only
                       </div>
                     </div>
 
@@ -271,6 +271,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             <span className="text-2xl sm:text-3xl font-display text-orange-600 font-bold flex items-baseline">
                               <span className="font-sans text-lg sm:text-xl font-bold mr-1">Rs.</span>
                               <span>{formatPrice(deal.price)}</span>
+                              <span className="font-sans text-sm sm:text-base font-bold ml-1.5 uppercase">Only</span>
                             </span>
                           </div>
 
@@ -333,6 +334,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                           <span className="font-display text-2xl text-amber-400 font-bold flex items-baseline">
                             <span className="font-sans text-base font-bold mr-1">Rs.</span>
                             <span>{formatPrice(deal.price)}</span>
+                            <span className="font-sans text-xs sm:text-sm font-bold ml-1 uppercase">Only</span>
                           </span>
                         </div>
 
