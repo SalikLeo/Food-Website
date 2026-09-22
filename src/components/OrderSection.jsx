@@ -29,7 +29,8 @@ export default function OrderSection() {
     setLastOrder,
     saveRecentOrder,
     setOrderModalOpen,
-    isFreeDelivery
+    isFreeDelivery,
+    removeFromCart
   } = useCart();
 
   const [formData, setFormData] = useState({
@@ -352,16 +353,27 @@ export default function OrderSection() {
             ) : (
               <div className="py-5 space-y-3 max-h-80 overflow-y-auto pr-1 divide-y divide-zinc-800/50">
                 {cartItems.map((item) => (
-                  <div key={item.cartKey} className="pt-3 first:pt-0 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-bold text-zinc-200">
-                        {item.quantity}× {item.name}
-                      </span>
-                      {item.size && (
-                        <span className="text-orange-400 ml-1">({item.size})</span>
-                      )}
+                  <div key={item.cartKey} className="pt-3 first:pt-0 flex items-center justify-between text-xs group">
+                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(item.cartKey)}
+                        className="p-1 -ml-1 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/80 rounded-md transition-all active:scale-90 flex-shrink-0 cursor-pointer"
+                        title="Remove item"
+                        aria-label={`Remove ${item.name}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                      <div className="min-w-0">
+                        <span className="font-bold text-zinc-200">
+                          {item.quantity}× {item.name}
+                        </span>
+                        {item.size && (
+                          <span className="text-orange-400 ml-1">({item.size})</span>
+                        )}
+                      </div>
                     </div>
-                    <span className="font-semibold text-orange-400 font-sans">
+                    <span className="font-semibold text-orange-400 font-sans flex-shrink-0">
                       Rs. {formatPrice(item.price * item.quantity)}
                     </span>
                   </div>
