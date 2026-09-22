@@ -1095,11 +1095,16 @@ export default function OrdersManager({
                               </div>
 
                               <div className="flex items-center justify-start md:justify-end gap-2 text-xs text-zinc-500">
-                                <span>Subtotal: Rs. {formatPrice(order.subtotal || 0)}</span>
+                                <span>
+                                  Subtotal:{' '}
+                                  <strong className="text-zinc-800 font-semibold">
+                                    Rs. {formatPrice(order.subtotal || 0)}
+                                  </strong>
+                                </span>
                                 <span>•</span>
                                 <span>
                                   Delivery:{' '}
-                                  <strong className={Number(order.deliveryFee) === 0 ? 'text-emerald-600 font-semibold' : 'text-zinc-800'}>
+                                  <strong className={Number(order.deliveryFee) === 0 ? 'text-emerald-600 font-semibold' : 'text-zinc-800 font-semibold'}>
                                     {Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(order.deliveryFee || 0)}`}
                                   </strong>
                                 </span>
@@ -1229,11 +1234,16 @@ export default function OrdersManager({
                         </div>
 
                         <div className="flex items-center justify-start md:justify-end gap-2 text-xs text-zinc-500">
-                          <span>Subtotal: Rs. {formatPrice(order.subtotal || 0)}</span>
+                          <span>
+                            Subtotal:{' '}
+                            <strong className="text-zinc-800 font-semibold">
+                              Rs. {formatPrice(order.subtotal || 0)}
+                            </strong>
+                          </span>
                           <span>•</span>
                           <span>
                             Delivery:{' '}
-                            <strong className={Number(order.deliveryFee) === 0 ? 'text-emerald-600 font-semibold' : 'text-zinc-800'}>
+                            <strong className={Number(order.deliveryFee) === 0 ? 'text-emerald-600 font-semibold' : 'text-zinc-800 font-semibold'}>
                               {Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(order.deliveryFee || 0)}`}
                             </strong>
                           </span>
