@@ -72,7 +72,8 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
         name.includes(query) ||
         location.includes(query) ||
         item.includes(query) ||
-        comment.includes(query);
+        comment.includes(query) ||
+        (r.orderId && String(r.orderId).toLowerCase().includes(query));
 
       const matchesRating =
         ratingFilter === 'all' ||
@@ -312,6 +313,7 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
             className="px-3 py-2.5 rounded-xl bg-zinc-100 border border-zinc-200 text-xs font-semibold text-zinc-700 focus:outline-none focus:border-orange-500 cursor-pointer w-full sm:w-auto"
           >
             <option value="all">All Sources</option>
+            <option value="In-App">In-App Customer Orders</option>
             <option value="Google">Google Reviews</option>
             <option value="Foodpanda">Foodpanda Verified</option>
             <option value="Customer">Storefront Customers</option>
@@ -370,6 +372,23 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
                       <h4 className="font-bold text-sm text-zinc-900 leading-tight">
                         {review.name}
                       </h4>
+                      <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-zinc-500 mt-1">
+                        {review.orderId && (
+                          <span className="font-mono font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200/60">
+                            #{review.orderId}
+                          </span>
+                        )}
+                        {review.itemOrdered && (
+                          <span className="text-zinc-600 font-medium">
+                            {review.itemOrdered}
+                          </span>
+                        )}
+                        {review.platform && (
+                          <span className="bg-zinc-100 text-zinc-600 font-semibold px-1.5 py-0.5 rounded text-[10px]">
+                            {review.platform}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

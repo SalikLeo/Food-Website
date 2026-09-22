@@ -606,6 +606,7 @@ export const db = {
 
     const newReview = {
       id: `rev-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      orderId: reviewData.orderId || null,
       name: (reviewData.name || 'Anonymous Customer').trim(),
       location: (reviewData.location || 'Wah Cantt').trim(),
       platform: reviewData.platform || 'Customer Review',
@@ -614,7 +615,7 @@ export const db = {
       avatar: initials,
       avatarBg: reviewData.avatarBg || randomColor,
       itemOrdered: (reviewData.itemOrdered || 'MP Special Meal').trim(),
-      comment: (reviewData.comment || '').trim(),
+      comment: (reviewData.comment || 'Great food and fast service!').trim(),
       createdAt: new Date().toISOString()
     };
 

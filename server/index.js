@@ -314,11 +314,12 @@ app.get('/api/reviews', (req, res) => {
 
 app.post('/api/reviews', (req, res) => {
   try {
-    const { name, comment, rating } = req.body;
-    if (!name || !comment) {
-      return res.status(400).json({ error: 'Name and review comment are required' });
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Customer name is required' });
     }
-    const newReview = db.createReview(req.body);
+    const comment = (req.body.comment || '').trim() || 'Great food and fast service!';
+    const newReview = db.createReview({ ...req.body, comment });
     res.status(201).json({ success: true, review: newReview });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -4,7 +4,7 @@ import {
   MessageCircle, Menu, X, ShoppingBag, 
   Clock, MapPin, ChevronRight, ChevronDown, Check, Sparkles, Phone,
   Sun, Moon, RotateCcw, PackageCheck, Receipt, AlertCircle, Ban,
-  User, CheckCircle2, Send
+  User, CheckCircle2, Send, Star, MessageSquareHeart
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { apiUrl } from '../../config/api';
@@ -149,6 +149,125 @@ export default function CustomerMobileApp({
   const [googleLoading, setGoogleLoading] = useState(false);
   const [viewingReceiptOrder, setViewingReceiptOrder] = useState(null);
 
+  // Customer order reviews persistence & state
+  const [reviewedOrderIds, setReviewedOrderIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salik_reviewed_order_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('salik_reviewed_order_ids', JSON.stringify(reviewedOrderIds));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [reviewedOrderIds]);
+
+  // Only show orders that are pending review
+  const pendingReviewOrders = useMemo(() => {
+    return (recentOrders || []).filter(o => o && o.id && !reviewedOrderIds.includes(String(o.id)));
+  }, [recentOrders, reviewedOrderIds]);
+
+  const pendingReviewsCount = pendingReviewOrders.length;
+
+  const [reviewRatings, setReviewRatings] = useState({});
+  const [reviewComments, setReviewComments] = useState({});
+  const [reviewToConfirm, setReviewToConfirm] = useState(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSuccessData, setReviewSuccessData] = useState(null);
+
+  const getOrderRating = (orderId) => {
+    return reviewRatings[orderId] !== undefined ? reviewRatings[orderId] : 5;
+  };
+
+  const setOrderRating = (orderId, rating) => {
+    setReviewRatings(prev => ({ ...prev, [orderId]: rating }));
+  };
+
+  const getOrderComment = (orderId) => {
+    return reviewComments[orderId] !== undefined ? reviewComments[orderId] : '';
+  };
+
+  const setOrderComment = (orderId, comment) => {
+    setReviewComments(prev => ({ ...prev, [orderId]: comment }));
+  };
+
+  const handleInitiateReviewSubmit = (order) => {
+    const rating = getOrderRating(order.id);
+    const comment = getOrderComment(order.id);
+    setReviewToConfirm({ order, rating, comment });
+  };
+
+  const handleConfirmReviewSubmit = async () => {
+    if (!reviewToConfirm) return;
+    setSubmittingReview(true);
+    const { order, rating, comment } = reviewToConfirm;
+    const finalComment = (comment || '').trim() || 'Delicious food and great service!';
+    const customerName = (order.customerName || customerUser?.name || 'Customer').trim();
+    const itemOrdered = (order.items || []).map(i => `${i.quantity || 1}x ${i.name}`).join(', ') || `Order #${order.id}`;
+
+    const payload = {
+      name: customerName,
+      location: order.address || 'Wah Cantt',
+      rating: Number(rating) || 5,
+      platform: 'In-App Order Review',
+      itemOrdered: itemOrdered,
+      comment: finalComment,
+      orderId: String(order.id)
+    };
+
+    try {
+      await fetch(apiUrl('/api/reviews'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      console.warn('Network issue saving review to server, saved locally:', err);
+    }
+
+    const updated = Array.from(new Set([...reviewedOrderIds, String(order.id)]));
+    setReviewedOrderIds(updated);
+    try {
+      localStorage.setItem('salik_reviewed_order_ids', JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+
+    setReviewRatings(prev => {
+      const copy = { ...prev };
+      delete copy[order.id];
+      return copy;
+    });
+    setReviewComments(prev => {
+      const copy = { ...prev };
+      delete copy[order.id];
+      return copy;
+    });
+
+    setReviewToConfirm(null);
+    setSubmittingReview(false);
+
+    setReviewSuccessData({
+      orderId: order.id,
+      name: customerName,
+      rating: Number(rating) || 5
+    });
+  };
+
+  useEffect(() => {
+    if (reviewSuccessData) {
+      const timer = setTimeout(() => {
+        setReviewSuccessData(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [reviewSuccessData]);
+
   // Sync customer user name to checkout form if empty
   useEffect(() => {
     if (customerUser?.name && !checkoutForm.name) {
@@ -224,14 +343,18 @@ export default function CustomerMobileApp({
 
   // Lock background scroll and handle ESC key when mobile menu or confirmation modal is open
   useEffect(() => {
-    if (mobileMenuOpen || showConfirmModal || viewingReceiptOrder) {
+    if (mobileMenuOpen || showConfirmModal || viewingReceiptOrder || reviewToConfirm || reviewSuccessData) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        if (viewingReceiptOrder) {
+        if (reviewSuccessData) {
+          setReviewSuccessData(null);
+        } else if (reviewToConfirm) {
+          setReviewToConfirm(null);
+        } else if (viewingReceiptOrder) {
           setViewingReceiptOrder(null);
         } else if (showConfirmModal) {
           setShowConfirmModal(false);
@@ -245,7 +368,7 @@ export default function CustomerMobileApp({
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mobileMenuOpen, showConfirmModal, viewingReceiptOrder]);
+  }, [mobileMenuOpen, showConfirmModal, viewingReceiptOrder, reviewToConfirm, reviewSuccessData]);
 
   // Handle native Android hardware back button
   useEffect(() => {
@@ -253,6 +376,14 @@ export default function CustomerMobileApp({
     const setupBack = async () => {
       try {
         backHandle = await CapApp.addListener('backButton', ({ canGoBack }) => {
+          if (reviewSuccessData) {
+            setReviewSuccessData(null);
+            return;
+          }
+          if (reviewToConfirm) {
+            setReviewToConfirm(null);
+            return;
+          }
           if (viewingReceiptOrder) {
             setViewingReceiptOrder(null);
             return;
@@ -302,7 +433,7 @@ export default function CustomerMobileApp({
         backHandle.remove();
       }
     };
-  }, [viewingReceiptOrder, showGoogleSetupModal, showConfirmModal, orderModalOpen, isCartOpen, mobileMenuOpen, searchQuery, currentView, setIsCartOpen, setOrderModalOpen]);
+  }, [viewingReceiptOrder, showGoogleSetupModal, showConfirmModal, reviewToConfirm, reviewSuccessData, orderModalOpen, isCartOpen, mobileMenuOpen, searchQuery, currentView, setIsCartOpen, setOrderModalOpen]);
 
 
   // Auto-rotate promo banners (pauses while dragging)
@@ -1812,14 +1943,283 @@ export default function CustomerMobileApp({
                           </span>
                         </div>
 
-                        {/* REORDER BUTTON */}
+                        <div className="flex items-center gap-2">
+                          {!reviewedOrderIds.includes(String(order.id)) ? (
+                            <button
+                              type="button"
+                              onClick={() => switchView('add-review')}
+                              className="px-2.5 py-1.5 sm:py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold text-xs uppercase tracking-wider flex items-center gap-1 border border-amber-500/25 active:scale-95 transition-all cursor-pointer"
+                            >
+                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                              <span>Add Review</span>
+                            </button>
+                          ) : (
+                            <span className="px-2 py-1 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 border border-emerald-500/20">
+                              <Check className="w-3 h-3" />
+                              <span>Reviewed</span>
+                            </span>
+                          )}
+
+                          {/* REORDER BUTTON */}
+                          <button
+                            type="button"
+                            onClick={() => handleReorderOrder(order)}
+                            className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Reorder</span>
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* VIEW E: ADD REVIEW / ORDER FEEDBACK */}
+        {/* ============================================================== */}
+        {currentView === 'add-review' && (
+          <div className="space-y-4 animate-tab-fade">
+            
+            {/* Header: Back to Menu & Pending Count */}
+            <div 
+              role="button"
+              tabIndex={0}
+              onClick={() => switchView('home')}
+              className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
+                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+              }`}
+            >
+              <div
+                className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-600'
+                }`}
+              >
+                <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                <span>Back to Menu</span>
+              </div>
+
+              <span className="text-xs font-semibold text-orange-500">
+                {pendingReviewsCount} {pendingReviewsCount === 1 ? 'Pending Review' : 'Pending Reviews'}
+              </span>
+            </div>
+
+            {/* Intro Hero Banner */}
+            <div className={`rounded-3xl p-5 border relative overflow-hidden ${
+              isDark 
+                ? 'bg-gradient-to-r from-orange-950/40 via-[#181820] to-amber-950/30 border-white/10' 
+                : 'bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50/50 border-orange-200/70 shadow-xs'
+            }`}>
+              <div className="flex items-start gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center flex-shrink-0 shadow-inner">
+                  <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className={`text-base font-extrabold uppercase tracking-tight font-montserrat ${
+                    isDark ? 'text-white' : 'text-zinc-900'
+                  }`}>
+                    Order Feedback & Reviews
+                  </h3>
+                  <p className={`text-xs leading-relaxed ${
+                    isDark ? 'text-zinc-400' : 'text-zinc-600'
+                  }`}>
+                    Share your experience for your recent orders. Each order can be reviewed once and helps us serve you better!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Empty State when no pending reviews */}
+            {pendingReviewsCount === 0 ? (
+              <div className={`rounded-3xl p-8 border text-center space-y-4 ${
+                isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-sm'
+              }`}>
+                <div className={`w-16 h-16 rounded-3xl mx-auto flex items-center justify-center ${
+                  isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                }`}>
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className={`text-base font-bold font-montserrat uppercase tracking-tight ${
+                    isDark ? 'text-white' : 'text-zinc-900'
+                  }`}>
+                    All Caught Up!
+                  </h3>
+                  <p className={`text-xs max-w-xs mx-auto leading-relaxed ${
+                    isDark ? 'text-zinc-400' : 'text-zinc-600'
+                  }`}>
+                    {recentOrders.length === 0 
+                      ? 'You have no past orders yet. Place an order to submit reviews!'
+                      : 'You have reviewed all your recent orders. Thank you for your valuable feedback!'}
+                  </p>
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                  <button
+                    onClick={() => switchView('home')}
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
+                  >
+                    Browse Menu
+                  </button>
+                  <button
+                    onClick={() => switchView('orders')}
+                    className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
+                      isDark 
+                        ? 'bg-zinc-800 border-white/10 text-zinc-300 hover:text-white' 
+                        : 'bg-zinc-100 border-zinc-200 text-zinc-700 hover:bg-zinc-200'
+                    }`}
+                  >
+                    View Past Orders
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Pending Review Orders List */
+              <div className="space-y-3.5">
+                {pendingReviewOrders.map((order, idx) => {
+                  const itemsList = order.items || [];
+                  const orderDate = order.createdAt 
+                    ? new Date(order.createdAt).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })
+                    : 'Recent Order';
+
+                  const rating = getOrderRating(order.id);
+                  const comment = getOrderComment(order.id);
+
+                  const ratingDescriptions = {
+                    5: '⭐ Outstanding! Highly Recommended',
+                    4: '⭐ Very Good! Loved the food',
+                    3: '⭐ Average / Okay experience',
+                    2: '⭐ Below Average, needs work',
+                    1: '⭐ Not Satisfied'
+                  };
+
+                  return (
+                    <div
+                      key={order.id || idx}
+                      className={`rounded-2xl p-4 sm:p-5 border transition-all ${
+                        isDark 
+                          ? 'bg-[#15151a] border-white/10 shadow-lg' 
+                          : 'bg-white border-zinc-200 shadow-xs'
+                      }`}
+                    >
+                      {/* Top Order Information */}
+                      <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                        <div className="flex items-center gap-2">
+                          <Receipt className="w-4 h-4 text-orange-500" />
+                          <span className={`font-mono font-bold text-xs sm:text-sm ${
+                            isDark ? 'text-white' : 'text-zinc-900'
+                          }`}>
+                            #{order.id}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[11px] font-mono ${
+                            isDark ? 'text-zinc-400' : 'text-zinc-500'
+                          }`}>
+                            {orderDate}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-bold text-[10px] uppercase tracking-wider border border-amber-500/20">
+                            Pending Review
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Items Ordered Pill Summary */}
+                      <div className="py-3 border-b border-white/5 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className={`font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                            Items Ordered:
+                          </span>
+                          <span className="font-extrabold text-orange-500">
+                            {formatPrice(order.total || 0)}
+                          </span>
+                        </div>
+                        <p className={`text-xs line-clamp-2 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                          {itemsList.map(it => `${it.quantity || 1}x ${it.name}`).join(' • ') || 'Order items'}
+                        </p>
+                      </div>
+
+                      {/* Interactive Rating Selection */}
+                      <div className="pt-3.5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className={`text-xs font-bold uppercase tracking-wider ${
+                            isDark ? 'text-zinc-300' : 'text-zinc-700'
+                          }`}>
+                            Your Rating:
+                          </span>
+                          <span className="text-xs font-semibold text-amber-400">
+                            {ratingDescriptions[rating] || `${rating} Stars`}
+                          </span>
+                        </div>
+
+                        {/* Star Buttons */}
+                        <div className="flex items-center gap-2 py-1">
+                          {[1, 2, 3, 4, 5].map((starNum) => {
+                            const isFilled = starNum <= rating;
+                            return (
+                              <button
+                                key={starNum}
+                                type="button"
+                                onClick={() => setOrderRating(order.id, starNum)}
+                                className="p-1 sm:p-1.5 rounded-xl hover:bg-amber-500/10 active:scale-90 transition-transform cursor-pointer"
+                                aria-label={`Rate ${starNum} stars`}
+                              >
+                                <Star
+                                  className={`w-7 h-7 sm:w-8 sm:h-8 transition-colors ${
+                                    isFilled 
+                                      ? 'text-amber-400 fill-amber-400 drop-shadow-[0_2px_8px_rgba(251,191,36,0.4)]' 
+                                      : isDark ? 'text-zinc-700' : 'text-zinc-300'
+                                  }`}
+                                />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Feedback Comment Textarea */}
+                      <div className="pt-3 space-y-1.5">
+                        <label className={`text-[11px] font-bold uppercase tracking-wider block ${
+                          isDark ? 'text-zinc-400' : 'text-zinc-600'
+                        }`}>
+                          Write Feedback (Optional)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={comment}
+                          onChange={(e) => setOrderComment(order.id, e.target.value)}
+                          placeholder="Tell us about the taste, packaging, and delivery speed..."
+                          className={`w-full px-3.5 py-2.5 rounded-xl text-xs resize-none transition-all outline-none border focus:border-orange-500 focus:ring-1 focus:ring-orange-500 ${
+                            isDark 
+                              ? 'bg-[#1b1b22] border-white/10 text-white placeholder-zinc-500' 
+                              : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                          }`}
+                        />
+                      </div>
+
+                      {/* Submit Action */}
+                      <div className="pt-3.5 flex justify-end">
                         <button
                           type="button"
-                          onClick={() => handleReorderOrder(order)}
-                          className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer"
+                          onClick={() => handleInitiateReviewSubmit(order)}
+                          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all cursor-pointer"
                         >
-                          <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-                          <span>Reorder</span>
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Submit Review</span>
                         </button>
                       </div>
 
@@ -1833,7 +2233,7 @@ export default function CustomerMobileApp({
         )}
 
         {/* ============================================================== */}
-        {/* VIEW E: MOBILE CHECKOUT VIEW */}
+        {/* VIEW F: MOBILE CHECKOUT VIEW */}
         {/* ============================================================== */}
         {currentView === 'checkout' && (
           <div className="space-y-4 animate-tab-fade">
@@ -2261,6 +2661,34 @@ export default function CustomerMobileApp({
                     {recentOrders.length > 0 && (
                       <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-600 text-white font-bold">
                         {recentOrders.length}
+                      </span>
+                    )}
+                    <ChevronRight className="w-5 h-5 text-zinc-400" />
+                  </div>
+                </button>
+
+                {/* ADD REVIEW (Placed directly under Recent Orders) */}
+                <button
+                  onClick={() => {
+                    switchView('add-review');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                    currentView === 'add-review'
+                      ? 'bg-orange-600 text-white shadow-sm border-orange-500'
+                      : isDark 
+                        ? 'bg-white/5 hover:bg-white/10 text-white border-white/5' 
+                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                    <span>Add Review</span>
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {pendingReviewsCount > 0 && (
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-600 text-white font-bold">
+                        {pendingReviewsCount}
                       </span>
                     )}
                     <ChevronRight className="w-5 h-5 text-zinc-400" />
@@ -2746,6 +3174,188 @@ export default function CustomerMobileApp({
           order={viewingReceiptOrder}
           onClose={() => setViewingReceiptOrder(null)}
         />
+      )}
+
+      {/* ============================================================== */}
+      {/* 8. REVIEW CONFIRMATION MODAL */}
+      {/* ============================================================== */}
+      {reviewToConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            onClick={() => !submittingReview && setReviewToConfirm(null)}
+            className="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity duration-200 animate-tab-fade"
+          />
+
+          {/* Modal Card */}
+          <div className={`relative w-full max-w-sm rounded-3xl p-5 sm:p-6 border shadow-2xl z-10 animate-scale-in ${
+            isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
+          }`}>
+            <button
+              type="button"
+              onClick={() => !submittingReview && setReviewToConfirm(null)}
+              disabled={submittingReview}
+              className={`absolute top-4 right-4 p-2 rounded-xl transition-colors disabled:opacity-40 cursor-pointer ${
+                isDark ? 'text-zinc-400 hover:text-white hover:bg-white/10' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+              }`}
+              aria-label="Close modal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Header */}
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2.5 bg-amber-500/15 border border-amber-500/30 text-amber-500">
+                <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
+              </div>
+              <h3 className={`font-montserrat font-extrabold text-lg uppercase tracking-tight ${
+                isDark ? 'text-white' : 'text-zinc-900'
+              }`}>
+                Confirm Review Submission
+              </h3>
+              <p className={`text-[11px] mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                Are you sure you want to submit this feedback for Order #{reviewToConfirm.order.id}?
+              </p>
+            </div>
+
+            {/* Review Summary Box */}
+            <div className={`rounded-2xl p-3.5 border text-xs space-y-2 mb-4 ${
+              isDark ? 'bg-black/40 border-white/10' : 'bg-zinc-50 border-zinc-200'
+            }`}>
+              <div className="flex items-center justify-between pb-1.5 border-b border-white/5">
+                <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                  Rating
+                </span>
+                <div className="flex items-center gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-3.5 h-3.5 ${
+                        i < reviewToConfirm.rating 
+                          ? 'fill-amber-400 text-amber-400' 
+                          : isDark ? 'text-zinc-700' : 'text-zinc-300'
+                      }`}
+                    />
+                  ))}
+                  <span className="font-bold ml-1 text-amber-500">
+                    ({reviewToConfirm.rating}/5)
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start justify-between pb-1.5 border-b border-white/5 gap-2">
+                <span className={`text-[11px] flex-shrink-0 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                  Items
+                </span>
+                <span className={`font-semibold text-right text-[11px] line-clamp-1 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  {reviewToConfirm.order.items?.map(it => `${it.quantity || 1}x ${it.name}`).join(', ') || `Order #${reviewToConfirm.order.id}`}
+                </span>
+              </div>
+
+              <div>
+                <span className={`text-[10px] block mb-1 uppercase font-bold tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                  Comment
+                </span>
+                <p className={`text-[11px] italic p-2 rounded-lg border ${
+                  isDark ? 'bg-zinc-900 border-white/5 text-zinc-300' : 'bg-white border-zinc-200 text-zinc-700'
+                }`}>
+                  "{reviewToConfirm.comment.trim() || 'Delicious food and great service!'}"
+                </p>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setReviewToConfirm(null)}
+                disabled={submittingReview}
+                className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
+                  isDark 
+                    ? 'bg-zinc-800 border-white/10 text-zinc-300 hover:text-white' 
+                    : 'bg-zinc-100 border-zinc-200 text-zinc-700 hover:bg-zinc-200'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmReviewSubmit}
+                disabled={submittingReview}
+                className="flex-1 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {submittingReview ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Submitting...</span>
+                  </span>
+                ) : (
+                  <span>Confirm & Submit</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* 9. ANIMATED THANK YOU SUCCESS POPUP */}
+      {/* ============================================================== */}
+      {reviewSuccessData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop with fade-in */}
+          <div
+            onClick={() => setReviewSuccessData(null)}
+            className="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity duration-300 animate-tab-fade"
+          />
+
+          {/* Celebration Card with smooth scale-in */}
+          <div className={`relative w-full max-w-sm rounded-3xl p-6 sm:p-7 border shadow-2xl z-10 text-center space-y-4 animate-scale-in ${
+            isDark 
+              ? 'bg-[#15151a] border-white/15 text-white' 
+              : 'bg-white border-zinc-200 text-zinc-900 shadow-2xl'
+          }`}>
+            {/* Glowing animated badge */}
+            <div className="relative mx-auto w-16 h-16 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
+              <div className="relative w-16 h-16 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[11px] font-bold uppercase tracking-wider">
+                <Sparkles className="w-3 h-3" />
+                <span>Feedback Received</span>
+              </div>
+              <h3 className={`font-montserrat font-extrabold text-lg uppercase tracking-tight ${
+                isDark ? 'text-white' : 'text-zinc-900'
+              }`}>
+                Thank You for Your Review!
+              </h3>
+              <p className={`text-xs max-w-xs mx-auto leading-relaxed ${
+                isDark ? 'text-zinc-400' : 'text-zinc-600'
+              }`}>
+                Your feedback for Order #{reviewSuccessData.orderId} has been successfully submitted to Salik Fast Food. We truly appreciate your support!
+              </p>
+            </div>
+
+            {/* Stars summary */}
+            <div className="flex items-center justify-center gap-1 text-amber-400 py-1">
+              {[...Array(reviewSuccessData.rating || 5)].map((_, i) => (
+                <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400 animate-scale-in" />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setReviewSuccessData(null)}
+              className="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
+            >
+              Done
+            </button>
+          </div>
+        </div>
       )}
 
     </div>
