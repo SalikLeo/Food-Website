@@ -343,10 +343,15 @@ export const db = {
     const data = readDb();
     const isFamily = dealData.dealType === 'family';
     const id = dealData.id || (isFamily ? `family-deal-${Date.now()}` : `deal-${Date.now()}`);
+    if (dealData.featured) {
+      data.deals = (data.deals || []).map(d => ({ ...d, featured: false }));
+      if (data.familyDeal) data.familyDeal.featured = false;
+    }
     const newDeal = {
       ...dealData,
       id,
-      dealType: isFamily ? 'family' : 'normal'
+      dealType: isFamily ? 'family' : 'normal',
+      featured: !!dealData.featured
     };
     data.deals = [...(data.deals || []), newDeal];
     writeDb(data);
@@ -355,6 +360,21 @@ export const db = {
 
   updateDeal(id, updates) {
     const data = readDb();
+    if (updates.featured === true) {
+      data.deals = (data.deals || []).map(d => ({
+        ...d,
+        featured: d.id === id
+      }));
+      if (data.familyDeal) {
+        data.familyDeal.featured = data.familyDeal.id === id || id === 'family-deal';
+      }
+    } else if (updates.featured === false) {
+      data.deals = (data.deals || []).map(d => (d.id === id ? { ...d, featured: false } : d));
+      if (data.familyDeal && (data.familyDeal.id === id || id === 'family-deal')) {
+        data.familyDeal.featured = false;
+      }
+    }
+
     if (data.familyDeal && (id === 'family-deal' || id === data.familyDeal.id)) {
       data.familyDeal = { ...data.familyDeal, ...updates };
     }

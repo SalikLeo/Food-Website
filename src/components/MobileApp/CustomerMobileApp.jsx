@@ -379,6 +379,28 @@ export default function CustomerMobileApp({
     };
   }, [mobileMenuOpen, showConfirmModal, viewingReceiptOrder, reviewToConfirm, reviewSuccessData]);
 
+  // Group and resolve featured deal for Deals tab
+  const allDealsList = useMemo(() => {
+    let list = [...(deals || [])];
+    if (familyDeal && !list.some((d) => d.id === familyDeal.id)) {
+      list.unshift(familyDeal);
+    }
+    return list;
+  }, [deals, familyDeal]);
+
+  const featuredDeal = useMemo(() => {
+    if (!allDealsList.length) return null;
+    const explicit = allDealsList.find((d) => d.featured === true || d.featured === 'true');
+    if (explicit) return explicit;
+    if (familyDeal) return familyDeal;
+    return allDealsList[0] || null;
+  }, [allDealsList, familyDeal]);
+
+  const remainingDeals = useMemo(() => {
+    if (!featuredDeal) return allDealsList;
+    return allDealsList.filter((d) => d.id !== featuredDeal.id);
+  }, [allDealsList, featuredDeal]);
+
   // Handle native Android hardware back button
   useEffect(() => {
     let backHandle = null;
@@ -1607,13 +1629,12 @@ export default function CustomerMobileApp({
               </div>
 
               <span className="text-xs font-semibold text-orange-500">
-                {deals.length + (familyDeal ? 1 : 0)} Combo Deals
+                {allDealsList.length} Combo Deals
               </span>
             </div>
 
-            {/* Family Feast Highlight Card */}
-            {/* Family Feast Highlight Card */}
-            {familyDeal && (
+            {/* Top Featured Deal Highlight Card */}
+            {featuredDeal && (
               <div className={`rounded-3xl p-4 border shadow-xl space-y-3.5 ${
                 isDark 
                   ? 'bg-gradient-to-br from-amber-950/60 via-zinc-900 to-black border-amber-500/30' 
@@ -1626,10 +1647,12 @@ export default function CustomerMobileApp({
                       ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
                       : 'bg-white/20 text-white border-white/40 backdrop-blur-xs'
                   }`}>
-                    👑 MEGA FAMILY SAVER
+                    {featuredDeal.dealType === 'family' || featuredDeal.id === 'family-deal' || (featuredDeal.name && featuredDeal.name.toLowerCase().includes('family'))
+                      ? '👑 MEGA FAMILY SAVER'
+                      : (featuredDeal.name ? `👑 ${featuredDeal.name.toUpperCase()}` : '🔥 SPECIAL DEAL')}
                   </span>
                   <span className={`text-lg font-bold font-sans ${isDark ? 'text-amber-400' : 'text-white'}`}>
-                    Rs. {formatPrice(familyDeal.price)}
+                    Rs. {formatPrice(featuredDeal.price)}
                   </span>
                 </div>
 
@@ -1637,10 +1660,10 @@ export default function CustomerMobileApp({
                 <div className="flex items-center justify-between gap-3 pt-0.5">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-base text-white mb-2">
-                      {familyDeal.name}
+                      {featuredDeal.name}
                     </h3>
                     <ul className={`space-y-1.5 text-xs ${isDark ? 'text-zinc-200' : 'text-white/95'}`}>
-                      {(familyDeal.includes || []).map((itemStr, idx) => (
+                      {(featuredDeal.includes || []).map((itemStr, idx) => (
                         <li key={idx} className="flex items-start gap-1.5 leading-snug">
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${isDark ? 'bg-amber-400' : 'bg-white'}`} />
                           <span className="font-medium">{itemStr}</span>
@@ -1651,16 +1674,19 @@ export default function CustomerMobileApp({
 
                   <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 flex items-center justify-center">
                     <img
-                      src={familyDeal.image || '/assets/images/deal-family.png'}
-                      alt={familyDeal.name}
+                      src={featuredDeal.image || (featuredDeal.dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png')}
+                      alt={featuredDeal.name}
                       className="w-full h-full object-contain drop-shadow-md"
+                      onError={(e) => {
+                        e.target.src = featuredDeal.dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png';
+                      }}
                     />
                   </div>
                 </div>
 
                 {/* Add Button at Bottom */}
                 <button
-                  onClick={(e) => handleAddDeal(familyDeal, e)}
+                  onClick={(e) => handleAddDeal(featuredDeal, e)}
                   className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     isDark 
                       ? 'bg-amber-500 hover:bg-amber-400 text-black' 
@@ -1668,14 +1694,14 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Family Deal</span>
+                  <span>Add {featuredDeal.name}</span>
                 </button>
               </div>
             )}
 
-            {/* Numbered Deals Grid */}
+            {/* Remaining Deals Grid */}
             <div className="space-y-3">
-              {deals.map((deal) => (
+              {remainingDeals.map((deal) => (
                 <div
                   key={deal.id}
                   className={`rounded-2xl p-4 border shadow-md space-y-3 ${
@@ -1709,11 +1735,11 @@ export default function CustomerMobileApp({
 
                     <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center">
                       <img
-                        src={deal.image || '/assets/images/deal-1.png'}
+                        src={deal.image || '/assets/deal-1.png'}
                         alt={deal.name}
                         className="w-full h-full object-contain drop-shadow-sm"
                         onError={(e) => {
-                          e.target.src = '/assets/images/deal-1.png';
+                          e.target.src = '/assets/deal-1.png';
                         }}
                       />
                     </div>

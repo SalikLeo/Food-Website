@@ -11,7 +11,8 @@ import {
   AlertTriangle,
   Users,
   ChevronDown,
-  AlertCircle
+  AlertCircle,
+  Star
 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
 import { formatPrice } from '../../utils/formatters';
@@ -656,7 +657,8 @@ export default function DealsManager({
       image: selectedImage || (dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png'),
       includes: formattedIncludes,
       description: generatedDescription,
-      tag: dealType === 'family' ? 'Family Bundle' : ''
+      tag: dealType === 'family' ? 'Family Bundle' : '',
+      featured: modalMode === 'edit' && activeDeal ? !!activeDeal.featured : false
     };
 
     try {
@@ -686,6 +688,31 @@ export default function DealsManager({
       alert('Error connecting to server');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Toggle Featured Deal
+  const [togglingFeaturedId, setTogglingFeaturedId] = useState(null);
+  const handleToggleFeatured = async (deal) => {
+    if (togglingFeaturedId) return;
+    setTogglingFeaturedId(deal.id);
+    const willBeFeatured = !deal.featured;
+    try {
+      const res = await fetch(apiUrl(`/api/deals/${deal.id}`), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featured: willBeFeatured })
+      });
+      if (res.ok) {
+        if (onRefresh) await onRefresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'Failed to update featured deal');
+      }
+    } catch {
+      alert('Error connecting to server');
+    } finally {
+      setTogglingFeaturedId(null);
     }
   };
 
@@ -811,30 +838,59 @@ export default function DealsManager({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {displayedDeals.map((deal) => {
           const isFam = isFamilyDeal(deal);
+          const isFeatured = !!deal.featured;
           return (
             <div
               key={deal.id}
               className={`bg-white rounded-2xl border shadow-2xs hover:shadow-md p-5 flex flex-col justify-between space-y-4 transition-all duration-200 ${
-                isFam
+                isFeatured
+                  ? 'border-amber-400 ring-2 ring-amber-400/40 bg-gradient-to-b from-amber-50/25 to-white'
+                  : isFam
                   ? 'border-amber-300 ring-1 ring-amber-400/30'
                   : 'border-zinc-200 hover:border-orange-300'
               }`}
             >
-              {/* Card Top: Badge & Price */}
+              {/* Card Top: Badge & Price & Star */}
               <div>
                 <div className="flex items-center justify-between gap-2 mb-3">
-                  {isFam ? (
-                    <span className="px-2.5 py-1 rounded-lg bg-amber-500 text-zinc-950 font-extrabold text-[11px] uppercase tracking-wider shadow-2xs">
-                      {deal.name ? deal.name.toUpperCase() : `FAMILY DEAL ${deal.number || ''}`}
-                    </span>
-                  ) : (
-                    <span className="px-2.5 py-1 rounded-lg bg-orange-600 text-white font-extrabold text-[11px] uppercase tracking-wider shadow-2xs">
-                      DEAL {deal.number || deal.id.replace('deal-', '')}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 min-w-0">
+                    {isFam ? (
+                      <span className="px-2.5 py-1 rounded-lg bg-amber-500 text-zinc-950 font-extrabold text-[11px] uppercase tracking-wider shadow-2xs">
+                        {deal.name ? deal.name.toUpperCase() : `FAMILY DEAL ${deal.number || ''}`}
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-lg bg-orange-600 text-white font-extrabold text-[11px] uppercase tracking-wider shadow-2xs">
+                        DEAL {deal.number || deal.id.replace('deal-', '')}
+                      </span>
+                    )}
+
+                    {/* Star Icon for Featured Deal */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleFeatured(deal);
+                      }}
+                      disabled={togglingFeaturedId === deal.id}
+                      title={isFeatured ? 'Featured Deal (Showing on Top) — Click to remove' : 'Set as Featured Deal on Top'}
+                      className={`p-1.5 rounded-lg border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+                        isFeatured
+                          ? 'bg-amber-100 border-amber-400 text-amber-500 shadow-xs'
+                          : 'bg-zinc-50 hover:bg-amber-50 border-zinc-200 hover:border-amber-300 text-zinc-400 hover:text-amber-500'
+                      }`}
+                    >
+                      <Star
+                        className={`w-3.5 h-3.5 transition-transform ${
+                          isFeatured
+                            ? 'fill-amber-400 text-amber-500 scale-110'
+                            : 'text-zinc-400 hover:text-amber-500'
+                        } ${togglingFeaturedId === deal.id ? 'animate-spin' : ''}`}
+                      />
+                    </button>
+                  </div>
 
                   <span
-                    className={`font-display text-xl font-bold ${
+                    className={`font-display text-xl font-bold shrink-0 ${
                       isFam ? 'text-amber-600' : 'text-orange-600'
                     }`}
                   >
