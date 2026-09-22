@@ -1644,7 +1644,7 @@ export default function CustomerMobileApp({
               </div>
             ) : (
               /* Recent Orders List */
-              <div className="space-y-3.5">
+              <div className="space-y-2.5 sm:space-y-3.5">
                 {recentOrders.map((order, idx) => {
                   const itemsList = order.items || [];
                   const orderDate = order.createdAt 
@@ -1668,14 +1668,14 @@ export default function CustomerMobileApp({
                   return (
                     <div
                       key={order.id || idx}
-                      className={`rounded-2xl p-4 border ${
+                      className={`rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3.5 border ${
                         isDark 
                           ? 'bg-[#15151a] border-white/10 shadow-lg' 
                           : 'bg-white border-zinc-200 shadow-xs'
                       }`}
                     >
                       {/* Top Order Meta */}
-                      <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                      <div className="flex items-center justify-between pb-2 sm:pb-2.5 border-b border-white/5">
                         <div className="flex items-center gap-2">
                           <Receipt className="w-4 h-4 text-orange-500" />
                           <span className={`font-sans text-xs sm:text-sm font-semibold tracking-normal ${
@@ -1709,36 +1709,31 @@ export default function CustomerMobileApp({
                         </div>
                       </div>
 
-                      {/* Date */}
-                      <div className="flex items-center text-[11px] text-zinc-400 pt-2 pb-1">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-zinc-500" />
-                          <span>{orderDate}</span>
-                        </span>
-                      </div>
-
-                      {/* Items Summary Collapsible Dropdown */}
-                      {itemsList.length > 0 && (
+                      {/* Items Summary Collapsible Dropdown (with Date & View Details) */}
+                      {itemsList.length > 0 ? (
                         <>
                           <button
                             type="button"
                             onClick={() => toggleOrderExpanded(order.id || idx)}
-                            className={`w-full my-2.5 px-3 py-2 rounded-xl flex items-center justify-between text-xs active:scale-[0.99] transition-transform cursor-pointer ${
+                            className={`w-full my-1.5 px-3 py-1.5 sm:py-2 rounded-xl flex items-center justify-between text-xs active:scale-[0.99] transition-transform cursor-pointer ${
                               isDark 
                                 ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5' 
                                 : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200/80'
                             }`}
                           >
-                            <span className="flex items-center gap-1.5 font-montserrat">
-                              <span className="text-xs">🛍️</span>
-                              <span className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-                                {itemsList.length} {itemsList.length === 1 ? 'Item' : 'Items'}
+                            <span className="flex items-center gap-1.5 min-w-0 pr-1">
+                              <span className={`font-sans text-xs sm:text-sm font-semibold tracking-normal ${
+                                isDark ? 'text-zinc-200' : 'text-zinc-800'
+                              }`}>
+                                {orderDate}
                               </span>
-                              <span className="text-[11px] text-zinc-400 font-normal">
-                                ({expandedOrders[order.id || idx] ? 'Hide Details' : 'View Details'})
+                              <span className={`text-[11px] font-normal truncate ${
+                                isDark ? 'text-zinc-400' : 'text-zinc-500'
+                              }`}>
+                                • {itemsList.length} {itemsList.length === 1 ? 'Item' : 'Items'} ({expandedOrders[order.id || idx] ? 'Hide Details' : 'View Details'})
                               </span>
                             </span>
-                            <ChevronDown className={`w-4 h-4 text-orange-500 transition-transform duration-300 ease-in-out ${
+                            <ChevronDown className={`w-4 h-4 text-orange-500 shrink-0 transition-transform duration-300 ease-in-out ${
                               expandedOrders[order.id || idx] ? 'rotate-180' : 'rotate-0'
                             }`} />
                           </button>
@@ -1747,7 +1742,7 @@ export default function CustomerMobileApp({
                           <div
                             className={`grid transition-all duration-300 ease-in-out ${
                               expandedOrders[order.id || idx] 
-                                ? 'grid-rows-[1fr] opacity-100 mb-3' 
+                                ? 'grid-rows-[1fr] opacity-100 mb-2' 
                                 : 'grid-rows-[0fr] opacity-0 mb-0 pointer-events-none'
                             }`}
                           >
@@ -1799,12 +1794,20 @@ export default function CustomerMobileApp({
                             </div>
                           </div>
                         </>
+                      ) : (
+                        <div className="py-1">
+                          <span className={`font-sans text-xs sm:text-sm font-semibold tracking-normal ${
+                            isDark ? 'text-zinc-200' : 'text-zinc-800'
+                          }`}>
+                            {orderDate}
+                          </span>
+                        </div>
                       )}
 
                       {/* Order Footer: Total & REORDER Button */}
                       <div className="flex items-center justify-between pt-1 gap-3">
                         <div>
-                          <span className="font-montserrat text-base font-extrabold text-orange-600 leading-tight">
+                          <span className="font-montserrat text-base sm:text-lg font-extrabold text-orange-600 leading-tight">
                             Rs. {formatPrice(order.total)}
                           </span>
                         </div>
@@ -1813,7 +1816,7 @@ export default function CustomerMobileApp({
                         <button
                           type="button"
                           onClick={() => handleReorderOrder(order)}
-                          className="px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer"
+                          className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer"
                         >
                           <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
                           <span>Reorder</span>
