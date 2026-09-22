@@ -852,35 +852,28 @@ export default function OrdersManager({
           <Clock className="w-12 h-12 mx-auto text-zinc-300 mb-3" />
           <h4 className="text-zinc-900 font-bold text-base">No orders found</h4>
           <p className="text-zinc-500 text-xs mt-1 max-w-sm mx-auto">
-            No orders match the selected period ({periodDescription}){statusFilter !== 'All' ? ` with status "${statusFilter}"` : ''}{search ? ` and search "${search}"` : ''}.
+            No orders match the current filter{statusFilter !== 'All' ? ` with status "${statusFilter}"` : ''}{search ? ` and search "${search}"` : ''}.
           </p>
           <div className="mt-5 flex items-center justify-center gap-2.5 flex-wrap">
-            {datePreset !== 'all' && (
+            {typeof onResetToAllPending === 'function' && pendingOutsideTodayCount > 0 && (
               <button
-                onClick={() => setDatePreset('all')}
+                type="button"
+                onClick={onResetToAllPending}
                 className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
               >
-                View All Time Orders ({orders.length})
+                View Pending Orders ({pendingOutsideTodayCount})
               </button>
             )}
-            {datePreset !== 'today' && (
+            {(statusFilter !== 'All' || search) && (
               <button
+                type="button"
                 onClick={() => {
-                  setDatePreset('today');
                   setStatusFilter('All');
                   setSearch('');
                 }}
                 className="px-4 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs transition-colors cursor-pointer"
               >
-                Reset to Today (Daily)
-              </button>
-            )}
-            {statusFilter !== 'All' && (
-              <button
-                onClick={() => setStatusFilter('All')}
-                className="px-4 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs transition-colors cursor-pointer"
-              >
-                Clear Status Filter
+                Reset Search & Status
               </button>
             )}
           </div>
