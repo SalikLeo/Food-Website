@@ -471,11 +471,7 @@ export default function OrdersManager({
 
   const onSelectStatus = (order, newStatus) => {
     if (!order || order.status === newStatus) return;
-    if (order.status === 'Delivered') {
-      setStatusChangeConfirmModal({ order, newStatus });
-      return;
-    }
-    handleStatusChange(order.id, newStatus);
+    setStatusChangeConfirmModal({ order, newStatus });
   };
 
   const handleConfirmStatusChange = async () => {
@@ -1822,7 +1818,7 @@ export default function OrdersManager({
         </div>
       )}
 
-      {/* CONFIRM STATUS CHANGE FOR DELIVERED ORDER MODAL */}
+      {/* CONFIRM STATUS CHANGE MODAL */}
       {statusChangeConfirmModal && (
         <div
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
@@ -1853,10 +1849,14 @@ export default function OrdersManager({
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-zinc-900 leading-snug">
-                  Change Delivered Order Status?
+                  {statusChangeConfirmModal.order.status === 'Delivered' ? 'Change Delivered Order Status?' : 'Change Order Status?'}
                 </h3>
                 <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-                  This order has already been marked as <strong className="text-emerald-700 font-semibold">Delivered</strong>. Are you sure you want to change its status?
+                  {statusChangeConfirmModal.order.status === 'Delivered' ? (
+                    <>This order has already been marked as <strong className="text-emerald-700 font-semibold">Delivered</strong>. Are you sure you want to change its status?</>
+                  ) : (
+                    <>Are you sure you want to change the status of order <strong className="text-zinc-900 font-semibold">#{statusChangeConfirmModal.order.id}</strong> to <strong className="text-orange-600 font-semibold">{statusChangeConfirmModal.newStatus}</strong>?</>
+                  )}
                 </p>
               </div>
             </div>
@@ -1889,8 +1889,18 @@ export default function OrdersManager({
               <div className="flex items-center justify-between pt-0.5">
                 <span className="text-zinc-500 font-medium">Status Change:</span>
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    Delivered
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                    statusChangeConfirmModal.order.status === 'Pending'
+                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                      : statusChangeConfirmModal.order.status === 'Preparing'
+                      ? 'bg-blue-100 text-blue-800 border-blue-300'
+                      : statusChangeConfirmModal.order.status === 'Out for Delivery'
+                      ? 'bg-purple-100 text-purple-800 border-purple-300'
+                      : statusChangeConfirmModal.order.status === 'Delivered'
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                      : 'bg-red-100 text-red-800 border-red-300'
+                  }`}>
+                    {statusChangeConfirmModal.order.status}
                   </span>
                   <span className="text-zinc-400 font-bold">→</span>
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
@@ -1900,6 +1910,8 @@ export default function OrdersManager({
                       ? 'bg-blue-100 text-blue-800 border-blue-300'
                       : statusChangeConfirmModal.newStatus === 'Out for Delivery'
                       ? 'bg-purple-100 text-purple-800 border-purple-300'
+                      : statusChangeConfirmModal.newStatus === 'Delivered'
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                       : 'bg-red-100 text-red-800 border-red-300'
                   }`}>
                     {statusChangeConfirmModal.newStatus}
@@ -1916,7 +1928,7 @@ export default function OrdersManager({
                 onClick={() => setStatusChangeConfirmModal(null)}
                 className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 font-bold text-xs transition-colors cursor-pointer active:scale-95 disabled:opacity-50"
               >
-                No, Keep Delivered
+                {statusChangeConfirmModal.order.status === 'Delivered' ? 'No, Keep Delivered' : 'Cancel'}
               </button>
               <button
                 type="button"
