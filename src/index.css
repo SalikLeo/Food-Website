@@ -325,6 +325,11 @@
   padding-bottom: 0.35rem;
 }
 
+.admin-app-header {
+  padding-top: max(env(safe-area-inset-top, 0px), 0px);
+  padding-bottom: 0px;
+}
+
 .mobile-app-container {
   padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 7.5rem), 8rem);
 }

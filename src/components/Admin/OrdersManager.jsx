@@ -3,7 +3,7 @@ import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, 
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
 import { formatPrice, formatPaymentMethod, formatReceiptPaymentBadge } from '../../utils/formatters';
-import { downloadReceiptImage, shareReceiptImageWhatsApp } from '../../services/receiptImageService';
+import { downloadReceiptImage, shareReceiptImageWhatsApp, printReceiptDocument } from '../../services/receiptImageService';
 
 // Helper to format date to local YYYY-MM-DD
 const getLocalDateStr = (d) => {
@@ -96,6 +96,7 @@ export default function OrdersManager({
   const [isDownloadingReceipt, setIsDownloadingReceipt] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [isSharingWhatsApp, setIsSharingWhatsApp] = useState(false);
+  const [isPrintingReceipt, setIsPrintingReceipt] = useState(false);
 
   // Status Change Confirmation Modal State (for Delivered Orders)
   const [statusChangeConfirmModal, setStatusChangeConfirmModal] = useState(null);
@@ -762,34 +763,17 @@ export default function OrdersManager({
 </html>`;
   };
 
-  const handlePrintReceipt = (order) => {
+  const handlePrintReceipt = async (order) => {
+    if (!order || isPrintingReceipt) return;
     try {
-      let iframe = document.getElementById('receipt-print-iframe');
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'receipt-print-iframe';
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0';
-        iframe.style.bottom = '0';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.style.border = '0';
-        document.body.appendChild(iframe);
-      }
-      const doc = iframe.contentWindow.document;
-      doc.open();
-      doc.write(generateReceiptHtml(order));
-      doc.close();
-      setTimeout(() => {
-        try {
-          iframe.contentWindow.focus();
-          iframe.contentWindow.print();
-        } catch (e) {
-          console.error('Print error:', e);
-        }
-      }, 250);
+      setIsPrintingReceipt(true);
+      const html = generateReceiptHtml(order);
+      await printReceiptDocument(html, `Receipt-ORD-${order.id}`);
     } catch (e) {
-      console.error('Print iframe error:', e);
+      console.error('Print receipt error:', e);
+      alert('Could not start printing: ' + (e?.message || e));
+    } finally {
+      setIsPrintingReceipt(false);
     }
   };
 
@@ -957,11 +941,11 @@ export default function OrdersManager({
   }, [dateFilteredOrders, statusFilter, search]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3.5 sm:space-y-6">
       
       {/* Date, Month & Year Period Filter Card */}
-      <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-zinc-200 shadow-2xs space-y-2.5 sm:space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 sm:gap-3">
           
           {/* Quick Date Presets */}
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -1183,7 +1167,7 @@ export default function OrdersManager({
       </div>
 
       {/* Status Filters Bar & Search */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-4">
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
           {['All', 'Pending', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'].map(st => (
             <button
@@ -1895,13 +1879,15 @@ export default function OrdersManager({
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-2 sm:p-4 pb-28 sm:pb-32 animate-tab-fade">
           
           {/* Thermal Receipt Paper Card */}
-          <div className="relative w-full max-w-[420px] bg-white text-black p-5 sm:p-6 rounded-2xl shadow-2xl border border-zinc-300 font-sans text-xs leading-relaxed my-auto">
-            
+          <div 
+            className="relative w-full max-w-[400px] bg-white text-black rounded-2xl shadow-2xl border border-zinc-300 font-sans text-xs leading-relaxed my-auto overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Small Cross Button on Top Right to Close */}
             <button
               type="button"
               onClick={() => setViewingReceiptOrder(null)}
-              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 text-zinc-600 hover:text-black flex items-center justify-center cursor-pointer active:scale-90 transition-all shadow-2xs z-10"
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 text-zinc-600 hover:text-black flex items-center justify-center cursor-pointer active:scale-90 transition-all shadow-2xs z-20"
               title="Close Receipt"
               aria-label="Close Receipt"
             >
@@ -1909,25 +1895,30 @@ export default function OrdersManager({
             </button>
 
             {/* Printable Receipt Paper Area (Captured by html2canvas / direct renderer) */}
-            <div ref={receiptPaperRef} id="admin-printable-receipt" className="bg-white text-black">
+            <div 
+              ref={receiptPaperRef} 
+              id="admin-printable-receipt" 
+              className="bg-white text-black p-5 sm:p-6 font-sans text-xs leading-relaxed w-full"
+              style={{ fontFamily: "'Plus Jakarta Sans', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif" }}
+            >
               {/* Store Header */}
-              <div className="text-center pb-3 border-b border-dashed border-black font-sans">
-                <h2 className="text-lg font-black tracking-wider uppercase">SALIK FAST FOOD</h2>
-                <p className="text-[11px] text-zinc-700 uppercase font-semibold">Taste That You Need</p>
-                <p className="text-[10.5px] text-zinc-600 mt-0.5">
+              <div className="text-center pb-3 border-b border-dashed border-zinc-400 font-sans">
+                <h2 className="text-base font-extrabold tracking-wider uppercase text-zinc-900">SALIK FAST FOOD</h2>
+                <p className="text-[11px] text-zinc-600 uppercase font-semibold">Taste That You Need</p>
+                <p className="text-[10px] text-zinc-500 mt-0.5">
                   Wah Model Town, Wah Cantt<br />
                   Phone: 0309-5369472
                 </p>
-                <div className="mt-2 inline-block px-3 py-0.5 border border-black font-bold uppercase tracking-wider text-[10px]">
-                  {formatReceiptPaymentBadge(viewingReceiptOrder.paymentMethod)}
+                <div className="mt-2 inline-flex items-center justify-center px-3 py-1 border border-black font-bold uppercase tracking-wider text-[10px] leading-none">
+                  <span className="leading-none">{formatReceiptPaymentBadge(viewingReceiptOrder.paymentMethod)}</span>
                 </div>
               </div>
 
               {/* Order Metadata Box */}
-              <div className="py-3 border-b border-dashed border-black space-y-1 font-sans text-xs">
+              <div className="py-2.5 border-b border-dashed border-zinc-400 space-y-1 font-sans text-xs">
                 <div className="flex justify-between">
                   <span className="font-bold">Order ID:</span>
-                  <span className="font-semibold">#{viewingReceiptOrder.id}</span>
+                  <span className="font-semibold">#{viewingReceiptOrder.id && viewingReceiptOrder.id.startsWith('#') ? viewingReceiptOrder.id.slice(1) : viewingReceiptOrder.id}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-bold">Date & Time:</span>
@@ -1942,51 +1933,51 @@ export default function OrdersManager({
                   <span>{viewingReceiptOrder.phone || '-'}</span>
                 </div>
                 {viewingReceiptOrder.address && (
-                  <div className="pt-1">
+                  <div className="pt-0.5">
                     <span className="font-bold block">Delivery Address:</span>
-                    <span className="block text-[11px] leading-tight text-zinc-800">{viewingReceiptOrder.address}</span>
+                    <span className="block text-[11px] leading-tight text-zinc-700">{viewingReceiptOrder.address}</span>
                   </div>
                 )}
                 {viewingReceiptOrder.notes && (
-                  <div className="pt-1 text-[11px] italic">
+                  <div className="pt-0.5 text-[11px] italic">
                     <span className="font-bold not-italic">Notes:</span> {viewingReceiptOrder.notes}
                   </div>
                 )}
               </div>
 
               {/* Items Table - Proper Tabular Grid Design */}
-              <div className="py-3 border-b border-dashed border-black">
-                <table className="w-full text-left border-collapse border border-black">
+              <div className="py-2.5">
+                <table className="w-full text-left border-collapse border border-black text-xs">
                   <thead>
-                    <tr className="bg-zinc-100 font-sans font-bold text-[13px] uppercase tracking-wide border-b border-black text-black">
-                      <th className="py-1.5 px-1.5 border-r border-black w-7 text-center">#</th>
-                      <th className="py-1.5 px-2 border-r border-black">Item</th>
-                      <th className="py-1.5 px-1.5 border-r border-black text-center w-9">Qty</th>
-                      <th className="py-1.5 px-1.5 border-r border-black text-right w-14">Rate</th>
-                      <th className="py-1.5 px-2 text-right w-16">Amount</th>
+                    <tr className="bg-zinc-100 font-sans font-bold text-[11px] uppercase tracking-wide border-b border-black text-black">
+                      <th className="py-1 px-1.5 border-r border-black w-6 text-center">#</th>
+                      <th className="py-1 px-2 border-r border-black">Item</th>
+                      <th className="py-1 px-1.5 border-r border-black text-center w-8">Qty</th>
+                      <th className="py-1 px-1.5 border-r border-black text-right w-12">Rate</th>
+                      <th className="py-1 px-2 text-right w-14">Amount</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(viewingReceiptOrder.items || []).map((it, idx) => (
                       <tr key={idx} className="align-top border-b border-black">
-                        <td className="py-1.5 px-1.5 border-r border-black text-center font-sans text-xs text-zinc-600">
+                        <td className="py-1 px-1.5 border-r border-black text-center text-[11px] text-zinc-600">
                           {idx + 1}
                         </td>
-                        <td className="py-1.5 px-2 border-r border-black font-sans font-semibold text-xs text-black">
+                        <td className="py-1 px-2 border-r border-black font-medium text-xs text-black">
                           <div>{it.name}</div>
                           {it.size && (
-                            <span className="inline-block font-sans font-medium text-[11px] text-zinc-700 mt-0.5">
-                              Size: {it.size}
+                            <span className="inline-block text-[10px] text-zinc-600">
+                              Size: {typeof it.size === 'string' ? it.size : it.size?.label}
                             </span>
                           )}
                         </td>
-                        <td className="py-1.5 px-1.5 border-r border-black text-center font-sans font-bold text-xs text-black">
+                        <td className="py-1 px-1.5 border-r border-black text-center font-bold text-xs text-black">
                           {it.quantity}
                         </td>
-                        <td className="py-1.5 px-1.5 border-r border-black text-right font-sans text-xs text-zinc-800">
+                        <td className="py-1 px-1.5 border-r border-black text-right text-xs text-zinc-800">
                           {formatPrice(it.price)}
                         </td>
-                        <td className="py-1.5 px-2 text-right font-sans font-bold text-xs text-black">
+                        <td className="py-1 px-2 text-right font-bold text-xs text-black">
                           {formatPrice(Number(it.price) * Number(it.quantity))}
                         </td>
                       </tr>
@@ -1996,7 +1987,7 @@ export default function OrdersManager({
               </div>
 
               {/* Totals */}
-              <div className="py-3 border-b border-dashed border-black space-y-1 font-sans text-xs">
+              <div className="py-2.5 border-t border-dashed border-zinc-400 space-y-1 font-sans text-xs">
                 <div className="flex justify-between text-zinc-700">
                   <span className="font-medium">Subtotal</span>
                   <span className="font-bold">Rs. {formatPrice(viewingReceiptOrder.subtotal || 0)}</span>
@@ -2005,26 +1996,26 @@ export default function OrdersManager({
                   <span className="font-medium">Delivery Charges</span>
                   <span className="font-bold">{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(viewingReceiptOrder.deliveryFee)}`}</span>
                 </div>
-                <div className="flex justify-between text-sm font-black pt-1 border-t border-black text-black">
+                <div className="flex justify-between text-sm font-extrabold pt-1 border-t border-black text-black">
                   <span>TOTAL PAYABLE</span>
                   <span>Rs. {formatPrice(viewingReceiptOrder.total || 0)}</span>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="text-center pt-3 text-[11px] space-y-1 text-zinc-700 font-sans">
-                <p className="font-bold text-black text-xs uppercase tracking-wide">Thank you for ordering!</p>
-                <p className="text-zinc-500 pt-1 tracking-widest font-mono text-[10px]">✂ - - - - - - - - - - - - - - - - - - - - -</p>
+              <div className="text-center pt-2.5 border-t border-dashed border-zinc-400 text-[11px] space-y-1 text-zinc-700 font-sans">
+                <p className="font-bold text-black uppercase tracking-wide">Thank you for ordering!</p>
+                <p className="text-zinc-400 font-mono text-[9.5px]">✂ - - - - - - - - - - - - - - - - - - - - -</p>
               </div>
             </div>
 
             {/* Bottom Actions: Download Image, WhatsApp Share Image, Print */}
-            <div className="mt-4 pt-3 border-t border-dashed border-black/40 flex items-center justify-between gap-2">
+            <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-3 border-t border-dashed border-zinc-300 bg-zinc-50/70 flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => handleDownloadReceipt(viewingReceiptOrder)}
                 disabled={isDownloadingReceipt}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
               >
                 {isDownloadingReceipt ? (
                   <>
@@ -2048,7 +2039,7 @@ export default function OrdersManager({
                 type="button"
                 onClick={() => handleShareWhatsApp(viewingReceiptOrder)}
                 disabled={isSharingWhatsApp}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
               >
                 {isSharingWhatsApp ? (
                   <>
@@ -2066,11 +2057,16 @@ export default function OrdersManager({
               <button
                 type="button"
                 onClick={() => handlePrintReceipt(viewingReceiptOrder)}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
-                title="Print Receipt"
+                disabled={isPrintingReceipt}
+                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+                title="Print Receipt via System Print / Printer"
               >
-                <Printer className="w-3.5 h-3.5 text-white" />
-                <span className="hidden sm:inline">Print</span>
+                {isPrintingReceipt ? (
+                  <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+                ) : (
+                  <Printer className="w-3.5 h-3.5 text-white" />
+                )}
+                <span className="hidden sm:inline">{isPrintingReceipt ? 'Printing...' : 'Print'}</span>
               </button>
             </div>
 

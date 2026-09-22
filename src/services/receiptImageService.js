@@ -576,3 +576,54 @@ export async function shareReceiptImageWhatsApp(element, order) {
     throw err;
   }
 }
+
+/**
+ * Print receipt HTML document (Native Android PrintManager via ReceiptBridge, or Web print fallback)
+ */
+export async function printReceiptDocument(html, title = 'Salik-Receipt') {
+  // 1. If running inside Android Native App via Capacitor
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const res = await ReceiptBridge.printReceipt({
+        html: html,
+        name: title,
+      });
+      return { success: true, native: true, ...res };
+    } catch (e) {
+      console.warn('Native printReceipt failed, falling back to web print:', e);
+    }
+  }
+
+  // 2. Web fallback: iframe print
+  try {
+    let iframe = document.getElementById('receipt-print-iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'receipt-print-iframe';
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+    }
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+    setTimeout(() => {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error('Iframe print error:', err);
+        window.print();
+      }
+    }, 250);
+    return { success: true, native: false };
+  } catch (err) {
+    console.error('Print failed:', err);
+    throw err;
+  }
+}

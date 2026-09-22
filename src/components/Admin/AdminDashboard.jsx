@@ -244,29 +244,29 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       
       {/* Top Navbar (hidden when viewing receipt) */}
       {!isReceiptOpen && (
-        <header className="bg-white border-b border-zinc-300/80 text-zinc-900 sticky top-0 z-30 shadow-xs mobile-app-header">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <header className="bg-white border-b border-zinc-300/80 text-zinc-900 sticky top-0 z-30 shadow-xs admin-app-header">
+          <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-1.5 sm:py-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2.5 sm:gap-3">
               <img
                 src="/assets/salik-logo.png"
                 alt="Salik Fast Food"
-                className="h-10 w-auto object-contain"
+                className="h-8.5 sm:h-9 w-auto object-contain"
               />
               <div className="flex flex-col justify-center">
-                <h1 className="font-sans text-base sm:text-lg font-black uppercase tracking-tight text-zinc-900 leading-none">
+                <h1 className="font-sans text-sm sm:text-base font-black uppercase tracking-tight text-zinc-900 leading-none">
                   Salik Fast Food Admin
                 </h1>
-                <span className="text-[10px] sm:text-[11px] text-orange-600 font-extrabold uppercase tracking-wider mt-0.5 block leading-tight">
+                <span className="text-[9.5px] sm:text-[11px] text-orange-600 font-extrabold uppercase tracking-wider mt-0.5 block leading-tight">
                   Store Administrator
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={fetchData}
                 disabled={loading}
-                className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 transition-colors"
+                className="p-1.5 sm:p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 transition-colors"
                 title="Refresh Data"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-600' : ''}`} />
@@ -275,7 +275,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               {APP_MODE !== 'admin' && (
                 <button
                   onClick={() => setShowStorefrontConfirm(true)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-xs font-semibold text-zinc-800 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-xs font-semibold text-zinc-800 transition-colors cursor-pointer"
                   title="Go to Storefront"
                 >
                   <Store className="w-4 h-4 text-orange-600" />
@@ -285,7 +285,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
               <button
                 onClick={() => setShowLogoutConfirm(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-semibold text-red-700 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-semibold text-red-700 transition-colors cursor-pointer"
                 title="Logout of Admin Panel"
               >
                 <LogOut className="w-4 h-4" />
@@ -297,16 +297,16 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       )}
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-2 pb-6 space-y-3.5 sm:space-y-6">
         
         {/* Stats Section with Time Filter Buttons */}
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {/* Full-width Time Filter Buttons: Today, Monthly, Annual, All Time */}
           <div className="grid grid-cols-4 gap-1 p-1 bg-white border border-zinc-300/80 rounded-2xl shadow-2xs w-full">
             <button
               type="button"
               onClick={() => setStatsTimeFilter('today')}
-              className={`w-full py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+              className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
                 statsTimeFilter === 'today'
                   ? 'bg-orange-600 text-white shadow-xs'
                   : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
@@ -317,7 +317,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             <button
               type="button"
               onClick={() => setStatsTimeFilter('monthly')}
-              className={`w-full py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+              className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
                 statsTimeFilter === 'monthly'
                   ? 'bg-orange-600 text-white shadow-xs'
                   : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
@@ -328,7 +328,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             <button
               type="button"
               onClick={() => setStatsTimeFilter('annual')}
-              className={`w-full py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+              className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
                 statsTimeFilter === 'annual'
                   ? 'bg-orange-600 text-white shadow-xs'
                   : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
@@ -339,7 +339,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             <button
               type="button"
               onClick={() => setStatsTimeFilter('all')}
-              className={`w-full py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+              className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
                 statsTimeFilter === 'all'
                   ? 'bg-orange-600 text-white shadow-xs'
                   : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
@@ -401,10 +401,10 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         </div>
 
         {/* Tab Navigation (Orders first, Menu second) */}
-        <div className="grid grid-cols-2 sm:flex sm:flex-row sm:items-center gap-2 sm:gap-2.5 border-b border-zinc-300/80 pb-3 w-full">
+        <div className="grid grid-cols-2 sm:flex sm:flex-row sm:items-center gap-2 sm:gap-2.5 border-b border-zinc-300/80 pb-2.5 sm:pb-3 w-full">
           <button
             onClick={() => switchTab('orders')}
-            className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+            className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'orders'
                 ? 'bg-orange-600 text-white shadow-sm'
                 : 'bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 shadow-2xs'
@@ -419,7 +419,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
           <button
             onClick={() => switchTab('products')}
-            className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+            className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'products'
                 ? 'bg-orange-600 text-white shadow-sm'
                 : 'bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 shadow-2xs'

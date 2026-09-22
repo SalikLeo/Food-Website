@@ -8,8 +8,13 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintManager;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
@@ -195,6 +200,57 @@ public class ReceiptBridgePlugin extends Plugin {
         } catch (Exception e) {
             call.reject("Share failed: " + e.getMessage(), e);
         }
+    }
+
+    @PluginMethod
+    public void printReceipt(PluginCall call) {
+        String html = call.getString("html");
+        String printJobName = call.getString("name");
+        if (printJobName == null || printJobName.trim().isEmpty()) {
+            printJobName = "Salik-Receipt-" + System.currentTimeMillis();
+        }
+
+        if (html == null || html.trim().isEmpty()) {
+            call.reject("HTML content is missing");
+            return;
+        }
+
+        final String finalHtml = html;
+        final String finalJobName = printJobName;
+
+        getActivity().runOnUiThread(() -> {
+            try {
+                WebView printWebView = new WebView(getContext());
+                printWebView.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public void onPageFinished(WebView view, String url) {
+                        try {
+                            PrintManager printManager = (PrintManager) getActivity().getSystemService(Context.PRINT_SERVICE);
+                            if (printManager != null) {
+                                PrintDocumentAdapter printAdapter = view.createPrintDocumentAdapter(finalJobName);
+                                PrintAttributes printAttributes = new PrintAttributes.Builder()
+                                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                                        .setColorMode(PrintAttributes.COLOR_MODE_MONOCHROME)
+                                        .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                                        .build();
+                                printManager.print(finalJobName, printAdapter, printAttributes);
+                                JSObject ret = new JSObject();
+                                ret.put("success", true);
+                                call.resolve(ret);
+                            } else {
+                                call.reject("PrintManager is not available on this device");
+                            }
+                        } catch (Exception e) {
+                            call.reject("Printing failed: " + e.getMessage(), e);
+                        }
+                    }
+                });
+
+                printWebView.loadDataWithBaseURL("https://salikfastfood.local/", finalHtml, "text/html", "UTF-8", null);
+            } catch (Exception e) {
+                call.reject("Failed to initialize printer: " + e.getMessage(), e);
+            }
+        });
     }
 
     private boolean isAppInstalled(String packageName, PackageManager packageManager) {
