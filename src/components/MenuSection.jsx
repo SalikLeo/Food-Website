@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, ShoppingBag, Plus, Minus, Tag, Check, Ban, Zap } from 'lucide-react';
+import { Search, ShoppingBag, Plus, Minus, Tag, Check, Ban, Zap, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/formatters';
 
@@ -161,14 +161,25 @@ export default function MenuSection({ categories = [], products = [] }) {
 
           {/* Search Box */}
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Search menu items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 rounded-full bg-white border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 shadow-sm transition-all"
+              className="w-full pl-11 pr-10 py-3 rounded-full bg-white border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 shadow-sm transition-all"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors cursor-pointer"
+                aria-label="Clear search"
+                title="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
