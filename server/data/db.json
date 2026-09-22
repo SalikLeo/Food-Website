@@ -74,7 +74,7 @@
       "tag": "Family Bundle",
       "number": "01",
       "dealType": "family",
-      "featured": false
+      "featured": true
     },
     {
       "name": "Deal 12",
@@ -90,7 +90,7 @@
       "description": "2 Zinger Burger (Burgers) + 2 Coke 500ml (Beverages)",
       "tag": "",
       "id": "deal-1789746368640",
-      "featured": true
+      "featured": false
     },
     {
       "name": "Deal 2",
@@ -980,9 +980,9 @@
       "subtotal": 2400,
       "deliveryFee": 200,
       "total": 2600,
-      "status": "Cancelled",
+      "status": "Delivered",
       "createdAt": "2026-09-22T13:38:43.572Z",
-      "updatedAt": "2026-09-22T15:17:55.993Z"
+      "updatedAt": "2026-09-22T20:24:50.890Z"
     },
     {
       "id": "ORD-297327-29",

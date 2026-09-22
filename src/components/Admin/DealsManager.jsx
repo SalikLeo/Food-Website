@@ -929,7 +929,7 @@ export default function DealsManager({
                   </div>
 
                   <span
-                    className={`font-display text-xl font-bold shrink-0 ${
+                    className={`font-sans text-xl font-bold shrink-0 ${
                       isFam ? 'text-amber-600' : 'text-orange-600'
                     }`}
                   >
