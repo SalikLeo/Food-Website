@@ -403,36 +403,16 @@ export default function DealsManager({
     return map;
   }, [categories]);
 
-  // Comprehensive list of catalog items with category in bracket
+  // Comprehensive list of catalog items with category in bracket (base items only; size selected via pills)
   const allCatalogItems = useMemo(() => {
     const list = [];
     const seen = new Set();
 
-    // 1. Database Products
+    // 1. Database Products (base names only)
     products.forEach((p) => {
       if (p.name) {
         const cat = categoryLabelMap[p.category] || p.category || 'General';
         const pName = p.name.trim();
-
-        // If product has sizes (like Pizzas)
-        if (p.sizes && Array.isArray(p.sizes) && p.sizes.length > 0) {
-          p.sizes.forEach((s) => {
-            const sLabel = s.label || s.name || '';
-            const sizedName = `${sLabel} ${pName}`.trim();
-            const sLower = sizedName.toLowerCase();
-            if (!seen.has(sLower)) {
-              seen.add(sLower);
-              list.push({
-                name: sizedName,
-                category: cat,
-                displayName: `${sizedName} (${cat})`,
-                size: sLabel
-              });
-            }
-          });
-        }
-
-        // Also add the bare product name
         const lower = pName.toLowerCase();
         if (!seen.has(lower)) {
           seen.add(lower);
@@ -445,7 +425,7 @@ export default function DealsManager({
       }
     });
 
-    // 2. Preset Sides & Beverages
+    // 2. Preset Sides, Beverages & Core Items
     const presets = [
       { name: 'Coke 500ml', category: 'Beverages' },
       { name: 'Coke 1L', category: 'Beverages' },
@@ -454,11 +434,8 @@ export default function DealsManager({
       { name: 'Sprite 1.5L', category: 'Beverages' },
       { name: 'Fanta 500ml', category: 'Beverages' },
       { name: 'Mineral Water', category: 'Beverages' },
-      { name: 'Small Shawarma', category: 'Shawarma', size: 'Small' },
-      { name: 'Large Shawarma', category: 'Shawarma', size: 'Large' },
-      { name: 'Small Pizza', category: 'Pizza', size: 'Small' },
-      { name: 'Medium Pizza', category: 'Pizza', size: 'Medium' },
-      { name: 'Large Pizza', category: 'Pizza', size: 'Large' },
+      { name: 'Pizza', category: 'Pizza' },
+      { name: 'Shawarma', category: 'Shawarma' },
       { name: 'Regular Fries', category: 'Fries' },
       { name: 'Loaded Fries', category: 'Special' },
       { name: '6 Nuggets', category: 'Nuggets' },
@@ -474,8 +451,7 @@ export default function DealsManager({
         list.push({
           name: pr.name,
           category: pr.category,
-          displayName: `${pr.name} (${pr.category})`,
-          size: pr.size
+          displayName: `${pr.name} (${pr.category})`
         });
       }
     });
