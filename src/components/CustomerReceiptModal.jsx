@@ -61,8 +61,8 @@ export default function CustomerReceiptModal({ order, onClose }) {
     .receipt-container { width: 72mm; max-width: 72mm; margin: 0 auto; }
     .bold { font-weight: 700; }
     .header { text-align: center; padding-bottom: 8px; border-bottom: 1px dashed #000; }
-    .header h1 { font-size: 14px; font-weight: 800; text-transform: uppercase; }
-    .header p { font-size: 9.5px; color: #333; margin-top: 2px; }
+    .header h1 { font-size: 14px; font-weight: 800; text-transform: uppercase; color: #000; }
+    .header p { font-size: 9.5px; color: #000; font-weight: 600; margin-top: 2px; }
     .badge {
       display: inline-block; margin-top: 5px; padding: 1px 7px;
       border: 1px solid #000; font-size: 9px; font-weight: 700; text-transform: uppercase;
@@ -96,8 +96,8 @@ export default function CustomerReceiptModal({ order, onClose }) {
   <div class="receipt-container">
   <div class="header">
     <h1>SALIK FAST FOOD</h1>
-    <p>Taste That You Need</p>
-    <p>Wah Model Town, Wah Cantt • Phone: 0309-5369472</p>
+    <p style="font-weight: 700; text-transform: uppercase; color: #000;">Taste That You Need</p>
+    <p style="font-weight: 600; color: #000;">Wah Model Town, Wah Cantt • Phone: 0309-5369472</p>
     <div class="badge">${formatReceiptPaymentBadge(order.paymentMethod)}</div>
   </div>
   <div class="meta">
@@ -121,9 +121,9 @@ export default function CustomerReceiptModal({ order, onClose }) {
       ${itemsList.map((it, idx) => `
         <tr>
           <td class="text-center">${idx + 1}</td>
-          <td><strong>${it.name}</strong>${it.size ? `<br><span style="font-size: 8.5px; color: #555;">Size: ${typeof it.size === 'string' ? it.size : it.size?.label}</span>` : ''}</td>
+          <td><strong>${it.name}</strong>${it.size ? `<br><span style="font-size: 8.5px; color: #000; font-weight: 600;">Size: ${typeof it.size === 'string' ? it.size : it.size?.label}</span>` : ''}</td>
           <td class="text-center bold">${it.quantity}</td>
-          <td class="text-right">${formatPrice(it.price)}</td>
+          <td class="text-right" style="font-weight: 600; color: #000;">${formatPrice(it.price)}</td>
           <td class="text-right bold">${formatPrice(Number(it.price) * Number(it.quantity))}</td>
         </tr>
       `).join('')}
@@ -201,9 +201,9 @@ export default function CustomerReceiptModal({ order, onClose }) {
         >
           {/* Store Header */}
           <div className="text-center pb-3 border-b border-dashed border-zinc-400 font-sans">
-            <h2 className="text-base font-extrabold tracking-wider uppercase text-zinc-900">SALIK FAST FOOD</h2>
-            <p className="text-[11px] text-zinc-600 uppercase font-semibold">Taste That You Need</p>
-            <p className="text-[10px] text-zinc-500 mt-0.5">
+            <h2 className="text-base font-extrabold tracking-wider uppercase text-black">SALIK FAST FOOD</h2>
+            <p className="text-[11px] text-black uppercase font-bold tracking-wide">Taste That You Need</p>
+            <p className="text-[10.5px] text-black font-semibold mt-0.5">
               Wah Model Town, Wah Cantt<br />
               Phone: 0309-5369472
             </p>
@@ -264,7 +264,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
                     <td className="py-1 px-2 border-r border-black font-medium text-xs text-black">
                       <div>{it.name}</div>
                       {it.size && (
-                        <span className="inline-block text-[10px] text-zinc-600">
+                        <span className="inline-block text-[10.5px] font-semibold text-black">
                           Size: {typeof it.size === 'string' ? it.size : it.size?.label}
                         </span>
                       )}
@@ -272,7 +272,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
                     <td className="py-1 px-1.5 border-r border-black text-center font-bold text-xs text-black">
                       {it.quantity}
                     </td>
-                    <td className="py-1 px-1.5 border-r border-black text-right text-xs text-zinc-800">
+                    <td className="py-1 px-1.5 border-r border-black text-right text-xs font-semibold text-black">
                       {formatPrice(it.price)}
                     </td>
                     <td className="py-1 px-2 text-right font-bold text-xs text-black">
@@ -299,7 +299,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
             <div className="my-1 h-[1.5px] bg-black w-full" />
             <div className="flex justify-between text-sm font-extrabold text-black">
               <span>TOTAL PAYABLE</span>
-              <span>Rs. ${formatPrice(orderTotal)}</span>
+              <span>Rs. {formatPrice(orderTotal)}</span>
             </div>
           </div>
 

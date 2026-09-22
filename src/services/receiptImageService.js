@@ -109,13 +109,13 @@ export function drawReceiptCanvas(order, scale = 2) {
   ctx.fillText('SALIK FAST FOOD', width / 2, curY);
   curY += 28;
 
-  ctx.font = `700 20px ${fontSans}`;
-  ctx.fillStyle = '#52525b'; // zinc-600
+  ctx.font = `800 20px ${fontSans}`;
+  ctx.fillStyle = '#000000';
   ctx.fillText('TASTE THAT YOU NEED', width / 2, curY);
   curY += 26;
 
-  ctx.font = `500 18px ${fontSans}`;
-  ctx.fillStyle = '#71717a'; // zinc-500
+  ctx.font = `600 18px ${fontSans}`;
+  ctx.fillStyle = '#000000';
   ctx.fillText('Wah Model Town, Wah Cantt', width / 2, curY);
   curY += 24;
   ctx.fillText('Phone: 0309-5369472', width / 2, curY);
@@ -289,8 +289,8 @@ export function drawReceiptCanvas(order, scale = 2) {
     ctx.fillText(it.name, colLeft.item + 12, midY);
 
     if (hasSize) {
-      ctx.font = `500 16px ${fontSans}`;
-      ctx.fillStyle = '#71717a';
+      ctx.font = `600 17px ${fontSans}`;
+      ctx.fillStyle = '#000000';
       const sizeStr = typeof it.size === 'string' ? it.size : it.size?.label || '';
       ctx.fillText(`Size: ${sizeStr}`, colLeft.item + 12, curY + 42);
     }
@@ -300,8 +300,8 @@ export function drawReceiptCanvas(order, scale = 2) {
     ctx.textAlign = 'center';
     ctx.fillText(String(it.quantity), colLeft.qty + (colW.qty / 2), midY);
 
-    ctx.fillStyle = '#27272a';
-    ctx.font = `500 19px ${fontSans}`;
+    ctx.fillStyle = '#000000';
+    ctx.font = `700 19px ${fontSans}`;
     ctx.textAlign = 'right';
     ctx.fillText(formatPrice(it.price), colLeft.rate + colW.rate - 12, midY);
 

@@ -483,15 +483,18 @@ export default function OrdersManager({
       margin-bottom: 1px;
     }
     .brand-tagline {
-      font-size: 9px;
-      font-weight: 500;
+      font-size: 9.5px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
+      color: #000;
     }
     .contact-info {
-      font-size: 9px;
+      font-size: 9.5px;
+      font-weight: 600;
       margin-bottom: 4px;
+      color: #000;
     }
     .order-badge {
       display: inline-block;
@@ -574,7 +577,7 @@ export default function OrdersManager({
     }
     .items-table .col-num { width: 16px; text-align: center; }
     .items-table .col-qty { width: 22px; text-align: center; font-weight: 700; }
-    .items-table .col-price { width: 38px; text-align: right; }
+    .items-table .col-price { width: 38px; text-align: right; font-weight: 600; color: #000; }
     .items-table .col-total { width: 44px; text-align: right; font-weight: 700; }
     
     .item-name {
@@ -585,9 +588,9 @@ export default function OrdersManager({
     }
     .item-size {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 8px;
-      font-weight: 500;
-      color: #3f3f46;
+      font-size: 8.5px;
+      font-weight: 600;
+      color: #000;
       margin-top: 1px;
     }
 
@@ -1563,9 +1566,9 @@ export default function OrdersManager({
             >
               {/* Store Header */}
               <div className="text-center pb-3 border-b border-dashed border-zinc-400 font-sans">
-                <h2 className="text-base font-extrabold tracking-wider uppercase text-zinc-900">SALIK FAST FOOD</h2>
-                <p className="text-[11px] text-zinc-600 uppercase font-semibold">Taste That You Need</p>
-                <p className="text-[10px] text-zinc-500 mt-0.5">
+                <h2 className="text-base font-extrabold tracking-wider uppercase text-black">SALIK FAST FOOD</h2>
+                <p className="text-[11px] text-black uppercase font-bold tracking-wide">Taste That You Need</p>
+                <p className="text-[10.5px] text-black font-semibold mt-0.5">
                   Wah Model Town, Wah Cantt<br />
                   Phone: 0309-5369472
                 </p>
@@ -1626,7 +1629,7 @@ export default function OrdersManager({
                         <td className="py-1 px-2 border-r border-black font-medium text-xs text-black">
                           <div>{it.name}</div>
                           {it.size && (
-                            <span className="inline-block text-[10px] text-zinc-600">
+                            <span className="inline-block text-[10.5px] font-semibold text-black">
                               Size: {typeof it.size === 'string' ? it.size : it.size?.label}
                             </span>
                           )}
@@ -1634,7 +1637,7 @@ export default function OrdersManager({
                         <td className="py-1 px-1.5 border-r border-black text-center font-bold text-xs text-black">
                           {it.quantity}
                         </td>
-                        <td className="py-1 px-1.5 border-r border-black text-right text-xs text-zinc-800">
+                        <td className="py-1 px-1.5 border-r border-black text-right text-xs font-semibold text-black">
                           {formatPrice(it.price)}
                         </td>
                         <td className="py-1 px-2 text-right font-bold text-xs text-black">
