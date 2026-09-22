@@ -31,6 +31,12 @@ import ReviewManager from './ReviewManager';
 import { apiUrl, APP_MODE } from '../../config/api';
 import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
+import { 
+  requestNotificationPermission, 
+  notifyAdminNewOrder, 
+  playNotificationSound, 
+  triggerVibration 
+} from '../../services/notificationService';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -341,29 +347,13 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         receivedAt: new Date()
       });
 
-      // Play sound chime
+      // Dispatch sound, vibration, and native/web notification
       if (soundEnabled) {
-        playOrderAlertSound();
+        notifyAdminNewOrder(latest, newOrders.length);
+      } else {
+        triggerVibration([250, 100, 250, 100, 400]);
+        notifyAdminNewOrder(latest, newOrders.length);
       }
-
-      // Device vibration (mobile)
-      try {
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-          navigator.vibrate([250, 100, 250, 100, 400]);
-        }
-      } catch {}
-
-      // Browser / System Notification
-      try {
-        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-          const custName = latest.customer?.name || latest.customerName || 'Customer';
-          const totalVal = latest.total ? `Rs. ${formatPrice(latest.total)}` : '';
-          new Notification('🔔 New Order Received!', {
-            body: `#${latest.id} - ${totalVal} from ${custName}`,
-            icon: '/assets/salik-logo.png'
-          });
-        }
-      } catch {}
     }
 
     setOrders(incomingOrders);
@@ -428,12 +418,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     window.addEventListener('focus', onFocusOrVisible);
     document.addEventListener('visibilitychange', onFocusOrVisible);
 
-    // Request browser notification permission if not yet decided
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-      try {
-        Notification.requestPermission().catch(() => {});
-      } catch {}
-    }
+    // Request notification permissions for Android Native & Web
+    requestNotificationPermission().catch(() => {});
 
     return () => {
       clearInterval(interval);

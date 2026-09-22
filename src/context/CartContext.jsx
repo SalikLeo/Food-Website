@@ -1,7 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { apiUrl } from '../config/api';
 import { flyItemToCart } from '../utils/flyToCart';
 import { formatPrice } from '../utils/formatters';
+import { 
+  requestNotificationPermission, 
+  notifyCustomerOrderStatus, 
+  getStatusNotificationDetails 
+} from '../services/notificationService';
 
 const CartContext = createContext();
 
@@ -27,6 +32,12 @@ export const CartProvider = ({ children }) => {
       return [];
     }
   });
+
+  const [activeOrderNotification, setActiveOrderNotification] = useState(null);
+  const knownStatusesRef = useRef(new Map());
+  const initialSyncDoneRef = useRef(false);
+
+  const dismissOrderNotification = () => setActiveOrderNotification(null);
 
   useEffect(() => {
     try {
@@ -69,6 +80,23 @@ export const CartProvider = ({ children }) => {
           const feeChanged = serverOrder.deliveryFee !== undefined && Number(serverOrder.deliveryFee) !== Number(localOrder.deliveryFee);
           const subtotalChanged = serverOrder.subtotal !== undefined && Number(serverOrder.subtotal) !== Number(localOrder.subtotal);
 
+          const currentServerStatus = serverOrder.status || localOrder.status;
+          const previousKnownStatus = knownStatusesRef.current.get(cleanId);
+
+          // If the app has loaded before and the status has changed on the server
+          if (initialSyncDoneRef.current && statusChanged && previousKnownStatus && previousKnownStatus !== currentServerStatus) {
+            const details = getStatusNotificationDetails(currentServerStatus, cleanId);
+            setActiveOrderNotification({
+              order: { ...localOrder, ...serverOrder },
+              oldStatus: previousKnownStatus,
+              newStatus: currentServerStatus,
+              details,
+              receivedAt: new Date()
+            });
+            notifyCustomerOrderStatus(serverOrder, previousKnownStatus, currentServerStatus);
+          }
+          knownStatusesRef.current.set(cleanId, currentServerStatus);
+
           if (statusChanged || totalChanged || feeChanged || subtotalChanged) {
             hasChanges = true;
             return {
@@ -81,9 +109,15 @@ export const CartProvider = ({ children }) => {
               updatedAt: serverOrder.updatedAt || new Date().toISOString()
             };
           }
+        } else {
+          if (!knownStatusesRef.current.has(cleanId)) {
+            knownStatusesRef.current.set(cleanId, localOrder.status || 'Pending');
+          }
         }
         return localOrder;
       });
+
+      initialSyncDoneRef.current = true;
 
       if (hasChanges) {
         setRecentOrders(updated);
@@ -100,6 +134,9 @@ export const CartProvider = ({ children }) => {
 
   // Sync recent orders periodically & on window focus/visibility
   useEffect(() => {
+    // Request notification permissions for Android Native & Web
+    requestNotificationPermission().catch(() => {});
+
     syncRecentOrders();
     const interval = setInterval(syncRecentOrders, 2000);
     const onFocus = () => syncRecentOrders();
@@ -122,6 +159,8 @@ export const CartProvider = ({ children }) => {
 
   const saveRecentOrder = (order) => {
     if (!order || !order.items) return;
+    const cleanId = String(order.id).trim().replace(/^#/, '');
+    knownStatusesRef.current.set(cleanId, order.status || 'Pending');
     setRecentOrders(prev => {
       const filtered = prev.filter(o => o.id !== order.id);
       const updated = [order, ...filtered].slice(0, 20);
@@ -427,6 +466,8 @@ Notes: ${customerInfo.notes || 'None'}`
         recentOrders,
         saveRecentOrder,
         syncRecentOrders,
+        activeOrderNotification,
+        dismissOrderNotification,
         reorder
       }}
     >

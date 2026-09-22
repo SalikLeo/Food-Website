@@ -12,6 +12,7 @@ import WhatsAppIcon from '../WhatsAppIcon';
 import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
 import CustomerReceiptModal from '../CustomerReceiptModal';
+import CustomerNotificationBanner from '../CustomerNotificationBanner';
 import { formatPrice } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
 import { 
@@ -3391,6 +3392,9 @@ export default function CustomerMobileApp({
           </div>
         </div>
       )}
+
+      {/* Real-time Order Status Notification Banner */}
+      <CustomerNotificationBanner onTrackOrder={() => switchView('orders')} />
 
     </div>
   );

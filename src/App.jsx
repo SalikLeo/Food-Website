@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import FloatingMobileCart from './components/FloatingMobileCart';
 import OrderSuccessModal from './components/OrderSuccessModal';
+import CustomerNotificationBanner from './components/CustomerNotificationBanner';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
@@ -135,6 +136,7 @@ export default function App() {
           <CartDrawer />
           <FloatingMobileCart />
           <OrderSuccessModal />
+          <CustomerNotificationBanner />
         </div>
       )}
     </CartProvider>
