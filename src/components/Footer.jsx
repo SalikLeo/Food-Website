@@ -6,7 +6,6 @@ import { isCustomerApp } from '../config/api';
 
 export default function Footer({ categories = [], settings = null }) {
   const { itemCount, setIsCartOpen } = useCart();
-  const hasFloatingCart = itemCount > 0;
   const [showTopBtn, setShowTopBtn] = useState(false);
 
   const cartWeb = settings?.floatingButtons?.cartWeb !== false;
@@ -47,15 +46,9 @@ export default function Footer({ categories = [], settings = null }) {
   const isWhatsappActiveWeb = whatsappWeb;
 
   const getWhatsappBottomClass = () => {
-    if (hasFloatingCart) {
-      const mobilePos = isTopBtnActiveMobile ? 'bottom-[7.25rem]' : 'bottom-[4.5rem]';
-      const webPos = isTopBtnActiveWeb ? 'sm:bottom-[4.75rem]' : 'sm:bottom-6';
-      return `${mobilePos} ${webPos}`;
-    } else {
-      const mobilePos = isTopBtnActiveMobile ? 'bottom-[3.6rem]' : 'bottom-3.5';
-      const webPos = isTopBtnActiveWeb ? 'sm:bottom-[4.75rem]' : 'sm:bottom-6';
-      return `${mobilePos} ${webPos}`;
-    }
+    const mobilePos = isTopBtnActiveMobile ? 'bottom-[3.6rem]' : 'bottom-3.5';
+    const webPos = isTopBtnActiveWeb ? 'sm:bottom-[4.75rem]' : 'sm:bottom-6';
+    return `${mobilePos} ${webPos}`;
   };
 
   const getCartBottomClass = () => {
@@ -63,15 +56,9 @@ export default function Footer({ categories = [], settings = null }) {
     const countMobile = (isTopBtnActiveMobile ? 1 : 0) + (isWhatsappActiveMobile ? 1 : 0);
 
     let mobilePos = 'bottom-3.5';
-    if (hasFloatingCart) {
-      if (countMobile === 2) mobilePos = 'bottom-[10rem]';
-      else if (countMobile === 1) mobilePos = 'bottom-[7.25rem]';
-      else mobilePos = 'bottom-[4.5rem]';
-    } else {
-      if (countMobile === 2) mobilePos = 'bottom-[6.375rem]';
-      else if (countMobile === 1) mobilePos = 'bottom-[3.6rem]';
-      else mobilePos = 'bottom-3.5';
-    }
+    if (countMobile === 2) mobilePos = 'bottom-[6.375rem]';
+    else if (countMobile === 1) mobilePos = 'bottom-[3.6rem]';
+    else mobilePos = 'bottom-3.5';
 
     let webPos = 'sm:bottom-6';
     if (countWeb === 2) webPos = 'sm:bottom-[8rem]';
@@ -282,11 +269,7 @@ export default function Footer({ categories = [], settings = null }) {
           {backToTopDisplayClass !== 'hidden' && (
             <button
               onClick={scrollToTop}
-              className={`${backToTopDisplayClass} fixed right-3.5 sm:right-6 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-950/40 hover:shadow-orange-500/40 transition-all duration-300 active:scale-95 items-center justify-center ${
-                hasFloatingCart
-                  ? 'bottom-[4.5rem] sm:bottom-6'
-                  : 'bottom-3.5 sm:bottom-6'
-              } ${
+              className={`${backToTopDisplayClass} fixed right-3.5 sm:right-6 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-950/40 hover:shadow-orange-500/40 transition-all duration-300 active:scale-95 items-center justify-center bottom-3.5 sm:bottom-6 ${
                 showTopBtn
                   ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
                   : 'opacity-0 translate-y-4 scale-90 pointer-events-none'

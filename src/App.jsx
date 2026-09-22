@@ -10,7 +10,6 @@ import ContactSection from './components/ContactSection';
 import FaqSection from './components/FaqSection';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
-import FloatingMobileCart from './components/FloatingMobileCart';
 import OrderSuccessModal from './components/OrderSuccessModal';
 import CustomerNotificationBanner from './components/CustomerNotificationBanner';
 import AdminLogin from './components/Admin/AdminLogin';
@@ -134,7 +133,6 @@ export default function App() {
 
           <Footer categories={categories} settings={settings} />
           <CartDrawer />
-          <FloatingMobileCart />
           <OrderSuccessModal />
           <CustomerNotificationBanner />
         </div>
