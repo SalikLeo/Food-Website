@@ -2096,7 +2096,7 @@ export default function CustomerMobileApp({
                   <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className={`text-base font-extrabold uppercase tracking-tight font-montserrat ${
+                  <h3 className={`text-base font-extrabold uppercase tracking-tight ${
                     isDark ? 'text-white' : 'text-zinc-900'
                   }`}>
                     Order Feedback & Reviews
