@@ -1944,7 +1944,7 @@ export default function CustomerMobileApp({
                         </div>
 
                         <div className="flex items-center gap-2">
-                          {!reviewedOrderIds.includes(String(order.id)) ? (
+                          {!reviewedOrderIds.includes(String(order.id)) && (
                             <button
                               type="button"
                               onClick={() => switchView('add-review')}
@@ -1953,11 +1953,6 @@ export default function CustomerMobileApp({
                               <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                               <span>Add Review</span>
                             </button>
-                          ) : (
-                            <span className="px-2 py-1 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1 border border-emerald-500/20">
-                              <Check className="w-3 h-3" />
-                              <span>Reviewed</span>
-                            </span>
                           )}
 
                           {/* REORDER BUTTON */}
