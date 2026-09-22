@@ -306,13 +306,17 @@ export default function DealsManager({
   categories = [],
   onRefresh
 }) {
-  // Combine all deals
+  // Combine all deals and enforce single featured deal exclusivity
   const allDeals = useMemo(() => {
     const list = [...deals];
     if (familyDeal && !list.some((d) => d.id === familyDeal.id)) {
       list.unshift({ ...familyDeal, dealType: 'family' });
     }
-    return list;
+    const featuredId = list.find((d) => d.featured === true || d.featured === 'true')?.id;
+    return list.map((d) => ({
+      ...d,
+      featured: featuredId ? d.id === featuredId : false
+    }));
   }, [deals, familyDeal]);
 
   const normalDeals = useMemo(() => allDeals.filter((d) => !isFamilyDeal(d)), [allDeals]);
@@ -325,8 +329,10 @@ export default function DealsManager({
   const [modalMode, setModalMode] = useState(null); // 'create' | 'edit' | null
   const [activeDeal, setActiveDeal] = useState(null);
   const [deleteConfirmDeal, setDeleteConfirmDeal] = useState(null);
+  const [featureConfirmDeal, setFeatureConfirmDeal] = useState(null); // { deal, willBeFeatured: boolean }
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isTogglingFeature, setIsTogglingFeature] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
   // Form Fields
@@ -691,12 +697,18 @@ export default function DealsManager({
     }
   };
 
-  // Toggle Featured Deal
-  const [togglingFeaturedId, setTogglingFeaturedId] = useState(null);
-  const handleToggleFeatured = async (deal) => {
-    if (togglingFeaturedId) return;
-    setTogglingFeaturedId(deal.id);
-    const willBeFeatured = !deal.featured;
+  // Toggle Featured Deal with confirmation
+  const handleInitiateToggleFeatured = (deal) => {
+    setFeatureConfirmDeal({
+      deal,
+      willBeFeatured: !deal.featured
+    });
+  };
+
+  const handleConfirmToggleFeatured = async () => {
+    if (!featureConfirmDeal || isTogglingFeature) return;
+    const { deal, willBeFeatured } = featureConfirmDeal;
+    setIsTogglingFeature(true);
     try {
       const res = await fetch(apiUrl(`/api/deals/${deal.id}`), {
         method: 'PUT',
@@ -704,15 +716,16 @@ export default function DealsManager({
         body: JSON.stringify({ featured: willBeFeatured })
       });
       if (res.ok) {
+        setFeatureConfirmDeal(null);
         if (onRefresh) await onRefresh();
       } else {
         const data = await res.json().catch(() => ({}));
         alert(data.error || 'Failed to update featured deal');
       }
     } catch {
-      alert('Error connecting to server');
+      alert('Error updating featured deal');
     } finally {
-      setTogglingFeaturedId(null);
+      setIsTogglingFeature(false);
     }
   };
 
@@ -869,13 +882,13 @@ export default function DealsManager({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleToggleFeatured(deal);
+                        handleInitiateToggleFeatured(deal);
                       }}
-                      disabled={togglingFeaturedId === deal.id}
+                      disabled={isTogglingFeature}
                       title={isFeatured ? 'Featured Deal (Showing on Top) — Click to remove' : 'Set as Featured Deal on Top'}
                       className={`p-1.5 rounded-lg border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
                         isFeatured
-                          ? 'bg-amber-100 border-amber-400 text-amber-500 shadow-xs'
+                          ? 'bg-amber-100 border-amber-400 text-amber-500 shadow-xs ring-1 ring-amber-400/40'
                           : 'bg-zinc-50 hover:bg-amber-50 border-zinc-200 hover:border-amber-300 text-zinc-400 hover:text-amber-500'
                       }`}
                     >
@@ -884,7 +897,7 @@ export default function DealsManager({
                           isFeatured
                             ? 'fill-amber-400 text-amber-500 scale-110'
                             : 'text-zinc-400 hover:text-amber-500'
-                        } ${togglingFeaturedId === deal.id ? 'animate-spin' : ''}`}
+                        }`}
                       />
                     </button>
                   </div>
@@ -999,6 +1012,75 @@ export default function DealsManager({
                 className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider shadow cursor-pointer flex items-center justify-center gap-2"
               >
                 {isDeleting ? 'Deleting...' : 'Yes, Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feature Confirmation Modal */}
+      {featureConfirmDeal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="relative bg-white border border-zinc-200 rounded-3xl p-6 sm:p-7 max-w-md w-full text-zinc-900 shadow-2xl animate-in zoom-in-95 duration-150">
+            <div
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
+                featureConfirmDeal.willBeFeatured
+                  ? 'bg-amber-100 text-amber-600 ring-4 ring-amber-50'
+                  : 'bg-zinc-100 text-zinc-600'
+              }`}
+            >
+              <Star
+                className={`w-6 h-6 ${
+                  featureConfirmDeal.willBeFeatured ? 'fill-amber-400 text-amber-500' : 'text-zinc-500'
+                }`}
+              />
+            </div>
+
+            <h3 className="font-display text-xl uppercase tracking-wide text-center text-zinc-900">
+              {featureConfirmDeal.willBeFeatured ? 'Set as Featured Deal?' : 'Remove from Featured?'}
+            </h3>
+
+            <p className="text-xs text-zinc-600 text-center mt-2 mb-5 leading-relaxed">
+              {featureConfirmDeal.willBeFeatured ? (
+                <>
+                  Set <strong>{featureConfirmDeal.deal.name || `Deal ${featureConfirmDeal.deal.number}`}</strong> as the top featured deal on the customer app? Any previously featured deal will be automatically unfeatured.
+                </>
+              ) : (
+                <>
+                  Remove <strong>{featureConfirmDeal.deal.name || `Deal ${featureConfirmDeal.deal.number}`}</strong> from the top featured deal position?
+                </>
+              )}
+            </p>
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                disabled={isTogglingFeature}
+                onClick={() => setFeatureConfirmDeal(null)}
+                className="flex-1 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isTogglingFeature}
+                onClick={handleConfirmToggleFeatured}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer flex items-center justify-center gap-1.5 transition-colors ${
+                  featureConfirmDeal.willBeFeatured
+                    ? 'bg-amber-500 hover:bg-amber-600 text-zinc-950'
+                    : 'bg-zinc-800 hover:bg-zinc-900 text-white'
+                }`}
+              >
+                {isTogglingFeature ? (
+                  <span>Updating...</span>
+                ) : featureConfirmDeal.willBeFeatured ? (
+                  <>
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span>Yes, Set Featured</span>
+                  </>
+                ) : (
+                  <span>Yes, Remove</span>
+                )}
               </button>
             </div>
           </div>

@@ -332,6 +332,14 @@ export const db = {
       data.familyDeal = null;
       writeDb(data);
     }
+    // Ensure at most one deal has featured: true
+    const featuredDealItem = deals.find(d => d.featured === true || d.featured === 'true');
+    const featuredId = featuredDealItem ? featuredDealItem.id : null;
+    deals = deals.map(d => ({
+      ...d,
+      featured: featuredId ? d.id === featuredId : false
+    }));
+
     const primaryFamilyDeal = deals.find(d => d.dealType === 'family' || d.id === 'family-deal') || data.familyDeal || null;
     return {
       deals,

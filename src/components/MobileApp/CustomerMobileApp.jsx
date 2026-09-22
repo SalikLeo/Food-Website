@@ -385,7 +385,11 @@ export default function CustomerMobileApp({
     if (familyDeal && !list.some((d) => d.id === familyDeal.id)) {
       list.unshift(familyDeal);
     }
-    return list;
+    const featuredId = list.find((d) => d.featured === true || d.featured === 'true')?.id;
+    return list.map((d) => ({
+      ...d,
+      featured: featuredId ? d.id === featuredId : false
+    }));
   }, [deals, familyDeal]);
 
   const featuredDeal = useMemo(() => {

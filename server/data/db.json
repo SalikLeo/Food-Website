@@ -77,8 +77,8 @@
       "featured": false
     },
     {
-      "name": "Deal 1",
-      "number": "01",
+      "name": "Deal 12",
+      "number": "12",
       "category": "deals",
       "dealType": "normal",
       "price": 800,
@@ -90,7 +90,7 @@
       "description": "2 Zinger Burger (Burgers) + 2 Coke 500ml (Beverages)",
       "tag": "",
       "id": "deal-1789746368640",
-      "featured": false
+      "featured": true
     },
     {
       "name": "Deal 2",
@@ -106,7 +106,7 @@
       "description": "1 Small Chicken Tikka (Pizza) + 1 Coke 1L (Beverages)",
       "tag": "",
       "id": "deal-1789746424743",
-      "featured": true
+      "featured": false
     }
   ],
   "familyDeal": null,
@@ -959,6 +959,56 @@
   },
   "orders": [
     {
+      "id": "ORD-323572-35",
+      "customerName": "a",
+      "phone": "32236236262",
+      "address": "a",
+      "notes": "a",
+      "paymentMethod": "Cash on Delivery",
+      "items": [
+        {
+          "cartKey": "pizza-2-Medium",
+          "id": "pizza-2",
+          "name": "Chicken Fajita",
+          "category": "pizza",
+          "size": "Medium",
+          "price": 800,
+          "image": "/assets/images/p-pizza-fajita-BB8kQFoB.jpg",
+          "quantity": 3
+        }
+      ],
+      "subtotal": 2400,
+      "deliveryFee": 200,
+      "total": 2600,
+      "status": "Pending",
+      "createdAt": "2026-09-22T13:38:43.572Z"
+    },
+    {
+      "id": "ORD-297327-29",
+      "customerName": "sa",
+      "phone": "36346734745",
+      "address": "s",
+      "notes": "g",
+      "paymentMethod": "Online Payment",
+      "items": [
+        {
+          "cartKey": "pizza-2-Medium",
+          "id": "pizza-2",
+          "name": "Chicken Fajita",
+          "category": "pizza",
+          "size": "Medium",
+          "price": 800,
+          "image": "/assets/images/p-pizza-fajita-BB8kQFoB.jpg",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 800,
+      "deliveryFee": 200,
+      "total": 1000,
+      "status": "Pending",
+      "createdAt": "2026-09-22T13:38:17.327Z"
+    },
+    {
       "id": "ORD-242867-39",
       "customerName": "sa",
       "phone": "32346734573",
@@ -1403,6 +1453,20 @@
     ]
   },
   "reviews": [
+    {
+      "id": "rev-1790084576576-zzm0",
+      "orderId": "ORD-242867-39",
+      "name": "sa",
+      "location": "s",
+      "platform": "In-App Order Review",
+      "rating": 5,
+      "date": "Just now",
+      "avatar": "S",
+      "avatarBg": "bg-orange-600",
+      "itemOrdered": "1x Family Deal 1, 2x Chicken Fajita",
+      "comment": "good",
+      "createdAt": "2026-09-22T13:42:56.576Z"
+    },
     {
       "id": "rev-1790068067250-5mv0",
       "name": "Ali",
