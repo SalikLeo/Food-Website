@@ -102,8 +102,9 @@ export default function CustomerMobileApp({
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
-  // Navigation states: 'home' | 'category' | 'deals' | 'orders' | 'checkout'
+  // Navigation states: 'home' | 'category' | 'deals' | 'orders' | 'checkout' | 'add-review'
   const [currentView, setCurrentView] = useState('home');
+  const [previousView, setPreviousView] = useState('orders');
   const [selectedCatId, setSelectedCatId] = useState('pizza');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -412,6 +413,12 @@ export default function CustomerMobileApp({
             setSearchQuery('');
             return;
           }
+          if (currentView === 'add-review') {
+            const target = previousView && previousView !== 'add-review' ? previousView : 'orders';
+            setCurrentView(target);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          }
           if (currentView !== 'home') {
             setCurrentView('home');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -433,7 +440,7 @@ export default function CustomerMobileApp({
         backHandle.remove();
       }
     };
-  }, [viewingReceiptOrder, showGoogleSetupModal, showConfirmModal, reviewToConfirm, reviewSuccessData, orderModalOpen, isCartOpen, mobileMenuOpen, searchQuery, currentView, setIsCartOpen, setOrderModalOpen]);
+  }, [viewingReceiptOrder, showGoogleSetupModal, showConfirmModal, reviewToConfirm, reviewSuccessData, orderModalOpen, isCartOpen, mobileMenuOpen, searchQuery, currentView, previousView, setIsCartOpen, setOrderModalOpen]);
 
 
   // Auto-rotate promo banners (pauses while dragging)
@@ -508,6 +515,9 @@ export default function CustomerMobileApp({
 
   // Scroll to top on view changes
   const switchView = (view, catId = null) => {
+    if (view !== currentView) {
+      setPreviousView(currentView);
+    }
     if (catId) setSelectedCatId(catId);
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1981,11 +1991,11 @@ export default function CustomerMobileApp({
         {currentView === 'add-review' && (
           <div className="space-y-4 animate-tab-fade">
             
-            {/* Header: Back to Menu & Pending Count */}
+            {/* Header: Back to Previous View & Pending Count */}
             <div 
               role="button"
               tabIndex={0}
-              onClick={() => switchView('home')}
+              onClick={() => switchView(previousView && previousView !== 'add-review' ? previousView : 'orders')}
               className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
                 isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
               }`}
@@ -1996,7 +2006,7 @@ export default function CustomerMobileApp({
                 }`}
               >
                 <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                <span>Back to Menu</span>
+                <span>{previousView === 'home' ? 'Back to Menu' : previousView === 'orders' ? 'Back to Recent Orders' : 'Back to Orders'}</span>
               </div>
 
               <span className="text-xs font-semibold text-orange-500">
