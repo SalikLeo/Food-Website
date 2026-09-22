@@ -2775,11 +2775,13 @@ export default function CustomerMobileApp({
               </a>
               <a
                 href="tel:03095369472"
-                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all ${
-                  isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800'
+                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all border shadow-xs ${
+                  isDark
+                    ? 'bg-zinc-800/90 hover:bg-zinc-700 text-white border-zinc-700/80 shadow-black/40'
+                    : 'bg-white hover:bg-zinc-50 text-zinc-900 border-zinc-300/90 shadow-zinc-200'
                 }`}
               >
-                <Phone className="w-4 h-4" />
+                <Phone className="w-4 h-4 text-orange-600 stroke-[2.2]" />
                 <span>Call Now</span>
               </a>
 
