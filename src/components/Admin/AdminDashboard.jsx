@@ -360,7 +360,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                       : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
                   }`}
                 >
-                  Today
+                  Daily
                 </button>
                 <button
                   type="button"
