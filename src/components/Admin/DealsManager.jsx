@@ -12,7 +12,8 @@ import {
   Users,
   ChevronDown,
   AlertCircle,
-  Star
+  Star,
+  Search
 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
 import { formatPrice } from '../../utils/formatters';
@@ -223,36 +224,56 @@ function ItemCombobox({
     if (!isOpen) setIsOpen(true);
   };
 
+  const handleClear = () => {
+    setQuery('');
+    onChange('');
+    setIsOpen(true);
+  };
+
   return (
-    <div ref={containerRef} className="relative flex-1 min-w-0">
+    <div ref={containerRef} className="relative w-full">
       <div className="relative flex items-center">
+        <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input
           type="text"
           value={query}
           onChange={handleInputChange}
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
-          className={`w-full pr-7 pl-2.5 py-1 rounded-lg border text-xs font-medium transition-colors h-7.5 focus:outline-none ${
+          className={`w-full pl-9 pr-14 py-2 rounded-xl border text-xs sm:text-sm font-medium transition-all focus:outline-none ${
             hasDuplicate
               ? 'bg-red-50/50 border-red-300 text-red-950 focus:border-red-500'
-              : 'bg-zinc-50/60 border-zinc-200 text-zinc-900 focus:bg-white focus:border-orange-500'
+              : 'bg-zinc-50/60 border-zinc-200 text-zinc-900 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 shadow-2xs'
           }`}
         />
-        <button
-          type="button"
-          onClick={() => setIsOpen((prev) => !prev)}
-          className="absolute right-1 text-zinc-400 hover:text-zinc-600 p-1 cursor-pointer"
-          tabIndex={-1}
-        >
-          <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-        </button>
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+          {query && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="p-1 text-zinc-400 hover:text-zinc-600 rounded-full hover:bg-zinc-100 transition-colors cursor-pointer"
+              title="Clear text"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsOpen((prev) => !prev)}
+            className="p-1 text-zinc-400 hover:text-zinc-600 cursor-pointer"
+            tabIndex={-1}
+            title={isOpen ? 'Close list' : 'Browse list'}
+          >
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-zinc-200 rounded-xl shadow-xl max-h-56 overflow-y-auto py-1 text-xs custom-dropdown-scroll animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-zinc-200 rounded-2xl shadow-xl max-h-60 overflow-y-auto py-1 text-xs divide-y divide-zinc-100/70 custom-dropdown-scroll animate-in fade-in zoom-in-95 duration-100">
           {filteredOptions.length === 0 ? (
-            <div className="px-3 py-2 text-[11px] text-zinc-400 text-center">
+            <div className="px-4 py-3 text-xs text-zinc-400 text-center font-medium">
               No matching menu item found. You can keep typing custom item name!
             </div>
           ) : (
@@ -266,26 +287,26 @@ function ItemCombobox({
                   type="button"
                   disabled={isDisabled}
                   onClick={() => handleSelect(item)}
-                  className={`w-full text-left px-3 py-1.5 flex items-center justify-between gap-2 transition-colors ${
+                  className={`w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-2 transition-colors ${
                     isDisabled
                       ? 'opacity-40 bg-zinc-50/70 text-zinc-400 cursor-not-allowed'
                       : 'hover:bg-orange-50 hover:text-orange-700 text-zinc-800 cursor-pointer'
                   }`}
                 >
-                  <span className="font-semibold truncate">
-                    {item.name} <span className="text-zinc-500 font-normal">({item.category})</span>
+                  <span className="font-semibold truncate text-xs sm:text-sm">
+                    {item.name} <span className="text-zinc-400 font-normal text-xs">({item.category})</span>
                   </span>
 
                   {isDisabled ? (
-                    <span className="text-[9px] font-bold uppercase tracking-wider bg-zinc-200 text-zinc-600 px-1.5 py-0.5 rounded flex-shrink-0">
-                      Already Selected
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-zinc-200 text-zinc-600 px-2 py-0.5 rounded-full flex-shrink-0">
+                      Already Added
                     </span>
                   ) : item.size ? (
-                    <span className="text-[9px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded flex-shrink-0">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full flex-shrink-0">
                       {item.size}
                     </span>
                   ) : (
-                    <span className="text-[10px] text-zinc-400 font-medium flex-shrink-0">
+                    <span className="text-[11px] text-zinc-400 font-medium flex-shrink-0">
                       {item.category}
                     </span>
                   )}
@@ -786,12 +807,6 @@ export default function DealsManager({
     return allDeals;
   }, [activeFilterTab, allDeals, normalDeals, familyDeals]);
 
-  // Preview string of current rows
-  const previewText = itemRows
-    .filter((it) => it.name && it.name.trim())
-    .map((it) => `${it.qty} ${it.name.trim()}`)
-    .join(' + ');
-
   return (
     <div className="space-y-6">
       
@@ -1190,8 +1205,8 @@ export default function DealsManager({
                   </span>
                 </div>
 
-                {/* Compact List of Rows */}
-                <div className="space-y-1.5">
+                {/* List of Item Cards */}
+                <div className="space-y-2.5">
                   {itemRows.map((item, idx) => {
                     // Set of base names selected in OTHER rows
                     const disabledBaseNames = new Set(
@@ -1205,110 +1220,113 @@ export default function DealsManager({
                     const sizeInfo = getItemSizeInfo(item.name, products);
 
                     return (
-                      <div key={item.id} className="space-y-1">
-                        <div
-                          className={`flex items-center gap-1.5 bg-white p-1 sm:p-1.5 rounded-xl border shadow-2xs transition-colors ${
-                            isDup
-                              ? 'border-red-400 bg-red-50/20'
-                              : 'border-zinc-200 hover:border-zinc-300'
-                          }`}
-                        >
-                          {/* Compact Item Index Label */}
-                          <span className="text-[11px] font-bold text-zinc-400 w-7 text-center select-none flex-shrink-0">
-                            #{idx + 1}
+                      <div
+                        key={item.id}
+                        className={`bg-white p-3 sm:p-3.5 rounded-2xl border shadow-2xs transition-all space-y-2.5 ${
+                          isDup
+                            ? 'border-red-400 bg-red-50/20 ring-2 ring-red-200'
+                            : 'border-zinc-200/90 hover:border-zinc-300'
+                        }`}
+                      >
+                        {/* Top Bar: Item Index & Remove Action */}
+                        <div className="flex items-center justify-between">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600 font-bold text-[11px]">
+                            Item #{idx + 1}
                           </span>
 
-                          {/* Compact Quantity Stepper */}
-                          <div className="flex items-center border border-zinc-300 rounded-lg bg-zinc-50 overflow-hidden flex-shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateItemQty(idx, -1)}
-                              className="px-2 py-1 hover:bg-zinc-200 text-zinc-700 font-bold transition-colors cursor-pointer"
-                              title="Decrease"
-                            >
-                              <Minus className="w-3 h-3" />
-                            </button>
-
-                            <input
-                              type="number"
-                              min="1"
-                              max="99"
-                              value={item.qty}
-                              onChange={(e) => handleSetItemQtyDirect(idx, e.target.value)}
-                              className="w-8 text-center font-bold text-xs text-zinc-900 bg-white border-x border-zinc-300 py-1 focus:outline-none"
-                            />
-
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateItemQty(idx, 1)}
-                              className="px-2 py-1 hover:bg-zinc-200 text-zinc-700 font-bold transition-colors cursor-pointer"
-                              title="Increase"
-                            >
-                              <Plus className="w-3 h-3" />
-                            </button>
-                          </div>
-
-                          {/* Item Combobox Dropdown */}
-                          <ItemCombobox
-                            value={item.name}
-                            onChange={(val) => handleItemNameChange(idx, val)}
-                            allCatalogItems={allCatalogItems}
-                            disabledBaseNames={disabledBaseNames}
-                            hasDuplicate={isDup}
-                            placeholder="Select or type item (e.g. Chicken Shawarma)..."
-                          />
-
-                          {/* Remove Row Button */}
                           <button
                             type="button"
                             onClick={() => handleRemoveRow(idx)}
                             disabled={itemRows.length <= 1}
-                            className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer flex-shrink-0"
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer"
                             title="Remove item"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
 
-                        {/* Quick Size Selector Pills for Pizza & Sized items */}
-                        {sizeInfo && (
-                          <div className="flex items-center flex-wrap gap-1.5 pl-8 sm:pl-9 pt-0.5">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 select-none">
-                              Size:
+                        {/* Full-width Combobox */}
+                        <ItemCombobox
+                          value={item.name}
+                          onChange={(val) => handleItemNameChange(idx, val)}
+                          allCatalogItems={allCatalogItems}
+                          disabledBaseNames={disabledBaseNames}
+                          hasDuplicate={isDup}
+                          placeholder="Search or select food item (e.g. Zinger Burger)..."
+                        />
+
+                        {/* Bottom Row: Quantity Stepper + Size Selector */}
+                        <div className="flex items-center justify-between gap-3 flex-wrap pt-0.5">
+                          {/* Quantity Stepper */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                              Qty:
                             </span>
-                            <div className="inline-flex p-0.5 bg-zinc-100 rounded-lg border border-zinc-200 shadow-2xs">
-                              {sizeInfo.availableSizes.map((sz) => {
-                                const isSelected =
-                                  sizeInfo.currentSize &&
-                                  sizeInfo.currentSize.toLowerCase() === sz.toLowerCase();
-                                return (
-                                  <button
-                                    key={sz}
-                                    type="button"
-                                    onClick={() => handleToggleItemSize(idx, sz)}
-                                    className={`px-2.5 py-0.5 text-[11px] rounded-md font-bold transition-all cursor-pointer ${
-                                      isSelected
-                                        ? 'bg-orange-600 text-white shadow-xs'
-                                        : 'text-zinc-600 hover:text-zinc-950 hover:bg-white/80'
-                                    }`}
-                                  >
-                                    {sz}
-                                  </button>
-                                );
-                              })}
+                            <div className="flex items-center border border-zinc-300 rounded-xl bg-zinc-50 overflow-hidden shadow-2xs">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateItemQty(idx, -1)}
+                                className="px-2.5 py-1.5 hover:bg-zinc-200 text-zinc-700 font-bold transition-colors cursor-pointer active:scale-95"
+                                title="Decrease"
+                              >
+                                <Minus className="w-3.5 h-3.5" />
+                              </button>
+
+                              <input
+                                type="number"
+                                min="1"
+                                max="99"
+                                value={item.qty}
+                                onChange={(e) => handleSetItemQtyDirect(idx, e.target.value)}
+                                className="w-10 text-center font-bold text-xs text-zinc-900 bg-white border-x border-zinc-300 py-1.5 focus:outline-none"
+                              />
+
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateItemQty(idx, 1)}
+                                className="px-2.5 py-1.5 hover:bg-zinc-200 text-zinc-700 font-bold transition-colors cursor-pointer active:scale-95"
+                                title="Increase"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
                             </div>
-                            {!sizeInfo.currentSize && (
-                              <span className="text-[10px] text-amber-600 font-semibold animate-pulse">
-                                (Select size)
-                              </span>
-                            )}
                           </div>
-                        )}
+
+                          {/* Quick Size Selector Pills */}
+                          {sizeInfo && (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                                Size:
+                              </span>
+                              <div className="inline-flex p-0.5 bg-zinc-100 rounded-xl border border-zinc-200 shadow-2xs">
+                                {sizeInfo.availableSizes.map((sz) => {
+                                  const isSelected =
+                                    sizeInfo.currentSize &&
+                                    sizeInfo.currentSize.toLowerCase() === sz.toLowerCase();
+                                  return (
+                                    <button
+                                      key={sz}
+                                      type="button"
+                                      onClick={() => handleToggleItemSize(idx, sz)}
+                                      className={`px-2.5 py-1 text-xs rounded-lg font-bold transition-all cursor-pointer ${
+                                        isSelected
+                                          ? 'bg-orange-600 text-white shadow-xs'
+                                          : 'text-zinc-600 hover:text-zinc-950 hover:bg-white/80'
+                                      }`}
+                                    >
+                                      {sz}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
 
                         {/* Duplicate Alert Notice */}
                         {isDup && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-red-600 pl-8 font-medium">
-                            <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                          <div className="flex items-center gap-1.5 text-xs text-red-600 font-medium pt-1">
+                            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                             <span>
                               This item is already added in another row! Increase quantity counter (+/-) above instead.
                             </span>
@@ -1323,19 +1341,11 @@ export default function DealsManager({
                 <button
                   type="button"
                   onClick={handleAddRow}
-                  className="w-full py-2 rounded-xl border border-dashed border-zinc-300 hover:border-orange-400 bg-white hover:bg-orange-50/40 text-zinc-700 hover:text-orange-700 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  className="w-full py-2.5 rounded-xl border border-dashed border-zinc-300 hover:border-orange-400 bg-white hover:bg-orange-50/40 text-zinc-700 hover:text-orange-700 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   <span>+ Add Another Item</span>
                 </button>
-
-                {/* Live Preview Text */}
-                {previewText && (
-                  <div className="pt-1.5 border-t border-zinc-200/80 text-[11px] text-zinc-500 flex items-center gap-1.5">
-                    <span className="font-bold text-zinc-700">Preview:</span>
-                    <span className="text-orange-600 font-semibold truncate">{previewText}</span>
-                  </div>
-                )}
               </div>
 
               {/* 4. Compact Image Selection */}
