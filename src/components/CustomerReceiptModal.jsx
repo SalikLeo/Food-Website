@@ -197,7 +197,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
         <div 
           ref={receiptCardRef} 
           id="salik-receipt-card"
-          className="flex-1 overflow-y-auto overscroll-contain bg-white text-black p-5 sm:p-6 font-sans text-xs leading-relaxed w-full"
+          className="flex-1 overflow-y-auto overscroll-contain custom-dropdown-scroll bg-white text-black p-5 sm:p-6 font-sans text-xs leading-relaxed w-full"
           style={{ fontFamily: "'Plus Jakarta Sans', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif" }}
         >
           {/* Store Header */}

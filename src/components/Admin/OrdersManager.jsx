@@ -1629,11 +1629,14 @@ export default function OrdersManager({
 
       {/* IN-APP RECEIPT MODAL */}
       {viewingReceiptOrder && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-start overflow-y-auto p-2 sm:p-4 pb-28 sm:pb-32 animate-tab-fade">
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden animate-tab-fade"
+          onClick={() => setViewingReceiptOrder(null)}
+        >
           
           {/* Thermal Receipt Paper Card */}
           <div 
-            className="relative w-full max-w-[400px] bg-white text-black rounded-2xl shadow-2xl border border-zinc-300 font-sans text-xs leading-relaxed my-auto overflow-hidden flex flex-col"
+            className="relative w-full max-w-[400px] max-h-[92vh] max-h-[92dvh] bg-white text-black rounded-2xl shadow-2xl border border-zinc-300 font-sans text-xs leading-relaxed overflow-hidden flex flex-col animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Small Cross Button on Top Right to Close */}
@@ -1651,7 +1654,7 @@ export default function OrdersManager({
             <div 
               ref={receiptPaperRef} 
               id="admin-printable-receipt" 
-              className="bg-white text-black p-5 sm:p-6 font-sans text-xs leading-relaxed w-full"
+              className="flex-1 overflow-y-auto overscroll-contain custom-dropdown-scroll bg-white text-black p-5 sm:p-6 font-sans text-xs leading-relaxed w-full"
               style={{ fontFamily: "'Plus Jakarta Sans', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif" }}
             >
               {/* Store Header */}
