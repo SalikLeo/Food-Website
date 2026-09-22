@@ -972,10 +972,6 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                     </select>
                   </div>
                 </div>
-
-                <div className="text-[11px] text-zinc-500 font-medium ml-auto">
-                  Viewing: <strong className="text-zinc-800">{MONTH_NAMES[selectedMonth]} {selectedYear}</strong>
-                </div>
               </div>
             )}
 
@@ -1001,10 +997,6 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                       ))}
                     </select>
                   </div>
-                </div>
-
-                <div className="text-[11px] text-zinc-500 font-medium ml-auto">
-                  Viewing: <strong className="text-zinc-800">Annual {selectedYear}</strong>
                 </div>
               </div>
             )}
