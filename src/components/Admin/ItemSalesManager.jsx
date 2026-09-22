@@ -367,11 +367,10 @@ export default function ItemSalesManager({
                 <tr className="divide-x divide-zinc-200/80">
                   <th className="px-4 py-3.5 text-center w-14">Rank</th>
                   <th className="px-4 py-3.5">Item Name</th>
-                  <th className="px-4 py-3.5">Category</th>
-                  <th className="px-4 py-3.5">Size Breakdown</th>
+                  <th className="px-4 py-3.5">Size</th>
                   <th className="px-4 py-3.5 text-center">Popularity</th>
-                  <th className="px-4 py-3.5 text-center">Units Sold</th>
-                  <th className="px-5 py-3.5 text-right">Total Revenue</th>
+                  <th className="px-4 py-3.5 text-center">Sold</th>
+                  <th className="px-5 py-3.5 text-right">Revenue</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
@@ -415,33 +414,23 @@ export default function ItemSalesManager({
                             }}
                           />
                           <div>
-                            <span className="font-bold text-zinc-900 block text-sm">
+                            <span className="font-bold text-zinc-900 block text-[13px]">
                               {item.name}
-                            </span>
-                            <span className="text-zinc-500 text-[11px]">
-                              {item.ordersCount > 0 ? `Ordered in ${item.ordersCount} order${item.ordersCount === 1 ? '' : 's'}` : 'No orders yet'}
                             </span>
                           </div>
                         </div>
                       </td>
 
-                      {/* Category */}
-                      <td className="px-4 py-3.5">
-                        <span className="px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 font-semibold text-[11px] capitalize">
-                          {item.category}
-                        </span>
-                      </td>
-
-                      {/* Size Breakdown */}
+                      {/* Size */}
                       <td className="px-4 py-3.5">
                         {Object.keys(item.sizes).length > 0 ? (
                           <div className="flex flex-wrap gap-1.5">
-                            {Object.entries(item.sizes).map(([sz, count]) => (
+                            {Object.keys(item.sizes).map((sz) => (
                               <span
                                 key={sz}
                                 className="px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-zinc-800 text-[10px] font-semibold"
                               >
-                                {sz}: <strong className="text-orange-600">{count}</strong>
+                                {sz}
                               </span>
                             ))}
                           </div>
@@ -463,7 +452,7 @@ export default function ItemSalesManager({
                           />
                         </div>
                         <span className="text-[10px] text-zinc-400 mt-1 block">
-                          {item.totalQty > 0 ? `${percentOfTotal}% of food sales` : '0%'}
+                          {item.totalQty > 0 ? `${percentOfTotal}% of sales` : '0%'}
                         </span>
                       </td>
 
@@ -471,9 +460,6 @@ export default function ItemSalesManager({
                       <td className="px-4 py-3.5 text-center">
                         <span className="font-sans text-base font-bold text-zinc-900 block leading-tight">
                           {formatPrice(item.totalQty)}
-                        </span>
-                        <span className="text-[10px] text-zinc-500 uppercase font-medium">
-                          sold
                         </span>
                       </td>
 
@@ -484,7 +470,7 @@ export default function ItemSalesManager({
                         </span>
                         {item.totalQty > 0 && (
                           <span className="text-[10px] text-zinc-400">
-                            avg Rs. {formatPrice(Math.round(item.totalRevenue / item.totalQty))} / unit
+                            Rs. {formatPrice(Math.round(item.totalRevenue / item.totalQty))}
                           </span>
                         )}
                       </td>
