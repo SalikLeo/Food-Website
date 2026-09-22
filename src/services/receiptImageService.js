@@ -43,65 +43,101 @@ export function formatOrderDateTime(isoString) {
 }
 
 /**
- * Fallback Canvas 2D Renderer for Crisp Thermal Receipt
+ * Format order receipt date matching the modal: "Sep 21, 2026, 10:58 PM"
+ */
+export function formatOrderReceiptDate(isoString) {
+  if (!isoString) return new Date().toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return isoString;
+    return d.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return isoString;
+  }
+}
+
+/**
+ * 100% Exact Canvas 2D Renderer matching the on-screen Receipt Modal Design
  */
 export function drawReceiptCanvas(order) {
-  const width = 800; // High-resolution width
-  const padX = 40;
-  let curY = 40;
+  const width = 760; // 2x high-resolution width (equivalent to 380px card)
+  const padX = 44; // 22px padding at 1x
+  let curY = 44;
 
-  // Measure required height first
   const items = order.items || [];
-  const estimatedHeight = 620 + (items.length * 60) + (order.address ? 50 : 0) + (order.notes ? 40 : 0);
+  const estimatedHeight = 680 + (items.length * 64) + (order.address ? 56 : 0) + (order.notes ? 44 : 0);
 
   const canvas = document.createElement('canvas');
   canvas.width = width;
-  canvas.height = Math.max(700, estimatedHeight);
+  canvas.height = Math.max(760, estimatedHeight);
   const ctx = canvas.getContext('2d');
 
-  // Background
+  // Background - Pure Crisp White
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, width, canvas.height);
 
-  // Text defaults
-  ctx.fillStyle = '#000000';
+  const fontSans = '"Plus Jakarta Sans", "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+  // --- Store Header ---
+  ctx.fillStyle = '#18181b'; // zinc-900
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
 
-  // Header
-  ctx.font = 'bold 36px sans-serif';
+  ctx.font = `800 32px ${fontSans}`;
   ctx.fillText('SALIK FAST FOOD', width / 2, curY);
-  curY += 34;
-
-  ctx.font = '600 20px sans-serif';
-  ctx.fillStyle = '#3f3f46';
-  ctx.fillText('TASTE THAT YOU NEED', width / 2, curY);
   curY += 28;
 
-  ctx.font = '500 18px sans-serif';
-  ctx.fillStyle = '#52525b';
+  ctx.font = `700 21px ${fontSans}`;
+  ctx.fillStyle = '#52525b'; // zinc-600
+  ctx.fillText('TASTE THAT YOU NEED', width / 2, curY);
+  curY += 26;
+
+  ctx.font = `500 19px ${fontSans}`;
+  ctx.fillStyle = '#71717a'; // zinc-500
   ctx.fillText('Wah Model Town, Wah Cantt', width / 2, curY);
   curY += 24;
   ctx.fillText('Phone: 0309-5369472', width / 2, curY);
-  curY += 32;
+  curY += 28;
 
-  // Payment method badge
+  // Payment Badge - Centered rectangle with text centered
   const payMethod = formatReceiptPaymentBadge(order.paymentMethod);
-  ctx.font = 'bold 18px sans-serif';
-  const badgeW = ctx.measureText(payMethod).width + 30;
-  const badgeH = 32;
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 2;
-  ctx.strokeRect((width - badgeW) / 2, curY - 22, badgeW, badgeH);
-  ctx.fillStyle = '#000000';
-  ctx.fillText(payMethod, width / 2, curY);
-  curY += 30;
+  ctx.font = `800 19px ${fontSans}`;
+  const badgeTextW = ctx.measureText(payMethod).width;
+  const badgeW = badgeTextW + 36;
+  const badgeH = 34;
+  const badgeX = (width - badgeW) / 2;
+  const badgeY = curY - 6;
 
-  // Dashed separator
-  const drawDashedLine = (y) => {
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
+
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(payMethod, width / 2, badgeY + (badgeH / 2));
+  curY = badgeY + badgeH + 24;
+
+  // Fine Dashed Divider
+  const drawDashedDivider = (y) => {
     ctx.save();
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = '#a1a1aa'; // zinc-400
     ctx.lineWidth = 1.5;
-    ctx.setLineDash([8, 6]);
+    ctx.setLineDash([6, 5]);
     ctx.beginPath();
     ctx.moveTo(padX, y);
     ctx.lineTo(width - padX, y);
@@ -109,185 +145,288 @@ export function drawReceiptCanvas(order) {
     ctx.restore();
   };
 
-  drawDashedLine(curY);
+  drawDashedDivider(curY);
   curY += 28;
 
-  // Order Details
-  ctx.textAlign = 'left';
-  const drawMetaRow = (label, val, boldVal = false) => {
-    ctx.font = 'bold 20px sans-serif';
+  // --- Order Metadata ---
+  ctx.textBaseline = 'alphabetic';
+  const drawMetaLine = (label, val, isValBold = false) => {
+    ctx.textAlign = 'left';
+    ctx.font = `700 21px ${fontSans}`;
     ctx.fillStyle = '#000000';
     ctx.fillText(label, padX, curY);
 
     ctx.textAlign = 'right';
-    ctx.font = boldVal ? 'bold 20px sans-serif' : '500 20px sans-serif';
+    ctx.font = isValBold ? `700 21px ${fontSans}` : `500 21px ${fontSans}`;
     ctx.fillStyle = '#18181b';
     ctx.fillText(val || '-', width - padX, curY);
-    ctx.textAlign = 'left';
     curY += 30;
   };
 
-  drawMetaRow('Order ID:', `#ORD-${order.id}`, true);
-  drawMetaRow('Date & Time:', formatOrderDateTime(order.createdAt));
-  drawMetaRow('Customer:', order.customerName || 'Customer', true);
-  drawMetaRow('Phone:', order.phone || '-');
+  const cleanOrderId = order.id ? (order.id.startsWith('#') ? order.id.slice(1) : order.id) : '0';
+  drawMetaLine('Order ID:', `#${cleanOrderId}`, true);
+  drawMetaLine('Date & Time:', formatOrderReceiptDate(order.createdAt), false);
+  drawMetaLine('Customer:', order.customerName || 'Customer', true);
+  drawMetaLine('Phone:', order.phone || '-', false);
 
   if (order.address) {
-    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.font = `700 21px ${fontSans}`;
     ctx.fillStyle = '#000000';
     ctx.fillText('Delivery Address:', padX, curY);
     curY += 26;
-    ctx.font = '500 18px sans-serif';
-    ctx.fillStyle = '#27272a';
+    ctx.font = `500 19px ${fontSans}`;
+    ctx.fillStyle = '#3f3f46';
     ctx.fillText(order.address, padX, curY);
     curY += 30;
   }
 
   if (order.notes) {
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'left';
+    ctx.font = `italic 19px ${fontSans}`;
+    ctx.fillStyle = '#52525b';
     ctx.fillText(`Notes: ${order.notes}`, padX, curY);
     curY += 28;
   }
 
-  drawDashedLine(curY);
-  curY += 24;
+  // --- Items Table ---
+  const tableX = padX;
+  const tableW = width - (2 * padX);
 
-  // Items Table
-  const colX = {
-    idx: padX,
-    item: padX + 50,
-    qty: width - padX - 250,
-    rate: width - padX - 140,
-    amt: width - padX - 10
+  const colW = {
+    idx: 50,
+    qty: 68,
+    rate: 96,
+    amt: 116
+  };
+  const colItemW = tableW - colW.idx - colW.qty - colW.rate - colW.amt;
+
+  const colLeft = {
+    idx: tableX,
+    item: tableX + colW.idx,
+    qty: tableX + colW.idx + colItemW,
+    rate: tableX + colW.idx + colItemW + colW.qty,
+    amt: tableX + colW.idx + colItemW + colW.qty + colW.rate
   };
 
-  // Table header background
-  ctx.fillStyle = '#f4f4f5';
-  ctx.fillRect(padX, curY - 20, width - (padX * 2), 36);
+  // Header row
+  const headerH = 38;
+  ctx.fillStyle = '#f4f4f5'; // zinc-100
+  ctx.fillRect(tableX, curY, tableW, headerH);
   ctx.strokeStyle = '#000000';
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(padX, curY - 20, width - (padX * 2), 36);
+  ctx.strokeRect(tableX, curY, tableW, headerH);
 
-  ctx.fillStyle = '#000000';
-  ctx.font = 'bold 18px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('#', padX + 25, curY + 5);
-  ctx.textAlign = 'left';
-  ctx.fillText('ITEM', colX.item + 10, curY + 5);
-  ctx.textAlign = 'center';
-  ctx.fillText('QTY', colX.qty + 35, curY + 5);
-  ctx.textAlign = 'right';
-  ctx.fillText('RATE', colX.rate + 40, curY + 5);
-  ctx.fillText('AMOUNT', colX.amt, curY + 5);
-  curY += 30;
-
-  // Table items
-  items.forEach((it, i) => {
-    const rowY = curY;
-    ctx.fillStyle = '#000000';
-    ctx.font = '500 19px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(String(i + 1), padX + 25, rowY + 12);
-
-    ctx.textAlign = 'left';
-    ctx.font = 'bold 19px sans-serif';
-    ctx.fillText(it.name, colX.item + 10, rowY + 12);
-
-    if (it.size) {
-      ctx.font = '500 15px sans-serif';
-      ctx.fillStyle = '#52525b';
-      const sizeStr = typeof it.size === 'string' ? it.size : it.size?.label || '';
-      ctx.fillText(`Size: ${sizeStr}`, colX.item + 10, rowY + 32);
-    }
-
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 19px sans-serif';
-    ctx.fillText(String(it.quantity), colX.qty + 35, rowY + 12);
-
-    ctx.textAlign = 'right';
-    ctx.font = '500 19px sans-serif';
-    ctx.fillText(formatPrice(it.price), colX.rate + 40, rowY + 12);
-
-    ctx.font = 'bold 19px sans-serif';
-    ctx.fillText(formatPrice(Number(it.price) * Number(it.quantity)), colX.amt, rowY + 12);
-
-    curY += (it.size ? 50 : 38);
-    ctx.strokeStyle = '#e4e4e7';
-    ctx.lineWidth = 1;
+  // Vertical header dividers
+  [colLeft.item, colLeft.qty, colLeft.rate, colLeft.amt].forEach(x => {
     ctx.beginPath();
-    ctx.moveTo(padX, curY - 10);
-    ctx.lineTo(width - padX, curY - 10);
+    ctx.moveTo(x, curY);
+    ctx.lineTo(x, curY + headerH);
     ctx.stroke();
   });
 
-  curY += 10;
-  drawDashedLine(curY);
-  curY += 28;
+  // Header text
+  ctx.fillStyle = '#000000';
+  ctx.font = `800 19px ${fontSans}`;
+  ctx.textBaseline = 'middle';
 
-  // Totals
-  const subtotal = order.subtotal || items.reduce((acc, it) => acc + (Number(it.price) * Number(it.quantity)), 0);
+  ctx.textAlign = 'center';
+  ctx.fillText('#', colLeft.idx + (colW.idx / 2), curY + (headerH / 2));
+
+  ctx.textAlign = 'left';
+  ctx.fillText('ITEM', colLeft.item + 10, curY + (headerH / 2));
+
+  ctx.textAlign = 'center';
+  ctx.fillText('QTY', colLeft.qty + (colW.qty / 2), curY + (headerH / 2));
+
+  ctx.textAlign = 'right';
+  ctx.fillText('RATE', colLeft.rate + colW.rate - 10, curY + (headerH / 2));
+  ctx.fillText('AMOUNT', colLeft.amt + colW.amt - 10, curY + (headerH / 2));
+
+  curY += headerH;
+
+  // Body rows
+  items.forEach((it, i) => {
+    const hasSize = Boolean(it.size);
+    const rowH = hasSize ? 54 : 40;
+    const midY = curY + (hasSize ? 20 : rowH / 2);
+
+    // Row rectangle & vertical column borders
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(tableX, curY, tableW, rowH);
+
+    [colLeft.item, colLeft.qty, colLeft.rate, colLeft.amt].forEach(x => {
+      ctx.beginPath();
+      ctx.moveTo(x, curY);
+      ctx.lineTo(x, curY + rowH);
+      ctx.stroke();
+    });
+
+    // Row text
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#52525b';
+    ctx.font = `500 19px ${fontSans}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(String(i + 1), colLeft.idx + (colW.idx / 2), midY);
+
+    ctx.fillStyle = '#000000';
+    ctx.font = `600 20px ${fontSans}`;
+    ctx.textAlign = 'left';
+    ctx.fillText(it.name, colLeft.item + 10, midY);
+
+    if (hasSize) {
+      ctx.font = `500 16px ${fontSans}`;
+      ctx.fillStyle = '#71717a';
+      const sizeStr = typeof it.size === 'string' ? it.size : it.size?.label || '';
+      ctx.fillText(`Size: ${sizeStr}`, colLeft.item + 10, curY + 38);
+    }
+
+    ctx.fillStyle = '#000000';
+    ctx.font = `700 20px ${fontSans}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(String(it.quantity), colLeft.qty + (colW.qty / 2), midY);
+
+    ctx.fillStyle = '#27272a';
+    ctx.font = `500 20px ${fontSans}`;
+    ctx.textAlign = 'right';
+    ctx.fillText(formatPrice(it.price), colLeft.rate + colW.rate - 10, midY);
+
+    ctx.fillStyle = '#000000';
+    ctx.font = `700 20px ${fontSans}`;
+    ctx.fillText(formatPrice(Number(it.price) * Number(it.quantity)), colLeft.amt + colW.amt - 10, midY);
+
+    curY += rowH;
+  });
+
+  curY += 24;
+
+  // --- Totals Section (Directly below table, matching modal) ---
+  const subtotal = order.subtotal !== undefined 
+    ? Number(order.subtotal) 
+    : items.reduce((acc, it) => acc + (Number(it.price) * Number(it.quantity)), 0);
   const deliveryFee = Number(order.deliveryFee || 0);
-  const total = order.total || (subtotal + deliveryFee);
+  const total = order.total !== undefined ? Number(order.total) : (subtotal + deliveryFee);
 
-  drawMetaRow('Subtotal', `Rs. ${formatPrice(subtotal)}`);
-  drawMetaRow('Delivery Charges', deliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(deliveryFee)}`);
+  ctx.textBaseline = 'alphabetic';
+  const drawTotalLine = (label, val, isBold = true) => {
+    ctx.textAlign = 'left';
+    ctx.font = `500 21px ${fontSans}`;
+    ctx.fillStyle = '#52525b';
+    ctx.fillText(label, padX, curY);
 
-  // Total Payable
+    ctx.textAlign = 'right';
+    ctx.font = isBold ? `700 21px ${fontSans}` : `500 21px ${fontSans}`;
+    ctx.fillStyle = '#000000';
+    ctx.fillText(val, width - padX, curY);
+    curY += 28;
+  };
+
+  drawTotalLine('Subtotal', `Rs. ${formatPrice(subtotal)}`);
+  drawTotalLine('Delivery Charges', deliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(deliveryFee)}`);
+
+  // Total Payable - Solid Line Divider Above
+  curY += 2;
   ctx.strokeStyle = '#000000';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(padX, curY - 10);
-  ctx.lineTo(width - padX, curY - 10);
+  ctx.moveTo(padX, curY);
+  ctx.lineTo(width - padX, curY);
   ctx.stroke();
+  curY += 28;
 
-  ctx.font = 'bold 24px sans-serif';
+  ctx.font = `800 24px ${fontSans}`;
   ctx.fillStyle = '#000000';
-  ctx.fillText('TOTAL PAYABLE', padX, curY + 12);
+  ctx.textAlign = 'left';
+  ctx.fillText('TOTAL PAYABLE', padX, curY);
+
   ctx.textAlign = 'right';
-  ctx.fillText(`Rs. ${formatPrice(total)}`, width - padX, curY + 12);
-  curY += 38;
+  ctx.fillText(`Rs. ${formatPrice(total)}`, width - padX, curY);
+  curY += 28;
 
-  drawDashedLine(curY);
-  curY += 32;
+  // Dashed Divider before Footer
+  drawDashedDivider(curY);
+  curY += 28;
 
-  // Footer
+  // --- Footer ---
   ctx.textAlign = 'center';
-  ctx.font = 'bold 20px sans-serif';
+  ctx.font = `700 20px ${fontSans}`;
   ctx.fillStyle = '#000000';
   ctx.fillText('THANK YOU FOR ORDERING!', width / 2, curY);
-  curY += 26;
+  curY += 24;
 
-  ctx.font = '16px monospace';
-  ctx.fillStyle = '#71717a';
-  ctx.fillText('✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - -', width / 2, curY);
+  ctx.font = `18px monospace`;
+  ctx.fillStyle = '#a1a1aa';
+  ctx.fillText('✂ - - - - - - - - - - - - - - - - - - - - -', width / 2, curY);
+  curY += 34;
 
-  return canvas.toDataURL('image/png');
+  // Crop canvas to exact required height if shorter
+  if (curY < canvas.height) {
+    const trimmed = document.createElement('canvas');
+    trimmed.width = width;
+    trimmed.height = curY;
+    const tCtx = trimmed.getContext('2d');
+    tCtx.drawImage(canvas, 0, 0);
+    return trimmed.toDataURL('image/png', 1.0);
+  }
+
+  return canvas.toDataURL('image/png', 1.0);
 }
 
 /**
  * Capture receipt DOM element using html2canvas with high-DPI scaling.
- * Falls back to Canvas 2D renderer if element is unavailable.
+ * Falls back to direct Canvas 2D renderer if element is unavailable or capture fails.
  */
 export async function generateReceiptImage(element, order) {
   if (element) {
     try {
+      // 1. Wait for web fonts (Plus Jakarta Sans, Montserrat) to fully load
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+
+      // 2. Measure element
+      const rect = element.getBoundingClientRect();
+      const elementWidth = Math.round(element.offsetWidth || rect.width || 380);
+      const elementHeight = Math.round(element.offsetHeight || rect.height || 600);
+
+      // 3. Render high-resolution canvas (scale: 3 for ultra-crisp print quality)
       const canvas = await html2canvas(element, {
-        scale: 2.5,
+        scale: 3,
         backgroundColor: '#ffffff',
         useCORS: true,
+        allowTaint: false,
         logging: false,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
+        width: elementWidth,
+        height: elementHeight,
+        onclone: (clonedDoc, clonedEl) => {
+          // Copy all active stylesheets and link tags into the cloned document head
+          const styles = document.querySelectorAll('link[rel="stylesheet"], style');
+          styles.forEach((s) => {
+            try {
+              clonedDoc.head.appendChild(s.cloneNode(true));
+            } catch (e) {}
+          });
+
+          // Enforce exact dimensions, background and font family on cloned element
+          clonedEl.style.width = `${elementWidth}px`;
+          clonedEl.style.maxWidth = `${elementWidth}px`;
+          clonedEl.style.margin = '0 auto';
+          clonedEl.style.boxSizing = 'border-box';
+          clonedEl.style.backgroundColor = '#ffffff';
+          clonedEl.style.fontFamily = '"Plus Jakarta Sans", "Montserrat", -apple-system, BlinkMacSystemFont, sans-serif';
+        }
       });
-      return canvas.toDataURL('image/png');
+
+      return canvas.toDataURL('image/png', 1.0);
     } catch (err) {
       console.warn('html2canvas capture failed, falling back to direct canvas renderer:', err);
     }
   }
+
+  // Fallback: draw 100% exact canvas matching the modal
   return drawReceiptCanvas(order);
 }
 

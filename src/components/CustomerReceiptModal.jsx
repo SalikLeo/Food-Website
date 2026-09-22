@@ -163,40 +163,45 @@ export default function CustomerReceiptModal({ order, onClose }) {
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-[390px] bg-white text-black p-5 sm:p-6 rounded-2xl shadow-2xl border border-zinc-300 font-sans text-xs leading-relaxed my-auto"
+        className="relative w-full max-w-[390px] bg-white text-black rounded-2xl shadow-2xl border border-zinc-300 font-sans text-xs leading-relaxed my-auto overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 text-zinc-600 hover:text-black flex items-center justify-center cursor-pointer active:scale-90 transition-all shadow-2xs z-10"
+          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 text-zinc-600 hover:text-black flex items-center justify-center cursor-pointer active:scale-90 transition-all shadow-2xs z-20"
           title="Close Receipt"
           aria-label="Close Receipt"
         >
           <X className="w-4 h-4" />
         </button>
 
-        {/* Printable Receipt Paper Area */}
-        <div ref={receiptCardRef} className="bg-white text-black">
+        {/* Dedicated Receipt Card with Full Padding & Exact Styling */}
+        <div 
+          ref={receiptCardRef} 
+          id="salik-receipt-card"
+          className="bg-white text-black p-5 sm:p-6 font-sans text-xs leading-relaxed w-full"
+          style={{ fontFamily: "'Plus Jakarta Sans', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif" }}
+        >
           {/* Store Header */}
-          <div className="text-center pb-3 border-b border-dashed border-black font-sans">
+          <div className="text-center pb-3 border-b border-dashed border-zinc-400 font-sans">
             <h2 className="text-base font-extrabold tracking-wider uppercase text-zinc-900">SALIK FAST FOOD</h2>
             <p className="text-[11px] text-zinc-600 uppercase font-semibold">Taste That You Need</p>
             <p className="text-[10px] text-zinc-500 mt-0.5">
               Wah Model Town, Wah Cantt<br />
               Phone: 0309-5369472
             </p>
-            <div className="mt-2 inline-block px-2.5 py-0.5 border border-black font-bold uppercase tracking-wider text-[9.5px]">
-              {formatReceiptPaymentBadge(order.paymentMethod)}
+            <div className="mt-2 inline-flex items-center justify-center px-3 py-1 border border-black font-bold uppercase tracking-wider text-[10px] leading-none">
+              <span className="leading-none">{formatReceiptPaymentBadge(order.paymentMethod)}</span>
             </div>
           </div>
 
           {/* Order Metadata */}
-          <div className="py-2.5 border-b border-dashed border-black space-y-1 font-sans text-xs">
+          <div className="py-2.5 border-b border-dashed border-zinc-400 space-y-1 font-sans text-xs">
             <div className="flex justify-between">
               <span className="font-bold">Order ID:</span>
-              <span className="font-semibold">#{order.id}</span>
+              <span className="font-semibold">#{order.id && order.id.startsWith('#') ? order.id.slice(1) : order.id}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-bold">Date & Time:</span>
@@ -224,7 +229,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
           </div>
 
           {/* Items Table - Tabular Design */}
-          <div className="py-2.5 border-b border-dashed border-black">
+          <div className="py-2.5">
             <table className="w-full text-left border-collapse border border-black text-xs">
               <thead>
                 <tr className="bg-zinc-100 font-sans font-bold text-[11px] uppercase tracking-wide border-b border-black text-black">
@@ -265,7 +270,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
           </div>
 
           {/* Totals */}
-          <div className="py-2.5 border-b border-dashed border-black space-y-1 font-sans text-xs">
+          <div className="py-2.5 border-t border-dashed border-zinc-400 space-y-1 font-sans text-xs">
             <div className="flex justify-between text-zinc-700">
               <span className="font-medium">Subtotal</span>
               <span className="font-bold">Rs. {formatPrice(orderItemsSubtotal)}</span>
@@ -283,19 +288,19 @@ export default function CustomerReceiptModal({ order, onClose }) {
           </div>
 
           {/* Footer */}
-          <div className="text-center pt-2.5 text-[11px] space-y-1 text-zinc-700 font-sans">
+          <div className="text-center pt-2.5 border-t border-dashed border-zinc-400 text-[11px] space-y-1 text-zinc-700 font-sans">
             <p className="font-bold text-black uppercase tracking-wide">Thank you for ordering!</p>
             <p className="text-zinc-400 font-mono text-[9.5px]">✂ - - - - - - - - - - - - - - - - - - - - -</p>
           </div>
         </div>
 
         {/* Action Buttons: Download Image, WhatsApp Share Image */}
-        <div className="mt-3.5 pt-2.5 border-t border-dashed border-zinc-400 flex items-center justify-between gap-2">
+        <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-3 border-t border-dashed border-zinc-300 bg-zinc-50/70 flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={handleDownload}
             disabled={isDownloading}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
           >
             {isDownloading ? (
               <>
@@ -319,7 +324,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
             type="button"
             onClick={handleWhatsApp}
             disabled={isSharing}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
           >
             {isSharing ? (
               <>
