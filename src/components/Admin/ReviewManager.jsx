@@ -162,36 +162,6 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center flex-shrink-0">
-            <Star className="w-6 h-6 fill-orange-500 text-orange-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
-              <span>Customer Reviews & Testimonials</span>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                Live Storefront Sync
-              </span>
-            </h2>
-            <p className="text-zinc-500 text-xs mt-1 leading-relaxed">
-              Manage testimonials displayed on the homepage carousel and "View All Reviews" modal. You can delete spam/inappropriate feedback or manually post verified reviews.
-            </p>
-          </div>
-        </div>
-
-        {/* Quick Action Button */}
-        <button
-          type="button"
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer flex-shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ Add Review</span>
-        </button>
-      </div>
-
       {/* Notifications */}
       {notification && (
         <div
@@ -211,14 +181,14 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
       )}
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl p-5 border border-zinc-200 shadow-2xs">
           <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
             Total Reviews
           </span>
           <div className="flex items-baseline gap-2">
             <span className="font-display text-3xl font-bold text-zinc-900">{stats.total}</span>
-            <span className="text-xs text-zinc-500">published</span>
+            <span className="text-xs text-zinc-500">recorded</span>
           </div>
         </div>
 
@@ -245,16 +215,6 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
             <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
               {stats.fiveStarPct}%
             </span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 border border-zinc-200 shadow-2xs">
-          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
-            Storefront Status
-          </span>
-          <div className="flex items-center gap-2 pt-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-sm font-bold text-zinc-800">Auto Carousel Active</span>
           </div>
         </div>
       </div>
