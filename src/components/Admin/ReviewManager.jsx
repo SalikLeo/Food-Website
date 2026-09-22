@@ -215,7 +215,7 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
             Total Reviews
           </span>
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-2xl sm:text-3xl font-bold text-zinc-900">{stats.total}</span>
+            <span className="text-2xl sm:text-3xl font-bold text-zinc-900">{stats.total}</span>
             <span className="text-xs text-zinc-500">recorded</span>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
             Average Rating
           </span>
           <div className="flex items-center gap-2">
-            <span className="font-display text-2xl sm:text-3xl font-bold text-amber-500">{stats.avgRating}</span>
+            <span className="text-2xl sm:text-3xl font-bold text-amber-500">{stats.avgRating}</span>
             <div className="flex items-center gap-0.5 text-amber-400">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
