@@ -1851,6 +1851,7 @@ export default function CustomerMobileApp({
                     ? new Date(order.createdAt).toLocaleString('en-US', {
                         month: 'short',
                         day: 'numeric',
+                        year: 'numeric',
                         hour: 'numeric',
                         minute: '2-digit',
                         hour12: true
@@ -2163,6 +2164,7 @@ export default function CustomerMobileApp({
                     ? new Date(order.createdAt).toLocaleString('en-US', {
                         month: 'short',
                         day: 'numeric',
+                        year: 'numeric',
                         hour: 'numeric',
                         minute: '2-digit',
                         hour12: true
