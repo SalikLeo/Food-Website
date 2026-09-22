@@ -71,7 +71,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
       setIsScrolled(window.scrollY > 20);
 
       // Detect current section for active highlight
-      const sections = ['contact', 'reviews', 'about', 'menu', 'deals'];
+      const sections = ['contact', 'about', 'menu', 'deals'];
       const scrollPos = window.scrollY + 220;
       let found = '';
       for (const id of sections) {
@@ -129,7 +129,6 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
     { label: 'Deals', href: '#deals', icon: Flame, badge: 'HOT' },
     { label: 'Menu', href: '#menu', icon: Utensils },
     { label: 'About Us', href: '#about', icon: Info },
-    { label: 'Reviews', href: '#reviews', icon: Star },
     { label: 'Contact', href: '#contact', icon: MapPin },
   ];
 
@@ -211,16 +210,6 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 }`}
               >
                 About Us
-              </a>
-              <a
-                href="#reviews"
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                  activeHash === '#reviews'
-                    ? 'bg-white/10 text-amber-400'
-                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
-                }`}
-              >
-                Reviews
               </a>
               <a
                 href="#contact"

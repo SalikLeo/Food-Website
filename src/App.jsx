@@ -7,7 +7,6 @@ import MenuSection from './components/MenuSection';
 import OrderSection from './components/OrderSection';
 import AboutSection from './components/AboutSection';
 import ContactSection from './components/ContactSection';
-import ReviewsSection from './components/ReviewsSection';
 import FaqSection from './components/FaqSection';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
@@ -128,7 +127,6 @@ export default function App() {
             <MenuSection categories={categories} products={products} />
             <OrderSection />
             <AboutSection />
-            <ReviewsSection />
             <ContactSection />
             <FaqSection faqs={faqs} />
           </main>
