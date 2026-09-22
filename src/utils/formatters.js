@@ -23,10 +23,13 @@ export function formatPrice(val) {
 export function formatPaymentMethod(method) {
   if (!method) return 'Cash on Delivery';
   const str = String(method).trim();
-  if (/easypaisa/i.test(str)) {
-    return str.replace(/easypaisa/gi, 'Online Payment');
+  if (/easypaisa|online/i.test(str)) {
+    return 'Online Payment';
   }
-  return str;
+  if (/cash[_\s-]?on[_\s-]?delivery|cod/i.test(str)) {
+    return 'Cash on Delivery';
+  }
+  return str.replace(/_/g, ' ');
 }
 
 /**

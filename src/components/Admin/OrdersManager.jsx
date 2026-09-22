@@ -1546,8 +1546,8 @@ export default function OrdersManager({
                   Wah Model Town, Wah Cantt<br />
                   Phone: 0309-5369472
                 </p>
-                <div className="mt-2 inline-flex items-center justify-center px-3 py-1 border border-black font-bold uppercase tracking-wider text-[10px] leading-none">
-                  <span className="leading-none">{formatReceiptPaymentBadge(viewingReceiptOrder.paymentMethod)}</span>
+                <div className="mt-2 inline-block px-3 py-1 border border-black font-bold uppercase tracking-wider text-[10px] leading-tight text-center">
+                  <span>{formatReceiptPaymentBadge(viewingReceiptOrder.paymentMethod)}</span>
                 </div>
               </div>
 
@@ -1633,7 +1633,8 @@ export default function OrdersManager({
                   <span className="font-medium">Delivery Charges</span>
                   <span className="font-bold">{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(viewingReceiptOrder.deliveryFee)}`}</span>
                 </div>
-                <div className="flex justify-between text-sm font-extrabold pt-1 border-t border-black text-black">
+                <div className="my-1.5 h-[1.5px] bg-black w-full" />
+                <div className="flex justify-between text-sm font-extrabold text-black">
                   <span>TOTAL PAYABLE</span>
                   <span>Rs. {formatPrice(viewingReceiptOrder.total || 0)}</span>
                 </div>
