@@ -51,7 +51,6 @@ const formatReviewDate = (review) => {
 export default function ReviewManager({ reviews = [], onRefresh }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [ratingFilter, setRatingFilter] = useState('all');
-  const [platformFilter, setPlatformFilter] = useState('all');
   const [deleteTarget, setDeleteTarget] = useState(null); // Review object to delete
   const [deleting, setDeleting] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -61,7 +60,7 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
     name: '',
     location: '',
     rating: 5,
-    platform: 'Google Review',
+    platform: 'Customer Review',
     itemOrdered: '',
     comment: ''
   });
@@ -114,13 +113,9 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
         (ratingFilter === '4' && Number(r.rating) === 4) ||
         (ratingFilter === '3' && Number(r.rating) <= 3);
 
-      const matchesPlatform =
-        platformFilter === 'all' ||
-        (r.platform || '').toLowerCase().includes(platformFilter.toLowerCase());
-
-      return matchesSearch && matchesRating && matchesPlatform;
+      return matchesSearch && matchesRating;
     });
-  }, [reviews, searchTerm, ratingFilter, platformFilter]);
+  }, [reviews, searchTerm, ratingFilter]);
 
   // Delete review handler
   const handleDeleteReview = async () => {
@@ -286,32 +281,18 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
               </button>
             ))}
           </div>
-
-          {/* Platform Filter */}
-          <select
-            value={platformFilter}
-            onChange={(e) => setPlatformFilter(e.target.value)}
-            className="px-3 py-2.5 rounded-xl bg-zinc-100 border border-zinc-200 text-xs font-semibold text-zinc-700 focus:outline-none focus:border-orange-500 cursor-pointer w-full sm:w-auto"
-          >
-            <option value="all">All Sources</option>
-            <option value="In-App">In-App Customer Orders</option>
-            <option value="Google">Google Reviews</option>
-            <option value="Foodpanda">Foodpanda Verified</option>
-            <option value="Customer">Storefront Customers</option>
-          </select>
         </div>
 
         <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-1">
           <span>Showing {filteredReviews.length} of {reviews.length} total customer reviews</span>
-          {(searchTerm || ratingFilter !== 'all' || platformFilter !== 'all') && (
+          {(searchTerm || ratingFilter !== 'all') && (
             <button
               type="button"
               onClick={() => {
                 setSearchTerm('');
                 setRatingFilter('all');
-                setPlatformFilter('all');
               }}
-              className="text-orange-600 hover:underline font-bold"
+              className="text-orange-600 hover:underline font-bold cursor-pointer"
             >
               Reset Filters
             </button>
