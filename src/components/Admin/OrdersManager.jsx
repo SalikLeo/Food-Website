@@ -36,6 +36,70 @@ export default function OrdersManager({
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
 
+  // Click-and-drag to scroll order status filters
+  const statusScrollRef = useRef(null);
+  const isStatusDownRef = useRef(false);
+  const statusStartXRef = useRef(0);
+  const statusScrollLeftRef = useRef(0);
+  const statusHasMovedRef = useRef(false);
+  const [isStatusGrabbing, setIsStatusGrabbing] = useState(false);
+
+  const handleStatusMouseDown = (e) => {
+    if (e.button !== 0) return; // Only primary left-click
+    const slider = statusScrollRef.current;
+    if (!slider) return;
+
+    isStatusDownRef.current = true;
+    statusHasMovedRef.current = false;
+    statusStartXRef.current = e.pageX - slider.offsetLeft;
+    statusScrollLeftRef.current = slider.scrollLeft;
+    setIsStatusGrabbing(true);
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      if (!isStatusDownRef.current) return;
+      const slider = statusScrollRef.current;
+      if (!slider) return;
+
+      const x = e.pageX - slider.offsetLeft;
+      const walk = (x - statusStartXRef.current) * 1.5;
+      if (Math.abs(walk) > 4) {
+        statusHasMovedRef.current = true;
+      }
+      slider.scrollLeft = statusScrollLeftRef.current - walk;
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isStatusDownRef.current) {
+        isStatusDownRef.current = false;
+        setIsStatusGrabbing(false);
+        setTimeout(() => {
+          statusHasMovedRef.current = false;
+        }, 50);
+      }
+    };
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, []);
+
+  const handleStatusWheel = (e) => {
+    const slider = statusScrollRef.current;
+    if (slider && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      slider.scrollLeft += e.deltaY;
+    }
+  };
+
+  const handleStatusSelect = (st) => {
+    if (statusHasMovedRef.current) return;
+    setStatusFilter(st);
+  };
+
   // Track expanded state for minimized delivered orders
   const [expandedOrderIds, setExpandedOrderIds] = useState({});
 
@@ -836,14 +900,23 @@ export default function OrdersManager({
         </div>
       )}
 
-      {/* Status Filters Bar & Search */}
+      {/* Status Filters Bar & Search with Click-to-Drag & Wheel Scroll */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-4">
-        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
+        <div
+          ref={statusScrollRef}
+          onMouseDown={handleStatusMouseDown}
+          onWheel={handleStatusWheel}
+          className={`flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 select-none category-scroll ${
+            isStatusGrabbing ? 'cursor-grabbing' : 'cursor-grab'
+          }`}
+        >
           {['All', 'Pending', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'].map(st => (
             <button
               key={st}
-              onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+              type="button"
+              onDragStart={(e) => e.preventDefault()}
+              onClick={() => handleStatusSelect(st)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all select-none ${
                 statusFilter === st
                   ? 'bg-orange-600 text-white shadow-sm'
                   : 'bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 shadow-2xs'
