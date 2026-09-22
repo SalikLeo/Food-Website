@@ -17,7 +17,10 @@ import {
   X,
   CheckCircle2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Bell,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import ProductManager from './ProductManager';
 import OrdersManager from './OrdersManager';
@@ -240,6 +243,132 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
 
 
+  // Sound alert state & synthesizer
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salik_admin_sound_alert');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const playOrderAlertSound = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const now = ctx.currentTime;
+
+      // 4-note upbeat chime: C5 -> E5 -> G5 -> C6
+      const notes = [
+        { freq: 523.25, time: now, dur: 0.14 },
+        { freq: 659.25, time: now + 0.12, dur: 0.14 },
+        { freq: 783.99, time: now + 0.24, dur: 0.16 },
+        { freq: 1046.50, time: now + 0.38, dur: 0.40 }
+      ];
+
+      notes.forEach(({ freq, time, dur }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, time);
+
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.exponentialRampToValueAtTime(0.35, time + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(time);
+        osc.stop(time + dur);
+      });
+    } catch (e) {
+      console.warn('AudioContext error:', e);
+    }
+  };
+
+  const toggleSound = () => {
+    setSoundEnabled(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('salik_admin_sound_alert', String(next));
+      } catch {}
+      if (next) {
+        playOrderAlertSound();
+      }
+      return next;
+    });
+  };
+
+  // Real-time new order tracking & alerts
+  const [newOrderAlert, setNewOrderAlert] = useState(null);
+  const knownOrderIdsRef = useRef(new Set());
+  const initialLoadDoneRef = useRef(false);
+
+  const processIncomingOrders = (incomingOrders) => {
+    if (!Array.isArray(incomingOrders)) return;
+
+    if (!initialLoadDoneRef.current) {
+      // Seed existing orders on first load without triggering alerts
+      incomingOrders.forEach(o => {
+        if (o && o.id) knownOrderIdsRef.current.add(String(o.id).trim());
+      });
+      initialLoadDoneRef.current = true;
+      setOrders(incomingOrders);
+      return;
+    }
+
+    // Detect newly arrived orders
+    const newOrders = incomingOrders.filter(o => {
+      if (!o || !o.id) return false;
+      const cleanId = String(o.id).trim();
+      return !knownOrderIdsRef.current.has(cleanId);
+    });
+
+    if (newOrders.length > 0) {
+      newOrders.forEach(o => knownOrderIdsRef.current.add(String(o.id).trim()));
+
+      const latest = newOrders[0];
+      setNewOrderAlert({
+        order: latest,
+        count: newOrders.length,
+        receivedAt: new Date()
+      });
+
+      // Play sound chime
+      if (soundEnabled) {
+        playOrderAlertSound();
+      }
+
+      // Device vibration (mobile)
+      try {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([250, 100, 250, 100, 400]);
+        }
+      } catch {}
+
+      // Browser / System Notification
+      try {
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+          const custName = latest.customer?.name || latest.customerName || 'Customer';
+          const totalVal = latest.total ? `Rs. ${formatPrice(latest.total)}` : '';
+          new Notification('🔔 New Order Received!', {
+            body: `#${latest.id} - ${totalVal} from ${custName}`,
+            icon: '/assets/salik-logo.png'
+          });
+        }
+      } catch {}
+    }
+
+    setOrders(incomingOrders);
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -257,7 +386,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       setCategories(catsRes || []);
       setDeals(dealsRes?.deals || []);
       setFamilyDeal(dealsRes?.familyDeal || null);
-      setOrders(ordersRes || []);
+      if (ordersRes) processIncomingOrders(ordersRes);
       setStats(statsRes || {});
       setReviews(reviewsRes || []);
       if (settingsRes && typeof settingsRes.deliveryFee === 'number') {
@@ -272,21 +401,150 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
   useEffect(() => {
     fetchData();
-    // Poll orders every 20 seconds
+
+    // Fast 3-second live polling for immediate new order notifications
     const interval = setInterval(() => {
       fetch(apiUrl('/api/orders'))
         .then(r => r.json())
         .then(data => {
-          if (Array.isArray(data)) setOrders(data);
+          if (Array.isArray(data)) {
+            processIncomingOrders(data);
+          }
         })
         .catch(() => {});
-    }, 20000);
-    return () => clearInterval(interval);
-  }, []);
+    }, 3000);
+
+    const onFocusOrVisible = () => {
+      fetch(apiUrl('/api/orders'))
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            processIncomingOrders(data);
+          }
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener('focus', onFocusOrVisible);
+    document.addEventListener('visibilitychange', onFocusOrVisible);
+
+    // Request browser notification permission if not yet decided
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      try {
+        Notification.requestPermission().catch(() => {});
+      } catch {}
+    }
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocusOrVisible);
+      document.removeEventListener('visibilitychange', onFocusOrVisible);
+    };
+  }, [soundEnabled]);
 
   return (
     <div className="min-h-screen bg-[#d5d8de] text-zinc-900 mobile-app-container">
       
+      {/* Real-time New Order Popup / Notification Banner */}
+      {newOrderAlert && (
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
+          <div className="bg-white/98 backdrop-blur-md border-2 border-orange-500 rounded-2xl p-3.5 sm:p-4 shadow-2xl text-zinc-900 ring-4 ring-orange-500/20">
+            {/* Top Bar */}
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-orange-600 text-white flex items-center justify-center animate-bounce shadow-xs shrink-0">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-montserrat text-xs sm:text-sm font-extrabold uppercase text-orange-600 leading-none truncate">
+                      New Order Received!
+                    </h3>
+                    {newOrderAlert.count > 1 && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold shrink-0">
+                        +{newOrderAlert.count - 1} more
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-zinc-500 font-semibold mt-0.5 block truncate">
+                    #{newOrderAlert.order.id} • Just now
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={toggleSound}
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
+                  title={soundEnabled ? 'Mute Chime' : 'Unmute Chime'}
+                >
+                  {soundEnabled ? <Volume2 className="w-4 h-4 text-orange-600" /> : <VolumeX className="w-4 h-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewOrderAlert(null)}
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
+                  title="Dismiss Alert"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Order Details Preview */}
+            <div className="py-2.5 flex items-center justify-between gap-3 text-xs">
+              <div className="space-y-0.5 min-w-0">
+                <div className="font-bold text-zinc-900 truncate">
+                  👤 {newOrderAlert.order.customer?.name || newOrderAlert.order.customerName || 'Customer'}
+                  {(newOrderAlert.order.customer?.phone || newOrderAlert.order.customerPhone) && (
+                    <span className="text-zinc-500 font-normal text-[11px] ml-1.5">
+                      ({newOrderAlert.order.customer?.phone || newOrderAlert.order.customerPhone})
+                    </span>
+                  )}
+                </div>
+                <div className="text-zinc-600 text-[11px] truncate">
+                  🍽️ {(newOrderAlert.order.items || []).map(it => `${it.quantity}x ${it.name}`).join(', ') || 'Order items'}
+                </div>
+              </div>
+
+              <div className="text-right shrink-0">
+                <div className="text-sm font-extrabold text-emerald-600">
+                  Rs. {formatPrice(newOrderAlert.order.total || 0)}
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  {newOrderAlert.order.status || 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  switchTab('orders');
+                  setTimeFilterMode('all');
+                  setNewOrderAlert(null);
+                }}
+                className="flex-1 py-2 px-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>View & Manage Order</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setNewOrderAlert(null)}
+                className="py-2 px-3 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs active:scale-98 transition-all cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Navbar (hidden when viewing receipt) */}
       {!isReceiptOpen && (
         <header className="bg-white/95 backdrop-blur-md border-b border-zinc-200 text-zinc-900 sticky top-0 z-30 shadow-xs admin-app-header">
@@ -318,6 +576,20 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
             {/* Right: Quick Action Controls */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Sound Alert Toggle */}
+              <button
+                onClick={toggleSound}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-2xs"
+                title={soundEnabled ? 'Order Sound Alert: ON (Click to mute)' : 'Order Sound Alert: MUTED (Click to unmute)'}
+                aria-label="Toggle Sound Alert"
+              >
+                {soundEnabled ? (
+                  <Volume2 className="w-4 h-4 text-orange-600" />
+                ) : (
+                  <VolumeX className="w-4 h-4 text-zinc-400" />
+                )}
+              </button>
+
               <button
                 onClick={fetchData}
                 disabled={loading}
