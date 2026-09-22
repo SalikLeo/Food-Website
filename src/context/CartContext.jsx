@@ -36,6 +36,90 @@ export const CartProvider = ({ children }) => {
     }
   }, [cartItems]);
 
+  const syncRecentOrders = async () => {
+    try {
+      const saved = localStorage.getItem('salik_recent_orders');
+      const localOrders = saved ? JSON.parse(saved) : [];
+      if (!localOrders || !Array.isArray(localOrders) || localOrders.length === 0) return;
+
+      const res = await fetch(apiUrl('/api/orders'));
+      if (!res.ok) return;
+      const serverOrders = await res.json();
+      if (!Array.isArray(serverOrders) || serverOrders.length === 0) return;
+
+      const serverMap = new Map();
+      serverOrders.forEach(o => {
+        if (!o || !o.id) return;
+        const rawId = String(o.id).trim();
+        const cleanId = rawId.replace(/^#/, '');
+        serverMap.set(rawId, o);
+        serverMap.set(cleanId, o);
+      });
+
+      let hasChanges = false;
+      const updated = localOrders.map(localOrder => {
+        if (!localOrder || !localOrder.id) return localOrder;
+        const rawId = String(localOrder.id).trim();
+        const cleanId = rawId.replace(/^#/, '');
+        const serverOrder = serverMap.get(rawId) || serverMap.get(cleanId);
+        
+        if (serverOrder) {
+          const statusChanged = serverOrder.status && serverOrder.status !== localOrder.status;
+          const totalChanged = serverOrder.total !== undefined && Number(serverOrder.total) !== Number(localOrder.total);
+          const feeChanged = serverOrder.deliveryFee !== undefined && Number(serverOrder.deliveryFee) !== Number(localOrder.deliveryFee);
+          const subtotalChanged = serverOrder.subtotal !== undefined && Number(serverOrder.subtotal) !== Number(localOrder.subtotal);
+
+          if (statusChanged || totalChanged || feeChanged || subtotalChanged) {
+            hasChanges = true;
+            return {
+              ...localOrder,
+              status: serverOrder.status || localOrder.status,
+              total: serverOrder.total !== undefined ? serverOrder.total : localOrder.total,
+              deliveryFee: serverOrder.deliveryFee !== undefined ? serverOrder.deliveryFee : localOrder.deliveryFee,
+              subtotal: serverOrder.subtotal !== undefined ? serverOrder.subtotal : localOrder.subtotal,
+              items: serverOrder.items && serverOrder.items.length > 0 ? serverOrder.items : localOrder.items,
+              updatedAt: serverOrder.updatedAt || new Date().toISOString()
+            };
+          }
+        }
+        return localOrder;
+      });
+
+      if (hasChanges) {
+        setRecentOrders(updated);
+        try {
+          localStorage.setItem('salik_recent_orders', JSON.stringify(updated));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    } catch (err) {
+      // Offline/network failure ignored
+    }
+  };
+
+  // Sync recent orders periodically & on window focus/visibility
+  useEffect(() => {
+    syncRecentOrders();
+    const interval = setInterval(syncRecentOrders, 2000);
+    const onFocus = () => syncRecentOrders();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncRecentOrders();
+      }
+    };
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('salik_sync_orders', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('salik_sync_orders', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, []);
+
   const saveRecentOrder = (order) => {
     if (!order || !order.items) return;
     setRecentOrders(prev => {
@@ -342,6 +426,7 @@ Notes: ${customerInfo.notes || 'None'}`
         setLastOrder,
         recentOrders,
         saveRecentOrder,
+        syncRecentOrders,
         reorder
       }}
     >

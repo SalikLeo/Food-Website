@@ -61,6 +61,7 @@ export default function CustomerMobileApp({
     setIsCartOpen,
     recentOrders = [],
     saveRecentOrder,
+    syncRecentOrders,
     reorder,
     cartItems = [],
     subtotal = 0,
@@ -105,6 +106,13 @@ export default function CustomerMobileApp({
   // Navigation states: 'home' | 'category' | 'deals' | 'orders' | 'checkout' | 'add-review'
   const [currentView, setCurrentView] = useState('home');
   const [previousView, setPreviousView] = useState('orders');
+
+  // Trigger instant live order sync whenever user visits recent orders view
+  useEffect(() => {
+    if (currentView === 'orders' && typeof syncRecentOrders === 'function') {
+      syncRecentOrders();
+    }
+  }, [currentView, syncRecentOrders]);
   const [selectedCatId, setSelectedCatId] = useState('pizza');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1839,11 +1847,22 @@ export default function CustomerMobileApp({
                             <span>Receipt</span>
                           </button>
 
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
-                            order.status?.toLowerCase().includes('delivered')
-                              ? (isDark ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-700 border-emerald-200')
-                              : (isDark ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-amber-50 text-amber-700 border-amber-200')
-                          }`}>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${(() => {
+                            const st = (order.status || 'Pending').toLowerCase();
+                            if (st.includes('deliver') || st.includes('complete')) {
+                              return isDark ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                            }
+                            if (st.includes('out') || st.includes('way') || st.includes('ship')) {
+                              return isDark ? 'bg-sky-500/20 text-sky-400 border-sky-500/30' : 'bg-sky-50 text-sky-700 border-sky-200';
+                            }
+                            if (st.includes('prepar') || st.includes('progress') || st.includes('accept')) {
+                              return isDark ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                            }
+                            if (st.includes('cancel') || st.includes('reject')) {
+                              return isDark ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-rose-50 text-rose-700 border-rose-200';
+                            }
+                            return isDark ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-amber-50 text-amber-700 border-amber-200';
+                          })()}`}>
                             {order.status || 'Pending'}
                           </span>
                         </div>
