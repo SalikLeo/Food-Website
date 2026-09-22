@@ -414,7 +414,9 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
 
                 {/* Comment */}
                 <p className="text-xs text-zinc-700 leading-relaxed font-normal bg-zinc-50/60 p-3 rounded-xl border border-zinc-100">
-                  "{review.comment}"
+                  {review.comment && review.comment.trim() && review.comment.trim() !== '-'
+                    ? `"${review.comment}"`
+                    : '-'}
                 </p>
 
                 {/* Footer ID */}
@@ -462,11 +464,15 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
                 <span>{deleteTarget.name}</span>
                 <span className="text-amber-500">{'⭐'.repeat(deleteTarget.rating || 5)}</span>
               </div>
-              <p className="text-zinc-600 italic">"{deleteTarget.comment}"</p>
+              <p className="text-zinc-600 italic">
+                {deleteTarget.comment && deleteTarget.comment.trim() && deleteTarget.comment.trim() !== '-'
+                  ? `"${deleteTarget.comment}"`
+                  : '-'}
+              </p>
             </div>
 
             <p className="text-xs text-zinc-500">
-              Deleting this will immediately remove it from the storefront carousel and customer reviews modal.
+              Deleting this will permanently remove this customer review and rating.
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-2">

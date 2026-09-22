@@ -74,7 +74,7 @@
       "tag": "Family Bundle",
       "number": "01",
       "dealType": "family",
-      "featured": false
+      "featured": true
     },
     {
       "name": "Deal 12",
@@ -1477,7 +1477,7 @@
       "avatar": "A",
       "avatarBg": "bg-rose-600",
       "itemOrdered": "1x Chicken Sandwich, 1x Pizza Sandwich, 1x Malai Boti Sandwich",
-      "comment": "Delicious food and great service!",
+      "comment": "-",
       "createdAt": "2026-09-22T09:07:47.250Z"
     },
     {
@@ -1490,7 +1490,7 @@
       "avatar": "S",
       "avatarBg": "bg-purple-600",
       "itemOrdered": "5x Chicken Supreme",
-      "comment": "Delicious food and great service!",
+      "comment": "-",
       "createdAt": "2026-09-22T09:07:43.128Z"
     },
     {
@@ -1503,7 +1503,7 @@
       "avatar": "A",
       "avatarBg": "bg-orange-600",
       "itemOrdered": "2x Chicken Fajita",
-      "comment": "Delicious food and great service!",
+      "comment": "-",
       "createdAt": "2026-09-22T09:07:33.822Z"
     },
     {

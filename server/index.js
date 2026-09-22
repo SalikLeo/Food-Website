@@ -318,7 +318,7 @@ app.post('/api/reviews', (req, res) => {
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Customer name is required' });
     }
-    const comment = (req.body.comment || '').trim() || 'Great food and fast service!';
+    const comment = (req.body.comment || '').trim() || '-';
     const newReview = db.createReview({ ...req.body, comment });
     res.status(201).json({ success: true, review: newReview });
   } catch (err) {

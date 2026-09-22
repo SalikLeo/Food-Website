@@ -643,7 +643,7 @@ export const db = {
       avatar: initials,
       avatarBg: reviewData.avatarBg || randomColor,
       itemOrdered: (reviewData.itemOrdered || 'MP Special Meal').trim(),
-      comment: (reviewData.comment || 'Great food and fast service!').trim(),
+      comment: (reviewData.comment !== undefined && reviewData.comment !== null && reviewData.comment.trim() !== '') ? reviewData.comment.trim() : '-',
       createdAt: new Date().toISOString()
     };
 

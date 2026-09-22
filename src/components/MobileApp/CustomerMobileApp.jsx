@@ -215,7 +215,7 @@ export default function CustomerMobileApp({
     if (!reviewToConfirm) return;
     setSubmittingReview(true);
     const { order, rating, comment } = reviewToConfirm;
-    const finalComment = (comment || '').trim() || 'Delicious food and great service!';
+    const finalComment = (comment || '').trim() || '-';
     const customerName = (order.customerName || customerUser?.name || 'Customer').trim();
     const itemOrdered = (order.items || []).map(i => `${i.quantity || 1}x ${i.name}`).join(', ') || `Order #${order.id}`;
 
@@ -3293,7 +3293,7 @@ export default function CustomerMobileApp({
                 <p className={`text-[11px] italic p-2 rounded-lg border ${
                   isDark ? 'bg-zinc-900 border-white/5 text-zinc-300' : 'bg-white border-zinc-200 text-zinc-700'
                 }`}>
-                  "{reviewToConfirm.comment.trim() || 'Delicious food and great service!'}"
+                  {reviewToConfirm.comment.trim() ? `"${reviewToConfirm.comment.trim()}"` : '-'}
                 </p>
               </div>
             </div>
