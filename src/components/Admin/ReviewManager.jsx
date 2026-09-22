@@ -13,7 +13,40 @@ import {
   Filter,
   Check
 } from 'lucide-react';
-import { apiUrl } from '../../config/api';
+// Format review date & time: DD/MM/YY, hh:mm am/pm
+const formatReviewDate = (review) => {
+  if (review?.createdAt) {
+    const d = new Date(review.createdAt);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = String(d.getFullYear()).slice(-2);
+      const timeStr = d.toLocaleTimeString('en-PK', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }).toLowerCase();
+      return `${day}/${month}/${year}, ${timeStr}`;
+    }
+  }
+  const match = String(review?.id || '').match(/rev-(\d+)/);
+  if (match) {
+    const ts = Number(match[1]);
+    const d = new Date(ts);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = String(d.getFullYear()).slice(-2);
+      const timeStr = d.toLocaleTimeString('en-PK', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }).toLowerCase();
+      return `${day}/${month}/${year}, ${timeStr}`;
+    }
+  }
+  return review?.date || '';
+};
 
 export default function ReviewManager({ reviews = [], onRefresh }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -181,40 +214,28 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
       )}
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-zinc-200 shadow-2xs">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-zinc-200 shadow-2xs">
           <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
             Total Reviews
           </span>
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-3xl font-bold text-zinc-900">{stats.total}</span>
+            <span className="font-display text-2xl sm:text-3xl font-bold text-zinc-900">{stats.total}</span>
             <span className="text-xs text-zinc-500">recorded</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-zinc-200 shadow-2xs">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-zinc-200 shadow-2xs">
           <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
             Average Rating
           </span>
           <div className="flex items-center gap-2">
-            <span className="font-display text-3xl font-bold text-amber-500">{stats.avgRating}</span>
+            <span className="font-display text-2xl sm:text-3xl font-bold text-amber-500">{stats.avgRating}</span>
             <div className="flex items-center gap-0.5 text-amber-400">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
               ))}
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 border border-zinc-200 shadow-2xs">
-          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
-            5-Star Reviews
-          </span>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display text-3xl font-bold text-emerald-600">{stats.fiveStarCount}</span>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              {stats.fiveStarPct}%
-            </span>
           </div>
         </div>
       </div>
@@ -316,78 +337,55 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
             return (
               <div
                 key={review.id}
-                className="bg-white rounded-2xl p-5 border border-zinc-200 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between group space-y-4"
+                className="bg-white rounded-2xl p-4 sm:p-5 border border-zinc-200 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between group space-y-3.5"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-full ${
-                        review.avatarBg || 'bg-orange-600'
-                      } text-white font-bold text-xs flex items-center justify-center shadow-xs flex-shrink-0`}
-                    >
-                      {review.avatar || (review.name ? review.name.slice(0, 2).toUpperCase() : 'MP')}
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-zinc-900 leading-tight">
-                        {review.name}
-                      </h4>
-                      <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-zinc-500 mt-1">
-                        {review.orderId && (
-                          <span className="font-mono font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200/60">
-                            #{review.orderId}
-                          </span>
-                        )}
-                        {review.itemOrdered && (
-                          <span className="text-zinc-600 font-medium">
-                            {review.itemOrdered}
-                          </span>
-                        )}
-                        {review.platform && (
-                          <span className="bg-zinc-100 text-zinc-600 font-semibold px-1.5 py-0.5 rounded text-[10px]">
-                            {review.platform}
-                          </span>
-                        )}
-                      </div>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-sm text-zinc-900 leading-tight">
+                      {review.name}
+                    </h4>
+                    <div className="flex items-center gap-1.5 flex-wrap text-xs text-zinc-500 mt-1">
+                      {review.orderId && (
+                        <span className="font-sans font-bold text-orange-600">
+                          #{review.orderId}
+                        </span>
+                      )}
+                      {review.orderId && review.itemOrdered && (
+                        <span className="text-zinc-300">•</span>
+                      )}
+                      {review.itemOrdered && (
+                        <span className="text-zinc-600 font-medium">
+                          {review.itemOrdered}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Actions & Rating */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-0.5 text-amber-400">
-                      {[...Array(review.rating || 5)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(review)}
-                      className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                      title="Delete this review"
-                      aria-label="Delete review"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  {/* Rating */}
+                  <div className="flex items-center gap-0.5 text-amber-400 flex-shrink-0">
+                    {[...Array(review.rating || 5)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    ))}
                   </div>
                 </div>
 
                 {/* Comment */}
-                <p className="text-xs text-zinc-700 leading-relaxed font-normal bg-zinc-50/60 p-3 rounded-xl border border-zinc-100">
+                <p className="text-xs text-zinc-700 leading-relaxed font-normal bg-zinc-50/70 p-3 rounded-xl border border-zinc-100">
                   {review.comment && review.comment.trim() && review.comment.trim() !== '-'
-                    ? `"${review.comment}"`
+                    ? review.comment.trim()
                     : '-'}
                 </p>
 
-                {/* Footer ID */}
-                <div className="text-[10px] text-zinc-400 flex items-center justify-between pt-1 border-t border-zinc-100">
-                  <span>ID: {review.id}</span>
+                {/* Footer Date & Delete */}
+                <div className="text-[11px] text-zinc-400 flex items-center justify-between pt-1 border-t border-zinc-100">
+                  <span>{formatReviewDate(review)}</span>
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(review)}
-                    className="text-red-500 hover:text-red-700 hover:underline font-semibold flex items-center gap-1 text-[11px]"
+                    className="text-red-500 hover:text-red-700 hover:underline font-semibold flex items-center gap-1 text-xs cursor-pointer transition-colors"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                     <span>Delete</span>
                   </button>
                 </div>
@@ -424,9 +422,9 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
                 <span>{deleteTarget.name}</span>
                 <span className="text-amber-500">{'⭐'.repeat(deleteTarget.rating || 5)}</span>
               </div>
-              <p className="text-zinc-600 italic">
+              <p className="text-zinc-600">
                 {deleteTarget.comment && deleteTarget.comment.trim() && deleteTarget.comment.trim() !== '-'
-                  ? `"${deleteTarget.comment}"`
+                  ? deleteTarget.comment.trim()
                   : '-'}
               </p>
             </div>
