@@ -440,25 +440,31 @@ export default function OrdersManager({
   <style>
     @page {
       size: 80mm auto;
-      margin: 0;
+      margin: 0mm;
     }
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-    body {
+    html, body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      width: 74mm;
-      max-width: 74mm;
+      width: 72mm;
+      max-width: 72mm;
       margin: 0 auto;
-      padding: 4px 2px 12px 2px;
+      padding: 2mm 1.5mm 10mm 1.5mm;
       color: #000;
       background: #fff;
       font-size: 10px;
-      line-height: 1.3;
+      line-height: 1.35;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+    }
+
+    .receipt-container {
+      width: 72mm;
+      max-width: 72mm;
+      margin: 0 auto;
     }
 
     .bold { font-weight: 600; }
@@ -596,14 +602,18 @@ export default function OrdersManager({
       justify-content: space-between;
       margin-bottom: 3px;
     }
+    .totals-divider {
+      height: 1.5px;
+      background: #000;
+      width: 100%;
+      margin: 5px 0 4px 0;
+    }
     .grand-total-row {
       display: flex;
       justify-content: space-between;
       font-size: 12.5px;
       font-weight: 700;
-      padding-top: 4px;
-      border-top: 1px solid #000;
-      margin-top: 2px;
+      padding-top: 1px;
     }
 
     /* Footer */
@@ -621,15 +631,26 @@ export default function OrdersManager({
     }
 
     @media print {
-      body {
-        width: 100%;
-        max-width: 100%;
-        padding: 0;
+      @page {
+        size: 80mm auto;
+        margin: 0mm;
+      }
+      html, body {
+        width: 72mm !important;
+        max-width: 72mm !important;
+        margin: 0 auto !important;
+        padding: 2mm 1mm 6mm 1mm !important;
+      }
+      .receipt-container {
+        width: 72mm !important;
+        max-width: 72mm !important;
+        margin: 0 auto !important;
       }
     }
   </style>
 </head>
 <body>
+  <div class="receipt-container">
   <!-- Header -->
   <div class="receipt-header">
     <div class="brand-title">SALIK FAST FOOD</div>
@@ -715,6 +736,7 @@ export default function OrdersManager({
         ${Number(order.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(order.deliveryFee)}`}
       </span>
     </div>
+    <div class="totals-divider"></div>
     <div class="grand-total-row">
       <span>TOTAL PAYABLE</span>
       <span>Rs. ${formatPrice(order.total || 0)}</span>
@@ -727,6 +749,7 @@ export default function OrdersManager({
     <div class="cut-line">✂ - - - - - - - - - - - - - - - - - - - - -</div>
   </div>
 
+  </div><!-- /.receipt-container -->
 </body>
 </html>`;
   };

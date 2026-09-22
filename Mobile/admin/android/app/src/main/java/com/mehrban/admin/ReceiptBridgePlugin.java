@@ -228,8 +228,9 @@ public class ReceiptBridgePlugin extends Plugin {
                             PrintManager printManager = (PrintManager) getActivity().getSystemService(Context.PRINT_SERVICE);
                             if (printManager != null) {
                                 PrintDocumentAdapter printAdapter = view.createPrintDocumentAdapter(finalJobName);
+                                PrintAttributes.MediaSize roll80mm = new PrintAttributes.MediaSize("ROLL_80MM", "80mm Thermal Receipt", 3150, 7874);
                                 PrintAttributes printAttributes = new PrintAttributes.Builder()
-                                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                                        .setMediaSize(roll80mm)
                                         .setColorMode(PrintAttributes.COLOR_MODE_MONOCHROME)
                                         .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
                                         .build();

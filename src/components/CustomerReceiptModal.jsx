@@ -48,14 +48,17 @@ export default function CustomerReceiptModal({ order, onClose }) {
   <meta charset="utf-8">
   <title>Receipt #${order.id} - Salik Fast Food</title>
   <style>
-    @page { size: 80mm auto; margin: 0; }
+    @page { size: 80mm auto; margin: 0mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    html, body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      width: 74mm; max-width: 74mm; margin: 0 auto;
-      padding: 6px 4px 14px 4px; color: #000; background: #fff;
+      width: 72mm; max-width: 72mm; margin: 0 auto;
+      padding: 2mm 1.5mm 10mm 1.5mm; color: #000; background: #fff;
       font-size: 10px; line-height: 1.35;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
+    .receipt-container { width: 72mm; max-width: 72mm; margin: 0 auto; }
     .bold { font-weight: 700; }
     .header { text-align: center; padding-bottom: 8px; border-bottom: 1px dashed #000; }
     .header h1 { font-size: 14px; font-weight: 800; text-transform: uppercase; }
@@ -73,14 +76,24 @@ export default function CustomerReceiptModal({ order, onClose }) {
     .text-right { text-align: right; }
     .totals { padding: 6px 0; border-bottom: 1px dashed #000; font-size: 10px; }
     .totals-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+    .totals-divider { height: 1.5px; background: #000; width: 100%; margin: 5px 0 4px 0; }
     .grand-total {
       display: flex; justify-content: space-between; font-weight: 800;
-      font-size: 12px; padding-top: 4px; border-top: 1px solid #000; margin-top: 4px;
+      font-size: 12px; padding-top: 1px;
     }
     .footer { text-align: center; padding-top: 8px; font-size: 9.5px; }
+    @media print {
+      @page { size: 80mm auto; margin: 0mm; }
+      html, body {
+        width: 72mm !important; max-width: 72mm !important; margin: 0 auto !important;
+        padding: 2mm 1mm 6mm 1mm !important;
+      }
+      .receipt-container { width: 72mm !important; max-width: 72mm !important; margin: 0 auto !important; }
+    }
   </style>
 </head>
 <body>
+  <div class="receipt-container">
   <div class="header">
     <h1>SALIK FAST FOOD</h1>
     <p>Taste That You Need</p>
@@ -119,12 +132,14 @@ export default function CustomerReceiptModal({ order, onClose }) {
   <div class="totals">
     <div class="totals-row"><span>Subtotal</span><span class="bold">Rs. ${formatPrice(orderItemsSubtotal)}</span></div>
     <div class="totals-row"><span>Delivery Charges</span><span class="bold">${orderDeliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(orderDeliveryFee)}`}</span></div>
+    <div class="totals-divider"></div>
     <div class="grand-total"><span>TOTAL PAYABLE</span><span>Rs. ${formatPrice(orderTotal)}</span></div>
   </div>
   <div class="footer">
     <p class="bold">Thank you for ordering!</p>
     <p style="color: #666; margin-top: 4px;">✂ - - - - - - - - - - - - - - - - - - - - -</p>
   </div>
+  </div><!-- /.receipt-container -->
 </body>
 </html>`;
   };
@@ -281,9 +296,10 @@ export default function CustomerReceiptModal({ order, onClose }) {
                 {orderDeliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(orderDeliveryFee)}`}
               </span>
             </div>
-            <div className="flex justify-between text-sm font-extrabold pt-1 border-t border-black text-black">
+            <div className="my-1 h-[1.5px] bg-black w-full" />
+            <div className="flex justify-between text-sm font-extrabold text-black">
               <span>TOTAL PAYABLE</span>
-              <span>Rs. {formatPrice(orderTotal)}</span>
+              <span>Rs. ${formatPrice(orderTotal)}</span>
             </div>
           </div>
 
