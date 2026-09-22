@@ -479,27 +479,7 @@ export async function downloadReceiptImage(element, order) {
 export async function shareReceiptImageWhatsApp(element, order) {
   const fileName = `Receipt-ORD-${order.id || 'order'}.png`;
   const base64Data = await generateReceiptImage(element, order);
-
-  const items = order.items || [];
-  const itemsText = items
-    .map(it => `• ${it.quantity}x ${it.name}${it.size ? ` (${typeof it.size === 'string' ? it.size : it.size?.label})` : ''} - Rs. ${formatPrice(Number(it.price) * Number(it.quantity))}`)
-    .join('\n');
-
-  const subtotal = order.subtotal || items.reduce((acc, it) => acc + (Number(it.price) * Number(it.quantity)), 0);
-  const deliveryFee = Number(order.deliveryFee || 0);
-  const total = order.total || (subtotal + deliveryFee);
-
-  const caption = `*SALIK FAST FOOD - RECEIPT #${order.id}*\n\n` +
-    `*Customer:* ${order.customerName || 'Customer'}\n` +
-    `*Phone:* ${order.phone || '-'}\n` +
-    (order.address ? `*Address:* ${order.address}\n` : '') +
-    `*Date:* ${formatOrderDateTime(order.createdAt)}\n\n` +
-    `*ORDER ITEMS:*\n${itemsText}\n\n` +
-    `*Subtotal:* Rs. ${formatPrice(subtotal)}\n` +
-    `*Delivery Charges:* ${deliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(deliveryFee)}`}\n` +
-    `*TOTAL PAYABLE:* Rs. ${formatPrice(total)}\n` +
-    `*Payment Method:* ${formatReceiptPaymentBadge(order.paymentMethod)}\n\n` +
-    `Thank you for ordering with Salik Fast Food!`;
+  const blob = dataURLtoBlob(base64Data);
 
   // 1. Native Android App: Open WhatsApp directly with image attached
   if (Capacitor.isNativePlatform()) {
@@ -507,23 +487,65 @@ export async function shareReceiptImageWhatsApp(element, order) {
       await ReceiptBridge.shareReceiptWhatsApp({
         base64: base64Data,
         fileName: fileName,
-        caption: caption,
         phone: order.phone || '',
       });
       return { success: true, method: 'native-whatsapp' };
     } catch (e) {
-      console.warn('Native shareReceiptWhatsApp failed, falling back to download + web WhatsApp:', e);
+      console.warn('Native shareReceiptWhatsApp failed, falling back to web sharing:', e);
     }
   }
 
-  // 2. Web / Browser: Save the exact high-res image and open WhatsApp directly with formatted receipt details
+  // 2. Mobile Browser: Use Web Share API if supported for file attachments
   try {
-    await downloadReceiptImage(element, order);
+    const file = new File([blob], fileName, { type: 'image/png' });
+    if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: fileName,
+      });
+      return { success: true, method: 'web-share-file' };
+    }
+  } catch (shareErr) {
+    if (shareErr.name === 'AbortError') {
+      return { success: false, cancelled: true };
+    }
+    console.warn('Web share file failed, falling back:', shareErr);
+  }
+
+  // 3. Web / Browser: Copy image to clipboard, save image locally, and open WhatsApp chat
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && window.ClipboardItem) {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': blob,
+          }),
+        ]);
+      } catch (clipErr) {
+        console.warn('Clipboard write image failed:', clipErr);
+      }
+    }
+
+    // Trigger image download
+    try {
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+      }, 200);
+    } catch (dlErr) {
+      console.warn('Download fallback failed:', dlErr);
+    }
 
     const cleanPhone = (order.phone || '').replace(/\D/g, '');
     const waUrl = cleanPhone
-      ? `https://wa.me/${cleanPhone.startsWith('0') ? '92' + cleanPhone.slice(1) : cleanPhone}?text=${encodeURIComponent(caption)}`
-      : `https://wa.me/?text=${encodeURIComponent(caption)}`;
+      ? `https://wa.me/${cleanPhone.startsWith('0') ? '92' + cleanPhone.slice(1) : cleanPhone}`
+      : `https://wa.me/`;
     
     window.open(waUrl, '_blank');
     return { success: true, method: 'whatsapp-direct' };

@@ -158,9 +158,6 @@ public class ReceiptBridgePlugin extends Plugin {
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("image/png");
             shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
-            if (caption != null && !caption.trim().isEmpty()) {
-                shareIntent.putExtra(Intent.EXTRA_TEXT, caption);
-            }
             shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             String cleanPhone = phone != null ? phone.replaceAll("[^0-9]", "") : "";
