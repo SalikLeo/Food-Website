@@ -3,7 +3,7 @@ import {
   Package,
   ShoppingBag,
   Flame,
-  DollarSign,
+  Wallet,
   Clock,
   LogOut,
   ArrowLeft,
@@ -660,7 +660,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             {/* 3. Revenue */}
             <div className="bg-white rounded-2xl p-2.5 sm:p-4 border border-zinc-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3.5">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0">
                 <span className="text-[10px] sm:text-[11px] text-zinc-500 font-bold uppercase tracking-wider block truncate">

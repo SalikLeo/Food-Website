@@ -3,7 +3,7 @@ import {
   Search, ArrowLeft, Plus, Minus, Flame, 
   MessageCircle, Menu, X, ShoppingBag, 
   Clock, MapPin, ChevronRight, ChevronDown, Check, Sparkles, Phone,
-  Sun, Moon, RotateCcw, PackageCheck, Receipt, AlertCircle, Ban,
+  Sun, Moon, RotateCcw, PackageCheck, ReceiptText, AlertCircle, Ban,
   User, CheckCircle2, Send, Star, MessageSquareHeart
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
@@ -1808,7 +1808,6 @@ export default function CustomerMobileApp({
                       {/* Top Order Meta */}
                       <div className="flex items-center justify-between pb-2 sm:pb-2.5 border-b border-white/5">
                         <div className="flex items-center gap-2">
-                          <Receipt className="w-4 h-4 text-orange-500" />
                           <span className={`font-sans text-xs sm:text-sm font-semibold tracking-normal ${
                             isDark ? 'text-zinc-200' : 'text-zinc-800'
                           }`}>
@@ -1826,7 +1825,7 @@ export default function CustomerMobileApp({
                                 : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200 shadow-xs'
                             }`}
                           >
-                            <Receipt className="w-3 h-3 text-orange-500" />
+                            <ReceiptText className="w-3 h-3 text-orange-500" />
                             <span>Receipt</span>
                           </button>
 
@@ -2113,7 +2112,6 @@ export default function CustomerMobileApp({
                       {/* Top Order Information */}
                       <div className="flex items-center justify-between pb-3 border-b border-white/5">
                         <div className="flex items-center gap-2">
-                          <Receipt className="w-4 h-4 text-orange-500" />
                           <span className={`font-sans font-bold text-xs sm:text-sm ${
                             isDark ? 'text-white' : 'text-zinc-900'
                           }`}>

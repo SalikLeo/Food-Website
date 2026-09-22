@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   TrendingUp,
   Award,
-  DollarSign,
+  Wallet,
   Package,
   Search,
   ArrowUpDown,
@@ -238,7 +238,7 @@ export default function ItemSalesManager({
         {/* Card 2: Top Earning Item */}
         <div className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-2xs flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-shrink-0">
-            <DollarSign className="w-6 h-6" />
+            <Wallet className="w-6 h-6" />
           </div>
           <div className="min-w-0">
             <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider block">
