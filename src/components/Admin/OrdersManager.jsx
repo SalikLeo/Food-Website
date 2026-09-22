@@ -881,7 +881,7 @@ export default function OrdersManager({
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
             <span>
-              You have <strong>{pendingOutsideTodayCount} pending {pendingOutsideTodayCount === 1 ? 'order' : 'orders'}</strong> from previous days
+              You have <strong>{pendingOutsideTodayCount} pending {pendingOutsideTodayCount === 1 ? 'order' : 'orders'}</strong>
             </span>
           </div>
           <button
@@ -889,7 +889,7 @@ export default function OrdersManager({
               if (typeof onResetToAllPending === 'function') onResetToAllPending();
               setStatusFilter('Pending');
             }}
-            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] uppercase tracking-wider flex-shrink-0 transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs uppercase tracking-wider flex-shrink-0 transition-colors cursor-pointer shadow-xs active:scale-95"
           >
             View All Pending
           </button>
