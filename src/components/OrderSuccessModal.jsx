@@ -60,7 +60,7 @@ export default function OrderSuccessModal() {
         <div className="bg-[#121214] border border-zinc-800/80 rounded-2xl p-4 text-left space-y-3 text-xs">
           <div className="flex justify-between items-center text-zinc-400 border-b border-zinc-800 pb-2">
             <span>Order ID</span>
-            <span className="text-orange-400 font-mono font-bold">#{lastOrder.id}</span>
+            <span className="text-orange-400 font-bold">#{lastOrder.id}</span>
           </div>
 
           <div className="flex justify-between items-center text-zinc-400">
