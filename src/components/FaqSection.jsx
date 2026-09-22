@@ -50,7 +50,7 @@ export default function FaqSection({ faqs = [] }) {
                   onClick={() => toggleFaq(idx)}
                   className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 focus:outline-none"
                 >
-                  <span className="font-display text-xl sm:text-2xl text-zinc-900 tracking-wide">
+                  <span className="font-sans font-bold text-xl sm:text-2xl text-zinc-900">
                     {item.q}
                   </span>
                   <ChevronDown
