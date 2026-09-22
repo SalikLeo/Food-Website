@@ -15,7 +15,9 @@ import {
   Settings,
   Calendar,
   X,
-  CheckCircle2
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import ProductManager from './ProductManager';
 import OrdersManager from './OrdersManager';
@@ -36,6 +38,21 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const [activeTab, setActiveTab] = useState('orders');
   const [tabHistory, setTabHistory] = useState(['orders']);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const dateInputRef = useRef(null);
+
+  const handleOpenDatePicker = () => {
+    if (dateInputRef.current) {
+      if (typeof dateInputRef.current.showPicker === 'function') {
+        try {
+          dateInputRef.current.showPicker();
+          return;
+        } catch (err) {
+          console.warn('showPicker error:', err);
+        }
+      }
+      dateInputRef.current.focus();
+    }
+  };
 
   const switchTab = (tab) => {
     if (tab === activeTab) return;
@@ -435,32 +452,77 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                     Yesterday
                   </button>
 
+                  {/* Previous Day Step Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curr = new Date(selectedDate + 'T00:00:00');
+                      curr.setDate(curr.getDate() - 1);
+                      setSelectedDate(getLocalDateStr(curr));
+                    }}
+                    className="p-1 sm:p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 transition-colors cursor-pointer border border-zinc-200/80"
+                    title="Previous Day"
+                    aria-label="Previous Day"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+
                   {/* Date Picker Button with Calendar overlay */}
                   <div
-                    className={`relative flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs border transition-all cursor-pointer ${
+                    role="button"
+                    tabIndex={0}
+                    onClick={handleOpenDatePicker}
+                    className={`relative flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs border transition-all cursor-pointer select-none ${
                       selectedDate !== todayLocalStr
                         ? 'bg-orange-50 border-orange-400 text-orange-950 font-bold shadow-2xs ring-1 ring-orange-500/20'
                         : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-300 text-zinc-800'
                     }`}
                     title="Click to pick a specific date from calendar"
                   >
-                    <Calendar className="w-3.5 h-3.5 text-orange-600 shrink-0" />
-                    <span className="font-bold text-zinc-900">
+                    <Calendar className="w-3.5 h-3.5 text-orange-600 shrink-0 pointer-events-none" />
+                    <span className="font-bold text-zinc-900 pointer-events-none">
                       {formatToDDMMYY(selectedDate)}
                     </span>
                     <input
+                      ref={dateInputRef}
                       type="date"
                       value={selectedDate}
                       max={todayLocalStr}
+                      onClick={(e) => {
+                        try {
+                          if (typeof e.target.showPicker === 'function') {
+                            e.target.showPicker();
+                          }
+                        } catch (err) {}
+                      }}
                       onChange={(e) => {
                         if (e.target.value) {
                           setSelectedDate(e.target.value);
                         }
                       }}
-                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 admin-date-picker-input"
                       title="Pick a date from calendar"
                     />
                   </div>
+
+                  {/* Next Day Step Button */}
+                  <button
+                    type="button"
+                    disabled={selectedDate >= todayLocalStr}
+                    onClick={() => {
+                      const curr = new Date(selectedDate + 'T00:00:00');
+                      curr.setDate(curr.getDate() + 1);
+                      const nextStr = getLocalDateStr(curr);
+                      if (nextStr <= todayLocalStr) {
+                        setSelectedDate(nextStr);
+                      }
+                    }}
+                    className="p-1 sm:p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 transition-colors cursor-pointer border border-zinc-200/80 disabled:opacity-30 disabled:pointer-events-none"
+                    title="Next Day"
+                    aria-label="Next Day"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
                 <div className="text-[11px] text-zinc-500 font-medium ml-auto">
