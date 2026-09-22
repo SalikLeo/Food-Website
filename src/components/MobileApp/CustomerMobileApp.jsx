@@ -2017,7 +2017,7 @@ export default function CustomerMobileApp({
                       {/* Order Footer: Total & REORDER Button */}
                       <div className="flex items-center justify-between pt-1 gap-3">
                         <div>
-                          <span className="font-montserrat text-base sm:text-lg font-extrabold text-orange-600 leading-tight">
+                          <span className="font-sans text-base sm:text-lg font-extrabold text-orange-600 leading-tight">
                             Rs. {formatPrice(order.total)}
                           </span>
                         </div>
