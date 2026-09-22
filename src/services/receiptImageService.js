@@ -512,55 +512,23 @@ export async function shareReceiptImageWhatsApp(element, order) {
       });
       return { success: true, method: 'native-whatsapp' };
     } catch (e) {
-      console.warn('Native shareReceiptWhatsApp failed, trying Web Share / Web link:', e);
+      console.warn('Native shareReceiptWhatsApp failed, falling back to download + web WhatsApp:', e);
     }
   }
 
-  // 2. Web Share API with image file (Supported on Mobile Chrome/Safari)
+  // 2. Web / Browser: Save the exact high-res image and open WhatsApp directly with formatted receipt details
   try {
-    const blob = dataURLtoBlob(base64Data);
-    const file = new File([blob], fileName, { type: 'image/png' });
+    await downloadReceiptImage(element, order);
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: `Receipt #${order.id} - Salik Fast Food`,
-        text: caption,
-      });
-      return { success: true, method: 'web-share' };
-    }
-  } catch (shareErr) {
-    if (shareErr.name === 'AbortError') {
-      // User cancelled share dialog
-      return { success: false, cancelled: true };
-    }
-    console.warn('Web Share API error:', shareErr);
-  }
-
-  // 3. Desktop/Fallback: Download image and open WhatsApp Web with caption
-  try {
-    // Automatically trigger download of receipt image so user has it
-    const blob = dataURLtoBlob(base64Data);
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = blobUrl;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(blobUrl);
-    }, 200);
-
-    // Open WhatsApp Web
     const cleanPhone = (order.phone || '').replace(/\D/g, '');
     const waUrl = cleanPhone
       ? `https://wa.me/${cleanPhone.startsWith('0') ? '92' + cleanPhone.slice(1) : cleanPhone}?text=${encodeURIComponent(caption)}`
       : `https://wa.me/?text=${encodeURIComponent(caption)}`;
+    
     window.open(waUrl, '_blank');
-    return { success: true, method: 'whatsapp-link' };
+    return { success: true, method: 'whatsapp-direct' };
   } catch (err) {
-    console.error('WhatsApp link fallback error:', err);
+    console.error('WhatsApp share error:', err);
     throw err;
   }
 }

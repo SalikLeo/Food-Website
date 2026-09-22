@@ -345,7 +345,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
             {isSharing ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
-                <span>Sharing...</span>
+                <span>Opening...</span>
               </>
             ) : (
               <>
