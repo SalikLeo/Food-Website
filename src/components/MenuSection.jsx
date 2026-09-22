@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Plus, Minus, Tag, Check, Ban, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/formatters';
@@ -9,6 +9,70 @@ export default function MenuSection({ categories = [], products = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSizes, setSelectedSizes] = useState({});
   const [quantities, setQuantities] = useState({});
+
+  // Click-and-drag to scroll categories
+  const categoryScrollRef = useRef(null);
+  const isDownRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasMovedRef = useRef(false);
+  const [isGrabbing, setIsGrabbing] = useState(false);
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return; // Only primary left-click
+    const slider = categoryScrollRef.current;
+    if (!slider) return;
+
+    isDownRef.current = true;
+    hasMovedRef.current = false;
+    startXRef.current = e.pageX - slider.offsetLeft;
+    scrollLeftRef.current = slider.scrollLeft;
+    setIsGrabbing(true);
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      if (!isDownRef.current) return;
+      const slider = categoryScrollRef.current;
+      if (!slider) return;
+
+      const x = e.pageX - slider.offsetLeft;
+      const walk = (x - startXRef.current) * 1.5;
+      if (Math.abs(walk) > 4) {
+        hasMovedRef.current = true;
+      }
+      slider.scrollLeft = scrollLeftRef.current - walk;
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDownRef.current) {
+        isDownRef.current = false;
+        setIsGrabbing(false);
+        setTimeout(() => {
+          hasMovedRef.current = false;
+        }, 50);
+      }
+    };
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, []);
+
+  const handleWheel = (e) => {
+    const slider = categoryScrollRef.current;
+    if (slider && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      slider.scrollLeft += e.deltaY;
+    }
+  };
+
+  const handleCategorySelect = (catId) => {
+    if (hasMovedRef.current) return;
+    setSelectedCategory(catId);
+  };
 
   // Active category blurb
   const activeCat = categories.find(c => c.id === selectedCategory) || categories[0];
@@ -108,17 +172,26 @@ export default function MenuSection({ categories = [], products = [] }) {
           </div>
         </div>
 
-        {/* Category Pills Navigation */}
+        {/* Category Pills Navigation with Click-to-Drag & Wheel Scroll */}
         {!searchQuery && (
-          <div className="flex items-center gap-2.5 overflow-x-auto pb-4 mb-8 category-scroll">
+          <div
+            ref={categoryScrollRef}
+            onMouseDown={handleMouseDown}
+            onWheel={handleWheel}
+            className={`flex items-center gap-2.5 overflow-x-auto pb-4 mb-8 category-scroll select-none ${
+              isGrabbing ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+          >
             {categories.map((cat) => {
               const isActive = selectedCategory === cat.id;
               const itemCount = (products || []).filter(p => p.category === cat.id).length;
               return (
                 <button
                   key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all ${
+                  type="button"
+                  onDragStart={(e) => e.preventDefault()}
+                  onClick={() => handleCategorySelect(cat.id)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all select-none ${
                     isActive
                       ? 'bg-zinc-900 text-white shadow-md scale-105'
                       : 'bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200/80'
