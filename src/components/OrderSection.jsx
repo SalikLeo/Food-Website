@@ -276,7 +276,6 @@ export default function OrderSection() {
                     placeholder="03001234567"
                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-montserrat tracking-wide transition-all"
                   />
-                  <span className="text-[10px] text-zinc-400 mt-1 block">11-digit mobile number (e.g. 03001234567)</span>
                 </div>
               </div>
 
@@ -340,40 +339,40 @@ export default function OrderSection() {
           </div>
 
           {/* Right Column: ORDER SUMMARY */}
-          <div className="lg:col-span-5 bg-[#141416] rounded-3xl p-6 sm:p-8 text-white border border-zinc-800 shadow-xl">
-            <h3 className="font-display text-2xl tracking-wide uppercase text-white pb-4 border-b border-zinc-800">
+          <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 border border-zinc-200 shadow-sm">
+            <h3 className="font-display text-2xl tracking-wide uppercase text-zinc-900 pb-4 border-b border-zinc-200">
               Order Summary
             </h3>
 
             {cartItems.length === 0 ? (
-              <div className="py-12 text-center text-zinc-500 text-xs space-y-2">
-                <ShoppingBag className="w-10 h-10 mx-auto text-zinc-700" />
+              <div className="py-12 text-center text-zinc-400 text-xs space-y-2">
+                <ShoppingBag className="w-10 h-10 mx-auto text-zinc-300" />
                 <p>No items selected yet — add items from the menu and they'll appear here.</p>
               </div>
             ) : (
-              <div className="py-5 space-y-3 max-h-80 overflow-y-auto pr-1 divide-y divide-zinc-800/50">
+              <div className="py-5 space-y-3 max-h-80 overflow-y-auto pr-1 divide-y divide-zinc-100">
                 {cartItems.map((item) => (
                   <div key={item.cartKey} className="pt-3 first:pt-0 flex items-center justify-between text-xs group">
                     <div className="flex items-center gap-2 min-w-0 pr-2">
                       <button
                         type="button"
                         onClick={() => removeFromCart(item.cartKey)}
-                        className="p-1 -ml-1 text-zinc-500 hover:text-red-400 hover:bg-zinc-800/80 rounded-md transition-all active:scale-90 flex-shrink-0 cursor-pointer"
+                        className="p-1 -ml-1 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all active:scale-90 flex-shrink-0 cursor-pointer"
                         title="Remove item"
                         aria-label={`Remove ${item.name}`}
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
                       <div className="min-w-0">
-                        <span className="font-bold text-zinc-200">
+                        <span className="font-bold text-zinc-800">
                           {item.quantity}× {item.name}
                         </span>
                         {item.size && (
-                          <span className="text-orange-400 ml-1">({item.size})</span>
+                          <span className="text-orange-600 ml-1 font-medium">({item.size})</span>
                         )}
                       </div>
                     </div>
-                    <span className="font-semibold text-orange-400 font-sans flex-shrink-0">
+                    <span className="font-bold text-orange-600 font-sans flex-shrink-0">
                       Rs. {formatPrice(item.price * item.quantity)}
                     </span>
                   </div>
@@ -381,24 +380,24 @@ export default function OrderSection() {
               </div>
             )}
 
-            <div className="pt-4 border-t border-zinc-800 space-y-2 text-xs text-zinc-400">
+            <div className="pt-4 border-t border-zinc-200 space-y-2 text-xs text-zinc-500">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="text-zinc-200 font-semibold">
+                <span className="text-zinc-800 font-semibold">
                   Rs. {formatPrice(subtotal)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery fee</span>
-                <span className={`font-semibold ${isFreeDelivery ? 'text-emerald-400 font-bold' : 'text-zinc-200'}`}>
+                <span className={`font-semibold ${isFreeDelivery ? 'text-emerald-600 font-bold' : 'text-zinc-800'}`}>
                   {isFreeDelivery ? 'FREE (Promotion)' : `Rs. ${formatPrice(deliveryFee)}`}
                 </span>
               </div>
-              <div className="flex justify-between items-baseline pt-4 border-t border-zinc-800/80">
-                <span className="font-montserrat text-sm font-semibold text-white uppercase tracking-wider">
+              <div className="flex justify-between items-baseline pt-4 border-t border-zinc-200">
+                <span className="font-montserrat text-sm font-bold text-zinc-900 uppercase tracking-wider">
                   TOTAL
                 </span>
-                <span className="font-montserrat text-2xl text-amber-400 font-extrabold flex items-baseline">
+                <span className="font-montserrat text-2xl text-orange-600 font-extrabold flex items-baseline">
                   <span className="text-base font-bold mr-1">Rs.</span>
                   <span>{formatPrice(total)}</span>
                 </span>
