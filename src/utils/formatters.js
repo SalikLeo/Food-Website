@@ -38,4 +38,31 @@ export function formatReceiptPaymentBadge(method) {
   return formatted ? formatted.toUpperCase() : 'CASH ON DELIVERY';
 }
 
+/**
+ * Format date to local YYYY-MM-DD string
+ */
+export function getLocalDateStr(d) {
+  if (!d) return '';
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Format date to DD/MM/YY (e.g. 22/09/26)
+ */
+export function formatToDDMMYY(d) {
+  if (!d) return '';
+  const date = new Date(typeof d === 'string' && d.includes('-') && !d.includes('T') ? `${d}T00:00:00` : d);
+  if (isNaN(date.getTime())) return '';
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = String(date.getFullYear()).slice(-2);
+  return `${day}/${month}/${year}`;
+}
+
 export default formatPrice;
+

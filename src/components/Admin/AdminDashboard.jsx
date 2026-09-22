@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Package,
   ShoppingBag,
@@ -12,7 +12,10 @@ import {
   Truck,
   TrendingUp,
   Star,
-  Settings
+  Settings,
+  Calendar,
+  X,
+  CheckCircle2
 } from 'lucide-react';
 import ProductManager from './ProductManager';
 import OrdersManager from './OrdersManager';
@@ -21,8 +24,13 @@ import DeliverySettingsManager from './DeliverySettingsManager';
 import ItemSalesManager from './ItemSalesManager';
 import ReviewManager from './ReviewManager';
 import { apiUrl, APP_MODE } from '../../config/api';
-import { formatPrice } from '../../utils/formatters';
+import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 export default function AdminDashboard({ onLogout, onBackToStore }) {
   const [activeTab, setActiveTab] = useState('orders');
@@ -53,51 +61,71 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const [loading, setLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showStorefrontConfirm, setShowStorefrontConfirm] = useState(false);
-  const [statsTimeFilter, setStatsTimeFilter] = useState('today'); // 'today' | 'monthly' | 'annual' | 'all'
 
-  // Format local date string YYYY-MM-DD
-  const getLocalDateStr = (d) => {
-    if (!d) return '';
-    const date = new Date(d);
-    if (isNaN(date.getTime())) return '';
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  // Detailed Time Filter State
+  const [timeFilterMode, setTimeFilterMode] = useState('today'); // 'today' | 'monthly' | 'annual' | 'all'
+  const [selectedDate, setSelectedDate] = useState(() => getLocalDateStr(new Date())); // 'YYYY-MM-DD'
+  const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth()); // 0 - 11
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
+
+  // Available Years from orders (plus current and last 2 years)
+  const availableYears = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const yearSet = new Set([currentYear, currentYear - 1, currentYear - 2]);
+    (orders || []).forEach(o => {
+      if (o.createdAt) {
+        const y = new Date(o.createdAt).getFullYear();
+        if (!isNaN(y)) yearSet.add(y);
+      }
+    });
+    return Array.from(yearSet).sort((a, b) => b - a);
+  }, [orders]);
+
+  const todayLocalStr = useMemo(() => getLocalDateStr(new Date()), []);
+  const isDefaultFilter = timeFilterMode === 'today' && selectedDate === todayLocalStr;
+
+  const resetToDefaultFilter = () => {
+    const now = new Date();
+    setTimeFilterMode('today');
+    setSelectedDate(getLocalDateStr(now));
+    setSelectedMonth(now.getMonth());
+    setSelectedYear(now.getFullYear());
   };
 
-  const filteredOrdersForStats = useMemo(() => {
-    const now = new Date();
-    const todayStr = getLocalDateStr(now);
-    const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const thisYearStr = `${now.getFullYear()}`;
+  // Filtered orders for both stats cards AND orders manager
+  const dateFilteredOrders = useMemo(() => {
+    return (orders || []).filter(o => {
+      if (!o.createdAt) return true;
+      const orderDate = new Date(o.createdAt);
+      if (isNaN(orderDate.getTime())) return true;
+      const orderDateStr = getLocalDateStr(orderDate);
 
-    if (statsTimeFilter === 'today') {
-      return orders.filter(o => o.createdAt && getLocalDateStr(o.createdAt) === todayStr);
-    }
-    if (statsTimeFilter === 'monthly') {
-      return orders.filter(o => o.createdAt && getLocalDateStr(o.createdAt).slice(0, 7) === thisMonthStr);
-    }
-    if (statsTimeFilter === 'annual') {
-      return orders.filter(o => o.createdAt && getLocalDateStr(o.createdAt).slice(0, 4) === thisYearStr);
-    }
-    return orders;
-  }, [orders, statsTimeFilter]);
+      if (timeFilterMode === 'today') {
+        return selectedDate ? orderDateStr === selectedDate : true;
+      }
+      if (timeFilterMode === 'monthly') {
+        return orderDate.getFullYear() === Number(selectedYear) && orderDate.getMonth() === Number(selectedMonth);
+      }
+      if (timeFilterMode === 'annual') {
+        return orderDate.getFullYear() === Number(selectedYear);
+      }
+      if (timeFilterMode === 'all') {
+        return true;
+      }
+      return true;
+    });
+  }, [orders, timeFilterMode, selectedDate, selectedMonth, selectedYear]);
+
+  // Check if there are pending orders from other days when viewing today
+  const pendingOutsideCount = useMemo(() => {
+    if (timeFilterMode !== 'today' || selectedDate !== todayLocalStr) return 0;
+    return (orders || []).filter(o => o.status === 'Pending' && getLocalDateStr(o.createdAt) !== todayLocalStr).length;
+  }, [orders, timeFilterMode, selectedDate, todayLocalStr]);
 
   const displayStats = useMemo(() => {
-    if (statsTimeFilter === 'all') {
-      return {
-        totalProducts: stats.totalProducts || products.length,
-        totalDeals: stats.totalDeals || (deals.length + (familyDeal ? 1 : 0)),
-        totalOrders: stats.totalOrders || orders.length,
-        pendingOrders: orders.filter(o => o.status === 'Pending').length,
-        totalRevenue: stats.totalRevenue || orders.filter(o => o.status !== 'Cancelled').reduce((sum, o) => sum + (Number(o.total) || 0), 0)
-      };
-    }
-
-    const totalOrders = filteredOrdersForStats.length;
-    const pendingOrders = filteredOrdersForStats.filter(o => o.status === 'Pending').length;
-    const totalRevenue = filteredOrdersForStats
+    const totalOrders = dateFilteredOrders.length;
+    const pendingOrders = dateFilteredOrders.filter(o => o.status === 'Pending').length;
+    const totalRevenue = dateFilteredOrders
       .filter(o => o.status !== 'Cancelled')
       .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
 
@@ -108,7 +136,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       pendingOrders,
       totalRevenue
     };
-  }, [statsTimeFilter, filteredOrdersForStats, stats, products.length, deals.length, familyDeal, orders]);
+  }, [dateFilteredOrders, stats, products.length, deals.length, familyDeal]);
 
   // Derived counts for tab buttons
   const pendingOrdersCount = useMemo(() => {
@@ -299,54 +327,239 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-2 pb-6 space-y-3.5 sm:space-y-6">
         
-        {/* Stats Section with Time Filter Buttons */}
+        {/* Stats Section with Detailed Time Filter */}
         <div className="space-y-2.5 sm:space-y-3">
-          {/* Full-width Time Filter Buttons: Today, Monthly, Annual, All Time */}
-          <div className="grid grid-cols-4 gap-1 p-1 bg-white border border-zinc-300/80 rounded-2xl shadow-2xs w-full">
-            <button
-              type="button"
-              onClick={() => setStatsTimeFilter('today')}
-              className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
-                statsTimeFilter === 'today'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-              }`}
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              onClick={() => setStatsTimeFilter('monthly')}
-              className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
-                statsTimeFilter === 'monthly'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              type="button"
-              onClick={() => setStatsTimeFilter('annual')}
-              className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
-                statsTimeFilter === 'annual'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-              }`}
-            >
-              Annual
-            </button>
-            <button
-              type="button"
-              onClick={() => setStatsTimeFilter('all')}
-              className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
-                statsTimeFilter === 'all'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-              }`}
-            >
-              All Time
-            </button>
+          {/* Detailed Time Filter Card */}
+          <div className="bg-white border border-zinc-300/80 rounded-2xl p-2 sm:p-2.5 shadow-2xs space-y-2">
+            {/* Top Row: 4 Mode Buttons + Small Cross (✕) Reset Button */}
+            <div className="flex items-center gap-1.5 w-full">
+              <div className="grid grid-cols-4 gap-1 flex-1">
+                <button
+                  type="button"
+                  onClick={() => setTimeFilterMode('today')}
+                  className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+                    timeFilterMode === 'today'
+                      ? 'bg-orange-600 text-white shadow-xs'
+                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                  }`}
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimeFilterMode('monthly')}
+                  className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+                    timeFilterMode === 'monthly'
+                      ? 'bg-orange-600 text-white shadow-xs'
+                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimeFilterMode('annual')}
+                  className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+                    timeFilterMode === 'annual'
+                      ? 'bg-orange-600 text-white shadow-xs'
+                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                  }`}
+                >
+                  Annual
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimeFilterMode('all')}
+                  className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
+                    timeFilterMode === 'all'
+                      ? 'bg-orange-600 text-white shadow-xs'
+                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                  }`}
+                >
+                  All Time
+                </button>
+              </div>
+
+              {/* Small Cross (✕) Reset Button to quickly return to default (Today / current date) */}
+              {!isDefaultFilter && (
+                <button
+                  type="button"
+                  onClick={resetToDefaultFilter}
+                  className="flex items-center justify-center w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all cursor-pointer active:scale-90 shadow-2xs shrink-0"
+                  title="Reset to default (Today - current date)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Detailed Controls Row */}
+            {timeFilterMode === 'today' && (
+              <div className="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2 text-xs flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                    <span>Date:</span>
+                  </span>
+
+                  {/* Quick Date buttons */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDate(todayLocalStr)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      selectedDate === todayLocalStr
+                        ? 'bg-orange-600 text-white shadow-xs'
+                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
+                    }`}
+                  >
+                    Today
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const y = new Date();
+                      y.setDate(y.getDate() - 1);
+                      setSelectedDate(getLocalDateStr(y));
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      (() => {
+                        const y = new Date();
+                        y.setDate(y.getDate() - 1);
+                        return selectedDate === getLocalDateStr(y);
+                      })()
+                        ? 'bg-orange-600 text-white shadow-xs'
+                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
+                    }`}
+                  >
+                    Yesterday
+                  </button>
+
+                  {/* Date Picker Button with Calendar overlay */}
+                  <div
+                    className={`relative flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs border transition-all cursor-pointer ${
+                      selectedDate !== todayLocalStr
+                        ? 'bg-orange-50 border-orange-400 text-orange-950 font-bold shadow-2xs ring-1 ring-orange-500/20'
+                        : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-300 text-zinc-800'
+                    }`}
+                    title="Click to pick a specific date from calendar"
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                    <span className="font-bold text-zinc-900">
+                      {formatToDDMMYY(selectedDate)}
+                    </span>
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      max={todayLocalStr}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setSelectedDate(e.target.value);
+                        }
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                      title="Pick a date from calendar"
+                    />
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-zinc-500 font-medium ml-auto">
+                  {selectedDate === todayLocalStr ? (
+                    <span className="text-zinc-600 font-semibold">Today’s Orders & Stats</span>
+                  ) : (
+                    <span>Orders for <strong className="text-zinc-800">{formatToDDMMYY(selectedDate)}</strong></span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {timeFilterMode === 'monthly' && (
+              <div className="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2 text-xs flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                    <span>Month:</span>
+                  </span>
+
+                  {/* Month Dropdown */}
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-orange-300 bg-orange-50 text-orange-950 font-bold shadow-2xs">
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                      className="bg-transparent text-xs font-bold focus:outline-none cursor-pointer pr-1 text-zinc-900"
+                    >
+                      {MONTH_NAMES.map((mName, idx) => (
+                        <option key={idx} value={idx}>
+                          {mName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Year Dropdown */}
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-800 font-semibold">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Year:</span>
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(Number(e.target.value))}
+                      className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer pr-1 text-zinc-900"
+                    >
+                      {availableYears.map(y => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-zinc-500 font-medium ml-auto">
+                  Viewing: <strong className="text-zinc-800">{MONTH_NAMES[selectedMonth]} {selectedYear}</strong>
+                </div>
+              </div>
+            )}
+
+            {timeFilterMode === 'annual' && (
+              <div className="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2 text-xs flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                    <span>Year:</span>
+                  </span>
+
+                  {/* Year Dropdown */}
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-orange-300 bg-orange-50 text-orange-950 font-bold shadow-2xs">
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(Number(e.target.value))}
+                      className="bg-transparent text-xs font-bold focus:outline-none cursor-pointer pr-1 text-zinc-900"
+                    >
+                      {availableYears.map(y => (
+                        <option key={y} value={y}>
+                          {y} (Full Year)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-zinc-500 font-medium ml-auto">
+                  Viewing: <strong className="text-zinc-800">Annual {selectedYear}</strong>
+                </div>
+              </div>
+            )}
+
+            {timeFilterMode === 'all' && (
+              <div className="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2 text-xs">
+                <span className="text-[11px] font-semibold text-zinc-600 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  Viewing all-time orders & total statistics
+                </span>
+                <span className="text-[11px] font-bold text-zinc-800">
+                  {dateFilteredOrders.length} {dateFilteredOrders.length === 1 ? 'order' : 'orders'}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Stats Cards Row (3-Card Layout: Orders, Pending, Revenue) */}
@@ -491,7 +704,11 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
           {activeTab === 'orders' && (
             <OrdersManager
-              orders={orders}
+              orders={dateFilteredOrders}
+              pendingOutsideTodayCount={pendingOutsideCount}
+              onResetToAllPending={() => {
+                setTimeFilterMode('all');
+              }}
               products={products}
               deals={deals}
               familyDeal={familyDeal}

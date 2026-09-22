@@ -5,28 +5,6 @@ import { apiUrl } from '../../config/api';
 import { formatPrice, formatPaymentMethod, formatReceiptPaymentBadge } from '../../utils/formatters';
 import { downloadReceiptImage, shareReceiptImageWhatsApp, printReceiptDocument } from '../../services/receiptImageService';
 
-// Helper to format date to local YYYY-MM-DD
-const getLocalDateStr = (d) => {
-  if (!d) return '';
-  const date = new Date(d);
-  if (isNaN(date.getTime())) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// Format to DD/MM/YY (e.g. 18/09/26)
-const formatToDDMMYY = (d) => {
-  if (!d) return '';
-  const date = new Date(typeof d === 'string' && d.includes('-') && !d.includes('T') ? `${d}T00:00:00` : d);
-  if (isNaN(date.getTime())) return '';
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = String(date.getFullYear()).slice(-2);
-  return `${day}/${month}/${year}`;
-};
-
 // Format order date & time: DD/MM/YY, hh:mm am/pm
 const formatOrderDateTime = (dateVal) => {
   if (!dateVal) return '';
@@ -43,13 +21,10 @@ const formatOrderDateTime = (dateVal) => {
   return `${day}/${month}/${year}, ${timeStr}`;
 };
 
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
-
 export default function OrdersManager({
   orders = [],
+  pendingOutsideTodayCount = 0,
+  onResetToAllPending,
   products = [],
   deals = [],
   familyDeal = null,
@@ -60,13 +35,6 @@ export default function OrdersManager({
 
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
-
-  // Date / Period Filter State (defaults to 'today' for Daily Orders)
-  const [datePreset, setDatePreset] = useState('today'); // 'today' | 'yesterday' | 'this_month' | 'month' | 'annual' | 'custom_date' | 'all'
-  const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth()); // 0 - 11
-  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
-  const [customDate, setCustomDate] = useState(() => getLocalDateStr(new Date())); // 'YYYY-MM-DD'
-  const dateInputRef = useRef(null);
 
   // Track expanded state for minimized delivered orders
   const [expandedOrderIds, setExpandedOrderIds] = useState({});
@@ -806,130 +774,8 @@ export default function OrdersManager({
   };
 
 
-  const handleOpenDatePicker = () => {
-    if (dateInputRef.current) {
-      if (typeof dateInputRef.current.showPicker === 'function') {
-        dateInputRef.current.showPicker();
-      } else {
-        dateInputRef.current.focus();
-      }
-    }
-  };
-
-  // Active selected day string (always a valid YYYY-MM-DD for current day view)
-  const activeDayStr = useMemo(() => {
-    if (datePreset === 'today') {
-      return getLocalDateStr(new Date());
-    }
-    if (datePreset === 'yesterday') {
-      const y = new Date();
-      y.setDate(y.getDate() - 1);
-      return getLocalDateStr(y);
-    }
-    if (datePreset === 'custom_date' && customDate) {
-      return customDate;
-    }
-    return customDate || getLocalDateStr(new Date());
-  }, [datePreset, customDate]);
-
-  // Available Years from orders (plus current and last 2 years)
-  const availableYears = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const yearSet = new Set([currentYear, currentYear - 1, currentYear - 2]);
-    (orders || []).forEach(o => {
-      if (o.createdAt) {
-        const y = new Date(o.createdAt).getFullYear();
-        if (!isNaN(y)) yearSet.add(y);
-      }
-    });
-    return Array.from(yearSet).sort((a, b) => b - a);
-  }, [orders]);
-
-  // Date Filtered Orders
-  const dateFilteredOrders = useMemo(() => {
-    const now = new Date();
-    const todayStr = getLocalDateStr(now);
-
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = getLocalDateStr(yesterday);
-
-    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-    return orders.filter(o => {
-      if (!o.createdAt) return true;
-      const orderDate = new Date(o.createdAt);
-      if (isNaN(orderDate.getTime())) return true;
-      const orderDateStr = getLocalDateStr(orderDate);
-
-      if (datePreset === 'today') {
-        return orderDateStr === todayStr;
-      } else if (datePreset === 'yesterday') {
-        return orderDateStr === yesterdayStr;
-      } else if (datePreset === 'this_month') {
-        return orderDateStr.slice(0, 7) === currentYearMonth;
-      } else if (datePreset === 'month') {
-        return orderDate.getFullYear() === Number(selectedYear) && orderDate.getMonth() === Number(selectedMonth);
-      } else if (datePreset === 'annual') {
-        return orderDate.getFullYear() === Number(selectedYear);
-      } else if (datePreset === 'custom_date') {
-        return customDate ? orderDateStr === customDate : true;
-      } else if (datePreset === 'all') {
-        return true;
-      }
-      return true;
-    });
-  }, [orders, datePreset, customDate, selectedMonth, selectedYear]);
-
-  // Period description label
-  const periodDescription = useMemo(() => {
-    const now = new Date();
-    if (datePreset === 'today') {
-      return `Today (${formatToDDMMYY(now)})`;
-    }
-    if (datePreset === 'yesterday') {
-      const y = new Date();
-      y.setDate(y.getDate() - 1);
-      return `Yesterday (${formatToDDMMYY(y)})`;
-    }
-    if (datePreset === 'this_month') {
-      return `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`;
-    }
-    if (datePreset === 'month') {
-      return `${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
-    }
-    if (datePreset === 'annual') {
-      return `Annual ${selectedYear} (Full Year)`;
-    }
-    if (datePreset === 'custom_date' && customDate) {
-      return `Day (${formatToDDMMYY(customDate)})`;
-    }
-    if (datePreset === 'all') {
-      return 'All Time Orders';
-    }
-    return 'Selected Period';
-  }, [datePreset, customDate, selectedMonth, selectedYear]);
-
-  const salesLabel = useMemo(() => {
-    if (datePreset === 'annual') return 'Annual Sales:';
-    if (datePreset === 'month' || datePreset === 'this_month') return 'Monthly Sales:';
-    if (datePreset === 'today' || datePreset === 'yesterday' || datePreset === 'custom_date') return 'Daily Sales:';
-    return 'Total Revenue:';
-  }, [datePreset]);
-
-  const dateFilteredRevenue = useMemo(() => {
-    return dateFilteredOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
-  }, [dateFilteredOrders]);
-
-  // Check if there are pending orders in prior days when viewing today
-  const pendingOutsideTodayCount = useMemo(() => {
-    if (datePreset !== 'today') return 0;
-    const todayStr = getLocalDateStr(new Date());
-    return orders.filter(o => o.status === 'Pending' && getLocalDateStr(o.createdAt) !== todayStr).length;
-  }, [orders, datePreset]);
-
   const filteredOrders = useMemo(() => {
-    return dateFilteredOrders.filter(o => {
+    return (orders || []).filter(o => {
       const matchStatus = statusFilter === 'All' || o.status === statusFilter;
       const q = search.toLowerCase().trim();
       const matchSearch = !q || 
@@ -938,233 +784,31 @@ export default function OrdersManager({
         o.phone?.includes(q);
       return matchStatus && matchSearch;
     });
-  }, [dateFilteredOrders, statusFilter, search]);
+  }, [orders, statusFilter, search]);
 
   return (
-    <div className="space-y-3.5 sm:space-y-6">
+    <div className="space-y-3 sm:space-y-5">
       
-      {/* Date, Month & Year Period Filter Card */}
-      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-zinc-200 shadow-2xs space-y-2.5 sm:space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 sm:gap-3">
-          
-          {/* Quick Date Presets */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5 mr-1">
-              <Calendar className="w-3.5 h-3.5 text-orange-600" />
-              <span>Period:</span>
+      {/* Prior Pending Orders Alert Banner (shown when viewing Today and older pending orders exist) */}
+      {pendingOutsideTodayCount > 0 && (
+        <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between gap-2 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <span>
+              You have <strong>{pendingOutsideTodayCount} pending {pendingOutsideTodayCount === 1 ? 'order' : 'orders'}</strong> from previous days
             </span>
-
-            <button
-              onClick={() => {
-                setDatePreset('today');
-                setCustomDate(getLocalDateStr(new Date()));
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                datePreset === 'today'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
-              }`}
-            >
-              Today (Daily)
-            </button>
-
-            <button
-              onClick={() => {
-                const y = new Date();
-                y.setDate(y.getDate() - 1);
-                setDatePreset('yesterday');
-                setCustomDate(getLocalDateStr(y));
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                datePreset === 'yesterday'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
-              }`}
-            >
-              Yesterday
-            </button>
-
-            <button
-              onClick={() => {
-                const now = new Date();
-                setSelectedMonth(now.getMonth());
-                setSelectedYear(now.getFullYear());
-                setDatePreset('this_month');
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                datePreset === 'this_month'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
-              }`}
-            >
-              This Month
-            </button>
-
-            {/* Annual Preset Button */}
-            <button
-              onClick={() => {
-                setDatePreset('annual');
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                datePreset === 'annual'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
-              }`}
-              title={`View annual sales & orders for ${selectedYear}`}
-            >
-              <span>Annual ({selectedYear})</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setDatePreset('all');
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                datePreset === 'all'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
-              }`}
-            >
-              All Time
-            </button>
           </div>
-
-          {/* Selectors: Day (DD/MM/YY), Month Dropdown & Year Dropdown */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Specific Day Picker with DD/MM/YY Display */}
-            <div
-              onClick={handleOpenDatePicker}
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs border transition-all cursor-pointer select-none ${
-                datePreset === 'custom_date' || datePreset === 'today' || datePreset === 'yesterday'
-                  ? 'bg-orange-50 border-orange-300 text-orange-950 shadow-2xs font-bold'
-                  : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200 text-zinc-700'
-              }`}
-              title="Click to choose a specific day"
-            >
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Day:</span>
-              <span className="font-semibold text-zinc-900 min-w-[65px] text-center">
-                {formatToDDMMYY(activeDayStr)}
-              </span>
-              <Calendar className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0 ml-0.5" />
-              <input
-                ref={dateInputRef}
-                type="date"
-                value={activeDayStr}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setCustomDate(e.target.value);
-                    setDatePreset('custom_date');
-                  }
-                }}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                title="Select a specific day (DD/MM/YY)"
-              />
-            </div>
-
-            {/* Dedicated Month Dropdown */}
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs border transition-all ${
-              datePreset === 'month'
-                ? 'bg-orange-50 border-orange-300 text-orange-950 shadow-2xs font-bold'
-                : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200 text-zinc-700'
-            }`}>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Month:</span>
-              <select
-                value={datePreset === 'month' ? selectedMonth : ''}
-                onChange={(e) => {
-                  if (e.target.value !== '') {
-                    setSelectedMonth(Number(e.target.value));
-                    setDatePreset('month');
-                    setCustomDate('');
-                  }
-                }}
-                className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer pr-1 text-zinc-900"
-              >
-                <option value="">Select Month</option>
-                {MONTH_NAMES.map((mName, idx) => (
-                  <option key={idx} value={idx}>
-                    {mName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Years Dropdown */}
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs border transition-all ${
-              datePreset === 'annual'
-                ? 'bg-orange-50 border-orange-400 text-orange-950 shadow-2xs font-bold ring-1 ring-orange-500/20'
-                : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200 text-zinc-700'
-            }`}>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Year:</span>
-              <select
-                value={selectedYear}
-                onChange={(e) => {
-                  setSelectedYear(Number(e.target.value));
-                  setDatePreset('annual');
-                  setCustomDate('');
-                }}
-                className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer pr-1 text-zinc-900"
-                title="Select year to view Annual Sales"
-              >
-                {availableYears.map(y => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <button
+            onClick={() => {
+              if (typeof onResetToAllPending === 'function') onResetToAllPending();
+              setStatusFilter('Pending');
+            }}
+            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] uppercase tracking-wider flex-shrink-0 transition-colors cursor-pointer"
+          >
+            View All Pending
+          </button>
         </div>
-
-        {/* Filter Summary & Reconciliation Bar */}
-        <div className="pt-2.5 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="text-zinc-600">
-              Period: <strong className="text-zinc-900 font-bold">{periodDescription}</strong>
-            </span>
-            <span className="text-zinc-300">•</span>
-            <span className="text-zinc-600">
-              Orders: <strong className="text-orange-600 font-bold">{dateFilteredOrders.length}</strong>
-            </span>
-            <span className="text-zinc-300">•</span>
-            <span className="text-zinc-600">
-              {salesLabel} <strong className="text-emerald-600 font-bold">Rs. {formatPrice(dateFilteredRevenue)}</strong>
-            </span>
-          </div>
-
-          {datePreset !== 'today' && (
-            <button
-              onClick={() => {
-                setDatePreset('today');
-                setCustomDate(getLocalDateStr(new Date()));
-              }}
-              className="text-[11px] font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer"
-            >
-              Reset to Today (Daily)
-            </button>
-          )}
-        </div>
-
-        {/* Prior Pending Orders Alert Banner */}
-        {pendingOutsideTodayCount > 0 && (
-          <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-              <span>
-                You have <strong>{pendingOutsideTodayCount} pending {pendingOutsideTodayCount === 1 ? 'order' : 'orders'}</strong>
-              </span>
-            </div>
-            <button
-              onClick={() => {
-                setDatePreset('all');
-                setStatusFilter('Pending');
-              }}
-              className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] uppercase tracking-wider flex-shrink-0 transition-colors cursor-pointer"
-            >
-              View Pending Orders
-            </button>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Status Filters Bar & Search */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-4">
@@ -1180,9 +824,9 @@ export default function OrdersManager({
               }`}
             >
               {st}
-              {st === 'Pending' && dateFilteredOrders.filter(o => o.status === 'Pending').length > 0 && (
+              {st === 'Pending' && (orders || []).filter(o => o.status === 'Pending').length > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-[10px]">
-                  {dateFilteredOrders.filter(o => o.status === 'Pending').length}
+                  {(orders || []).filter(o => o.status === 'Pending').length}
                 </span>
               )}
             </button>
