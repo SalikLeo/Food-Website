@@ -200,7 +200,7 @@ export default function BestSellersSection({ products = [], categories = [], set
                   <div>
                     {/* Name & Price */}
                     <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <h4 className="font-bold text-sm sm:text-base text-zinc-900 uppercase tracking-wide">
+                      <h4 className="font-bold text-sm sm:text-base text-zinc-900">
                         {product.name}
                       </h4>
                       <span className="font-bold text-sm sm:text-base text-red-600 flex-shrink-0 tracking-tight">
