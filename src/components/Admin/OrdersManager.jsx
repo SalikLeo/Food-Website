@@ -1171,16 +1171,16 @@ export default function OrdersManager({
                         <select
                           value={order.status}
                           onChange={(e) => onSelectStatus(order, e.target.value)}
-                          className={`px-3 py-1 rounded-full text-xs font-bold border focus:outline-none cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors focus:outline-none cursor-pointer ${
                             order.status === 'Pending'
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
+                              ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200'
                               : order.status === 'Preparing'
-                              ? 'bg-blue-50 text-blue-800 border-blue-200'
+                              ? 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200'
                               : order.status === 'Out for Delivery'
-                              ? 'bg-purple-50 text-purple-800 border-purple-200'
+                              ? 'bg-purple-50 hover:bg-purple-100 text-purple-800 border-purple-200'
                               : order.status === 'Delivered'
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : 'bg-red-50 text-red-800 border-red-200'
+                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                              : 'bg-red-50 hover:bg-red-100 text-red-800 border-red-200'
                           }`}
                         >
                           <option value="Pending">Pending</option>
