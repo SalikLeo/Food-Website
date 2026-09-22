@@ -1612,12 +1612,14 @@ export default function CustomerMobileApp({
             </div>
 
             {/* Family Feast Highlight Card */}
+            {/* Family Feast Highlight Card */}
             {familyDeal && (
-              <div className={`rounded-3xl p-4 border shadow-xl space-y-3 ${
+              <div className={`rounded-3xl p-4 border shadow-xl space-y-3.5 ${
                 isDark 
                   ? 'bg-gradient-to-br from-amber-950/60 via-zinc-900 to-black border-amber-500/30' 
                   : 'bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 border-amber-400 text-white'
               }`}>
+                {/* Heading on Top */}
                 <div className="flex items-center justify-between">
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                     isDark 
@@ -1626,32 +1628,40 @@ export default function CustomerMobileApp({
                   }`}>
                     👑 MEGA FAMILY SAVER
                   </span>
-                  <span className={`text-lg font-extrabold font-sans ${isDark ? 'text-amber-400' : 'text-white'}`}>
+                  <span className={`text-lg font-bold font-sans ${isDark ? 'text-amber-400' : 'text-white'}`}>
                     Rs. {formatPrice(familyDeal.price)}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="w-24 h-24 flex-shrink-0">
+                {/* Body: Items List on Left, Image on Right */}
+                <div className="flex items-center justify-between gap-3 pt-0.5">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-base text-white mb-2">
+                      {familyDeal.name}
+                    </h3>
+                    <ul className={`space-y-1.5 text-xs ${isDark ? 'text-zinc-200' : 'text-white/95'}`}>
+                      {(familyDeal.includes || []).map((itemStr, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${isDark ? 'bg-amber-400' : 'bg-white'}`} />
+                          <span className="font-medium">{itemStr}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 flex items-center justify-center">
                     <img
                       src={familyDeal.image || '/assets/images/deal-family.png'}
                       alt={familyDeal.name}
                       className="w-full h-full object-contain drop-shadow-md"
                     />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg text-white">
-                      {familyDeal.name}
-                    </h3>
-                    <p className={`text-xs mt-1 leading-snug ${isDark ? 'text-zinc-300' : 'text-white/90'}`}>
-                      {(familyDeal.includes || []).join(' • ')}
-                    </p>
-                  </div>
                 </div>
 
+                {/* Add Button at Bottom */}
                 <button
                   onClick={(e) => handleAddDeal(familyDeal, e)}
-                  className={`w-full py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     isDark 
                       ? 'bg-amber-500 hover:bg-amber-400 text-black' 
                       : 'bg-white hover:bg-amber-50 text-orange-800'
@@ -1672,6 +1682,7 @@ export default function CustomerMobileApp({
                     isDark ? 'bg-[#15151a] border-white/10' : 'bg-white border-zinc-200'
                   }`}
                 >
+                  {/* Heading on Top */}
                   <div className="flex items-center justify-between">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
                       isDark 
@@ -1680,31 +1691,35 @@ export default function CustomerMobileApp({
                     }`}>
                       {deal.name}
                     </span>
-                    <span className={`text-base font-extrabold font-sans ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-                      Rs. {deal.price}
+                    <span className={`text-base font-bold font-sans ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                      Rs. {formatPrice(deal.price)}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="w-20 h-20 flex-shrink-0">
+                  {/* Body: Items List on Left, Image on Right */}
+                  <div className="flex items-center justify-between gap-3 pt-0.5">
+                    <ul className={`flex-1 min-w-0 space-y-1.5 text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                      {(deal.includes || []).map((itemStr, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 mt-1.5" />
+                          <span className="font-medium">{itemStr}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center">
                       <img
                         src={deal.image || '/assets/images/deal-1.png'}
                         alt={deal.name}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-contain drop-shadow-sm"
                         onError={(e) => {
                           e.target.src = '/assets/images/deal-1.png';
                         }}
                       />
                     </div>
-                    <div className="flex-1">
-                      <p className={`text-xs leading-relaxed font-medium ${
-                        isDark ? 'text-zinc-300' : 'text-zinc-600'
-                      }`}>
-                        {(deal.includes || []).join(' + ')}
-                      </p>
-                    </div>
                   </div>
 
+                  {/* Add Button at Bottom */}
                   <button
                     onClick={(e) => handleAddDeal(deal, e)}
                     className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
@@ -2475,7 +2490,7 @@ export default function CustomerMobileApp({
                 </div>
                 <div className={`flex justify-between items-baseline pt-2 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
                   <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>Total Amount</span>
-                  <span className="font-montserrat text-xl font-extrabold text-orange-500">
+                  <span className="font-montserrat text-xl font-bold text-orange-500">
                     Rs. {formatPrice(total)}
                   </span>
                 </div>
@@ -2528,7 +2543,7 @@ export default function CustomerMobileApp({
               
               {/* Badge count */}
               {totalItems > 0 && (
-                <span className="absolute -top-3 -right-3.5 bg-black text-white text-[11px] font-black font-montserrat min-w-[22px] h-[22px] px-1 rounded-full flex items-center justify-center border-2 border-white shadow-md animate-scale-in">
+                <span className="absolute -top-3 -right-3.5 bg-black text-white text-[11px] font-bold font-montserrat min-w-[22px] h-[22px] px-1 rounded-full flex items-center justify-center border-2 border-white shadow-md animate-scale-in">
                   {totalItems > 99 ? '99+' : totalItems}
                 </span>
               )}

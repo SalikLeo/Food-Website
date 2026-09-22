@@ -249,8 +249,8 @@ export default function CartDrawer() {
                 <span className="font-montserrat text-sm uppercase tracking-wider text-zinc-900 font-semibold">
                   TOTAL
                 </span>
-                <span className="font-montserrat text-2xl text-[#e53e10] font-extrabold flex items-baseline">
-                  <span className="text-base font-extrabold mr-1">Rs.</span>
+                <span className="font-montserrat text-2xl text-[#e53e10] font-bold flex items-baseline">
+                  <span className="text-base font-bold mr-1">Rs.</span>
                   <span>{formatPrice(total)}</span>
                 </span>
               </div>
