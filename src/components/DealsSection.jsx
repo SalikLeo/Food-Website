@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Flame, Check, Plus, Minus, ShoppingBag, MessageCircle, Users, Zap } from 'lucide-react';
+import { Flame, Check, Plus, Minus, ShoppingBag, Users, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/formatters';
 
@@ -35,15 +35,6 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
     if (orderSection) {
       orderSection.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const handleWhatsAppFamilyDeal = (deal) => {
-    if (!deal) return;
-    const itemsText = (deal.includes || []).join(', ');
-    const text = encodeURIComponent(
-      `Assalam o Alaikum Salik Fast Food! I want to order ${deal.name || 'the Family Deal'} (${itemsText}) — Rs. ${formatPrice(deal.price)}.`
-    );
-    window.open(`https://wa.me/923095369472?text=${text}`, '_blank');
   };
 
   // Separate normal deals and family deals
@@ -311,11 +302,11 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
 
                           <button
                             type="button"
-                            onClick={() => handleWhatsAppFamilyDeal(deal)}
-                            className="w-full sm:w-1/2 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-bold text-xs uppercase tracking-wider shadow hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                            onClick={() => handleOrderNow(deal)}
+                            className="w-full sm:w-1/2 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] text-white font-bold text-xs uppercase tracking-wider shadow hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                           >
-                            <MessageCircle className="w-4 h-4" />
-                            <span>Order on WhatsApp</span>
+                            <Zap className="w-4 h-4 fill-white" />
+                            <span>Order Now</span>
                           </button>
                         </div>
                       </div>
@@ -408,11 +399,11 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
 
                         <button
                           type="button"
-                          onClick={() => handleWhatsAppFamilyDeal(deal)}
-                          className="w-full h-10 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-xs cursor-pointer transition-all"
+                          onClick={() => handleOrderNow(deal)}
+                          className="w-full h-10 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-xs cursor-pointer transition-all"
                         >
-                          <MessageCircle className="w-4 h-4" />
-                          <span>Order on WhatsApp</span>
+                          <Zap className="w-3.5 h-3.5 fill-white" />
+                          <span>Order Now</span>
                         </button>
                       </div>
 
