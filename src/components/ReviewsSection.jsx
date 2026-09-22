@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { apiUrl } from '../config/api';
+import { notifyCustomerReviewSubmitted } from '../services/notificationService';
 
 const REVIEWS_DATA = [
   {
@@ -374,6 +375,7 @@ export default function ReviewsSection() {
       if (res.ok && data.success && data.review) {
         setReviews((prev) => [data.review, ...prev]);
         setReviewSubmitSuccess(true);
+        notifyCustomerReviewSubmitted(data.review || payload);
         setNewReview({
           name: '',
           rating: 5,

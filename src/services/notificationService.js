@@ -294,3 +294,50 @@ export async function notifyCustomerOrderStatus(order, oldStatus, newStatus) {
     extra: { orderId: order.id, status: newStatus, type: 'customer_status_change' }
   });
 }
+
+/**
+ * Trigger Admin New Review Notification
+ */
+export async function notifyAdminNewReview(review, count = 1) {
+  if (!review) return;
+  const author = review.author || review.name || 'Customer';
+  const rating = review.rating || 5;
+  const starsStr = '★'.repeat(rating) + '☆'.repeat(Math.max(0, 5 - rating));
+  const reviewText = review.text && review.text !== '-' ? ` "${review.text.slice(0, 50)}${review.text.length > 50 ? '...' : ''}"` : '';
+  const orderInfo = review.orderId ? ` (Order #${review.orderId})` : '';
+  
+  const title = count > 1 ? `⭐ ${count} New Reviews Received!` : '⭐ New Customer Review!';
+  const body = `${starsStr} from ${author}${orderInfo}${reviewText}`;
+
+  playNotificationSound('status_update');
+  triggerVibration([250, 100, 250]);
+  await showSystemNotification({
+    title,
+    body,
+    id: review.id || `rev-${Date.now()}`,
+    extra: { reviewId: review.id, type: 'admin_new_review' }
+  });
+}
+
+/**
+ * Trigger Customer Review Submitted Notification
+ */
+export async function notifyCustomerReviewSubmitted(review) {
+  if (!review) return;
+  const rating = review.rating || 5;
+  const starsStr = '★'.repeat(rating);
+  const orderInfo = review.orderId ? ` for Order #${review.orderId}` : '';
+
+  const title = '⭐ Review Submitted!';
+  const body = `Thank you! Your ${starsStr} feedback${orderInfo} has been received.`;
+
+  playNotificationSound('status_update');
+  triggerVibration([150, 80, 150]);
+  await showSystemNotification({
+    title,
+    body,
+    id: `cust-rev-${Date.now()}`,
+    extra: { reviewId: review.id, type: 'customer_review_submitted' }
+  });
+}
+

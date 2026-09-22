@@ -34,6 +34,7 @@ import { App as CapApp } from '@capacitor/app';
 import { 
   requestNotificationPermission, 
   notifyAdminNewOrder, 
+  notifyAdminNewReview, 
   playNotificationSound, 
   triggerVibration 
 } from '../../services/notificationService';
@@ -359,6 +360,45 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     setOrders(incomingOrders);
   };
 
+  // Real-time new customer review tracking & alerts
+  const [newReviewAlert, setNewReviewAlert] = useState(null);
+  const knownReviewIdsRef = useRef(new Set());
+  const initialReviewsLoadDoneRef = useRef(false);
+
+  const processIncomingReviews = (incomingReviews) => {
+    if (!Array.isArray(incomingReviews)) return;
+
+    if (!initialReviewsLoadDoneRef.current) {
+      incomingReviews.forEach(r => {
+        if (r && r.id) knownReviewIdsRef.current.add(String(r.id).trim());
+      });
+      initialReviewsLoadDoneRef.current = true;
+      setReviews(incomingReviews);
+      return;
+    }
+
+    const newRevs = incomingReviews.filter(r => {
+      if (!r || !r.id) return false;
+      const cleanId = String(r.id).trim();
+      return !knownReviewIdsRef.current.has(cleanId);
+    });
+
+    if (newRevs.length > 0) {
+      newRevs.forEach(r => knownReviewIdsRef.current.add(String(r.id).trim()));
+
+      const latest = newRevs[0];
+      setNewReviewAlert({
+        review: latest,
+        count: newRevs.length,
+        receivedAt: new Date()
+      });
+
+      notifyAdminNewReview(latest, newRevs.length);
+    }
+
+    setReviews(incomingReviews);
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -377,8 +417,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       setDeals(dealsRes?.deals || []);
       setFamilyDeal(dealsRes?.familyDeal || null);
       if (ordersRes) processIncomingOrders(ordersRes);
+      if (reviewsRes) processIncomingReviews(reviewsRes);
       setStats(statsRes || {});
-      setReviews(reviewsRes || []);
       if (settingsRes && typeof settingsRes.deliveryFee === 'number') {
         setSettings(settingsRes);
       }
@@ -392,8 +432,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   useEffect(() => {
     fetchData();
 
-    // Fast 3-second live polling for immediate new order notifications
-    const interval = setInterval(() => {
+    // Fast 3-second live polling for immediate new orders and reviews
+    const pollUpdates = () => {
       fetch(apiUrl('/api/orders'))
         .then(r => r.json())
         .then(data => {
@@ -402,17 +442,21 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           }
         })
         .catch(() => {});
-    }, 3000);
+
+      fetch(apiUrl('/api/reviews'))
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            processIncomingReviews(data);
+          }
+        })
+        .catch(() => {});
+    };
+
+    const interval = setInterval(pollUpdates, 3000);
 
     const onFocusOrVisible = () => {
-      fetch(apiUrl('/api/orders'))
-        .then(r => r.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            processIncomingOrders(data);
-          }
-        })
-        .catch(() => {});
+      pollUpdates();
     };
 
     window.addEventListener('focus', onFocusOrVisible);
@@ -522,6 +566,89 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               <button
                 type="button"
                 onClick={() => setNewOrderAlert(null)}
+                className="py-2 px-3 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs active:scale-98 transition-all cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Real-time New Review Alert Popup / Notification Banner */}
+      {newReviewAlert && (
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
+          <div className="bg-white/98 backdrop-blur-md border-2 border-amber-500 rounded-2xl p-3.5 sm:p-4 shadow-2xl text-zinc-900 ring-4 ring-amber-500/20">
+            {/* Top Bar */}
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center animate-bounce shadow-xs shrink-0">
+                  <Star className="w-4 h-4 fill-white" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-montserrat text-xs sm:text-sm font-extrabold uppercase text-amber-600 leading-none truncate">
+                      New Review Received!
+                    </h3>
+                    {newReviewAlert.count > 1 && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold shrink-0">
+                        +{newReviewAlert.count - 1} more
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-zinc-500 font-semibold mt-0.5 block truncate">
+                    {newReviewAlert.review.orderId ? `Order #${newReviewAlert.review.orderId} • ` : ''}Just now
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setNewReviewAlert(null)}
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
+                  title="Dismiss Alert"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Review Details Preview */}
+            <div className="py-2.5 flex items-center justify-between gap-3 text-xs">
+              <div className="space-y-0.5 min-w-0">
+                <div className="font-bold text-zinc-900 truncate">
+                  👤 {newReviewAlert.review.author || newReviewAlert.review.name || 'Customer'}
+                </div>
+                <div className="text-zinc-600 text-[11px] truncate italic">
+                  {newReviewAlert.review.text && newReviewAlert.review.text !== '-' ? `"${newReviewAlert.review.text}"` : 'No written comment'}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-0.5 text-amber-500 shrink-0">
+                {[...Array(Number(newReviewAlert.review.rating) || 5)].map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  switchTab('reviews');
+                  setNewReviewAlert(null);
+                }}
+                className="flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Star className="w-3.5 h-3.5 fill-white" />
+                <span>Manage Reviews</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setNewReviewAlert(null)}
                 className="py-2 px-3 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs active:scale-98 transition-all cursor-pointer"
               >
                 Dismiss

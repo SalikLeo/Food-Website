@@ -980,8 +980,9 @@
       "subtotal": 2400,
       "deliveryFee": 200,
       "total": 2600,
-      "status": "Pending",
-      "createdAt": "2026-09-22T13:38:43.572Z"
+      "status": "Cancelled",
+      "createdAt": "2026-09-22T13:38:43.572Z",
+      "updatedAt": "2026-09-22T15:17:55.993Z"
     },
     {
       "id": "ORD-297327-29",

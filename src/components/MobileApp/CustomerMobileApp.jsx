@@ -15,6 +15,7 @@ import CustomerReceiptModal from '../CustomerReceiptModal';
 import CustomerNotificationBanner from '../CustomerNotificationBanner';
 import { formatPrice } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
+import { notifyCustomerReviewSubmitted } from '../../services/notificationService';
 import { 
   getStoredCustomerUser, 
   setStoredCustomerUser, 
@@ -266,6 +267,13 @@ export default function CustomerMobileApp({
       orderId: order.id,
       name: customerName,
       rating: Number(rating) || 5
+    });
+
+    notifyCustomerReviewSubmitted({
+      orderId: order.id,
+      author: customerName,
+      rating: Number(rating) || 5,
+      text: finalComment
     });
   };
 
