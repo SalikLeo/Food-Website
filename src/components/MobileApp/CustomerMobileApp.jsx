@@ -1155,9 +1155,6 @@ export default function CustomerMobileApp({
                   }`}>
                     Explore Menu
                   </h2>
-                  <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                    Tap any category to explore menu and order
-                  </p>
                 </div>
 
                 <button
