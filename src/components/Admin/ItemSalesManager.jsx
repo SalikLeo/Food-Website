@@ -344,11 +344,11 @@ export default function ItemSalesManager({
               onChange={(e) => setIncludeUnsold(e.target.checked)}
               className="w-3.5 h-3.5 rounded text-orange-600 focus:ring-orange-500 border-zinc-300 cursor-pointer"
             />
-            <span>Include catalog items with 0 sales (to identify underperforming dishes)</span>
+            <span>Include 0 sales items</span>
           </label>
 
           <span className="text-zinc-400 font-medium text-[11px]">
-            Showing {displayItems.length} items
+            {displayItems.length} Items
           </span>
         </div>
       </div>
