@@ -635,14 +635,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           <div className="bg-white border border-zinc-300/80 rounded-2xl p-2 sm:p-2.5 shadow-2xs space-y-2">
             {/* Top Row: 4 Mode Buttons + Small Cross (✕) Reset Button */}
             <div className="flex items-center gap-1.5 w-full">
-              <div className="grid grid-cols-4 gap-1 flex-1">
+              <div className="grid grid-cols-4 gap-1.5 flex-1">
                 <button
                   type="button"
                   onClick={() => setTimeFilterMode('today')}
                   className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
                     timeFilterMode === 'today'
                       ? 'bg-orange-600 text-white shadow-xs'
-                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                      : 'bg-zinc-100 hover:bg-zinc-200/90 text-zinc-700 border border-zinc-200/80'
                   }`}
                 >
                   Daily
@@ -653,7 +653,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                   className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
                     timeFilterMode === 'monthly'
                       ? 'bg-orange-600 text-white shadow-xs'
-                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                      : 'bg-zinc-100 hover:bg-zinc-200/90 text-zinc-700 border border-zinc-200/80'
                   }`}
                 >
                   Monthly
@@ -664,7 +664,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                   className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
                     timeFilterMode === 'annual'
                       ? 'bg-orange-600 text-white shadow-xs'
-                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                      : 'bg-zinc-100 hover:bg-zinc-200/90 text-zinc-700 border border-zinc-200/80'
                   }`}
                 >
                   Annual
@@ -675,7 +675,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                   className={`w-full py-1.5 sm:py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center select-none active:scale-[0.98] ${
                     timeFilterMode === 'all'
                       ? 'bg-orange-600 text-white shadow-xs'
-                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                      : 'bg-zinc-100 hover:bg-zinc-200/90 text-zinc-700 border border-zinc-200/80'
                   }`}
                 >
                   All Time

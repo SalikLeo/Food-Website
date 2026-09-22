@@ -73,7 +73,8 @@
       "description": "5 Zinger Burger (Burgers) + 2 Patty Burger + 2 Small Shawarma (Shawarma) + 1 Large Shawarma (Shawarma) + 6 Nuggets (Chicken Nuggets) + 1 Coke 1.5L (Beverages)",
       "tag": "Family Bundle",
       "number": "01",
-      "dealType": "family"
+      "dealType": "family",
+      "featured": false
     },
     {
       "name": "Deal 1",
@@ -88,7 +89,8 @@
       ],
       "description": "2 Zinger Burger (Burgers) + 2 Coke 500ml (Beverages)",
       "tag": "",
-      "id": "deal-1789746368640"
+      "id": "deal-1789746368640",
+      "featured": false
     },
     {
       "name": "Deal 2",
@@ -103,7 +105,8 @@
       ],
       "description": "1 Small Chicken Tikka (Pizza) + 1 Coke 1L (Beverages)",
       "tag": "",
-      "id": "deal-1789746424743"
+      "id": "deal-1789746424743",
+      "featured": true
     }
   ],
   "familyDeal": null,
