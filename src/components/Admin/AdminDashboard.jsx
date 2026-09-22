@@ -922,14 +922,6 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
-
-                <div className="text-[11px] text-zinc-500 font-medium ml-auto">
-                  {selectedDate === todayLocalStr ? (
-                    <span className="text-zinc-600 font-semibold">Today’s Stats</span>
-                  ) : (
-                    <span>Stats for <strong className="text-zinc-800">{formatToDDMMYY(selectedDate)}</strong></span>
-                  )}
-                </div>
               </div>
             )}
 
