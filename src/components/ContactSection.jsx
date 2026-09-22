@@ -107,17 +107,17 @@ export default function ContactSection() {
             </div>
           </div>
 
-          {/* 6. WhatsApp Ordering */}
+          {/* 6. WhatsApp Support */}
           <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-sm flex flex-col justify-between hover:border-orange-500/50 transition-colors">
             <div className="space-y-3">
               <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
                 <WhatsAppIcon className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-sm text-zinc-900 uppercase tracking-wide">
-                WhatsApp Ordering
+                WhatsApp Support
               </h3>
               <p className="text-zinc-600 text-xs leading-relaxed">
-                Send your order any time on WhatsApp
+                Chat with us anytime on WhatsApp
               </p>
             </div>
           </div>
@@ -128,10 +128,10 @@ export default function ContactSection() {
         <div className="flex flex-wrap items-center gap-4">
           <button
             onClick={handleWhatsAppClick}
-            className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all"
+            className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
           >
             <WhatsAppIcon className="w-4 h-4" />
-            <span>Order on WhatsApp</span>
+            <span>Chat on WhatsApp</span>
           </button>
 
           <a

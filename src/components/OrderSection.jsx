@@ -324,23 +324,14 @@ export default function OrderSection() {
               </div>
 
               {/* Action Buttons Row */}
-              <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="pt-4">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Place Order</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleInitiateWhatsAppOrder}
-                  className="flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all"
-                >
-                  <WhatsAppIcon className="w-4 h-4" />
-                  <span>WhatsApp Order</span>
+                  <span>{loading ? 'Placing Order...' : 'Place Order'}</span>
                 </button>
               </div>
             </form>
@@ -432,18 +423,8 @@ export default function OrderSection() {
 
               {/* Modal Header */}
               <div className="text-center mb-6">
-                <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3.5 ${
-                    confirmType === 'whatsapp'
-                      ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
-                      : 'bg-orange-500/15 border border-orange-500/30 text-orange-400'
-                  }`}
-                >
-                  {confirmType === 'whatsapp' ? (
-                    <MessageSquare className="w-7 h-7" />
-                  ) : (
-                    <CheckCircle2 className="w-7 h-7" />
-                  )}
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3.5 bg-orange-500/15 border border-orange-500/30 text-orange-400">
+                  <CheckCircle2 className="w-7 h-7" />
                 </div>
 
                 <h3 className="font-display text-2xl sm:text-3xl uppercase tracking-wide text-white">
@@ -534,33 +515,21 @@ export default function OrderSection() {
 
               {/* Action Buttons */}
               <div className="space-y-2.5">
-                {confirmType === 'web' ? (
-                  <button
-                    type="button"
-                    onClick={executePlaceOrder}
-                    disabled={loading}
-                    className="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>{loading ? 'Placing Order...' : 'Yes, Confirm & Place Order'}</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={executeWhatsAppOrder}
-                    disabled={loading}
-                    className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
-                  >
-                    <WhatsAppIcon className="w-4 h-4" />
-                    <span>Yes, Confirm & Send on WhatsApp</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={executePlaceOrder}
+                  disabled={loading}
+                  className="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{loading ? 'Placing Order...' : 'Yes, Confirm & Place Order'}</span>
+                </button>
 
                 <button
                   type="button"
                   onClick={() => !loading && setShowConfirmModal(false)}
                   disabled={loading}
-                  className="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50"
+                  className="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   Change / Edit Details
                 </button>

@@ -2463,28 +2463,15 @@ export default function CustomerMobileApp({
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-2.5 pt-2">
-                
-                {/* 1. WhatsApp Instant Checkout */}
-                <button
-                  type="button"
-                  onClick={handleMobileWhatsAppOrder}
-                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <WhatsAppIcon className="w-4 h-4 fill-white" />
-                  <span>Send Order via WhatsApp</span>
-                </button>
-
-                {/* 2. Direct Online Order */}
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={checkoutSubmitting}
-                  className="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
                   <span>{checkoutSubmitting ? 'Placing Order...' : 'Confirm & Place Order'}</span>
                 </button>
-
               </div>
             </form>
 
@@ -2496,38 +2483,40 @@ export default function CustomerMobileApp({
       {/* ============================================================== */}
       {/* 4. FLOATING CART ACTION BUTTON (Bottom-Right FAB) */}
       {/* ============================================================== */}
-      <div className="fixed right-4 z-40 mobile-floating-cart">
-        <button
-          id="floating-cart-btn"
-          onClick={() => setIsCartOpen(true)}
-          className={`relative w-14 h-14 rounded-full bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-500 text-white shadow-2xl border-2 border-white/30 flex items-center justify-center active:scale-90 transition-all duration-200 cursor-pointer group ${
-            totalItems > 0 
-              ? 'animate-reminder-bounce shadow-[0_10px_28px_rgba(234,88,12,0.65)]' 
-              : 'shadow-[0_8px_20px_rgba(0,0,0,0.3)]'
-          }`}
-          aria-label={`Cart with ${totalItems} items`}
-          title={`Cart: ${totalItems} items (Rs. ${formatPrice(totalPrice)})`}
-        >
-          {/* Subtle pulsating radar ripple ring when cart has items */}
-          {totalItems > 0 && (
-            <span 
-              className="absolute inset-0 rounded-full bg-orange-500 opacity-40 animate-ping pointer-events-none" 
-              style={{ animationDuration: '2.8s' }} 
-            />
-          )}
-
-          <div className="relative flex items-center justify-center">
-            <ShoppingBag className="w-6 h-6 text-white drop-shadow-sm group-hover:scale-105 transition-transform" strokeWidth={2.3} />
-            
-            {/* Cart item count badge */}
+      {currentView !== 'checkout' && (
+        <div className="fixed right-4 z-40 mobile-floating-cart">
+          <button
+            id="floating-cart-btn"
+            onClick={() => setIsCartOpen(true)}
+            className={`relative w-14 h-14 rounded-full bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-500 text-white shadow-2xl border-2 border-white/30 flex items-center justify-center active:scale-90 transition-all duration-200 cursor-pointer group ${
+              totalItems > 0 
+                ? 'animate-reminder-bounce shadow-[0_10px_28px_rgba(234,88,12,0.65)]' 
+                : 'shadow-[0_8px_20px_rgba(0,0,0,0.3)]'
+            }`}
+            aria-label={`Cart with ${totalItems} items`}
+            title={`Cart: ${totalItems} items (Rs. ${formatPrice(totalPrice)})`}
+          >
+            {/* Subtle pulsating radar ripple ring when cart has items */}
             {totalItems > 0 && (
-              <span className="absolute -top-3.5 -right-3.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-zinc-950 text-white font-black text-[11px] flex items-center justify-center shadow-lg border-2 border-white animate-scale-in">
-                {totalItems}
-              </span>
+              <span 
+                className="absolute inset-0 rounded-full bg-orange-500 opacity-40 animate-ping pointer-events-none" 
+                style={{ animationDuration: '2.8s' }} 
+              />
             )}
-          </div>
-        </button>
-      </div>
+
+            <div className="relative flex items-center justify-center">
+              <ShoppingBag className="w-6 h-6 text-white drop-shadow-sm group-hover:scale-105 transition-transform" strokeWidth={2.3} />
+              
+              {/* Badge count */}
+              {totalItems > 0 && (
+                <span className="absolute -top-3 -right-3.5 bg-black text-white text-[11px] font-black font-montserrat min-w-[22px] h-[22px] px-1 rounded-full flex items-center justify-center border-2 border-white shadow-md animate-scale-in">
+                  {totalItems > 99 ? '99+' : totalItems}
+                </span>
+              )}
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* ============================================================== */}
       {/* 5. SIDE DRAWER MENU (Smooth Slide-In & Slide-Out Animation) */}
@@ -2987,18 +2976,8 @@ export default function CustomerMobileApp({
 
             {/* Modal Header */}
             <div className="text-center mb-4">
-              <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2.5 ${
-                  confirmType === 'whatsapp'
-                    ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-500'
-                    : 'bg-orange-500/15 border border-orange-500/30 text-orange-500'
-                }`}
-              >
-                {confirmType === 'whatsapp' ? (
-                  <WhatsAppIcon className="w-6 h-6 fill-emerald-500" />
-                ) : (
-                  <CheckCircle2 className="w-6 h-6" />
-                )}
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2.5 bg-orange-500/15 border border-orange-500/30 text-orange-500">
+                <CheckCircle2 className="w-6 h-6" />
               </div>
 
               <h3 className={`font-montserrat font-extrabold text-lg uppercase tracking-tight ${
@@ -3059,7 +3038,7 @@ export default function CustomerMobileApp({
               <div className="flex items-center justify-between text-[11px]">
                 <span className={isDark ? 'text-zinc-400' : 'text-zinc-500'}>Payment</span>
                 <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                  {confirmType === 'whatsapp' ? `${checkoutForm.paymentMethod} (WhatsApp)` : checkoutForm.paymentMethod}
+                  {checkoutForm.paymentMethod}
                 </span>
               </div>
 
@@ -3132,27 +3111,15 @@ export default function CustomerMobileApp({
 
             {/* Action Buttons */}
             <div className="space-y-2">
-              {confirmType === 'online' ? (
-                <button
-                  type="button"
-                  onClick={executeMobileOnlineOrder}
-                  disabled={checkoutSubmitting}
-                  className="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>{checkoutSubmitting ? 'Placing Order...' : 'Yes, Confirm & Place Order'}</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={executeMobileWhatsAppOrder}
-                  disabled={checkoutSubmitting}
-                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <WhatsAppIcon className="w-4 h-4 fill-white" />
-                  <span>Yes, Confirm & Send on WhatsApp</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={executeMobileOnlineOrder}
+                disabled={checkoutSubmitting}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                <Send className="w-4 h-4" />
+                <span>{checkoutSubmitting ? 'Placing Order...' : 'Yes, Confirm & Place Order'}</span>
+              </button>
 
               <button
                 type="button"
