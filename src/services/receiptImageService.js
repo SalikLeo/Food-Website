@@ -75,23 +75,28 @@ export function formatOrderReceiptDate(isoString) {
  * Generates an ultra-crisp, perfectly aligned PNG with zero font clipping, zero line collision,
  * and instant 0ms execution without CORS or iframe sandbox issues.
  */
-export function drawReceiptCanvas(order) {
+export function drawReceiptCanvas(order, scale = 2) {
   if (!order) return '';
-  const width = 760; // 2x high-resolution width (equivalent to 380px card)
+  const baseWidth = 760; // Base layout coordinates
+  const width = baseWidth;
   const padX = 48;
   let curY = 48;
 
   const items = order.items || [];
   const estimatedHeight = 720 + (items.length * 64) + (order.address ? 56 : 0) + (order.notes ? 44 : 0);
+  const baseHeight = Math.max(760, estimatedHeight);
 
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = Math.max(760, estimatedHeight);
+  canvas.width = Math.round(baseWidth * scale); // 1520px Ultra-HD resolution (4x mobile density)
+  canvas.height = Math.round(baseHeight * scale);
   const ctx = canvas.getContext('2d');
+
+  // Scale context so all text, borders, and dividers render at ultra-high DPI
+  ctx.scale(scale, scale);
 
   // Background - Pure Crisp White
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, width, canvas.height);
+  ctx.fillRect(0, 0, baseWidth, baseHeight);
 
   const fontSans = '"Plus Jakarta Sans", "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
@@ -373,10 +378,10 @@ export function drawReceiptCanvas(order) {
   ctx.fillText('✂ - - - - - - - - - - - - - - - - - - - - -', width / 2, curY);
   curY += 36;
 
-  // Crop canvas to exact required height
+  // Crop canvas to exact required height at the full scaled resolution
   const trimmed = document.createElement('canvas');
-  trimmed.width = width;
-  trimmed.height = curY;
+  trimmed.width = Math.round(baseWidth * scale);
+  trimmed.height = Math.round(curY * scale);
   const tCtx = trimmed.getContext('2d');
   tCtx.drawImage(canvas, 0, 0);
 
