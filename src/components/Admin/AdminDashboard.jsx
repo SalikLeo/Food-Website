@@ -925,9 +925,9 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
                 <div className="text-[11px] text-zinc-500 font-medium ml-auto">
                   {selectedDate === todayLocalStr ? (
-                    <span className="text-zinc-600 font-semibold">Today’s Orders & Stats</span>
+                    <span className="text-zinc-600 font-semibold">Today’s Stats</span>
                   ) : (
-                    <span>Orders for <strong className="text-zinc-800">{formatToDDMMYY(selectedDate)}</strong></span>
+                    <span>Stats for <strong className="text-zinc-800">{formatToDDMMYY(selectedDate)}</strong></span>
                   )}
                 </div>
               </div>
