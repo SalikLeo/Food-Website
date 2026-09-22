@@ -276,7 +276,7 @@ export default function MenuSection({ categories = [], products = [] }) {
                         </span>
                       ) : (
                         product.tag && (
-                          <span className="px-2.5 py-1 rounded-md bg-orange-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow">
+                          <span className="px-2.5 py-1 rounded-md bg-orange-600 text-white text-[10px] font-bold uppercase tracking-wider shadow">
                             {product.tag}
                           </span>
                         )

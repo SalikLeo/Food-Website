@@ -187,7 +187,7 @@ export default function BestSellersSection({ products = [], categories = [], set
                         Sold Out Today
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 rounded-md bg-orange-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow flex items-center gap-1">
+                      <span className="px-2.5 py-1 rounded-md bg-orange-600 text-white text-[10px] font-bold uppercase tracking-wider shadow flex items-center gap-1">
                         <Flame className="w-3 h-3 fill-white" />
                         #{index + 1} Best Seller
                       </span>
