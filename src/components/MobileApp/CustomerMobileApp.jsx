@@ -2653,17 +2653,17 @@ export default function CustomerMobileApp({
                     switchView('home');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'home'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <span className="text-base">🏠</span>
-                    <span>Home & Categories</span>
+                  <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
+                    <span className="text-base shrink-0">🏠</span>
+                    <span className="truncate">Home & Categories</span>
                   </span>
-                  <ChevronRight className="w-5 h-5 text-zinc-400" />
+                  <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 ml-1" />
                 </button>
 
                 <button
@@ -2671,7 +2671,7 @@ export default function CustomerMobileApp({
                     switchView('deals');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'deals'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -2679,11 +2679,11 @@ export default function CustomerMobileApp({
                         : 'bg-orange-50 text-orange-700 border-orange-200'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <Flame className="w-5 h-5 fill-orange-500 text-orange-500" />
-                    <span>Saver Deals</span>
+                  <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
+                    <Flame className="w-4.5 h-4.5 fill-orange-500 text-orange-500 shrink-0" />
+                    <span className="truncate">Saver Deals</span>
                   </span>
-                  <ChevronRight className="w-5 h-5 text-orange-500" />
+                  <ChevronRight className="w-4 h-4 text-orange-500 shrink-0 ml-1" />
                 </button>
 
                 <button
@@ -2691,26 +2691,26 @@ export default function CustomerMobileApp({
                     switchView('category', 'all');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'category'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <span className="text-base">🍽️</span>
-                    <span>Explore Menu</span>
+                  <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
+                    <span className="text-base shrink-0">🍽️</span>
+                    <span className="truncate">Explore Menu</span>
                   </span>
-                  <ChevronRight className="w-5 h-5 text-zinc-400" />
+                  <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 ml-1" />
                 </button>
 
-                {/* RECENT ORDERS (Added here replacing the old store details!) */}
+                {/* RECENT ORDERS */}
                 <button
                   onClick={() => {
                     switchView('orders');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'orders'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -2718,27 +2718,27 @@ export default function CustomerMobileApp({
                         : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <RotateCcw className="w-5 h-5 text-orange-500" />
-                    <span>Recent Orders</span>
+                  <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
+                    <RotateCcw className="w-4.5 h-4.5 text-orange-500 shrink-0" />
+                    <span className="truncate">Recent Orders</span>
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0 ml-1">
                     {recentOrders.length > 0 && (
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-600 text-white font-bold">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-orange-600 text-white font-bold">
                         {recentOrders.length}
                       </span>
                     )}
-                    <ChevronRight className="w-5 h-5 text-zinc-400" />
+                    <ChevronRight className="w-4 h-4 text-zinc-400" />
                   </div>
                 </button>
 
-                {/* ADD REVIEW (Placed directly under Recent Orders) */}
+                {/* ADD REVIEW */}
                 <button
                   onClick={() => {
                     switchView('add-review');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'add-review'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -2746,17 +2746,17 @@ export default function CustomerMobileApp({
                         : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                    <span>Add Review</span>
+                  <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
+                    <Star className="w-4.5 h-4.5 text-amber-400 fill-amber-400 shrink-0" />
+                    <span className="truncate">Add Review</span>
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0 ml-1">
                     {pendingReviewsCount > 0 && (
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-600 text-white font-bold">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-orange-600 text-white font-bold">
                         {pendingReviewsCount}
                       </span>
                     )}
-                    <ChevronRight className="w-5 h-5 text-zinc-400" />
+                    <ChevronRight className="w-4 h-4 text-zinc-400" />
                   </div>
                 </button>
               </nav>

@@ -174,11 +174,12 @@ export default function CustomerReceiptModal({ order, onClose }) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-center p-3 sm:p-4 overflow-y-auto animate-tab-fade"
+      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden animate-tab-fade"
+      style={{ top: 0, left: 0, right: 0, bottom: 0, minHeight: '100dvh' }}
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-[390px] bg-white text-black rounded-2xl shadow-2xl border border-zinc-300 font-sans text-xs leading-relaxed my-auto overflow-hidden flex flex-col"
+        className="relative w-full max-w-[390px] max-h-[92vh] max-h-[92dvh] bg-white text-black rounded-2xl shadow-2xl border border-zinc-300 font-sans text-xs leading-relaxed overflow-hidden flex flex-col animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -192,11 +193,11 @@ export default function CustomerReceiptModal({ order, onClose }) {
           <X className="w-4 h-4" />
         </button>
 
-        {/* Dedicated Receipt Card with Full Padding & Exact Styling */}
+        {/* Dedicated Scrollable Receipt Card with Full Padding & Exact Styling */}
         <div 
           ref={receiptCardRef} 
           id="salik-receipt-card"
-          className="bg-white text-black p-5 sm:p-6 font-sans text-xs leading-relaxed w-full"
+          className="flex-1 overflow-y-auto overscroll-contain bg-white text-black p-5 sm:p-6 font-sans text-xs leading-relaxed w-full"
           style={{ fontFamily: "'Plus Jakarta Sans', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif" }}
         >
           {/* Store Header */}
@@ -311,7 +312,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
         </div>
 
         {/* Action Buttons: Download Image, WhatsApp Share Image */}
-        <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-3 border-t border-dashed border-zinc-300 bg-zinc-50/70 flex items-center justify-between gap-2">
+        <div className="flex-shrink-0 px-4 py-3 sm:px-5 sm:py-3.5 border-t border-dashed border-zinc-300 bg-zinc-50 flex items-center justify-between gap-2 z-10">
           <button
             type="button"
             onClick={handleDownload}
