@@ -74,7 +74,7 @@
       "tag": "Family Bundle",
       "number": "01",
       "dealType": "family",
-      "featured": true
+      "featured": false
     },
     {
       "name": "Deal 12",

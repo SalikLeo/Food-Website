@@ -318,7 +318,7 @@ export const db = {
   getDeals() {
     const data = readDb();
     let deals = data.deals || [];
-    if (data.familyDeal && !deals.some(d => d.id === data.familyDeal.id || d.id === 'family-deal')) {
+    if (data.familyDeal && !deals.some(d => String(d.id) === String(data.familyDeal.id) || String(d.id) === 'family-deal')) {
       const migrated = {
         ...data.familyDeal,
         id: data.familyDeal.id || 'family-deal',
@@ -332,15 +332,8 @@ export const db = {
       data.familyDeal = null;
       writeDb(data);
     }
-    // Ensure at most one deal has featured: true
-    const featuredDealItem = deals.find(d => d.featured === true || d.featured === 'true');
-    const featuredId = featuredDealItem ? featuredDealItem.id : null;
-    deals = deals.map(d => ({
-      ...d,
-      featured: featuredId ? d.id === featuredId : false
-    }));
 
-    const primaryFamilyDeal = deals.find(d => d.dealType === 'family' || d.id === 'family-deal') || data.familyDeal || null;
+    const primaryFamilyDeal = deals.find(d => d.dealType === 'family' || String(d.id) === 'family-deal') || data.familyDeal || null;
     return {
       deals,
       familyDeal: primaryFamilyDeal
@@ -368,31 +361,28 @@ export const db = {
 
   updateDeal(id, updates) {
     const data = readDb();
-    if (updates.featured === true) {
+    const strId = String(id);
+    if (updates.featured !== undefined) {
+      const isFeat = !!updates.featured;
       data.deals = (data.deals || []).map(d => ({
         ...d,
-        featured: d.id === id
+        featured: isFeat ? String(d.id) === strId : (String(d.id) === strId ? false : !!d.featured)
       }));
       if (data.familyDeal) {
-        data.familyDeal.featured = data.familyDeal.id === id || id === 'family-deal';
-      }
-    } else if (updates.featured === false) {
-      data.deals = (data.deals || []).map(d => (d.id === id ? { ...d, featured: false } : d));
-      if (data.familyDeal && (data.familyDeal.id === id || id === 'family-deal')) {
-        data.familyDeal.featured = false;
+        data.familyDeal.featured = isFeat ? (String(data.familyDeal.id) === strId || strId === 'family-deal') : (String(data.familyDeal.id) === strId || strId === 'family-deal' ? false : !!data.familyDeal.featured);
       }
     }
 
-    if (data.familyDeal && (id === 'family-deal' || id === data.familyDeal.id)) {
+    if (data.familyDeal && (strId === 'family-deal' || strId === String(data.familyDeal.id))) {
       data.familyDeal = { ...data.familyDeal, ...updates };
     }
-    const idx = (data.deals || []).findIndex(d => d.id === id);
+    const idx = (data.deals || []).findIndex(d => String(d.id) === strId);
     if (idx !== -1) {
       data.deals[idx] = { ...data.deals[idx], ...updates };
       writeDb(data);
       return data.deals[idx];
     }
-    if (id === 'family-deal' && data.familyDeal) {
+    if ((strId === 'family-deal' || (data.familyDeal && String(data.familyDeal.id) === strId)) && data.familyDeal) {
       writeDb(data);
       return data.familyDeal;
     }

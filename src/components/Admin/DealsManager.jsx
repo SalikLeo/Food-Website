@@ -306,18 +306,36 @@ export default function DealsManager({
   categories = [],
   onRefresh
 }) {
+  // Local state for immediate optimistic star updates
+  const [localFeaturedId, setLocalFeaturedId] = useState(() => {
+    const list = [...deals];
+    if (familyDeal && !list.some((d) => String(d.id) === String(familyDeal.id))) {
+      list.unshift(familyDeal);
+    }
+    const feat = list.find((d) => d.featured === true || d.featured === 'true');
+    return feat ? String(feat.id) : null;
+  });
+
+  useEffect(() => {
+    const list = [...deals];
+    if (familyDeal && !list.some((d) => String(d.id) === String(familyDeal.id))) {
+      list.unshift(familyDeal);
+    }
+    const feat = list.find((d) => d.featured === true || d.featured === 'true');
+    setLocalFeaturedId(feat ? String(feat.id) : null);
+  }, [deals, familyDeal]);
+
   // Combine all deals and enforce single featured deal exclusivity
   const allDeals = useMemo(() => {
     const list = [...deals];
-    if (familyDeal && !list.some((d) => d.id === familyDeal.id)) {
+    if (familyDeal && !list.some((d) => String(d.id) === String(familyDeal.id))) {
       list.unshift({ ...familyDeal, dealType: 'family' });
     }
-    const featuredId = list.find((d) => d.featured === true || d.featured === 'true')?.id;
     return list.map((d) => ({
       ...d,
-      featured: featuredId ? d.id === featuredId : false
+      featured: localFeaturedId ? String(d.id) === String(localFeaturedId) : false
     }));
-  }, [deals, familyDeal]);
+  }, [deals, familyDeal, localFeaturedId]);
 
   const normalDeals = useMemo(() => allDeals.filter((d) => !isFamilyDeal(d)), [allDeals]);
   const familyDeals = useMemo(() => allDeals.filter((d) => isFamilyDeal(d)), [allDeals]);
@@ -709,6 +727,12 @@ export default function DealsManager({
     if (!featureConfirmDeal || isTogglingFeature) return;
     const { deal, willBeFeatured } = featureConfirmDeal;
     setIsTogglingFeature(true);
+    const targetId = String(deal.id);
+
+    // Immediate optimistic update
+    setLocalFeaturedId(willBeFeatured ? targetId : null);
+    setFeatureConfirmDeal(null);
+
     try {
       const res = await fetch(apiUrl(`/api/deals/${deal.id}`), {
         method: 'PUT',
@@ -716,14 +740,16 @@ export default function DealsManager({
         body: JSON.stringify({ featured: willBeFeatured })
       });
       if (res.ok) {
-        setFeatureConfirmDeal(null);
         if (onRefresh) await onRefresh();
       } else {
         const data = await res.json().catch(() => ({}));
         alert(data.error || 'Failed to update featured deal');
+        if (onRefresh) await onRefresh();
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert('Error updating featured deal');
+      if (onRefresh) await onRefresh();
     } finally {
       setIsTogglingFeature(false);
     }
