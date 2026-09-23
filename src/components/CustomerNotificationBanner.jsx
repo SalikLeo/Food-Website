@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { X, ArrowRight } from 'lucide-react';
+import { X, ArrowRight, Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
-export default function CustomerNotificationBanner({ onTrackOrder }) {
+export default function CustomerNotificationBanner({ onTrackOrder, onAddReview }) {
   const { activeOrderNotification, dismissOrderNotification } = useCart();
 
   useEffect(() => {
@@ -18,6 +18,7 @@ export default function CustomerNotificationBanner({ onTrackOrder }) {
 
   const { order, newStatus, details } = activeOrderNotification;
   const cleanId = String(order?.id || '').replace(/^#/, '');
+  const isDelivered = String(newStatus || order?.status || '').toLowerCase() === 'delivered';
 
   return (
     <div className="fixed top-3 inset-x-0 mx-auto z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
@@ -52,23 +53,44 @@ export default function CustomerNotificationBanner({ onTrackOrder }) {
         </p>
 
         <div className="mt-2.5 flex items-center gap-2">
-          {onTrackOrder && (
+          {isDelivered ? (
             <button
               type="button"
               onClick={() => {
                 dismissOrderNotification();
-                onTrackOrder(order);
+                if (onAddReview) {
+                  onAddReview(order);
+                } else if (onTrackOrder) {
+                  onTrackOrder(order);
+                } else {
+                  const el = document.getElementById('reviews');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }
               }}
               className="flex-1 py-1.5 px-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
             >
-              <span>Track Order</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+              <span>Add Review</span>
             </button>
+          ) : (
+            onTrackOrder && (
+              <button
+                type="button"
+                onClick={() => {
+                  dismissOrderNotification();
+                  onTrackOrder(order);
+                }}
+                className="flex-1 py-1.5 px-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+              >
+                <span>Track Order</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )
           )}
           <button
             type="button"
             onClick={dismissOrderNotification}
-            className={`${onTrackOrder ? '' : 'flex-1'} py-1.5 px-3 rounded-lg bg-zinc-100 dark:bg-white/10 hover:bg-zinc-200 dark:hover:bg-white/15 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition-all cursor-pointer`}
+            className={`${(isDelivered || onTrackOrder) ? '' : 'flex-1'} py-1.5 px-3 rounded-lg bg-zinc-100 dark:bg-white/10 hover:bg-zinc-200 dark:hover:bg-white/15 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition-all cursor-pointer`}
           >
             Dismiss
           </button>

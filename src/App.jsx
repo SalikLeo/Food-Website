@@ -134,7 +134,12 @@ export default function App() {
           <Footer categories={categories} settings={settings} />
           <CartDrawer />
           <OrderSuccessModal />
-          <CustomerNotificationBanner />
+          <CustomerNotificationBanner
+            onAddReview={() => {
+              const el = document.getElementById('reviews');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
         </div>
       )}
     </CartProvider>

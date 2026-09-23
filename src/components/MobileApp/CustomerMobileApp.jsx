@@ -3407,7 +3407,10 @@ export default function CustomerMobileApp({
       )}
 
       {/* Real-time Order Status Notification Banner */}
-      <CustomerNotificationBanner onTrackOrder={() => switchView('orders')} />
+      <CustomerNotificationBanner
+        onTrackOrder={() => switchView('orders')}
+        onAddReview={() => switchView('add-review')}
+      />
 
     </div>
   );

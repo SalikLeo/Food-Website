@@ -976,6 +976,57 @@
   },
   "orders": [
     {
+      "id": "ORD-325989-61",
+      "customerName": "s",
+      "phone": "23523523523",
+      "address": "a",
+      "notes": "",
+      "paymentMethod": "Cash on Delivery",
+      "items": [
+        {
+          "cartKey": "pizza-extra-topping-Medium",
+          "id": "pizza-extra-topping",
+          "name": "Extra Topping",
+          "category": "pizza",
+          "size": "Medium",
+          "price": 150,
+          "image": "/assets/images/p-topping-HYD2Vs_a.jpg",
+          "quantity": 2,
+          "description": "Add extra cheese or chicken topping to any pizza",
+          "includes": null
+        },
+        {
+          "cartKey": "pizza-special-10-Medium",
+          "id": "pizza-special-10",
+          "name": "Pepperoni Pizza",
+          "category": "pizza",
+          "size": "Medium",
+          "price": 950,
+          "image": "/assets/images/p-pizza-pepperoni-WXsyNc0i.jpg",
+          "quantity": 1,
+          "description": "Chicken pepperoni with double cheese",
+          "includes": null
+        },
+        {
+          "cartKey": "pizza-special-9-Medium",
+          "id": "pizza-special-9",
+          "name": "Crown Crust",
+          "category": "pizza",
+          "size": "Medium",
+          "price": 950,
+          "image": "/assets/images/p-pizza-crown-CDB3WuBF.jpg",
+          "quantity": 1,
+          "description": "Crown of cheese bites around the crust",
+          "includes": null
+        }
+      ],
+      "subtotal": 2200,
+      "deliveryFee": 200,
+      "total": 2400,
+      "status": "Pending",
+      "createdAt": "2026-09-23T10:28:45.989Z"
+    },
+    {
       "id": "ORD-239624-35",
       "customerName": "d",
       "phone": "34634745734",
@@ -1397,8 +1448,9 @@
       "subtotal": 16080,
       "deliveryFee": 200,
       "total": 16280,
-      "status": "Pending",
-      "createdAt": "2026-09-23T09:26:45.165Z"
+      "status": "Delivered",
+      "createdAt": "2026-09-23T09:26:45.165Z",
+      "updatedAt": "2026-09-23T10:22:17.707Z"
     },
     {
       "id": "ORD-267990-85",
