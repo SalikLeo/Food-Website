@@ -120,7 +120,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
     <tbody>
       ${itemsList.map((it, idx) => `
         <tr>
-          <td class="text-center">${idx + 1}</td>
+          <td class="text-center" style="font-weight: 600; color: #000;">${idx + 1}</td>
           <td><strong>${it.name}</strong>${it.size ? `<br><span style="font-size: 8.5px; color: #000; font-weight: 600;">Size: ${typeof it.size === 'string' ? it.size : it.size?.label}</span>` : ''}</td>
           <td class="text-center bold">${it.quantity}</td>
           <td class="text-right" style="font-weight: 600; color: #000;">${formatPrice(it.price)}</td>
@@ -259,7 +259,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
               <tbody>
                 {itemsList.map((it, idx) => (
                   <tr key={idx} className="align-top border-b border-black">
-                    <td className="py-1 px-1.5 border-r border-black text-center text-[11px] text-zinc-600">
+                    <td className="py-1 px-1.5 border-r border-black text-center text-xs font-semibold text-black">
                       {idx + 1}
                     </td>
                     <td className="py-1 px-2 border-r border-black font-medium text-xs text-black">

@@ -278,8 +278,8 @@ export function drawReceiptCanvas(order, scale = 2) {
 
     // Row text
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#52525b';
-    ctx.font = `600 18px ${fontSans}`;
+    ctx.fillStyle = '#000000';
+    ctx.font = `700 19px ${fontSans}`;
     ctx.textAlign = 'center';
     ctx.fillText(String(i + 1), colLeft.idx + (colW.idx / 2), midY);
 

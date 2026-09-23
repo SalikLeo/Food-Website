@@ -639,7 +639,7 @@ export default function OrdersManager({
     .items-table td:last-child {
       border-right: none;
     }
-    .items-table .col-num { width: 16px; text-align: center; }
+    .items-table .col-num { width: 16px; text-align: center; font-weight: 600; color: #000; }
     .items-table .col-qty { width: 22px; text-align: center; font-weight: 700; }
     .items-table .col-price { width: 38px; text-align: right; font-weight: 600; color: #000; }
     .items-table .col-total { width: 44px; text-align: right; font-weight: 700; }
@@ -1716,7 +1716,7 @@ export default function OrdersManager({
                   <tbody>
                     {(viewingReceiptOrder.items || []).map((it, idx) => (
                       <tr key={idx} className="align-top border-b border-black">
-                        <td className="py-1 px-1.5 border-r border-black text-center text-[11px] text-zinc-600">
+                        <td className="py-1 px-1.5 border-r border-black text-center text-xs font-semibold text-black">
                           {idx + 1}
                         </td>
                         <td className="py-1 px-2 border-r border-black font-medium text-xs text-black">
