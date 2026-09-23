@@ -1313,26 +1313,27 @@ export default function CustomerMobileApp({
           <div className="space-y-4 animate-tab-fade">
             
             {/* Dedicated Back to Main Page Header Card */}
-            <div 
-              role="button"
-              tabIndex={0}
-              onClick={() => switchView('home')}
-              className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
-                isDark ? 'bg-[#141418]  border-white/10' : 'bg-white  border-zinc-200 shadow-2xs'
-              }`}
-            >
-              <div
-                className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
-                  isDark ? 'text-zinc-300' : 'text-zinc-600'
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => switchView('home')}
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-[0.98] transition-all ${
+                  isDark ? 'bg-[#141418] border-white/10 text-zinc-300' : 'bg-white border-zinc-200 text-zinc-700 shadow-2xs'
                 }`}
               >
                 <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                <span>Back to Main Page</span>
-              </div>
+                <span className="text-xs font-bold uppercase tracking-wider truncate">Back to Menu</span>
+              </button>
 
-              <span className="text-xs font-semibold text-orange-500">
-                {searchQuery.trim() ? `${categoryProducts.length} Items Found` : `${categoryProducts.length} Items Available`}
-              </span>
+              <div
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center select-none ${
+                  isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
+                }`}
+              >
+                <span className="text-xs font-semibold text-orange-500 truncate">
+                  {searchQuery.trim() ? `${categoryProducts.length} Items Found` : `${categoryProducts.length} Items Available`}
+                </span>
+              </div>
             </div>
 
             {/* Category Search Header Card */}
@@ -1625,26 +1626,28 @@ export default function CustomerMobileApp({
         {currentView === 'deals' && (
           <div className="space-y-4 animate-tab-fade">
             
-            <div 
-              role="button"
-              tabIndex={0}
-              onClick={() => switchView('home')}
-              className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
-                isDark ? 'bg-[#141418]  border-white/10' : 'bg-white  border-zinc-200 shadow-2xs'
-              }`}
-            >
-              <div
-                className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
-                  isDark ? 'text-zinc-300' : 'text-zinc-600'
+            {/* Top Navigation Row: Back to Menu & Deals Count */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => switchView('home')}
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-[0.98] transition-all ${
+                  isDark ? 'bg-[#141418] border-white/10 text-zinc-300' : 'bg-white border-zinc-200 text-zinc-700 shadow-2xs'
                 }`}
               >
                 <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                <span>Back to Menu</span>
-              </div>
+                <span className="text-xs font-bold uppercase tracking-wider truncate">Back to Menu</span>
+              </button>
 
-              <span className="text-xs font-semibold text-orange-500">
-                {allDealsList.length} Combo Deals
-              </span>
+              <div
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center select-none ${
+                  isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
+                }`}
+              >
+                <span className="text-xs font-semibold text-orange-500 truncate">
+                  {allDealsList.length} Combo Deals
+                </span>
+              </div>
             </div>
 
             {/* Top Featured Deal Highlight Card */}
@@ -1780,27 +1783,28 @@ export default function CustomerMobileApp({
         {currentView === 'orders' && (
           <div className="space-y-4 animate-tab-fade">
             
-            {/* Header */}
-            <div 
-              role="button"
-              tabIndex={0}
-              onClick={() => switchView('home')}
-              className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
-                isDark ? 'bg-[#141418]  border-white/10' : 'bg-white  border-zinc-200 shadow-2xs'
-              }`}
-            >
-              <div
-                className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
-                  isDark ? 'text-zinc-300' : 'text-zinc-600'
+            {/* Top Navigation Row: Back to Menu & Total Orders Count */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => switchView('home')}
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-[0.98] transition-all ${
+                  isDark ? 'bg-[#141418] border-white/10 text-zinc-300' : 'bg-white border-zinc-200 text-zinc-700 shadow-2xs'
                 }`}
               >
                 <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                <span>Back to Menu</span>
-              </div>
+                <span className="text-xs font-bold uppercase tracking-wider truncate">Back to Menu</span>
+              </button>
 
-              <span className="text-xs font-semibold text-orange-500">
-                {recentOrders.length} {recentOrders.length === 1 ? 'Order' : 'Orders'}
-              </span>
+              <div
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center select-none ${
+                  isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
+                }`}
+              >
+                <span className="text-xs font-semibold text-orange-500 truncate">
+                  {recentOrders.length} {recentOrders.length === 1 ? 'Order' : 'Orders'}
+                </span>
+              </div>
             </div>
 
             {/* Empty State */}
@@ -2071,26 +2075,29 @@ export default function CustomerMobileApp({
           <div className="space-y-4 animate-tab-fade">
             
             {/* Header: Back to Previous View & Pending Count */}
-            <div 
-              role="button"
-              tabIndex={0}
-              onClick={() => switchView(previousView && previousView !== 'add-review' ? previousView : 'orders')}
-              className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
-                isDark ? 'bg-[#141418]  border-white/10' : 'bg-white  border-zinc-200 shadow-2xs'
-              }`}
-            >
-              <div
-                className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
-                  isDark ? 'text-zinc-300' : 'text-zinc-600'
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => switchView(previousView && previousView !== 'add-review' ? previousView : 'orders')}
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-[0.98] transition-all ${
+                  isDark ? 'bg-[#141418] border-white/10 text-zinc-300' : 'bg-white border-zinc-200 text-zinc-700 shadow-2xs'
                 }`}
               >
                 <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                <span>{previousView === 'home' ? 'Back to Menu' : previousView === 'orders' ? 'Back to Recent Orders' : 'Back to Orders'}</span>
-              </div>
+                <span className="text-xs font-bold uppercase tracking-wider truncate">
+                  {previousView === 'home' ? 'Back to Menu' : previousView === 'orders' ? 'Back to Orders' : 'Back'}
+                </span>
+              </button>
 
-              <span className="text-xs font-semibold text-orange-500">
-                {pendingReviewsCount} {pendingReviewsCount === 1 ? 'Pending Review' : 'Pending Reviews'}
-              </span>
+              <div
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center select-none ${
+                  isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
+                }`}
+              >
+                <span className="text-xs font-semibold text-orange-500 truncate">
+                  {pendingReviewsCount} {pendingReviewsCount === 1 ? 'Pending Review' : 'Pending Reviews'}
+                </span>
+              </div>
             </div>
 
             {/* Intro Hero Banner */}
