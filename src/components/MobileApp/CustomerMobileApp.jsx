@@ -13,7 +13,7 @@ import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
 import CustomerReceiptModal from '../CustomerReceiptModal';
 import CustomerNotificationBanner from '../CustomerNotificationBanner';
-import { formatPrice } from '../../utils/formatters';
+import { formatPrice, cleanDealInclusions } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
 import { notifyCustomerReviewSubmitted } from '../../services/notificationService';
 import { 
@@ -602,14 +602,16 @@ export default function CustomerMobileApp({
   };
 
   const handleAddDeal = (deal, e = null) => {
+    const cleanedIncludes = cleanDealInclusions(deal.includes || []);
+    const cleanDesc = cleanDealInclusions(deal.description || (Array.isArray(cleanedIncludes) ? cleanedIncludes.join(' + ') : cleanedIncludes) || '');
     addToCart({
       id: deal.id,
       name: deal.name,
       price: deal.price,
       image: deal.image || '/assets/images/deal-1.png',
       category: 'deals',
-      description: deal.description || (Array.isArray(deal.includes) ? deal.includes.join(' + ') : deal.includes) || '',
-      includes: deal.includes || null
+      description: cleanDesc,
+      includes: cleanedIncludes
     }, null, 1, e?.currentTarget);
   };
 
@@ -1290,7 +1292,7 @@ export default function CustomerMobileApp({
                       <p className={`text-[11px] line-clamp-2 my-2 min-h-[32px] ${
                         isDark ? 'text-zinc-300' : 'text-zinc-600'
                       }`}>
-                        {(deal.includes || []).join(' + ')}
+                        {cleanDealInclusions((deal.includes || []).join(' + '))}
                       </p>
 
                       <button
@@ -1681,7 +1683,7 @@ export default function CustomerMobileApp({
                       {(featuredDeal.includes || []).map((itemStr, idx) => (
                         <li key={idx} className="flex items-start gap-1.5 leading-snug">
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${isDark ? 'bg-amber-400' : 'bg-white'}`} />
-                          <span className="font-medium">{itemStr}</span>
+                          <span className="font-medium">{cleanDealInclusions(itemStr)}</span>
                         </li>
                       ))}
                     </ul>
@@ -1743,7 +1745,7 @@ export default function CustomerMobileApp({
                       {(deal.includes || []).map((itemStr, idx) => (
                         <li key={idx} className="flex items-start gap-1.5 leading-snug">
                           <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 mt-1.5" />
-                          <span className="font-medium">{itemStr}</span>
+                          <span className="font-medium">{cleanDealInclusions(itemStr)}</span>
                         </li>
                       ))}
                     </ul>
@@ -3156,7 +3158,7 @@ export default function CustomerMobileApp({
                       </div>
                       {Boolean(item.description || item.includes) && (
                         <div className={`text-[9.5px] line-clamp-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                          {item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes)}
+                          {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
                         </div>
                       )}
                     </div>

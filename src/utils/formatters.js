@@ -67,5 +67,22 @@ export function formatToDDMMYY(d) {
   return `${day}/${month}/${year}`;
 }
 
+/**
+ * Clean deal inclusions/description by removing category annotations in brackets like (Burgers), (Beverages), (Pizza), etc.
+ */
+export function cleanDealInclusions(val) {
+  if (!val) return '';
+  if (Array.isArray(val)) {
+    return val.map(item => cleanDealInclusions(item)).filter(Boolean);
+  }
+  if (typeof val !== 'string') return String(val);
+  
+  return val
+    .replace(/\s*\((Burgers|Beverages|Shawarma|Chicken Nuggets|Nuggets|Pizza|Fries|Hot Wings|Wings|Special|Sandwiches|Drinks|General|Sauces|Platter|Deals|Deal)\)/gi, '')
+    .replace(/\s*\((Pizza & Burgers|Fast Food|Sides|Combo|Meals)\)/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export default formatPrice;
 

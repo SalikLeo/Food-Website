@@ -16,7 +16,7 @@ import {
   Search
 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
-import { formatPrice } from '../../utils/formatters';
+import { formatPrice, cleanDealInclusions } from '../../utils/formatters';
 
 const PRESET_DEAL_IMAGES = [
   { label: 'Family Deal Bundle', src: '/assets/deal-family.png' },
@@ -47,22 +47,21 @@ function extractBaseName(str = '') {
   return str.replace(/\s*\([^)]*\)\s*$/, '').trim().toLowerCase();
 }
 
-function parseItemString(str, index, enrichFn) {
+function parseItemString(str, index) {
   const match = str.match(/^(\d+)\s*[xX]?\s*(.+)$/);
   if (match) {
-    const rawName = match[2].trim();
-    const enriched = enrichFn ? enrichFn(rawName) : rawName;
+    const rawName = cleanDealInclusions(match[2].trim());
     return {
       id: `item-${index}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       qty: parseInt(match[1], 10) || 1,
-      name: enriched
+      name: rawName
     };
   }
-  const enriched = enrichFn ? enrichFn(str.trim()) : str.trim();
+  const rawName = cleanDealInclusions(str.trim());
   return {
     id: `item-${index}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     qty: 1,
-    name: enriched
+    name: rawName
   };
 }
 
@@ -212,8 +211,8 @@ function ItemCombobox({
   }, [allCatalogItems, query]);
 
   const handleSelect = (item) => {
-    onChange(item.displayName);
-    setQuery(item.displayName);
+    onChange(item.name);
+    setQuery(item.name);
     setIsOpen(false);
   };
 
@@ -492,7 +491,7 @@ export default function DealsManager({
     setSelectedImage(deal.image || (isFam ? '/assets/deal-family.png' : '/assets/deal-1.png'));
 
     const parsed = (deal.includes || []).map((str, idx) =>
-      parseItemString(str, idx, enrichItemNameWithCategory)
+      parseItemString(str, idx)
     );
 
     setItemRows(
@@ -641,12 +640,12 @@ export default function DealsManager({
       return;
     }
 
-    // Filter valid non-empty items and enrich with category if missing
+    // Filter valid non-empty items and clean category brackets
     const validItems = itemRows
       .filter((it) => it.name && it.name.trim().length > 0)
       .map((it) => ({
         ...it,
-        name: enrichItemNameWithCategory(it.name.trim())
+        name: cleanDealInclusions(it.name.trim())
       }));
 
     if (validItems.length === 0) {
@@ -953,7 +952,7 @@ export default function DealsManager({
                               isFam ? 'text-amber-600' : 'text-orange-600'
                             }`}
                           />
-                          <span className="truncate">{it}</span>
+                          <span className="truncate">{cleanDealInclusions(it)}</span>
                         </li>
                       ))}
                     </ul>

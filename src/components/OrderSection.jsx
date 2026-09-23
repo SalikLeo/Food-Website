@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/formatters';
+import { formatPrice, cleanDealInclusions } from '../utils/formatters';
 import { apiUrl } from '../config/api';
 
 export default function OrderSection() {
@@ -372,7 +372,7 @@ export default function OrderSection() {
                         )}
                         {Boolean(item.description || item.includes) && (
                           <p className="text-[10px] text-zinc-500 line-clamp-1 mt-0.5">
-                            {item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes)}
+                            {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
                           </p>
                         )}
                       </div>
@@ -506,7 +506,7 @@ export default function OrderSection() {
                         </div>
                         {Boolean(item.description || item.includes) && (
                           <div className="text-[10px] text-zinc-400 line-clamp-1">
-                            {item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes)}
+                            {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
                           </div>
                         )}
                       </div>

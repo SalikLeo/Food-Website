@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Minus, Trash2, Truck, AlertTriangle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/formatters';
+import { formatPrice, cleanDealInclusions } from '../utils/formatters';
 
 export default function CartDrawer({ isDark: isDarkProp }) {
   const {
@@ -204,7 +204,7 @@ export default function CartDrawer({ isDark: isDarkProp }) {
                         <p className={`text-[10px] sm:text-[11px] line-clamp-2 mt-0.5 leading-tight ${
                           isDark ? 'text-zinc-400' : 'text-zinc-500'
                         }`}>
-                          {item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes)}
+                          {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
                         </p>
                       )}
                       <div className="flex items-center gap-1.5 flex-wrap mt-0.5">

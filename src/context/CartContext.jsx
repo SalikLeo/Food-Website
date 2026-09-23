@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { apiUrl } from '../config/api';
 import { flyItemToCart } from '../utils/flyToCart';
-import { formatPrice } from '../utils/formatters';
+import { formatPrice, cleanDealInclusions } from '../utils/formatters';
 import { 
   requestNotificationPermission, 
   notifyCustomerOrderStatus, 
@@ -209,6 +209,10 @@ export const CartProvider = ({ children }) => {
             : item
         );
       }
+      const cleanedIncludes = product.includes ? cleanDealInclusions(product.includes) : null;
+      const rawDesc = product.description || (Array.isArray(product.includes) ? product.includes.join(' + ') : product.includes) || null;
+      const cleanDesc = rawDesc ? cleanDealInclusions(rawDesc) : null;
+
       return [
         ...prev,
         {
@@ -220,8 +224,8 @@ export const CartProvider = ({ children }) => {
           price: unitPrice,
           image: product.image,
           quantity: quantity,
-          description: product.description || (Array.isArray(product.includes) ? product.includes.join(' + ') : product.includes) || null,
-          includes: product.includes || null
+          description: cleanDesc,
+          includes: cleanedIncludes
         }
       ];
     });

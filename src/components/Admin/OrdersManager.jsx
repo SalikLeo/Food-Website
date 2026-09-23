@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle, Loader2 } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
-import { formatPrice, formatPaymentMethod, formatReceiptPaymentBadge } from '../../utils/formatters';
+import { formatPrice, formatPaymentMethod, formatReceiptPaymentBadge, cleanDealInclusions } from '../../utils/formatters';
 import { downloadReceiptImage, shareReceiptImageWhatsApp, printReceiptDocument } from '../../services/receiptImageService';
 
 // Format order date & time: DD/MM/YY, hh:mm am/pm
@@ -283,7 +283,7 @@ export default function OrdersManager({
       list.push({
         key: `deal-${d.id}`,
         id: d.id,
-        name: d.name + (d.description ? ` (${d.description})` : ''),
+        name: d.name + (d.description ? ` (${cleanDealInclusions(d.description)})` : ''),
         category: 'deals',
         price: Number(d.price) || 0,
         sizes: [],

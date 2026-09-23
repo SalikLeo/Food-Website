@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Flame, Check, Plus, Minus, ShoppingBag, Users, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/formatters';
+import { formatPrice, cleanDealInclusions } from '../utils/formatters';
 
 function isFamilyDeal(deal) {
   if (!deal) return false;
@@ -26,10 +26,13 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
 
   const handleAddToCart = (deal, e = null) => {
     const qty = getQty(deal.id);
+    const cleanedIncludes = cleanDealInclusions(deal.includes || []);
+    const cleanDesc = cleanDealInclusions(deal.description || (Array.isArray(cleanedIncludes) ? cleanedIncludes.join(' + ') : cleanedIncludes) || '');
     addToCart({
       ...deal,
       category: 'deals',
-      description: deal.description || (Array.isArray(deal.includes) ? deal.includes.join(' + ') : deal.includes) || ''
+      includes: cleanedIncludes,
+      description: cleanDesc
     }, null, qty, e?.currentTarget);
   };
 
@@ -158,7 +161,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                                   isSpaciousCards ? 'w-4 h-4' : 'w-3.5 h-3.5'
                                 }`}
                               />
-                              <span>{item}</span>
+                              <span>{cleanDealInclusions(item)}</span>
                             </li>
                           ))}
                         </ul>
@@ -287,7 +290,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             {(deal.includes || []).map((item, idx) => (
                               <div key={idx} className="flex items-center gap-2 text-xs font-bold text-zinc-800">
                                 <Check className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                                <span>{item}</span>
+                                <span>{cleanDealInclusions(item)}</span>
                               </div>
                             ))}
                           </div>
@@ -361,7 +364,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             {(deal.includes || []).map((item, idx) => (
                               <div key={idx} className="flex items-center gap-2 text-xs font-bold text-zinc-800">
                                 <Check className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                                <span className="truncate">{item}</span>
+                                <span className="truncate">{cleanDealInclusions(item)}</span>
                               </div>
                             ))}
                           </div>
