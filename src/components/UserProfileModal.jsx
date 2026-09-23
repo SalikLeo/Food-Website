@@ -664,7 +664,7 @@ export default function UserProfileModal() {
                       >
                         <div className={`flex items-start justify-between gap-2 border-b ${isDark ? 'border-white/5' : 'border-zinc-100'} pb-2.5`}>
                           <div>
-                            <span className="text-xs font-mono font-bold text-orange-400">
+                            <span className="text-xs font-sans font-bold text-orange-400">
                               #{cleanId}
                             </span>
                             <div className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mt-0.5`}>
@@ -698,19 +698,35 @@ export default function UserProfileModal() {
                               <span>Receipt</span>
                             </button>
 
-                            <button
-                              type="button"
-                              onClick={() => {
-                                reorder(order);
-                                closeProfileModal();
-                                setIsCartOpen(true);
-                              }}
-                              className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                              title="Add items back to cart"
-                            >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Reorder</span>
-                            </button>
+                            {String(order.status || '').toLowerCase() === 'delivered' && (
+                              <>
+                                {!reviewedOrderIds.includes(String(order.id)) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setProfileTab('reviews')}
+                                    className="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    title="Rate and review this delivered order"
+                                  >
+                                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                    <span>Review</span>
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    reorder(order);
+                                    closeProfileModal();
+                                    setIsCartOpen(true);
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                  title="Add items back to cart"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5" />
+                                  <span>Reorder</span>
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -757,20 +773,35 @@ export default function UserProfileModal() {
                       const rating = reviewRatings[order.id] !== undefined ? reviewRatings[order.id] : 5;
                       const comment = reviewComments[order.id] || '';
                       const isSubmitting = submittingReviewId === order.id;
+                      const formattedDate = order.createdAt
+                        ? new Date(order.createdAt).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                          })
+                        : 'Recent';
 
                       return (
                         <div
                           key={order.id}
                           className={`p-4 sm:p-5 rounded-2xl ${isDark ? 'bg-zinc-900/90 border-amber-500/25' : 'bg-white border-amber-500/30 shadow-2xs'} border space-y-3.5`}
                         >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-mono font-bold text-orange-400">
-                                #{cleanId}
-                              </span>
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                Delivered
-                              </span>
+                          <div className={`flex items-start justify-between gap-2 border-b ${isDark ? 'border-white/5' : 'border-zinc-100'} pb-2.5`}>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-sans font-bold text-orange-400">
+                                  #{cleanId}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                  Delivered
+                                </span>
+                              </div>
+                              <div className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mt-0.5`}>
+                                {formattedDate}
+                              </div>
                             </div>
                             <div className="text-xs font-bold">
                               <span className={`${isDark ? 'text-zinc-400' : 'text-zinc-500'} mr-1`}>Total:</span>
