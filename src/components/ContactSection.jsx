@@ -86,7 +86,6 @@ export default function ContactSection() {
                 Home Delivery
               </h3>
               <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-xs leading-relaxed`}>
-                Delivery available in nearby areas <br />
                 <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>Delivery fee {fee === 0 ? 'Free' : `Rs. ${fee}`}</span>
               </p>
             </div>
