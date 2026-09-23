@@ -142,6 +142,17 @@ export default function OrdersManager({
 
   const handleStatusSelect = (st) => {
     if (statusHasMovedRef.current) return;
+    const count = st === 'Pending'
+      ? totalPendingOrders
+      : st === 'Preparing'
+      ? totalPreparingOrders
+      : st === 'Out for Delivery'
+      ? totalOutForDeliveryOrders
+      : null;
+
+    if (typeof count === 'number' && count > 0 && typeof onResetToAllPending === 'function') {
+      onResetToAllPending();
+    }
     setStatusFilter(st);
   };
 
@@ -1072,18 +1083,44 @@ export default function OrdersManager({
             No orders match the current filter{statusFilter !== 'All' ? ` with status "${statusFilter}"` : ''}{search ? ` and search "${search}"` : ''}.
           </p>
           <div className="mt-5 flex items-center justify-center gap-2.5 flex-wrap">
-            {typeof onResetToAllPending === 'function' && totalPendingOrders > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  onResetToAllPending();
-                  setStatusFilter('Pending');
-                  setSearch('');
-                }}
-                className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
-              >
-                View Pending Orders ({totalPendingOrders})
-              </button>
+            {typeof onResetToAllPending === 'function' && (
+              statusFilter === 'Pending' && totalPendingOrders > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onResetToAllPending();
+                    setStatusFilter('Pending');
+                    setSearch('');
+                  }}
+                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                >
+                  View Pending Orders ({totalPendingOrders})
+                </button>
+              ) : statusFilter === 'Preparing' && totalPreparingOrders > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onResetToAllPending();
+                    setStatusFilter('Preparing');
+                    setSearch('');
+                  }}
+                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                >
+                  View Preparing Orders ({totalPreparingOrders})
+                </button>
+              ) : statusFilter === 'Out for Delivery' && totalOutForDeliveryOrders > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onResetToAllPending();
+                    setStatusFilter('Out for Delivery');
+                    setSearch('');
+                  }}
+                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                >
+                  View Out for Delivery Orders ({totalOutForDeliveryOrders})
+                </button>
+              ) : null
             )}
             {(statusFilter !== 'All' || search) && (
               <button
