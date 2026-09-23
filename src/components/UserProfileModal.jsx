@@ -299,11 +299,11 @@ export default function UserProfileModal() {
       } border shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200`}>
         
         {/* Header */}
-        <div className={`px-5 py-4 sm:px-6 sm:py-5 border-b ${
+        <div className={`px-4 sm:px-6 py-3.5 sm:py-4 border-b ${
           isDark ? 'border-white/10 bg-[#16161c]' : 'border-zinc-200/90 bg-[#faf8f5]'
-        } flex items-center justify-between`}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-orange-500/15 border border-orange-500/30 text-orange-400 flex items-center justify-center font-bold">
+        } flex items-center justify-between gap-3`}>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-orange-500/15 border border-orange-500/30 text-orange-400 flex items-center justify-center font-bold shrink-0">
               {customerUser?.picture ? (
                 <img
                   src={customerUser.picture}
@@ -315,11 +315,11 @@ export default function UserProfileModal() {
                 <User className="w-5 h-5 text-orange-400" />
               )}
             </div>
-            <div>
-              <h2 className={`font-display text-xl sm:text-2xl tracking-wide leading-none ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+            <div className="min-w-0">
+              <h2 className={`font-display text-lg sm:text-2xl tracking-wide leading-tight truncate ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                 CUSTOMER PROFILE & ORDERS
               </h2>
-              <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mt-0.5`}>
+              <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mt-0.5 truncate`}>
                 Salik Fast Food • Wah Cantt
               </p>
             </div>
@@ -331,73 +331,85 @@ export default function UserProfileModal() {
               isDark
                 ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border-zinc-700/60'
                 : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 border-zinc-200'
-            } flex items-center justify-center border transition-all cursor-pointer focus:outline-none`}
+            } flex items-center justify-center border transition-all cursor-pointer focus:outline-none shrink-0`}
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Tab Navigation Navigation Pills */}
-        <div className={`px-5 pt-3.5 pb-2 ${isDark ? 'bg-[#141418] border-white/5' : 'bg-[#f4efe6] border-zinc-200'} border-b flex items-center gap-2 overflow-x-auto no-scrollbar`}>
-          <button
-            type="button"
-            onClick={() => setProfileTab('profile')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              profileTab === 'profile'
-                ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                : isDark
-                  ? 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
-                  : 'bg-white text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/80 shadow-2xs'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            <span>Complete Profile</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setProfileTab('orders')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              profileTab === 'orders'
-                ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                : isDark
-                  ? 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
-                  : 'bg-white text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/80 shadow-2xs'
-            }`}
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-orange-400" />
-            <span>Recent Orders</span>
-            {recentOrders.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-black">
-                {recentOrders.length}
+        {/* Tab Navigation Segmented Bar */}
+        <div className={`px-3 sm:px-6 py-2.5 ${isDark ? 'bg-[#141418] border-white/5' : 'bg-[#f4efe6] border-zinc-200'} border-b`}>
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setProfileTab('profile')}
+              className={`py-2 px-1 sm:px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none text-center ${
+                profileTab === 'profile'
+                  ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
+                  : isDark
+                    ? 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                    : 'bg-white text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/80 shadow-2xs'
+              }`}
+            >
+              <User className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">
+                <span className="hidden sm:inline">Complete </span>Profile
               </span>
-            )}
-          </button>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setProfileTab('reviews')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-              profileTab === 'reviews'
-                ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                : isDark
-                  ? 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
-                  : 'bg-white text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/80 shadow-2xs'
-            }`}
-          >
-            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-            <span>Add Review</span>
-            {pendingReviewOrders.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[10px] font-black">
-                {pendingReviewOrders.length}
+            <button
+              type="button"
+              onClick={() => setProfileTab('orders')}
+              className={`py-2 px-1 sm:px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none text-center ${
+                profileTab === 'orders'
+                  ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
+                  : isDark
+                    ? 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                    : 'bg-white text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/80 shadow-2xs'
+              }`}
+            >
+              <RotateCcw className={`w-3.5 h-3.5 shrink-0 ${profileTab === 'orders' ? 'text-white' : 'text-orange-400'}`} />
+              <span className="truncate">
+                <span className="hidden sm:inline">Recent </span>Orders
               </span>
-            )}
-          </button>
+              {recentOrders.length > 0 && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black shrink-0 ${
+                  profileTab === 'orders' ? 'bg-white/25 text-white' : 'bg-orange-500/20 text-orange-400'
+                }`}>
+                  {recentOrders.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setProfileTab('reviews')}
+              className={`py-2 px-1 sm:px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none text-center ${
+                profileTab === 'reviews'
+                  ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
+                  : isDark
+                    ? 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                    : 'bg-white text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/80 shadow-2xs'
+              }`}
+            >
+              <Star className={`w-3.5 h-3.5 shrink-0 ${profileTab === 'reviews' ? 'text-white fill-white' : 'text-amber-400 fill-amber-400'}`} />
+              <span className="truncate">
+                <span className="hidden sm:inline">Add </span>Review
+              </span>
+              {pendingReviewOrders.length > 0 && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black shrink-0 ${
+                  profileTab === 'reviews' ? 'bg-amber-400 text-black' : 'bg-amber-500 text-black'
+                }`}>
+                  {pendingReviewOrders.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 custom-dropdown-scroll">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 custom-dropdown-scroll pr-3 sm:pr-5">
 
           {/* TAB 1: COMPLETE PROFILE */}
           {profileTab === 'profile' && (
@@ -567,10 +579,10 @@ export default function UserProfileModal() {
                 <button
                   type="button"
                   onClick={() => setProfileTab('orders')}
-                  className={`p-3.5 rounded-2xl ${isDark ? 'bg-zinc-900/90 border-white/10 hover:border-orange-500/40' : 'bg-zinc-50 border-zinc-200 hover:border-orange-500/40'} border text-left transition-all group cursor-pointer`}
+                  className={`p-3.5 rounded-2xl ${isDark ? 'bg-zinc-900/90 border-white/10 hover:border-orange-500/40 text-white' : 'bg-zinc-50 border-zinc-200 hover:border-orange-500/40 text-zinc-900 shadow-2xs'} border text-left transition-all group cursor-pointer`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-white flex items-center gap-2">
+                    <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-zinc-900'} flex items-center gap-2`}>
                       <RotateCcw className="w-3.5 h-3.5 text-orange-400" />
                       <span>Recent Orders</span>
                     </span>
@@ -578,7 +590,7 @@ export default function UserProfileModal() {
                       {recentOrders.length}
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-400">
+                  <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                     View your past orders, status, and reorder with 1 tap.
                   </p>
                 </button>
@@ -586,10 +598,10 @@ export default function UserProfileModal() {
                 <button
                   type="button"
                   onClick={() => setProfileTab('reviews')}
-                  className="p-3.5 rounded-2xl bg-zinc-900/90 border border-white/10 hover:border-amber-500/40 text-left transition-all group cursor-pointer"
+                  className={`p-3.5 rounded-2xl ${isDark ? 'bg-zinc-900/90 border-white/10 hover:border-amber-500/40 text-white' : 'bg-zinc-50 border-zinc-200 hover:border-amber-500/40 text-zinc-900 shadow-2xs'} border text-left transition-all group cursor-pointer`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-white flex items-center gap-2">
+                    <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-zinc-900'} flex items-center gap-2`}>
                       <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                       <span>Add Review</span>
                     </span>
@@ -598,12 +610,12 @@ export default function UserProfileModal() {
                         {pendingReviewOrders.length} pending
                       </span>
                     ) : (
-                      <span className="text-[11px] font-bold text-zinc-500">
+                      <span className={`text-[11px] font-bold ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
                         Leave feedback
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-zinc-400">
+                  <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                     Rate delivered orders or share your overall feedback.
                   </p>
                 </button>
@@ -616,22 +628,22 @@ export default function UserProfileModal() {
           {profileTab === 'orders' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'} uppercase tracking-wider flex items-center gap-2`}>
                   <RotateCcw className="w-4 h-4 text-orange-400" />
                   <span>Your Order History</span>
                 </h3>
-                <span className="text-xs text-zinc-400">
+                <span className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   {recentOrders.length} {recentOrders.length === 1 ? 'Order' : 'Orders'}
                 </span>
               </div>
 
               {recentOrders.length === 0 ? (
-                <div className="p-8 rounded-3xl bg-zinc-900/60 border border-white/5 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-zinc-800 text-zinc-400 flex items-center justify-center mx-auto">
+                <div className={`p-8 rounded-3xl ${isDark ? 'bg-zinc-900/60 border-white/5' : 'bg-zinc-50 border-zinc-200'} border text-center space-y-3`}>
+                  <div className={`w-12 h-12 rounded-2xl ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-200 text-zinc-600'} flex items-center justify-center mx-auto`}>
                     <ShoppingBag className="w-6 h-6" />
                   </div>
-                  <h4 className="text-sm font-bold text-white">No Recent Orders Found</h4>
-                  <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+                  <h4 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>No Recent Orders Found</h4>
+                  <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'} max-w-sm mx-auto`}>
                     You haven't placed any orders from this device yet. Explore our mouth-watering menu and place your order!
                   </p>
                   <button
@@ -665,14 +677,14 @@ export default function UserProfileModal() {
                     return (
                       <div
                         key={order.id}
-                        className="p-4 rounded-2xl bg-zinc-900/90 border border-white/10 space-y-3 transition-all hover:border-white/20"
+                        className={`p-4 rounded-2xl ${isDark ? 'bg-zinc-900/90 border-white/10 hover:border-white/20' : 'bg-white border-zinc-200/90 hover:border-zinc-300 shadow-2xs'} border space-y-3 transition-all`}
                       >
-                        <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-2.5">
+                        <div className={`flex items-start justify-between gap-2 border-b ${isDark ? 'border-white/5' : 'border-zinc-100'} pb-2.5`}>
                           <div>
                             <span className="text-xs font-mono font-bold text-orange-400">
                               #{cleanId}
                             </span>
-                            <div className="text-[10px] text-zinc-400 mt-0.5">
+                            <div className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mt-0.5`}>
                               {formattedDate}
                             </div>
                           </div>
@@ -682,13 +694,13 @@ export default function UserProfileModal() {
                         </div>
 
                         {/* Items list */}
-                        <div className="text-xs text-zinc-300 leading-relaxed break-words">
+                        <div className={`text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-700'} leading-relaxed break-words`}>
                           {items.map((it) => `${it.quantity || 1}x ${it.name}`).join(' • ') || 'Order items'}
                         </div>
 
                         {/* Bottom Total & Actions */}
-                        <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                          <div className="text-xs font-bold text-white">
+                        <div className={`flex items-center justify-between pt-2 border-t ${isDark ? 'border-white/5' : 'border-zinc-100'}`}>
+                          <div className={`text-xs font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                             Total: <span className="text-orange-400">Rs. {formatPrice(order.total || 0)}</span>
                           </div>
 
@@ -696,7 +708,7 @@ export default function UserProfileModal() {
                             <button
                               type="button"
                               onClick={() => setReceiptOrder(order)}
-                              className="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                              className={`px-2.5 py-1.5 rounded-lg ${isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200'} text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer`}
                               title="View and download thermal receipt"
                             >
                               <FileText className="w-3.5 h-3.5 text-zinc-400" />
@@ -740,7 +752,7 @@ export default function UserProfileModal() {
               {/* Pending reviews for delivered orders */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'} uppercase tracking-wider flex items-center gap-2`}>
                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                     <span>Rate Delivered Orders</span>
                   </h3>
@@ -750,9 +762,10 @@ export default function UserProfileModal() {
                 </div>
 
                 {pendingReviewOrders.length === 0 ? (
-                  <div className="p-4 rounded-2xl bg-zinc-900/60 border border-white/5 text-center text-xs text-zinc-400">
-                    <CheckCircle2 className="w-6 h-6 text-emerald-400 mx-auto mb-1.5" />
-                    <span>All delivered orders have been reviewed! Thank you for your feedback.</span>
+                  <div className={`p-5 rounded-2xl ${isDark ? 'bg-zinc-900/60 border-white/5 text-zinc-400' : 'bg-zinc-50 border-zinc-200 text-zinc-600'} border text-center text-xs space-y-1`}>
+                    <CheckCircle2 className="w-6 h-6 text-emerald-400 mx-auto mb-1" />
+                    <span className="font-semibold block">All delivered orders have been reviewed!</span>
+                    <span className="text-[11px] opacity-75">Thank you for helping us maintain top food quality and service.</span>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -765,68 +778,74 @@ export default function UserProfileModal() {
                       return (
                         <div
                           key={order.id}
-                          className="p-4 rounded-2xl bg-zinc-900/90 border border-amber-500/20 space-y-3"
+                          className={`p-4 sm:p-5 rounded-2xl ${isDark ? 'bg-zinc-900/90 border-amber-500/25' : 'bg-white border-amber-500/30 shadow-2xs'} border space-y-3.5`}
                         >
-                          <div className="flex items-center justify-between">
-                            <div>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
                               <span className="text-xs font-mono font-bold text-orange-400">
                                 #{cleanId}
                               </span>
-                              <span className="text-[10px] text-zinc-400 ml-2">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                                 Delivered
                               </span>
                             </div>
-                            <span className="text-xs font-bold text-zinc-300">
-                              Rs. {formatPrice(order.total || 0)}
-                            </span>
+                            <div className="text-xs font-bold">
+                              <span className={`${isDark ? 'text-zinc-400' : 'text-zinc-500'} mr-1`}>Total:</span>
+                              <span className="text-orange-400 font-extrabold">Rs. {formatPrice(order.total || 0)}</span>
+                            </div>
                           </div>
 
-                          <div className="text-xs text-zinc-300 leading-relaxed break-words">
+                          <div className={`text-xs ${isDark ? 'text-zinc-300 bg-black/25 border-white/5' : 'text-zinc-700 bg-zinc-50 border-zinc-200/80'} p-2.5 rounded-xl border leading-relaxed break-words`}>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400/90 block mb-0.5">
+                              Ordered Items:
+                            </span>
                             {(order.items || []).map((it) => `${it.quantity || 1}x ${it.name}`).join(' • ')}
                           </div>
 
                           {/* Star Rating Picker */}
-                          <div className="pt-2 border-t border-white/5 flex items-center gap-2">
-                            <span className="text-xs text-zinc-400 font-semibold mr-1">
-                              Your Rating:
-                            </span>
-                            <div className="flex items-center gap-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <button
-                                  key={star}
-                                  type="button"
-                                  onClick={() =>
-                                    setReviewRatings((prev) => ({ ...prev, [order.id]: star }))
-                                  }
-                                  className="p-1 hover:scale-125 transition-transform cursor-pointer"
-                                  title={`${star} Star`}
-                                >
-                                  <Star
-                                    className={`w-5 h-5 ${
-                                      star <= rating
-                                        ? 'text-amber-400 fill-amber-400'
-                                        : 'text-zinc-600'
-                                    }`}
-                                  />
-                                </button>
-                              ))}
+                          <div className={`pt-2 border-t ${isDark ? 'border-white/5' : 'border-zinc-100'} flex flex-wrap items-center justify-between gap-2`}>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                                Your Rating:
+                              </span>
+                              <div className="flex items-center gap-0.5">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() =>
+                                      setReviewRatings((prev) => ({ ...prev, [order.id]: star }))
+                                    }
+                                    className="p-1 hover:scale-125 transition-transform cursor-pointer focus:outline-none"
+                                    title={`${star} Star`}
+                                  >
+                                    <Star
+                                      className={`w-5 h-5 ${
+                                        star <= rating
+                                          ? 'text-amber-400 fill-amber-400'
+                                          : isDark ? 'text-zinc-700' : 'text-zinc-300'
+                                      }`}
+                                    />
+                                  </button>
+                                ))}
+                              </div>
+                              <span className="text-xs font-bold text-amber-500 ml-1">
+                                {rating === 5
+                                  ? 'Excellent'
+                                  : rating === 4
+                                  ? 'Very Good'
+                                  : rating === 3
+                                  ? 'Good'
+                                  : rating === 2
+                                  ? 'Fair'
+                                  : 'Poor'}
+                              </span>
                             </div>
-                            <span className="text-xs font-bold text-amber-400 ml-1">
-                              {rating === 5
-                                ? 'Excellent'
-                                : rating === 4
-                                ? 'Very Good'
-                                : rating === 3
-                                ? 'Good'
-                                : rating === 2
-                                ? 'Fair'
-                                : 'Poor'}
-                            </span>
                           </div>
 
-                          {/* Comment input */}
-                          <input
-                            type="text"
+                          {/* Comment input textarea */}
+                          <textarea
+                            rows={2}
                             value={comment}
                             onChange={(e) =>
                               setReviewComments((prev) => ({
@@ -835,15 +854,19 @@ export default function UserProfileModal() {
                               }))
                             }
                             placeholder="Share your experience (e.g. food taste, packaging, delivery speed)..."
-                            className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-zinc-500"
+                            className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none ${
+                              isDark
+                                ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500'
+                                : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400'
+                            }`}
                           />
 
-                          <div className="flex justify-end">
+                          <div className="flex justify-end pt-0.5">
                             <button
                               type="button"
                               disabled={isSubmitting}
                               onClick={() => handleSubmitOrderReview(order)}
-                              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
                             >
                               {isSubmitting ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -861,8 +884,8 @@ export default function UserProfileModal() {
               </div>
 
               {/* General Feedback / Store Review Form */}
-              <div className="p-4 rounded-2xl bg-zinc-900/60 border border-white/10 space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-300">
+              <div className={`p-4 sm:p-5 rounded-2xl ${isDark ? 'bg-zinc-900/60 border-white/10' : 'bg-zinc-50 border-zinc-200 shadow-2xs'} border space-y-3`}>
+                <h4 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
                   Write General Store Review / Feedback
                 </h4>
 
@@ -875,7 +898,7 @@ export default function UserProfileModal() {
 
                 <form onSubmit={handleSubmitGeneralReview} className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-zinc-400">Rating:</span>
+                    <span className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Rating:</span>
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -888,7 +911,7 @@ export default function UserProfileModal() {
                             className={`w-4 h-4 ${
                               star <= generalRating
                                 ? 'text-amber-400 fill-amber-400'
-                                : 'text-zinc-600'
+                                : isDark ? 'text-zinc-600' : 'text-zinc-300'
                             }`}
                           />
                         </button>
@@ -902,14 +925,20 @@ export default function UserProfileModal() {
                     value={generalComment}
                     onChange={(e) => setGeneralComment(e.target.value)}
                     placeholder="Tell us what you love or how we can improve..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-zinc-500 resize-none"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder-zinc-500 resize-none ${
+                      isDark
+                        ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500'
+                        : 'bg-white border-zinc-300 text-zinc-900 placeholder-zinc-400'
+                    }`}
                   />
 
                   <div className="flex justify-end">
                     <button
                       type="submit"
                       disabled={generalSubmitting}
-                      className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50"
+                      className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50 ${
+                        isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200' : 'bg-zinc-900 hover:bg-zinc-800 text-white shadow-xs'
+                      }`}
                     >
                       {generalSubmitting ? 'Posting...' : 'Post General Review'}
                     </button>
