@@ -62,6 +62,7 @@ export default function UserProfileModal() {
   const [reviewComments, setReviewComments] = useState({});
   const [submittingReviewId, setSubmittingReviewId] = useState(null);
   const [reviewSuccessMessage, setReviewSuccessMessage] = useState('');
+  const [reviewToConfirm, setReviewToConfirm] = useState(null);
 
   // General review state (if user wants to leave a store review directly)
   const [generalRating, setGeneralRating] = useState(5);
@@ -203,10 +204,11 @@ export default function UserProfileModal() {
     }
 
     setSubmittingReviewId(null);
-    setReviewSuccessMessage(`Thank you! Review for Order #${order.id} submitted successfully.`);
+    setReviewToConfirm(null);
+    setReviewSuccessMessage(`Thank you! Review for Order #${String(order.id || '').replace(/^#/, '')} submitted successfully.`);
     setTimeout(() => {
       setReviewSuccessMessage('');
-    }, 4000);
+    }, 5000);
   };
 
   const handleSubmitGeneralReview = async (e) => {
@@ -742,9 +744,36 @@ export default function UserProfileModal() {
             <div className="space-y-5">
               
               {reviewSuccessMessage && (
-                <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>{reviewSuccessMessage}</span>
+                <div className={`p-3.5 sm:p-4 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
+                  isDark
+                    ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-200'
+                    : 'bg-emerald-50 border-emerald-300 text-emerald-950 shadow-xs'
+                }`}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                      isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-600 text-white shadow-2xs'
+                    }`}>
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className={`text-xs font-bold leading-tight ${isDark ? 'text-emerald-300' : 'text-emerald-950'}`}>
+                        {reviewSuccessMessage}
+                      </p>
+                      <p className={`text-[11px] font-medium mt-0.5 ${isDark ? 'text-emerald-400/80' : 'text-emerald-700'}`}>
+                        Your valuable feedback has been recorded.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setReviewSuccessMessage('')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                      isDark ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-emerald-700 hover:bg-emerald-100'
+                    }`}
+                    aria-label="Dismiss message"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
 
@@ -879,15 +908,15 @@ export default function UserProfileModal() {
                             <button
                               type="button"
                               disabled={isSubmitting}
-                              onClick={() => handleSubmitOrderReview(order)}
+                              onClick={() => {
+                                const rating = reviewRatings[order.id] !== undefined ? reviewRatings[order.id] : 5;
+                                const comment = (reviewComments[order.id] || '').trim();
+                                setReviewToConfirm({ order, rating, comment });
+                              }}
                               className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
                             >
-                              {isSubmitting ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Check className="w-3.5 h-3.5" />
-                              )}
-                              <span>{isSubmitting ? 'Submitting...' : 'Submit Review'}</span>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Submit Review</span>
                             </button>
                           </div>
                         </div>
@@ -966,6 +995,143 @@ export default function UserProfileModal() {
         </div>
 
       </div>
+
+      {/* Review Submission Confirmation Modal */}
+      {reviewToConfirm && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            onClick={() => !submittingReviewId && setReviewToConfirm(null)}
+            className="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity duration-200"
+          />
+
+          {/* Modal Card */}
+          <div
+            className={`relative w-full max-w-sm rounded-3xl p-5 sm:p-6 border shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 ${
+              isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => !submittingReviewId && setReviewToConfirm(null)}
+              disabled={Boolean(submittingReviewId)}
+              className={`absolute top-4 right-4 p-2 rounded-xl transition-colors disabled:opacity-40 cursor-pointer ${
+                isDark ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+              }`}
+              aria-label="Close modal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Header */}
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2.5 bg-amber-500/15 border border-amber-500/30 text-amber-500">
+                <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
+              </div>
+              <h3 className={`font-sans font-extrabold text-base sm:text-lg uppercase tracking-tight ${
+                isDark ? 'text-white' : 'text-zinc-900'
+              }`}>
+                Confirm Review Submission
+              </h3>
+              <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Are you sure you want to submit this feedback for Order <span className="font-sans font-bold text-orange-400">#{String(reviewToConfirm.order.id || '').replace(/^#/, '')}</span>?
+              </p>
+            </div>
+
+            {/* Review Summary Box */}
+            <div
+              className={`rounded-2xl p-3.5 border text-xs space-y-2.5 mb-4 ${
+                isDark ? 'bg-black/40 border-white/10' : 'bg-zinc-50 border-zinc-200'
+              }`}
+            >
+              <div className={`flex items-center justify-between pb-2 border-b ${isDark ? 'border-white/5' : 'border-zinc-200'}`}>
+                <span className={`text-[11px] font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  Your Rating
+                </span>
+                <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star
+                        key={i}
+                        className={`w-3.5 h-3.5 ${
+                          i <= reviewToConfirm.rating
+                            ? 'fill-amber-400 text-amber-400'
+                            : isDark ? 'text-zinc-700' : 'text-zinc-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="font-bold text-amber-500 text-xs">
+                    ({reviewToConfirm.rating}/5)
+                  </span>
+                  <span className="text-[11px] font-medium text-amber-600">
+                    {reviewToConfirm.rating === 5
+                      ? '• Excellent'
+                      : reviewToConfirm.rating === 4
+                      ? '• Very Good'
+                      : reviewToConfirm.rating === 3
+                      ? '• Good'
+                      : reviewToConfirm.rating === 2
+                      ? '• Fair'
+                      : '• Poor'}
+                  </span>
+                </div>
+              </div>
+
+              <div className={`flex items-start justify-between pb-2 border-b ${isDark ? 'border-white/5' : 'border-zinc-200'} gap-2`}>
+                <span className={`text-[11px] font-semibold flex-shrink-0 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  Items
+                </span>
+                <span className={`font-semibold text-right text-[11px] leading-relaxed break-words ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  {reviewToConfirm.order.items?.map((it) => `${it.quantity || 1}x ${it.name}`).join(', ') || `Order #${reviewToConfirm.order.id}`}
+                </span>
+              </div>
+
+              <div>
+                <span className={`text-[10px] block mb-1 uppercase font-bold tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  Your Comment
+                </span>
+                <p className={`text-[11px] italic p-2 rounded-xl border ${
+                  isDark ? 'bg-zinc-900 border-white/5 text-zinc-300' : 'bg-white border-zinc-200 text-zinc-700'
+                }`}>
+                  {reviewToConfirm.comment ? `"${reviewToConfirm.comment}"` : <span className="not-italic text-zinc-400">No comment provided</span>}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setReviewToConfirm(null)}
+                disabled={Boolean(submittingReviewId)}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
+                  isDark
+                    ? 'bg-zinc-800 hover:bg-zinc-700 border-white/10 text-zinc-300'
+                    : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-700'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSubmitOrderReview(reviewToConfirm.order)}
+                disabled={Boolean(submittingReviewId)}
+                className="flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {submittingReviewId ? (
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Submitting...</span>
+                  </span>
+                ) : (
+                  <span>Confirm & Submit</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Embedded Customer Receipt Modal */}
       {receiptOrder && (
