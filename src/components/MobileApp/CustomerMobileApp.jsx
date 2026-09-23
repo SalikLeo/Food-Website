@@ -2238,7 +2238,7 @@ export default function CustomerMobileApp({
                             Rs. {formatPrice(order.total || 0)}
                           </span>
                         </div>
-                        <p className={`text-xs line-clamp-2 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                        <p className={`text-xs leading-relaxed break-words ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
                           {itemsList.map(it => `${it.quantity || 1}x ${it.name}`).join(' • ') || 'Order items'}
                         </p>
                       </div>
@@ -3290,7 +3290,7 @@ export default function CustomerMobileApp({
                 <span className={`text-[11px] flex-shrink-0 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   Items
                 </span>
-                <span className={`font-semibold text-right text-[11px] line-clamp-1 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                <span className={`font-semibold text-right text-[11px] leading-relaxed break-words ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
                   {reviewToConfirm.order.items?.map(it => `${it.quantity || 1}x ${it.name}`).join(', ') || `Order #${reviewToConfirm.order.id}`}
                 </span>
               </div>
