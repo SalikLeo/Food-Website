@@ -2938,7 +2938,7 @@ export default function CustomerMobileApp({
         </div>
 
       {/* Cart & Modals */}
-      <CartDrawer />
+      <CartDrawer isDark={isDark} />
       <OrderSuccessModal />
 
       {/* ============================================================== */}
