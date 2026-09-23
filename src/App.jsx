@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import OrderSuccessModal from './components/OrderSuccessModal';
 import CustomerNotificationBanner from './components/CustomerNotificationBanner';
+import UserProfileModal from './components/UserProfileModal';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
@@ -134,6 +135,7 @@ export default function App() {
           <Footer categories={categories} settings={settings} />
           <CartDrawer />
           <OrderSuccessModal />
+          <UserProfileModal />
           <CustomerNotificationBanner
             onAddReview={() => {
               const el = document.getElementById('reviews');

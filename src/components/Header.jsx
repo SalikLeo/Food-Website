@@ -12,7 +12,8 @@ import {
   Info,
   MapPin,
   ChevronRight,
-  Star
+  Star,
+  User
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { isCustomerApp } from '../config/api';
@@ -24,7 +25,7 @@ import {
 } from '../services/googleAuth';
 
 export default function Header({ onAdminClick, hideAdmin = false }) {
-  const { itemCount, setIsCartOpen } = useCart();
+  const { itemCount, setIsCartOpen, openProfileModal } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
@@ -246,12 +247,25 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               </a>
             )}
 
+            {/* Header Profile Trigger (Web only: both desktop & mobile view) */}
+            {!isCustomerApp && (
+              <button
+                id="header-profile-btn"
+                onClick={() => openProfileModal('profile')}
+                className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50 transition-all focus:outline-none cursor-pointer"
+                aria-label="View Profile & Orders"
+                title="View Profile & Orders"
+              >
+                <User className="w-5 h-5 text-zinc-200" />
+              </button>
+            )}
+
             {/* Header Cart Trigger (Web only: mobile app has the bottom-right floating cart) */}
             {!isCustomerApp && (
               <button
                 id="header-cart-btn"
                 onClick={() => setIsCartOpen(true)}
-                className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50 transition-all focus:outline-none"
+                className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50 transition-all focus:outline-none cursor-pointer"
                 aria-label="View Cart"
               >
                 <ShoppingBag className="w-5 h-5 text-zinc-200" />
@@ -402,6 +416,19 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
 
               {/* Drawer Bottom Actions */}
               <div className="p-5 pb-[max(env(safe-area-inset-bottom,0px),1.25rem)] border-t border-zinc-800/80 space-y-2.5 bg-[#141418]">
+                {/* View Complete Profile CTA */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    openProfileModal('profile');
+                  }}
+                  className="w-full py-3 rounded-xl bg-zinc-800/90 hover:bg-zinc-700 border border-zinc-700/80 text-zinc-100 font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all"
+                >
+                  <User className="w-4 h-4 text-orange-400" />
+                  <span>View Complete Profile</span>
+                </button>
+
                 {/* Order Online CTA */}
                 <a
                   href="#order"

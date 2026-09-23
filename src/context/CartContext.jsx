@@ -7,6 +7,7 @@ import {
   notifyCustomerOrderStatus, 
   getStatusNotificationDetails 
 } from '../services/notificationService';
+import { getStoredUserProfile, saveStoredUserProfile } from '../services/userProfile';
 
 const CartContext = createContext();
 
@@ -21,6 +22,35 @@ export const CartProvider = ({ children }) => {
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileTab, setProfileTab] = useState('profile');
+  const [userProfile, setUserProfile] = useState(() => getStoredUserProfile());
+
+  useEffect(() => {
+    const handleProfileUpdate = (e) => {
+      if (e?.detail) {
+        setUserProfile(e.detail);
+      } else {
+        setUserProfile(getStoredUserProfile());
+      }
+    };
+    window.addEventListener('salik_profile_updated', handleProfileUpdate);
+    window.addEventListener('storage', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('salik_profile_updated', handleProfileUpdate);
+      window.removeEventListener('storage', handleProfileUpdate);
+    };
+  }, []);
+
+  const openProfileModal = (tab = 'profile') => {
+    setProfileTab(tab);
+    setIsProfileOpen(true);
+  };
+
+  const closeProfileModal = () => {
+    setIsProfileOpen(false);
+  };
+
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [lastOrder, setLastOrder] = useState(null);
 
@@ -474,7 +504,15 @@ Notes: ${customerInfo.notes || 'None'}`
         syncRecentOrders,
         activeOrderNotification,
         dismissOrderNotification,
-        reorder
+        reorder,
+        isProfileOpen,
+        setIsProfileOpen,
+        profileTab,
+        setProfileTab,
+        openProfileModal,
+        closeProfileModal,
+        userProfile,
+        saveUserProfile: saveStoredUserProfile
       }}
     >
       {children}

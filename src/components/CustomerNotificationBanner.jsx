@@ -3,7 +3,7 @@ import { X, ArrowRight, Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function CustomerNotificationBanner({ onTrackOrder, onAddReview }) {
-  const { activeOrderNotification, dismissOrderNotification } = useCart();
+  const { activeOrderNotification, dismissOrderNotification, openProfileModal } = useCart();
 
   useEffect(() => {
     if (activeOrderNotification) {
@@ -58,7 +58,9 @@ export default function CustomerNotificationBanner({ onTrackOrder, onAddReview }
               type="button"
               onClick={() => {
                 dismissOrderNotification();
-                if (onAddReview) {
+                if (typeof openProfileModal === 'function') {
+                  openProfileModal('reviews');
+                } else if (onAddReview) {
                   onAddReview(order);
                 } else if (onTrackOrder) {
                   onTrackOrder(order);

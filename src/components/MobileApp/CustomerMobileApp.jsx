@@ -23,6 +23,7 @@ import {
   triggerGoogleLogin,
   getGoogleClientId 
 } from '../../services/googleAuth';
+import { getStoredUserProfile, saveStoredUserProfile } from '../../services/userProfile';
 
 // High quality category dish image mapping
 const categoryImages = {
@@ -141,13 +142,56 @@ export default function CustomerMobileApp({
     }));
   };
 
-  // Checkout form state
-  const [checkoutForm, setCheckoutForm] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    notes: '',
-    paymentMethod: 'Cash on Delivery'
+  // Profile state
+  const [profileForm, setProfileForm] = useState(() => getStoredUserProfile());
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
+
+  // Sync profile when storage or profile changes
+  useEffect(() => {
+    const handleProfileSync = (e) => {
+      const p = e?.detail || getStoredUserProfile();
+      if (p) {
+        setProfileForm(p);
+        setCheckoutForm(prev => ({
+          ...prev,
+          name: p.name || prev.name,
+          phone: p.phone || prev.phone,
+          address: p.address || prev.address
+        }));
+      }
+    };
+    window.addEventListener('salik_profile_updated', handleProfileSync);
+    window.addEventListener('storage', handleProfileSync);
+    return () => {
+      window.removeEventListener('salik_profile_updated', handleProfileSync);
+      window.removeEventListener('storage', handleProfileSync);
+    };
+  }, []);
+
+  const handleSaveProfileForm = (e) => {
+    if (e) e.preventDefault();
+    const cleanPhone = (profileForm.phone || '').replace(/\D/g, '').slice(0, 11);
+    const updated = saveStoredUserProfile({
+      name: profileForm.name,
+      phone: cleanPhone,
+      address: profileForm.address
+    });
+    setProfileForm(updated);
+    setProfileSaveSuccess(true);
+    setReorderToast('Profile saved successfully!');
+    setTimeout(() => setProfileSaveSuccess(false), 3000);
+  };
+
+  // Checkout form state (pre-filled from profile, always editable)
+  const [checkoutForm, setCheckoutForm] = useState(() => {
+    const p = getStoredUserProfile();
+    return {
+      name: p.name || '',
+      phone: p.phone || '',
+      address: p.address || '',
+      notes: '',
+      paymentMethod: 'Cash on Delivery'
+    };
   });
   const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
@@ -460,6 +504,12 @@ export default function CustomerMobileApp({
             setSearchQuery('');
             return;
           }
+          if (currentView === 'profile') {
+            const target = previousView && previousView !== 'profile' ? previousView : 'home';
+            setCurrentView(target);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          }
           if (currentView === 'add-review') {
             const target = previousView && previousView !== 'add-review' ? previousView : 'orders';
             setCurrentView(target);
@@ -745,7 +795,19 @@ export default function CustomerMobileApp({
         if (typeof saveRecentOrder === 'function') saveRecentOrder(data.order);
         if (typeof setOrderModalOpen === 'function') setOrderModalOpen(true);
         if (typeof clearCart === 'function') clearCart();
-        setCheckoutForm({ name: '', phone: '', address: '', notes: '', paymentMethod: 'Cash on Delivery' });
+        saveStoredUserProfile({
+          name: checkoutForm.name,
+          phone: checkoutForm.phone,
+          address: checkoutForm.address
+        });
+        const savedProf = getStoredUserProfile();
+        setCheckoutForm({
+          name: savedProf.name || checkoutForm.name,
+          phone: savedProf.phone || checkoutForm.phone,
+          address: savedProf.address || checkoutForm.address,
+          notes: '',
+          paymentMethod: 'Cash on Delivery'
+        });
         switchView('orders');
       } else {
         setShowConfirmModal(false);
@@ -762,6 +824,11 @@ export default function CustomerMobileApp({
 
   // Execute WhatsApp Checkout after user confirmation
   const executeMobileWhatsAppOrder = () => {
+    saveStoredUserProfile({
+      name: checkoutForm.name,
+      phone: checkoutForm.phone,
+      address: checkoutForm.address
+    });
     const waOrder = {
       id: `WA-${Date.now().toString().slice(-4)}`,
       customerName: checkoutForm.name,
@@ -2323,6 +2390,263 @@ export default function CustomerMobileApp({
         )}
 
         {/* ============================================================== */}
+        {/* VIEW G: USER PROFILE VIEW */}
+        {/* ============================================================== */}
+        {currentView === 'profile' && (
+          <div className="space-y-4 animate-tab-fade">
+            {/* Header: Back Button & Title */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => switchView(previousView && previousView !== 'profile' ? previousView : 'home')}
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-[0.98] transition-all ${
+                  isDark ? 'bg-[#141418] border-white/10 text-zinc-300' : 'bg-white border-zinc-200 text-zinc-700 shadow-2xs'
+                }`}
+              >
+                <ArrowLeft className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                <span className="text-xs font-bold uppercase tracking-wider truncate">
+                  {previousView === 'orders' ? 'Back to Orders' : previousView === 'add-review' ? 'Back to Reviews' : 'Back to Menu'}
+                </span>
+              </button>
+
+              <div
+                className={`rounded-2xl p-3.5 sm:p-4 border flex items-center justify-center select-none ${
+                  isDark ? 'bg-[#141418] border-white/10 text-orange-400' : 'bg-white border-zinc-200 text-orange-600 shadow-2xs'
+                }`}
+              >
+                <span className="text-xs font-bold uppercase tracking-wider truncate">
+                  My Profile
+                </span>
+              </div>
+            </div>
+
+            {/* Intro Hero Banner */}
+            <div className={`rounded-3xl p-5 border relative overflow-hidden ${
+              isDark 
+                ? 'bg-gradient-to-r from-orange-950/40 via-[#181820] to-amber-950/30 border-white/10' 
+                : 'bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50/50 border-orange-200/70 shadow-xs'
+            }`}>
+              <div className="flex items-start gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-orange-500/20 text-orange-500 flex items-center justify-center flex-shrink-0 shadow-inner">
+                  <User className="w-6 h-6 text-orange-500" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className={`text-base font-extrabold uppercase tracking-tight ${
+                    isDark ? 'text-white' : 'text-zinc-900'
+                  }`}>
+                    Saved Order Details
+                  </h3>
+                  <p className={`text-xs leading-relaxed ${
+                    isDark ? 'text-zinc-400' : 'text-zinc-600'
+                  }`}>
+                    Save your Name, Phone, and Delivery Address. These details will automatically auto-fill on your checkout screen so you never have to retype them (always editable).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Google Authentication Account Card */}
+            <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+              isDark ? 'bg-[#15151a] border-white/10' : 'bg-white border-zinc-200 shadow-xs'
+            }`}>
+              <div className="flex items-center gap-3">
+                {customerUser?.picture ? (
+                  <img
+                    src={customerUser.picture}
+                    alt={customerUser.name}
+                    className="w-10 h-10 rounded-full object-cover border border-orange-500/50"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center font-bold text-sm">
+                    <User className="w-5 h-5" />
+                  </div>
+                )}
+                <div>
+                  <div className={`text-xs font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                    {customerUser ? customerUser.name : 'Google Account (Optional)'}
+                  </div>
+                  <div className="text-[11px] text-zinc-400">
+                    {customerUser ? customerUser.email : 'Sign in with Google to sync account'}
+                  </div>
+                </div>
+              </div>
+
+              {customerUser ? (
+                <button
+                  type="button"
+                  onClick={handleCustomerLogout}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                >
+                  Logout
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={googleLoading}
+                  className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-900 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50 border border-zinc-300"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                    />
+                  </svg>
+                  <span>{googleLoading ? 'Connecting...' : 'Login with Google'}</span>
+                </button>
+              )}
+            </div>
+
+            {/* Profile Form */}
+            <form onSubmit={handleSaveProfileForm} className={`rounded-2xl p-4 sm:p-5 border space-y-4 ${
+              isDark ? 'bg-[#15151a] border-white/10 shadow-lg' : 'bg-white border-zinc-200 shadow-sm'
+            }`}>
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={profileForm.name}
+                  onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                  placeholder="e.g. M. Salik"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                    isDark 
+                      ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
+                      : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  Phone Number (11-Digit) *
+                </label>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={11}
+                  required
+                  value={profileForm.phone}
+                  onChange={(e) => setProfileForm({ 
+                    ...profileForm, 
+                    phone: e.target.value.replace(/\D/g, '').slice(0, 11) 
+                  })}
+                  placeholder="03001234567"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 font-montserrat tracking-wide ${
+                    isDark 
+                      ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
+                      : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  Delivery Address *
+                </label>
+                <textarea
+                  rows={2}
+                  required
+                  value={profileForm.address}
+                  onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                  placeholder="House #, Street, Area in Wah Cantt"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none ${
+                    isDark 
+                      ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
+                      : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                  }`}
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-between gap-3">
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white text-xs font-bold uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Profile Details</span>
+                </button>
+
+                {profileSaveSuccess && (
+                  <span className="text-xs font-bold text-emerald-500 flex items-center gap-1.5 animate-in fade-in">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Saved!</span>
+                  </span>
+                )}
+              </div>
+            </form>
+
+            {/* Quick Links Under Profile */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => switchView('orders')}
+                className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer active:scale-98 ${
+                  isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900 shadow-2xs'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <RotateCcw className="w-3.5 h-3.5 text-orange-500" />
+                    <span>Orders</span>
+                  </span>
+                  <span className="text-[10px] font-bold bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-full">
+                    {recentOrders.length}
+                  </span>
+                </div>
+                <p className="text-[10px] text-zinc-400">View recent orders</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => switchView('add-review')}
+                className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer active:scale-98 ${
+                  isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900 shadow-2xs'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                    <span>Reviews</span>
+                  </span>
+                  {pendingReviewsCount > 0 ? (
+                    <span className="text-[10px] font-bold bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">
+                      {pendingReviewsCount}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold text-zinc-400">0</span>
+                  )}
+                </div>
+                <p className="text-[10px] text-zinc-400">Rate delivered orders</p>
+              </button>
+            </div>
+
+          </div>
+        )}
+
+        {/* ============================================================== */}
         {/* VIEW F: MOBILE CHECKOUT VIEW */}
         {/* ============================================================== */}
         {currentView === 'checkout' && (
@@ -2770,6 +3094,27 @@ export default function CustomerMobileApp({
                     <ChevronRight className="w-4 h-4 text-zinc-400" />
                   </div>
                 </button>
+
+                {/* VIEW PROFILE */}
+                <button
+                  onClick={() => {
+                    switchView('profile');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                    currentView === 'profile'
+                      ? 'bg-orange-600 text-white shadow-sm border-orange-500'
+                      : isDark 
+                        ? 'bg-white/5  text-white border-white/5' 
+                        : 'bg-zinc-100  text-zinc-900 border-zinc-200'
+                  }`}
+                >
+                  <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
+                    <User className="w-4.5 h-4.5 text-orange-500 shrink-0" />
+                    <span className="truncate">View Profile</span>
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 ml-1" />
+                </button>
               </nav>
 
             </div>
@@ -2906,10 +3251,14 @@ export default function CustomerMobileApp({
                   >
                     {/* Floating Sliding Knob */}
                     <div 
-                      className={`w-8 h-8 rounded-full transition-transform duration-300 ease-out transform ${
+                      style={{
+                        transform: `translateX(${isDark ? '40px' : '0px'})`,
+                        transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
+                      className={`w-8 h-8 rounded-full ${
                         isDark 
-                          ? 'translate-x-10 bg-[#4f5768] shadow-[2px_3px_8px_rgba(0,0,0,0.6),-1px_-1px_3px_rgba(255,255,255,0.08)]' 
-                          : 'translate-x-0 bg-[#ffffff] shadow-[2px_3px_6px_rgba(0,0,0,0.18),-1px_-1px_2px_rgba(255,255,255,0.9)]'
+                          ? 'bg-[#4f5768] shadow-[2px_3px_8px_rgba(0,0,0,0.6),-1px_-1px_3px_rgba(255,255,255,0.08)]' 
+                          : 'bg-[#ffffff] shadow-[2px_3px_6px_rgba(0,0,0,0.18),-1px_-1px_2px_rgba(255,255,255,0.9)]'
                       }`}
                     />
                   </div>

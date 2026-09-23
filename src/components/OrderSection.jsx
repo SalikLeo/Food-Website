@@ -17,6 +17,7 @@ import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
 import { formatPrice, cleanDealInclusions } from '../utils/formatters';
 import { apiUrl } from '../config/api';
+import { getStoredUserProfile, saveStoredUserProfile } from '../services/userProfile';
 
 export default function OrderSection() {
   const {
@@ -32,16 +33,37 @@ export default function OrderSection() {
     saveRecentOrder,
     setOrderModalOpen,
     isFreeDelivery,
-    removeFromCart
+    removeFromCart,
+    userProfile
   } = useCart();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    notes: '',
-    paymentMethod: 'Cash on Delivery'
+  const [formData, setFormData] = useState(() => {
+    const prof = userProfile || getStoredUserProfile();
+    return {
+      name: prof.name || '',
+      phone: prof.phone || '',
+      address: prof.address || '',
+      notes: '',
+      paymentMethod: 'Cash on Delivery'
+    };
   });
+
+  // Sync formData whenever profile changes
+  useEffect(() => {
+    const handleProfileSync = (e) => {
+      const p = e?.detail || getStoredUserProfile();
+      if (p) {
+        setFormData(prev => ({
+          ...prev,
+          name: p.name || prev.name,
+          phone: p.phone || prev.phone,
+          address: p.address || prev.address
+        }));
+      }
+    };
+    window.addEventListener('salik_profile_updated', handleProfileSync);
+    return () => window.removeEventListener('salik_profile_updated', handleProfileSync);
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -153,11 +175,16 @@ export default function OrderSection() {
         setLastOrder(data.order);
         saveRecentOrder(data.order);
         setOrderModalOpen(true);
-        clearCart();
+        saveStoredUserProfile({
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address
+        });
+        const savedProf = getStoredUserProfile();
         setFormData({
-          name: '',
-          phone: '',
-          address: '',
+          name: savedProf.name || formData.name,
+          phone: savedProf.phone || formData.phone,
+          address: savedProf.address || formData.address,
           notes: '',
           paymentMethod: 'Cash on Delivery'
         });
@@ -214,6 +241,11 @@ export default function OrderSection() {
       console.error(e);
     }
 
+    saveStoredUserProfile({
+      name: formData.name,
+      phone: formData.phone,
+      address: formData.address
+    });
     const message = getWhatsAppMessage(formData);
     window.open(`https://wa.me/923095369472?text=${message}`, '_blank');
   };
