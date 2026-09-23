@@ -3,7 +3,6 @@ import {
   Edit2,
   Trash2,
   Plus,
-  Minus,
   Check,
   X,
   Flame,
@@ -532,19 +531,15 @@ export default function DealsManager({
   };
 
   // Item Rows Management
-  const handleUpdateItemQty = (index, delta) => {
-    setItemRows((prev) => {
-      const updated = [...prev];
-      const newQty = Math.max(1, (updated[index].qty || 1) + delta);
-      updated[index] = { ...updated[index], qty: newQty };
-      return updated;
-    });
-  };
-
   const handleSetItemQtyDirect = (index, val) => {
     setItemRows((prev) => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], qty: Math.max(1, parseInt(val, 10) || 1) };
+      if (val === '') {
+        updated[index] = { ...updated[index], qty: '' };
+      } else {
+        const parsed = parseInt(val, 10);
+        updated[index] = { ...updated[index], qty: isNaN(parsed) ? 1 : Math.max(1, parsed) };
+      }
       return updated;
     });
   };
@@ -645,6 +640,7 @@ export default function DealsManager({
       .filter((it) => it.name && it.name.trim().length > 0)
       .map((it) => ({
         ...it,
+        qty: Number(it.qty) >= 1 ? Number(it.qty) : 1,
         name: cleanDealInclusions(it.name.trim())
       }));
 
@@ -656,7 +652,7 @@ export default function DealsManager({
     // Check if duplicates exist
     if (duplicateIndices.size > 0) {
       alert(
-        'Duplicate items detected! Please remove duplicate items and increase quantity (+/-) on the existing item instead.'
+        'Duplicate items detected! Please remove duplicate items and increase quantity on the existing item instead.'
       );
       return;
     }
@@ -1232,39 +1228,24 @@ export default function DealsManager({
 
                         {/* Bottom Row: Quantity Stepper + Size Selector */}
                         <div className="flex items-center justify-between gap-3 flex-wrap pt-0.5">
-                          {/* Quantity Stepper */}
-                          <div className="flex items-center gap-2">
+                          {/* Quantity Input */}
+                          <div className="flex items-center gap-1.5">
                             <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
                               Qty:
                             </span>
-                            <div className="flex items-center border border-zinc-300 rounded-xl bg-zinc-50 overflow-hidden shadow-2xs">
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateItemQty(idx, -1)}
-                                className="px-2.5 py-1.5 hover:bg-zinc-200 text-zinc-700 font-bold transition-colors cursor-pointer active:scale-95"
-                                title="Decrease"
-                              >
-                                <Minus className="w-3.5 h-3.5" />
-                              </button>
-
-                              <input
-                                type="number"
-                                min="1"
-                                max="99"
-                                value={item.qty}
-                                onChange={(e) => handleSetItemQtyDirect(idx, e.target.value)}
-                                className="w-10 text-center font-bold text-xs text-zinc-900 bg-white border-x border-zinc-300 py-1.5 focus:outline-none"
-                              />
-
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateItemQty(idx, 1)}
-                                className="px-2.5 py-1.5 hover:bg-zinc-200 text-zinc-700 font-bold transition-colors cursor-pointer active:scale-95"
-                                title="Increase"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+                            <input
+                              type="number"
+                              min="1"
+                              max="99"
+                              value={item.qty}
+                              onChange={(e) => handleSetItemQtyDirect(idx, e.target.value)}
+                              onBlur={() => {
+                                if (!item.qty || Number(item.qty) < 1) {
+                                  handleSetItemQtyDirect(idx, 1);
+                                }
+                              }}
+                              className="w-12 h-8 text-center font-bold text-xs text-zinc-900 bg-white border border-zinc-300 rounded-xl shadow-2xs focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+                            />
                           </div>
 
                           {/* Quick Size Selector Pills */}
@@ -1303,7 +1284,7 @@ export default function DealsManager({
                           <div className="flex items-center gap-1.5 text-xs text-red-600 font-medium pt-1">
                             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                             <span>
-                              This item is already added in another row! Increase quantity counter (+/-) above instead.
+                              This item is already added in another row! Increase quantity on the existing item above instead.
                             </span>
                           </div>
                         )}
