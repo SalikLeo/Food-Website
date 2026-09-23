@@ -3058,10 +3058,6 @@ export default function CustomerMobileApp({
 
             {/* Modal Header */}
             <div className="text-center mb-4">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2.5 bg-orange-500/15 border border-orange-500/30 text-orange-500">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-
               <h3 className={`font-montserrat font-extrabold text-lg uppercase tracking-tight ${
                 isDark ? 'text-white' : 'text-zinc-900'
               }`}>
@@ -3147,19 +3143,12 @@ export default function CustomerMobileApp({
 
               <div className="max-h-28 overflow-y-auto space-y-1.5 pr-1 py-0.5 modal-items-scroll">
                 {cartItems.map((item, idx) => (
-                  <div key={item.cartKey || item.id || idx} className="flex justify-between items-start text-[11px]">
+                  <div key={item.cartKey || item.id || idx} className="flex justify-between items-center text-[11px]">
                     <div className="truncate max-w-[190px]">
-                      <div>
-                        <strong className={isDark ? 'text-white' : 'text-zinc-900'}>{item.quantity || 1}×</strong>{' '}
-                        <span className={isDark ? 'text-zinc-300' : 'text-zinc-800'}>{item.name}</span>
-                        {item.size && (
-                          <span className="text-orange-500 text-[10px] ml-1">({typeof item.size === 'object' ? item.size.label : item.size})</span>
-                        )}
-                      </div>
-                      {Boolean(item.description || item.includes) && (
-                        <div className={`text-[9.5px] line-clamp-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                          {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
-                        </div>
+                      <strong className={isDark ? 'text-white' : 'text-zinc-900'}>{item.quantity || 1}×</strong>{' '}
+                      <span className={isDark ? 'text-zinc-300' : 'text-zinc-800'}>{item.name}</span>
+                      {item.size && (
+                        <span className="text-orange-500 text-[10px] ml-1">({typeof item.size === 'object' ? item.size.label : item.size})</span>
                       )}
                     </div>
                     <span className={`font-semibold flex-shrink-0 ml-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
