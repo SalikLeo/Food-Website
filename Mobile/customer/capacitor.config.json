@@ -5,5 +5,10 @@
   "server": {
     "cleartext": true,
     "androidScheme": "http"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "disable"
+    }
   }
 }
