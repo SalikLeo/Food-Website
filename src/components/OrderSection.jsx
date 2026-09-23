@@ -352,32 +352,34 @@ export default function OrderSection() {
             ) : (
               <div className="py-5 space-y-3 max-h-80 overflow-y-auto pr-1 divide-y divide-zinc-100">
                 {cartItems.map((item) => (
-                  <div key={item.cartKey} className="pt-3 first:pt-0 flex items-center justify-between text-xs group">
-                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                  <div key={item.cartKey} className="pt-3 first:pt-0 flex items-start justify-between text-xs group">
+                    <div className="flex items-start gap-2 min-w-0 pr-2">
                       <button
                         type="button"
                         onClick={() => removeFromCart(item.cartKey)}
-                        className="p-1 -ml-1 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all active:scale-90 flex-shrink-0 cursor-pointer"
+                        className="p-1 -ml-1 mt-0.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all active:scale-90 flex-shrink-0 cursor-pointer"
                         title="Remove item"
                         aria-label={`Remove ${item.name}`}
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
                       <div className="min-w-0">
-                        <span className="font-bold text-zinc-800">
-                          {item.quantity}× {item.name}
-                        </span>
-                        {item.size && (
-                          <span className="text-orange-600 ml-1 font-medium">({item.size})</span>
-                        )}
+                        <div>
+                          <span className="font-bold text-zinc-800">
+                            {item.quantity}× {item.name}
+                          </span>
+                          {item.size && (
+                            <span className="text-orange-600 ml-1 font-medium">({item.size})</span>
+                          )}
+                        </div>
                         {Boolean(item.description || item.includes) && (
-                          <p className="text-[10px] text-zinc-500 line-clamp-1 mt-0.5">
+                          <p className="text-[10px] text-zinc-500 mt-0.5 leading-relaxed break-words">
                             {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
                           </p>
                         )}
                       </div>
                     </div>
-                    <span className="font-bold text-orange-600 font-sans flex-shrink-0">
+                    <span className="font-bold text-orange-600 font-sans flex-shrink-0 mt-0.5">
                       Rs. {formatPrice(item.price * item.quantity)}
                     </span>
                   </div>

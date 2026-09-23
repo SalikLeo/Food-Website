@@ -201,7 +201,7 @@ export default function CartDrawer({ isDark: isDarkProp }) {
                         {item.name}
                       </h4>
                       {Boolean(item.description || item.includes) && (
-                        <p className={`text-[10px] sm:text-[11px] line-clamp-2 mt-0.5 leading-tight ${
+                        <p className={`text-[10px] sm:text-[11px] mt-0.5 leading-relaxed break-words ${
                           isDark ? 'text-zinc-400' : 'text-zinc-500'
                         }`}>
                           {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
