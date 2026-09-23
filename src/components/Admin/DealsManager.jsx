@@ -177,6 +177,9 @@ function ItemCombobox({
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState(value);
   const containerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const hasSelectedValue = Boolean(value && value.trim());
 
   // Sync internal query when value prop changes externally
   useEffect(() => {
@@ -196,7 +199,7 @@ function ItemCombobox({
 
   // Filter options based on typed text
   const filteredOptions = useMemo(() => {
-    if (!query || !query.trim()) {
+    if (!query || !query.trim() || hasSelectedValue) {
       return allCatalogItems;
     }
     const q = query.toLowerCase().trim();
@@ -207,7 +210,7 @@ function ItemCombobox({
         item.displayName.toLowerCase().includes(q)
       );
     });
-  }, [allCatalogItems, query]);
+  }, [allCatalogItems, query, hasSelectedValue]);
 
   const handleSelect = (item) => {
     onChange(item.name);
@@ -216,16 +219,21 @@ function ItemCombobox({
   };
 
   const handleInputChange = (e) => {
+    if (hasSelectedValue) return;
     const newVal = e.target.value;
     setQuery(newVal);
     onChange(newVal);
     if (!isOpen) setIsOpen(true);
   };
 
-  const handleClear = () => {
+  const handleClear = (e) => {
+    if (e) e.stopPropagation();
     setQuery('');
     onChange('');
     setIsOpen(true);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
   };
 
   return (
@@ -233,28 +241,50 @@ function ItemCombobox({
       <div className="relative flex items-center">
         <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input
+          ref={inputRef}
           type="text"
           value={query}
+          readOnly={hasSelectedValue}
           onChange={handleInputChange}
-          onFocus={() => setIsOpen(true)}
+          onClick={() => {
+            if (hasSelectedValue) {
+              setIsOpen((prev) => !prev);
+            }
+          }}
+          onFocus={() => {
+            if (!hasSelectedValue) {
+              setIsOpen(true);
+            }
+          }}
           placeholder={placeholder}
           className={`w-full pl-9 pr-14 py-2 rounded-xl border text-xs sm:text-sm font-medium transition-all focus:outline-none ${
             hasDuplicate
               ? 'bg-red-50/50 border-red-300 text-red-950 focus:border-red-500'
+              : hasSelectedValue
+              ? 'bg-zinc-50/80 border-zinc-200 text-zinc-900 font-semibold cursor-pointer shadow-2xs select-none'
               : 'bg-zinc-50/60 border-zinc-200 text-zinc-900 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 shadow-2xs'
           }`}
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-          {query && (
+          {hasSelectedValue ? (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="p-1 text-zinc-400 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors cursor-pointer"
+              title="Clear item to select another"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          ) : query ? (
             <button
               type="button"
               onClick={handleClear}
               className="p-1 text-zinc-400 hover:text-zinc-600 rounded-full hover:bg-zinc-100 transition-colors cursor-pointer"
-              title="Clear text"
+              title="Clear search"
             >
               <X className="w-3.5 h-3.5" />
             </button>
-          )}
+          ) : null}
           <button
             type="button"
             onClick={() => setIsOpen((prev) => !prev)}

@@ -107,6 +107,23 @@
       "tag": "",
       "id": "deal-1789746424743",
       "featured": false
+    },
+    {
+      "name": "Deal 5",
+      "number": "05",
+      "category": "deals",
+      "dealType": "normal",
+      "price": 3000,
+      "image": "/assets/deal-3.png",
+      "includes": [
+        "1 Large B.B.Q",
+        "1 Small Chicken Tikk",
+        "3 Small Pickle Punjabi"
+      ],
+      "description": "1 Large B.B.Q + 1 Small Chicken Tikk + 3 Small Pickle Punjabi",
+      "tag": "",
+      "featured": false,
+      "id": "deal-1790143167883"
     }
   ],
   "familyDeal": null,
