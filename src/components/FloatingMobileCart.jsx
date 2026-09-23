@@ -5,7 +5,7 @@ import { isCustomerApp } from '../config/api';
 import { formatPrice } from '../utils/formatters';
 
 export default function FloatingMobileCart() {
-  const { itemCount, subtotal, isCartOpen, setIsCartOpen } = useCart();
+  const { itemCount, subtotal, isCartOpen, setIsCartOpen, isDark } = useCart();
 
   // In mobile app mode, the bottom-right floating cart icon is used instead
   if (isCustomerApp) {
@@ -32,7 +32,11 @@ export default function FloatingMobileCart() {
             setIsCartOpen(true);
           }
         }}
-        className="w-full bg-[#121215]/95 backdrop-blur-md border border-zinc-700/80 hover:border-orange-500/80 rounded-2xl p-2 sm:p-2.5 shadow-[0_12px_32px_rgba(0,0,0,0.55)] flex items-center justify-between gap-3 cursor-pointer group active:scale-[0.99] transition-all"
+        className={`w-full ${
+          isDark 
+            ? 'bg-[#121215]/95 border-zinc-700/80 shadow-[0_12px_32px_rgba(0,0,0,0.55)]' 
+            : 'bg-white/95 border-zinc-200/90 shadow-[0_12px_32px_rgba(0,0,0,0.12)]'
+        } backdrop-blur-md border hover:border-orange-500/80 rounded-2xl p-2 sm:p-2.5 flex items-center justify-between gap-3 cursor-pointer group active:scale-[0.99] transition-all`}
       >
         {/* Left: Cart Icon & Item info */}
         <div className="flex items-center gap-2.5 min-w-0 pl-1">
@@ -44,14 +48,16 @@ export default function FloatingMobileCart() {
           </div>
 
           <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-zinc-200 truncate">
+            <div className={`flex items-center gap-1.5 text-xs sm:text-sm font-semibold truncate ${
+              isDark ? 'text-zinc-200' : 'text-zinc-800'
+            }`}>
               <span>{itemCount} {itemCount === 1 ? 'Item' : 'Items'}</span>
-              <span className="text-zinc-500">•</span>
-              <span className="font-bold text-white tracking-tight">
+              <span className={isDark ? 'text-zinc-500' : 'text-zinc-400'}>•</span>
+              <span className={`font-bold tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                 Rs. {formatPrice(subtotal)}
               </span>
             </div>
-            <span className="text-[10px] text-orange-400 font-medium tracking-wide">
+            <span className="text-[10px] text-orange-500 font-medium tracking-wide">
               Tap to review order
             </span>
           </div>

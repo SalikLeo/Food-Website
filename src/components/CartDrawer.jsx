@@ -19,32 +19,12 @@ export default function CartDrawer({ isDark: isDarkProp }) {
     isMinOrderMet,
     freeDeliveryThreshold,
     isFreeDelivery,
-    amountForFreeDelivery
+    amountForFreeDelivery,
+    isDark: contextIsDark
   } = useCart();
 
-  const [themeIsDark, setThemeIsDark] = useState(() => {
-    try {
-      const savedV2 = localStorage.getItem('salik_app_theme_v2') || localStorage.getItem('salik_app_theme');
-      return savedV2 === 'dark';
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    const handleStorage = () => {
-      try {
-        const savedV2 = localStorage.getItem('salik_app_theme_v2') || localStorage.getItem('salik_app_theme');
-        setThemeIsDark(savedV2 === 'dark');
-      } catch {
-        // no-op
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
-
-  const isDark = isDarkProp !== undefined ? isDarkProp : themeIsDark;
+  // Prefer explicitly passed prop if available, otherwise use reactive CartContext isDark
+  const isDark = isDarkProp !== undefined ? isDarkProp : Boolean(contextIsDark);
 
   const hasSoldOutItems = cartItems.some(item => item.inStock === false);
 
@@ -183,7 +163,7 @@ export default function CartDrawer({ isDark: isDarkProp }) {
           </div>
         ) : (
           /* Items List */
-          <div className={`flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-2.5 ${
+          <div className={`flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-2.5 custom-dropdown-scroll ${
             isDark ? 'bg-[#101014]' : 'bg-[#faf9f6]'
           }`}>
             {cartItems.map((item) => (

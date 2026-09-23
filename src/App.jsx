@@ -159,7 +159,7 @@ function WebsiteStorefront({
       </main>
 
       <Footer categories={categories} settings={settings} />
-      <CartDrawer />
+      <CartDrawer isDark={isDark} />
       <OrderSuccessModal />
       <UserProfileModal />
       <CustomerNotificationBanner />
