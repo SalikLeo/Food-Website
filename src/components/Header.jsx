@@ -14,7 +14,6 @@ import {
   ChevronRight,
   Star
 } from 'lucide-react';
-import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
 import { isCustomerApp } from '../config/api';
 import { 
@@ -410,7 +409,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm tracking-wide text-center shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>Order Online Now</span>
+                  <span>Order Now</span>
                 </a>
 
                 {/* Direct Call Button */}
@@ -420,17 +419,6 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 >
                   <Phone className="w-4 h-4 text-orange-400" />
                   <span>Call: 0309-5369472</span>
-                </a>
-
-                {/* WhatsApp Quick Order Button */}
-                <a
-                  href="https://wa.me/923095369472?text=Assalam%20o%20Alaikum%20Salik%20Fast%20Food!%20I%20would%20like%20to%20place%20an%20order."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/30 text-emerald-400 font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-colors"
-                >
-                  <WhatsAppIcon className="w-4 h-4 text-emerald-400" />
-                  <span>Order on WhatsApp</span>
                 </a>
 
                 {/* Google Sign-in / User Profile Card */}
