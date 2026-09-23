@@ -44,8 +44,7 @@
   scrollbar-color: #f97316 #e7e1d4;
   scroll-behavior: auto !important;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-x: contain;
-  touch-action: pan-x;
+  touch-action: pan-y pan-x;
 }
 
 .category-scroll::-webkit-scrollbar {
