@@ -160,12 +160,26 @@ export default function CartDrawer({ isDark: isDarkProp }) {
             }`}>
               Looks like you haven't added anything yet. Explore our delicious pizzas, burgers & deals!
             </p>
-            <button
-              onClick={handleBrowseMenu}
-              className="px-8 py-3 rounded-full bg-[#e53e10] hover:bg-[#d1350a] text-white font-montserrat font-bold text-xs tracking-wider uppercase shadow-md active:scale-95 transition-all cursor-pointer"
-            >
-              Explore Menu
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <button
+                onClick={handleBrowseMenu}
+                className="px-6 py-2.5 rounded-full bg-[#e53e10] hover:bg-[#d1350a] text-white font-montserrat font-bold text-xs tracking-wider uppercase shadow-md active:scale-95 transition-all cursor-pointer"
+              >
+                Explore Menu
+              </button>
+              <button
+                onClick={() => {
+                  setIsCartOpen(false);
+                  const el = document.getElementById('deals');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`px-6 py-2.5 rounded-full border font-montserrat font-bold text-xs tracking-wider uppercase shadow-sm active:scale-95 transition-all cursor-pointer ${
+                  isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-700' : 'bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-300'
+                }`}
+              >
+                View Deals
+              </button>
+            </div>
           </div>
         ) : (
           /* Items List */

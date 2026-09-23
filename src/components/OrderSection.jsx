@@ -9,7 +9,9 @@ import {
   MapPin,
   Phone,
   User,
-  Clock
+  Clock,
+  Utensils,
+  Flame
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
@@ -342,9 +344,39 @@ export default function OrderSection() {
             </h3>
 
             {cartItems.length === 0 ? (
-              <div className="py-12 text-center text-zinc-400 text-xs space-y-2">
+              <div className="py-10 text-center text-zinc-400 text-xs space-y-3.5">
                 <ShoppingBag className="w-10 h-10 mx-auto text-zinc-300" />
-                <p>No items selected yet — add items from the menu and they'll appear here.</p>
+                <p className="text-zinc-500">No items selected yet — add items from the menu and they'll appear here.</p>
+                <div className="flex items-center justify-center gap-2 pt-1">
+                  <a
+                    href="#menu"
+                    onClick={(e) => {
+                      const el = document.getElementById('menu');
+                      if (el) {
+                        e.preventDefault();
+                        el.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 font-bold text-xs uppercase tracking-wider transition-all active:scale-95"
+                  >
+                    <Utensils className="w-3.5 h-3.5" />
+                    <span>Explore Menu</span>
+                  </a>
+                  <a
+                    href="#deals"
+                    onClick={(e) => {
+                      const el = document.getElementById('deals');
+                      if (el) {
+                        e.preventDefault();
+                        el.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-xs uppercase tracking-wider transition-all active:scale-95"
+                  >
+                    <Flame className="w-3.5 h-3.5" />
+                    <span>View Deals</span>
+                  </a>
+                </div>
               </div>
             ) : (
               <div className="py-5 space-y-3 max-h-80 overflow-y-auto pr-1 divide-y divide-zinc-100">
