@@ -255,7 +255,7 @@ export default function MenuSection({ categories = [], products = [] }) {
                   }`}
                 >
                   {/* Card Media Top */}
-                  <div className="relative w-full h-48 bg-zinc-100 overflow-hidden">
+                  <div className="relative w-full aspect-[4/3] bg-zinc-100 overflow-hidden">
                     <img
                       src={product.image}
                       alt={product.name}
