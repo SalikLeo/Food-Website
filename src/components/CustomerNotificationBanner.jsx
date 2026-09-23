@@ -20,7 +20,7 @@ export default function CustomerNotificationBanner({ onTrackOrder }) {
   const cleanId = String(order?.id || '').replace(/^#/, '');
 
   return (
-    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
+    <div className="fixed top-3 inset-x-0 mx-auto z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
       <div className="p-3.5 sm:p-4 rounded-2xl border-2 border-orange-500 bg-white/98 dark:bg-[#1a1a24]/98 text-zinc-900 dark:text-white shadow-2xl backdrop-blur-md ring-4 ring-orange-500/20">
         <div className="flex items-center justify-between pb-2 border-b border-zinc-200/50 dark:border-white/10">
           <div className="flex items-center gap-2.5 min-w-0">

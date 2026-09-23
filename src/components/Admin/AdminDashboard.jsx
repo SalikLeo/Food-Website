@@ -477,7 +477,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       
       {/* Real-time New Order Popup / Notification Banner */}
       {newOrderAlert && (
-        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
+        <div className="fixed top-3 inset-x-0 mx-auto z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
           <div className="bg-white/98 backdrop-blur-md border-2 border-orange-500 rounded-2xl p-3.5 sm:p-4 shadow-2xl text-zinc-900 ring-4 ring-orange-500/20">
             {/* Top Bar */}
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
@@ -577,7 +577,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
       {/* Real-time New Review Alert Popup / Notification Banner */}
       {newReviewAlert && (
-        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
+        <div className="fixed top-3 inset-x-0 mx-auto z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
           <div className="bg-white/98 backdrop-blur-md border-2 border-amber-500 rounded-2xl p-3.5 sm:p-4 shadow-2xl text-zinc-900 ring-4 ring-amber-500/20">
             {/* Top Bar */}
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100">

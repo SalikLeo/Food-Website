@@ -300,15 +300,13 @@
   -webkit-user-select: text;
 }
 
-/* Disable sticky hover effects in mobile apps while keeping desktop website intact */
-.is-mobile-app *:hover,
-.is-mobile-app .group:hover * {
-  transform: none !important;
-}
-
+/* Disable sticky hover effects on touch devices while keeping desktop website intact */
 @media (hover: none) or (pointer: coarse) {
   .smooth-hover:hover,
-  .glow-hover:hover {
+  .glow-hover:hover,
+  .is-mobile-app button:hover,
+  .is-mobile-app a:hover,
+  .is-mobile-app .group:hover {
     transform: none !important;
     box-shadow: none !important;
   }
