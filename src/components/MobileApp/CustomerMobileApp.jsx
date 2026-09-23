@@ -947,8 +947,8 @@ export default function CustomerMobileApp({
               rel="noopener noreferrer"
               className={`w-10 h-10 rounded-xl border flex items-center justify-center active:scale-95 shadow-2xs transition-transform ${
                 isDark 
-                  ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/30 text-emerald-400' 
-                  : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600'
+                  ? 'bg-emerald-500/15  border-emerald-500/30 text-emerald-400' 
+                  : 'bg-emerald-50  border-emerald-200 text-emerald-600'
               }`}
               aria-label="WhatsApp Support"
             >
@@ -961,8 +961,8 @@ export default function CustomerMobileApp({
               onClick={() => setMobileMenuOpen(true)}
               className={`w-10 h-10 rounded-xl border flex items-center justify-center active:scale-95 cursor-pointer transition-transform ${
                 isDark 
-                  ? 'bg-zinc-800/80 hover:bg-zinc-700/80 border-white/10 text-white' 
-                  : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-800 shadow-2xs'
+                  ? 'bg-zinc-800/80  border-white/10 text-white' 
+                  : 'bg-zinc-100  border-zinc-200 text-zinc-800 shadow-2xs'
               }`}
               aria-label="Open menu"
             >
@@ -1046,8 +1046,8 @@ export default function CustomerMobileApp({
                           }}
                           className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer whitespace-nowrap ${
                             isDark 
-                              ? 'bg-orange-600 hover:bg-orange-500 text-white' 
-                              : 'bg-white hover:bg-zinc-100 text-orange-700 shadow-sm'
+                              ? 'bg-orange-600  text-white' 
+                              : 'bg-white  text-orange-700 shadow-sm'
                           }`}
                         >
                           {banner.actionText}
@@ -1097,8 +1097,8 @@ export default function CustomerMobileApp({
                 onClick={() => switchView('category', 'all')}
                 className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
                   isDark 
-                    ? 'bg-zinc-900/90 border border-white/10 text-zinc-200 hover:bg-zinc-800' 
-                    : 'bg-white border border-zinc-200 text-zinc-800 shadow-2xs hover:bg-zinc-50'
+                    ? 'bg-zinc-900/90 border border-white/10 text-zinc-200 ' 
+                    : 'bg-white border border-zinc-200 text-zinc-800 shadow-2xs '
                 }`}
               >
                 <span>🍕 Menu</span>
@@ -1108,8 +1108,8 @@ export default function CustomerMobileApp({
                 onClick={() => switchView('deals')}
                 className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
                   isDark 
-                    ? 'bg-orange-600/20 border border-orange-500/40 text-orange-400 hover:bg-orange-600/30' 
-                    : 'bg-orange-50 border border-orange-200 text-orange-700 shadow-2xs hover:bg-orange-100'
+                    ? 'bg-orange-600/20 border border-orange-500/40 text-orange-400 ' 
+                    : 'bg-orange-50 border border-orange-200 text-orange-700 shadow-2xs '
                 }`}
               >
                 <Flame className="w-3.5 h-3.5 fill-orange-500" />
@@ -1120,8 +1120,8 @@ export default function CustomerMobileApp({
                 onClick={() => switchView('orders')}
                 className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
                   isDark 
-                    ? 'bg-zinc-900/90 border border-white/10 text-zinc-200 hover:bg-zinc-800' 
-                    : 'bg-white border border-zinc-200 text-zinc-800 shadow-2xs hover:bg-zinc-50'
+                    ? 'bg-zinc-900/90 border border-white/10 text-zinc-200 ' 
+                    : 'bg-white border border-zinc-200 text-zinc-800 shadow-2xs '
                 }`}
               >
                 <Clock className="w-3.5 h-3.5 text-orange-500" />
@@ -1168,8 +1168,8 @@ export default function CustomerMobileApp({
                   onClick={() => switchView('category', 'all')}
                   className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 ${
                     isDark
-                      ? 'bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 border border-orange-500/30'
-                      : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200/90'
+                      ? 'bg-orange-500/15  text-orange-400 border border-orange-500/30'
+                      : 'bg-orange-50  text-orange-600 border border-orange-200/90'
                   }`}
                 >
                   <span>VIEW ALL</span>
@@ -1189,8 +1189,8 @@ export default function CustomerMobileApp({
                       onClick={() => switchView('category', cat.id)}
                       className={`group rounded-2xl p-3.5 sm:p-4 text-center cursor-pointer active:scale-[0.97] transition-transform flex flex-col items-center justify-between ${
                         isDark 
-                          ? 'bg-[#18181f] border border-white/10 shadow-md hover:border-orange-500/50 hover:shadow-xl' 
-                          : 'bg-white border border-zinc-200/90 shadow-xs hover:border-orange-400 hover:shadow-md'
+                          ? 'bg-[#18181f] border border-white/10 shadow-md  ' 
+                          : 'bg-white border border-zinc-200/90 shadow-xs  '
                       }`}
                     >
                       {/* Appetizing Centered Food Photo on Card */}
@@ -1198,7 +1198,7 @@ export default function CustomerMobileApp({
                         <img
                           src={catImg}
                           alt={cat.label}
-                          className="w-full h-full object-contain rounded-xl transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
+                          className="w-full h-full object-contain rounded-xl transform transition-transform duration-300 drop-shadow-sm"
                           onError={(e) => {
                             e.target.src = '/assets/images/cat-burgers-CfWIZ4YN.jpg';
                           }}
@@ -1209,8 +1209,8 @@ export default function CustomerMobileApp({
                       <div className="w-full text-center">
                         <h4 className={`font-bold text-sm sm:text-base leading-tight truncate ${
                           isDark 
-                            ? 'text-white group-hover:text-orange-400' 
-                            : 'text-zinc-900 group-hover:text-orange-600'
+                            ? 'text-white ' 
+                            : 'text-zinc-900 '
                         }`}>
                           {cat.label}
                         </h4>
@@ -1243,8 +1243,8 @@ export default function CustomerMobileApp({
                     onClick={() => switchView('deals')}
                     className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 ${
                       isDark
-                        ? 'bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 border border-orange-500/30'
-                        : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200/90'
+                        ? 'bg-orange-500/15  text-orange-400 border border-orange-500/30'
+                        : 'bg-orange-50  text-orange-600 border border-orange-200/90'
                     }`}
                   >
                     <span>ALL DEALS</span>
@@ -1294,7 +1294,7 @@ export default function CustomerMobileApp({
 
                       <button
                         onClick={(e) => handleAddDeal(deal, e)}
-                        className="w-full py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full py-2 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Add Deal</span>
@@ -1318,7 +1318,7 @@ export default function CustomerMobileApp({
               tabIndex={0}
               onClick={() => switchView('home')}
               className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
-                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+                isDark ? 'bg-[#141418]  border-white/10' : 'bg-white  border-zinc-200 shadow-2xs'
               }`}
             >
               <div
@@ -1359,7 +1359,7 @@ export default function CustomerMobileApp({
                   <button 
                     onClick={() => setSearchQuery('')}
                     className={`absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer ${
-                      isDark ? 'bg-zinc-800 text-zinc-300 hover:text-white' : 'bg-zinc-200 text-zinc-700 hover:bg-zinc-300'
+                      isDark ? 'bg-zinc-800 text-zinc-300 ' : 'bg-zinc-200 text-zinc-700 '
                     }`}
                   >
                     Clear
@@ -1379,8 +1379,8 @@ export default function CustomerMobileApp({
                   selectedCatId === 'all' && !searchQuery.trim()
                     ? 'bg-orange-600 text-white shadow-md'
                     : isDark
-                      ? 'bg-[#18181e] text-zinc-400 border border-white/5 hover:text-white'
-                      : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50 shadow-2xs'
+                      ? 'bg-[#18181e] text-zinc-400 border border-white/5 '
+                      : 'bg-white text-zinc-600 border border-zinc-200  shadow-2xs'
                 }`}
               >
                 <span>🍽️</span>
@@ -1399,8 +1399,8 @@ export default function CustomerMobileApp({
                       isActive
                         ? 'bg-orange-600 text-white shadow-md'
                         : isDark
-                          ? 'bg-[#18181e] text-zinc-400 border border-white/5 hover:text-white'
-                          : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50 shadow-2xs'
+                          ? 'bg-[#18181e] text-zinc-400 border border-white/5 '
+                          : 'bg-white text-zinc-600 border border-zinc-200  shadow-2xs'
                     }`}
                   >
                     <span>{categoryEmojis[c.id]}</span>
@@ -1435,7 +1435,7 @@ export default function CustomerMobileApp({
                 {searchQuery.trim() && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-95 transition-all"
+                    className="px-5 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-95 transition-all"
                   >
                     Clear Search
                   </button>
@@ -1457,8 +1457,8 @@ export default function CustomerMobileApp({
                         isOutOfStock 
                           ? (isDark ? 'bg-[#15151a] border-red-900/30 opacity-75' : 'bg-zinc-50 border-zinc-200 opacity-75')
                           : isDark 
-                            ? 'bg-[#15151a] border-white/10 shadow-md hover:border-white/20' 
-                            : 'bg-white border-zinc-200/90 shadow-xs hover:shadow-md hover:border-zinc-300'
+                            ? 'bg-[#15151a] border-white/10 shadow-md ' 
+                            : 'bg-white border-zinc-200/90 shadow-xs  '
                       }`}
                     >
                       <div className="flex gap-3.5">
@@ -1546,8 +1546,8 @@ export default function CustomerMobileApp({
                                   isSelected
                                     ? 'bg-gradient-to-r from-[#d93409] to-[#ea580c] text-white shadow-xs'
                                     : isDark
-                                      ? 'text-zinc-400 hover:text-white bg-transparent'
-                                      : 'text-[#635d56] hover:text-zinc-900 bg-transparent'
+                                      ? 'text-zinc-400  bg-transparent'
+                                      : 'text-[#635d56]  bg-transparent'
                                 }`}
                               >
                                 {s.label}
@@ -1599,7 +1599,7 @@ export default function CustomerMobileApp({
                           className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                             isOutOfStock
                               ? (isDark ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed')
-                              : 'bg-orange-600 hover:bg-orange-500 text-white shadow-md active:scale-95'
+                              : 'bg-orange-600  text-white shadow-md active:scale-95'
                           }`}
                         >
                           {isOutOfStock ? (
@@ -1630,7 +1630,7 @@ export default function CustomerMobileApp({
               tabIndex={0}
               onClick={() => switchView('home')}
               className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
-                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+                isDark ? 'bg-[#141418]  border-white/10' : 'bg-white  border-zinc-200 shadow-2xs'
               }`}
             >
               <div
@@ -1703,8 +1703,8 @@ export default function CustomerMobileApp({
                   onClick={(e) => handleAddDeal(featuredDeal, e)}
                   className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     isDark 
-                      ? 'bg-amber-500 hover:bg-amber-400 text-black' 
-                      : 'bg-white hover:bg-amber-50 text-orange-800'
+                      ? 'bg-amber-500  text-black' 
+                      : 'bg-white  text-orange-800'
                   }`}
                 >
                   <Plus className="w-4 h-4" />
@@ -1762,7 +1762,7 @@ export default function CustomerMobileApp({
                   {/* Add Button at Bottom */}
                   <button
                     onClick={(e) => handleAddDeal(deal, e)}
-                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add {deal.name}</span>
@@ -1786,7 +1786,7 @@ export default function CustomerMobileApp({
               tabIndex={0}
               onClick={() => switchView('home')}
               className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
-                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+                isDark ? 'bg-[#141418]  border-white/10' : 'bg-white  border-zinc-200 shadow-2xs'
               }`}
             >
               <div
@@ -1830,7 +1830,7 @@ export default function CustomerMobileApp({
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
                   <button
                     onClick={() => switchView('home')}
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
                   >
                     Browse Menu
                   </button>
@@ -1838,8 +1838,8 @@ export default function CustomerMobileApp({
                     onClick={handleLoadSampleOrder}
                     className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
                       isDark 
-                        ? 'bg-zinc-800 border-white/10 text-zinc-300 hover:text-white' 
-                        : 'bg-zinc-100 border-zinc-200 text-zinc-700 hover:bg-zinc-200'
+                        ? 'bg-zinc-800 border-white/10 text-zinc-300 ' 
+                        : 'bg-zinc-100 border-zinc-200 text-zinc-700 '
                     }`}
                   >
                     Load Sample Order
@@ -1895,8 +1895,8 @@ export default function CustomerMobileApp({
                             onClick={() => setViewingReceiptOrder(order)}
                             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
                               isDark
-                                ? 'bg-zinc-800/90 hover:bg-zinc-700 text-zinc-200 border-white/10 shadow-xs'
-                                : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200 shadow-xs'
+                                ? 'bg-zinc-800/90  text-zinc-200 border-white/10 shadow-xs'
+                                : 'bg-zinc-100  text-zinc-700 border-zinc-200 shadow-xs'
                             }`}
                           >
                             <ReceiptText className="w-3 h-3 text-orange-500" />
@@ -1932,8 +1932,8 @@ export default function CustomerMobileApp({
                             onClick={() => toggleOrderExpanded(order.id || idx)}
                             className={`w-full my-1.5 px-3 py-1.5 sm:py-2 rounded-xl flex items-center justify-between text-xs active:scale-[0.99] transition-transform cursor-pointer ${
                               isDark 
-                                ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5' 
-                                : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200/80'
+                                ? 'bg-white/5  text-zinc-300 border border-white/5' 
+                                : 'bg-zinc-50  text-zinc-700 border border-zinc-200/80'
                             }`}
                           >
                             <span className="flex items-center gap-1.5 min-w-0 pr-1">
@@ -2034,7 +2034,7 @@ export default function CustomerMobileApp({
                                 <button
                                   type="button"
                                   onClick={() => switchView('add-review')}
-                                  className="px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 border border-amber-500/25 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                                  className="px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl bg-amber-500/10 text-amber-500 font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 border border-amber-500/25 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                                 >
                                   <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400 shrink-0" />
                                   <span>Add Review</span>
@@ -2045,7 +2045,7 @@ export default function CustomerMobileApp({
                               <button
                                 type="button"
                                 onClick={() => handleReorderOrder(order)}
-                                className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap"
+                                className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap"
                               >
                                 <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5] shrink-0" />
                                 <span>Reorder</span>
@@ -2076,7 +2076,7 @@ export default function CustomerMobileApp({
               tabIndex={0}
               onClick={() => switchView(previousView && previousView !== 'add-review' ? previousView : 'orders')}
               className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
-                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+                isDark ? 'bg-[#141418]  border-white/10' : 'bg-white  border-zinc-200 shadow-2xs'
               }`}
             >
               <div
@@ -2147,7 +2147,7 @@ export default function CustomerMobileApp({
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
                   <button
                     onClick={() => switchView('home')}
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
                   >
                     Browse Menu
                   </button>
@@ -2155,8 +2155,8 @@ export default function CustomerMobileApp({
                     onClick={() => switchView('orders')}
                     className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
                       isDark 
-                        ? 'bg-zinc-800 border-white/10 text-zinc-300 hover:text-white' 
-                        : 'bg-zinc-100 border-zinc-200 text-zinc-700 hover:bg-zinc-200'
+                        ? 'bg-zinc-800 border-white/10 text-zinc-300 ' 
+                        : 'bg-zinc-100 border-zinc-200 text-zinc-700 '
                     }`}
                   >
                     View Past Orders
@@ -2258,7 +2258,7 @@ export default function CustomerMobileApp({
                                 key={starNum}
                                 type="button"
                                 onClick={() => setOrderRating(order.id, starNum)}
-                                className="p-1 sm:p-1.5 rounded-xl hover:bg-amber-500/10 active:scale-90 transition-transform cursor-pointer"
+                                className="p-1 sm:p-1.5 rounded-xl active:scale-90 transition-transform cursor-pointer"
                                 aria-label={`Rate ${starNum} stars`}
                               >
                                 <Star
@@ -2299,7 +2299,7 @@ export default function CustomerMobileApp({
                         <button
                           type="button"
                           onClick={() => handleInitiateReviewSubmit(order)}
-                          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all cursor-pointer"
+                          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all cursor-pointer"
                         >
                           <Send className="w-3.5 h-3.5" />
                           <span>Submit Review</span>
@@ -2329,7 +2329,7 @@ export default function CustomerMobileApp({
                 setIsCartOpen(true);
               }}
               className={`rounded-2xl p-4 border flex items-center justify-between cursor-pointer select-none active:scale-[0.99] active:opacity-85 transition-all ${
-                isDark ? 'bg-[#141418] hover:bg-zinc-800/80 border-white/10' : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-2xs'
+                isDark ? 'bg-[#141418]  border-white/10' : 'bg-white  border-zinc-200 shadow-2xs'
               }`}
             >
               <div
@@ -2480,8 +2480,8 @@ export default function CustomerMobileApp({
                       checkoutForm.paymentMethod === 'Cash on Delivery'
                         ? 'bg-orange-600 text-white border-orange-500 shadow-xs'
                         : isDark
-                          ? 'bg-black/40 border-white/10 text-zinc-300 hover:bg-white/5'
-                          : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
+                          ? 'bg-black/40 border-white/10 text-zinc-300 '
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-700 '
                     }`}
                   >
                     <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
@@ -2501,8 +2501,8 @@ export default function CustomerMobileApp({
                       checkoutForm.paymentMethod === 'Easypaisa'
                         ? 'bg-orange-600 text-white border-orange-500 shadow-xs'
                         : isDark
-                          ? 'bg-black/40 border-white/10 text-zinc-300 hover:bg-white/5'
-                          : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
+                          ? 'bg-black/40 border-white/10 text-zinc-300 '
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-700 '
                     }`}
                   >
                     <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
@@ -2544,7 +2544,7 @@ export default function CustomerMobileApp({
                 <button
                   type="submit"
                   disabled={checkoutSubmitting}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
                   <span>{checkoutSubmitting ? 'Placing Order...' : 'Confirm & Place Order'}</span>
@@ -2582,7 +2582,7 @@ export default function CustomerMobileApp({
             )}
 
             <div className="relative flex items-center justify-center">
-              <ShoppingBag className="w-6 h-6 text-white drop-shadow-sm group-hover:scale-105 transition-transform" strokeWidth={2.3} />
+              <ShoppingBag className="w-6 h-6 text-white drop-shadow-sm transition-transform" strokeWidth={2.3} />
               
               {/* Badge count */}
               {totalItems > 0 && (
@@ -2643,7 +2643,7 @@ export default function CustomerMobileApp({
                 <button
                   onClick={() => setMobileMenuOpen(false)}
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer active:scale-90 ${
-                    isDark ? 'bg-white/10 text-zinc-400 hover:text-white' : 'bg-zinc-100 text-zinc-600 hover:text-zinc-900'
+                    isDark ? 'bg-white/10 text-zinc-400 ' : 'bg-zinc-100 text-zinc-600 '
                   }`}
                 >
                   <X className="w-4 h-4" />
@@ -2660,7 +2660,7 @@ export default function CustomerMobileApp({
                   className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'home'
                       ? 'bg-orange-600 text-white shadow-sm'
-                      : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
+                      : isDark ? 'bg-white/5  text-white' : 'bg-zinc-100  text-zinc-900'
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
@@ -2698,7 +2698,7 @@ export default function CustomerMobileApp({
                   className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'category'
                       ? 'bg-orange-600 text-white shadow-sm'
-                      : isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
+                      : isDark ? 'bg-white/5  text-white' : 'bg-zinc-100  text-zinc-900'
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
@@ -2718,8 +2718,8 @@ export default function CustomerMobileApp({
                     currentView === 'orders'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
-                        ? 'bg-white/5 hover:bg-white/10 text-white border-white/5' 
-                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200'
+                        ? 'bg-white/5  text-white border-white/5' 
+                        : 'bg-zinc-100  text-zinc-900 border-zinc-200'
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
@@ -2746,8 +2746,8 @@ export default function CustomerMobileApp({
                     currentView === 'add-review'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
-                        ? 'bg-white/5 hover:bg-white/10 text-white border-white/5' 
-                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200'
+                        ? 'bg-white/5  text-white border-white/5' 
+                        : 'bg-zinc-100  text-zinc-900 border-zinc-200'
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
@@ -2773,7 +2773,7 @@ export default function CustomerMobileApp({
                 href="https://wa.me/923095369472"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-98 transition-transform cursor-pointer"
+                className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-98 transition-transform cursor-pointer"
               >
                 <WhatsAppIcon className="w-4 h-4 fill-white" />
                 <span>WhatsApp Order</span>
@@ -2782,8 +2782,8 @@ export default function CustomerMobileApp({
                 href="tel:03095369472"
                 className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all border shadow-xs ${
                   isDark
-                    ? 'bg-zinc-800/90 hover:bg-zinc-700 text-white border-zinc-700/80 shadow-black/40'
-                    : 'bg-white hover:bg-zinc-50 text-zinc-900 border-zinc-300/90 shadow-zinc-200'
+                    ? 'bg-zinc-800/90  text-white border-zinc-700/80 shadow-black/40'
+                    : 'bg-white  text-zinc-900 border-zinc-300/90 shadow-zinc-200'
                 }`}
               >
                 <Phone className="w-4 h-4 text-orange-600 stroke-[2.2]" />
@@ -2826,8 +2826,8 @@ export default function CustomerMobileApp({
                     onClick={handleCustomerLogout}
                     className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold border transition-colors cursor-pointer active:scale-95 flex-shrink-0 ${
                       isDark 
-                        ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' 
-                        : 'border-red-200 text-red-600 hover:bg-red-50'
+                        ? 'border-red-500/30 text-red-400 ' 
+                        : 'border-red-200 text-red-600 '
                     }`}
                     title="Sign Out"
                   >
@@ -2841,8 +2841,8 @@ export default function CustomerMobileApp({
                   disabled={googleLoading}
                   className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer ${
                     isDark 
-                      ? 'bg-white hover:bg-zinc-100 text-zinc-900' 
-                      : 'bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-300'
+                      ? 'bg-white  text-zinc-900' 
+                      : 'bg-white  text-zinc-800 border border-zinc-300'
                   }`}
                 >
                   <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
@@ -2890,7 +2890,7 @@ export default function CustomerMobileApp({
                     className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
                       !isDark 
                         ? 'bg-amber-400/20 text-amber-500 shadow-2xs scale-105' 
-                        : 'text-zinc-500/50 hover:text-zinc-400 hover:bg-white/5'
+                        : 'text-zinc-500/50  '
                     }`}
                     title="Light Mode"
                     aria-label="Light Mode"
@@ -2926,7 +2926,7 @@ export default function CustomerMobileApp({
                     className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
                       isDark 
                         ? 'bg-amber-400/15 text-amber-300 shadow-2xs scale-105' 
-                        : 'text-zinc-400/50 hover:text-zinc-600 hover:bg-black/5'
+                        : 'text-zinc-400/50  '
                     }`}
                     title="Dark Mode"
                     aria-label="Dark Mode"
@@ -2977,7 +2977,7 @@ export default function CustomerMobileApp({
               <button
                 onClick={() => setShowGoogleSetupModal(false)}
                 className={`w-7 h-7 rounded-full flex items-center justify-center cursor-pointer ${
-                  isDark ? 'bg-white/10 text-zinc-300 hover:text-white' : 'bg-zinc-100 text-zinc-600 hover:text-black'
+                  isDark ? 'bg-white/10 text-zinc-300 ' : 'bg-zinc-100 text-zinc-600 '
                 }`}
               >
                 <X className="w-4 h-4" />
@@ -3005,7 +3005,7 @@ export default function CustomerMobileApp({
               <button
                 type="button"
                 onClick={handleSetDemoUser}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Try Demo Account Login</span>
@@ -3015,7 +3015,7 @@ export default function CustomerMobileApp({
                 type="button"
                 onClick={() => setShowGoogleSetupModal(false)}
                 className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border cursor-pointer active:scale-95 transition-transform ${
-                  isDark ? 'border-white/10 hover:bg-white/5 text-zinc-400' : 'border-zinc-200 hover:bg-zinc-100 text-zinc-600'
+                  isDark ? 'border-white/10  text-zinc-400' : 'border-zinc-200  text-zinc-600'
                 }`}
               >
                 Close
@@ -3046,7 +3046,7 @@ export default function CustomerMobileApp({
               onClick={() => !checkoutSubmitting && setShowConfirmModal(false)}
               disabled={checkoutSubmitting}
               className={`absolute top-4 right-4 p-2 rounded-xl transition-colors disabled:opacity-40 cursor-pointer ${
-                isDark ? 'text-zinc-400 hover:text-white hover:bg-white/10' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+                isDark ? 'text-zinc-400  ' : 'text-zinc-500  '
               }`}
               aria-label="Close confirmation modal"
             >
@@ -3190,7 +3190,7 @@ export default function CustomerMobileApp({
                 type="button"
                 onClick={executeMobileOnlineOrder}
                 disabled={checkoutSubmitting}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 active:scale-95 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 <span>{checkoutSubmitting ? 'Placing Order...' : 'Yes, Confirm & Place Order'}</span>
@@ -3202,8 +3202,8 @@ export default function CustomerMobileApp({
                 disabled={checkoutSubmitting}
                 className={`w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer ${
                   isDark 
-                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white' 
-                    : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-900'
+                    ? 'bg-zinc-800  text-zinc-300 ' 
+                    : 'bg-zinc-100  text-zinc-700 '
                 }`}
               >
                 Change / Edit Details
@@ -3241,7 +3241,7 @@ export default function CustomerMobileApp({
               onClick={() => !submittingReview && setReviewToConfirm(null)}
               disabled={submittingReview}
               className={`absolute top-4 right-4 p-2 rounded-xl transition-colors disabled:opacity-40 cursor-pointer ${
-                isDark ? 'text-zinc-400 hover:text-white hover:bg-white/10' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+                isDark ? 'text-zinc-400  ' : 'text-zinc-500  '
               }`}
               aria-label="Close modal"
             >
@@ -3317,8 +3317,8 @@ export default function CustomerMobileApp({
                 disabled={submittingReview}
                 className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
                   isDark 
-                    ? 'bg-zinc-800 border-white/10 text-zinc-300 hover:text-white' 
-                    : 'bg-zinc-100 border-zinc-200 text-zinc-700 hover:bg-zinc-200'
+                    ? 'bg-zinc-800 border-white/10 text-zinc-300 ' 
+                    : 'bg-zinc-100 border-zinc-200 text-zinc-700 '
                 }`}
               >
                 Cancel
@@ -3327,7 +3327,7 @@ export default function CustomerMobileApp({
                 type="button"
                 onClick={handleConfirmReviewSubmit}
                 disabled={submittingReview}
-                className="flex-1 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                className="flex-1 py-3 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
               >
                 {submittingReview ? (
                   <span className="flex items-center gap-1.5">
@@ -3395,7 +3395,7 @@ export default function CustomerMobileApp({
             <button
               type="button"
               onClick={() => setReviewSuccessData(null)}
-              className="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
+              className="w-full py-3 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
             >
               Done
             </button>
