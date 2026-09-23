@@ -166,12 +166,16 @@ export default function BestSellersSection({ products = [], categories = [], set
             return (
               <div
                 key={product.id}
-                className={`bg-white rounded-xl sm:rounded-2xl border border-zinc-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group ${
+                className={`${
+                  isDark
+                    ? 'bg-[#141419] border-white/10 text-white shadow-card-dark hover:border-orange-500/40'
+                    : 'bg-white border-zinc-200/80 text-zinc-900 shadow-sm hover:shadow-xl'
+                } rounded-xl sm:rounded-2xl border overflow-hidden transition-all duration-300 flex flex-col justify-between group ${
                   isSoldOut ? 'opacity-90' : ''
                 }`}
               >
                 {/* Card Media Top */}
-                <div className="relative w-full aspect-[4/3] bg-zinc-100 overflow-hidden">
+                <div className={`relative w-full aspect-[4/3] ${isDark ? 'bg-zinc-900' : 'bg-zinc-100'} overflow-hidden`}>
                   <img
                     src={product.image}
                     alt={product.name}
@@ -208,22 +212,22 @@ export default function BestSellersSection({ products = [], categories = [], set
                   <div>
                     {/* Name & Price */}
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-0.5 sm:gap-2 mb-1 sm:mb-1.5">
-                      <h4 className="font-bold text-xs sm:text-base text-zinc-900 line-clamp-1 sm:line-clamp-2 leading-tight">
+                      <h4 className={`font-bold text-xs sm:text-base ${isDark ? 'text-white' : 'text-zinc-900'} line-clamp-1 sm:line-clamp-2 leading-tight`}>
                         {product.name}
                       </h4>
-                      <span className="font-bold text-xs sm:text-base text-red-600 flex-shrink-0 tracking-tight">
+                      <span className="font-bold text-xs sm:text-base text-red-500 sm:text-red-600 flex-shrink-0 tracking-tight">
                         Rs. {formatPrice(activePrice)}
                       </span>
                     </div>
 
                     {/* Description */}
-                    <p className="text-[#78716c] text-[10px] sm:text-xs line-clamp-2 leading-tight sm:leading-relaxed mb-2 sm:mb-3">
+                    <p className={`${isDark ? 'text-zinc-400' : 'text-[#78716c]'} text-[10px] sm:text-xs line-clamp-2 leading-tight sm:leading-relaxed mb-2 sm:mb-3`}>
                       {product.description}
                     </p>
 
                     {/* Sizes Selector Capsule Track */}
                     {product.sizes && product.sizes.length > 0 && (
-                      <div className="bg-[#f5f1eb] rounded-full p-0.5 sm:p-1 flex items-center justify-between gap-0.5 sm:gap-1 mb-2.5 sm:mb-4 border border-[#eee8df]/80">
+                      <div className={`${isDark ? 'bg-zinc-800/80 border-zinc-700/80' : 'bg-[#f5f1eb] border-[#eee8df]/80'} rounded-full p-0.5 sm:p-1 flex items-center justify-between gap-0.5 sm:gap-1 mb-2.5 sm:mb-4 border`}>
                         {product.sizes.map((s) => {
                           const isSizeActive = selectedSize?.label === s.label;
                           return (
@@ -235,7 +239,7 @@ export default function BestSellersSection({ products = [], categories = [], set
                               className={`flex-1 py-0.5 sm:py-1 px-1 sm:px-3 rounded-full text-[9px] sm:text-xs font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
                                 isSizeActive
                                   ? 'bg-gradient-to-r from-[#d93409] to-[#ea580c] text-white shadow-sm'
-                                  : 'text-[#635d56] hover:text-zinc-900 bg-transparent'
+                                  : isDark ? 'text-zinc-400 hover:text-white bg-transparent' : 'text-[#635d56] hover:text-zinc-900 bg-transparent'
                               } ${isSoldOut ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
                               {s.label}
@@ -247,18 +251,20 @@ export default function BestSellersSection({ products = [], categories = [], set
                   </div>
 
                   {/* Quantity & Actions */}
-                  <div className="space-y-1.5 sm:space-y-2 pt-1.5 sm:pt-2 border-t border-zinc-100">
+                  <div className={`space-y-1.5 sm:space-y-2 pt-1.5 sm:pt-2 border-t ${isDark ? 'border-zinc-800/80' : 'border-zinc-100'}`}>
                     {isSoldOut ? (
                       <div className="space-y-1 sm:space-y-1.5">
                         <button
                           type="button"
                           disabled
-                          className="w-full h-8 sm:h-10 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-400 text-[10px] sm:text-xs font-bold cursor-not-allowed uppercase tracking-wider"
+                          className={`w-full h-8 sm:h-10 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl ${
+                            isDark ? 'bg-zinc-800/60 border-zinc-700 text-zinc-500' : 'bg-zinc-100 border border-zinc-200 text-zinc-400'
+                          } text-[10px] sm:text-xs font-bold cursor-not-allowed uppercase tracking-wider`}
                         >
-                          <Ban className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400 shrink-0" />
+                          <Ban className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-500 shrink-0" />
                           <span className="truncate">Sold Out</span>
                         </button>
-                        <p className="text-[9px] sm:text-[11px] text-center text-zinc-400 font-medium italic truncate">
+                        <p className={`text-[9px] sm:text-[11px] text-center ${isDark ? 'text-zinc-500' : 'text-zinc-400'} font-medium italic truncate`}>
                           Unavailable today
                         </p>
                       </div>
@@ -266,22 +272,22 @@ export default function BestSellersSection({ products = [], categories = [], set
                       <>
                         <div className="flex items-center gap-1 sm:gap-2">
                           {/* Sleek Stepper */}
-                          <div className="flex items-center h-8 sm:h-10 rounded-lg sm:rounded-xl bg-zinc-100/90 border border-zinc-200/80 p-0.5 shadow-2xs">
+                          <div className={`flex items-center h-8 sm:h-10 rounded-lg sm:rounded-xl ${isDark ? 'bg-zinc-800/90 border-zinc-700/80' : 'bg-zinc-100/90 border-zinc-200/80'} border p-0.5 shadow-2xs`}>
                             <button
                               type="button"
                               onClick={() => setQty(product.id, -1)}
-                              className="w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                              className={`w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Decrease quantity"
                             >
                               <Minus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
                             </button>
-                            <span className="w-5 sm:w-7 text-center font-bold text-[10px] sm:text-sm text-zinc-900">
+                            <span className={`w-5 sm:w-7 text-center font-bold text-[10px] sm:text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                               {qty}
                             </span>
                             <button
                               type="button"
                               onClick={() => setQty(product.id, 1)}
-                              className="w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                              className={`w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Increase quantity"
                             >
                               <Plus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
@@ -295,7 +301,9 @@ export default function BestSellersSection({ products = [], categories = [], set
                             className={`flex-1 h-8 sm:h-10 px-1 sm:px-3 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl active:scale-[0.98] font-bold text-[10px] sm:text-sm transition-all shadow-xs cursor-pointer ${
                               isAdded
                                 ? 'bg-emerald-600 text-white'
-                                : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                                : isDark
+                                  ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
+                                  : 'bg-zinc-900 hover:bg-zinc-800 text-white'
                             }`}
                           >
                             <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-400 shrink-0" />

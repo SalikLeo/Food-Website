@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/formatters';
 
 export default function MenuSection({ categories = [], products = [] }) {
-  const { addToCart } = useCart();
+  const { addToCart, isDark } = useCart();
   const [selectedCategory, setSelectedCategory] = useState('pizza');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSizes, setSelectedSizes] = useState({});
@@ -141,20 +141,20 @@ export default function MenuSection({ categories = [], products = [] }) {
   };
 
   return (
-    <section id="menu" className="py-20 bg-cream">
+    <section id="menu" className={`py-20 ${isDark ? 'bg-[#0d0d10] border-t border-zinc-800/80' : 'bg-cream'} transition-colors duration-300`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-600 text-xs font-bold tracking-widest uppercase mb-3">
-              <Tag className="w-3.5 h-3.5 fill-orange-600" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-500 text-xs font-bold tracking-widest uppercase mb-3">
+              <Tag className="w-3.5 h-3.5 fill-orange-500" />
               <span>OUR MENU</span>
             </div>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-display uppercase tracking-tight text-zinc-900 leading-tight">
-              PICK A CATEGORY, <span className="text-orange-600">ORDER IN SECONDS</span>
+            <h2 className={`text-4xl sm:text-5xl lg:text-6xl font-display uppercase tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'} leading-tight`}>
+              PICK A CATEGORY, <span className="text-orange-500 sm:text-orange-600">ORDER IN SECONDS</span>
             </h2>
-            <p className="text-zinc-600 text-sm sm:text-base mt-2 max-w-xl">
+            <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-sm sm:text-base mt-2 max-w-xl`}>
               Every item and price straight from our menu card. Tap a card for details, sizes and customization.
             </p>
           </div>
@@ -167,13 +167,19 @@ export default function MenuSection({ categories = [], products = [] }) {
               placeholder="Search menu items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-10 py-3 rounded-full bg-white border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 shadow-sm transition-all"
+              className={`w-full pl-11 pr-10 py-3 rounded-full text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 shadow-sm transition-all ${
+                isDark
+                  ? 'bg-[#141419] border border-zinc-700/80 text-white'
+                  : 'bg-white border border-zinc-200 text-zinc-900'
+              }`}
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors cursor-pointer"
+                className={`absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 ${
+                  isDark ? 'hover:text-white hover:bg-zinc-800' : 'hover:text-zinc-700 hover:bg-zinc-100'
+                } rounded-full transition-colors cursor-pointer`}
                 aria-label="Clear search"
                 title="Clear search"
               >
@@ -202,16 +208,22 @@ export default function MenuSection({ categories = [], products = [] }) {
                   type="button"
                   onDragStart={(e) => e.preventDefault()}
                   onClick={() => handleCategorySelect(cat.id)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all select-none ${
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all select-none cursor-pointer ${
                     isActive
-                      ? 'bg-zinc-900 text-white shadow-md scale-105'
-                      : 'bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200/80'
+                      ? isDark
+                        ? 'bg-orange-600 text-white shadow-md scale-105'
+                        : 'bg-zinc-900 text-white shadow-md scale-105'
+                      : isDark
+                        ? 'bg-[#141419] text-zinc-300 hover:bg-zinc-800 border border-zinc-700/60'
+                        : 'bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200/80'
                   }`}
                 >
                   <span>{cat.label}</span>
                   <span
                     className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                      isActive ? 'bg-orange-500 text-white' : 'bg-zinc-100 text-zinc-500'
+                      isActive
+                        ? isDark ? 'bg-zinc-950 text-white' : 'bg-orange-500 text-white'
+                        : isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-100 text-zinc-500'
                     }`}
                   >
                     {itemCount}
@@ -225,10 +237,10 @@ export default function MenuSection({ categories = [], products = [] }) {
         {/* Category Active Heading */}
         {!searchQuery && activeCat && (
           <div className="flex items-baseline gap-3 mb-8">
-            <h3 className="font-display text-3xl uppercase tracking-wide text-zinc-900">
+            <h3 className={`font-display text-3xl uppercase tracking-wide ${isDark ? 'text-white' : 'text-zinc-900'}`}>
               {activeCat.label}
             </h3>
-            <span className="text-zinc-500 text-xs sm:text-sm italic">
+            <span className={`${isDark ? 'text-zinc-400' : 'text-zinc-500'} text-xs sm:text-sm italic`}>
               {activeCat.blurb}
             </span>
           </div>
@@ -236,8 +248,8 @@ export default function MenuSection({ categories = [], products = [] }) {
 
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
-          <div className="py-16 text-center bg-white rounded-2xl border border-zinc-200">
-            <p className="text-zinc-500 font-medium">No menu items found matching your search.</p>
+          <div className={`py-16 text-center ${isDark ? 'bg-[#141419] border-zinc-800 text-zinc-400' : 'bg-white border-zinc-200 text-zinc-500'} rounded-2xl border`}>
+            <p className="font-medium">No menu items found matching your search.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6">
@@ -250,12 +262,16 @@ export default function MenuSection({ categories = [], products = [] }) {
               return (
                 <div
                   key={product.id}
-                  className={`bg-white rounded-xl sm:rounded-2xl border border-zinc-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group ${
+                  className={`${
+                    isDark
+                      ? 'bg-[#141419] border-white/10 text-white shadow-card-dark hover:border-orange-500/40'
+                      : 'bg-white border-zinc-200/80 text-zinc-900 shadow-sm hover:shadow-xl'
+                  } rounded-xl sm:rounded-2xl border overflow-hidden transition-all duration-300 flex flex-col justify-between group ${
                     isSoldOut ? 'opacity-90' : ''
                   }`}
                 >
                   {/* Card Media Top */}
-                  <div className="relative w-full aspect-[4/3] bg-zinc-100 overflow-hidden">
+                  <div className={`relative w-full aspect-[4/3] ${isDark ? 'bg-zinc-900' : 'bg-zinc-100'} overflow-hidden`}>
                     <img
                       src={product.image}
                       alt={product.name}
@@ -290,22 +306,22 @@ export default function MenuSection({ categories = [], products = [] }) {
                     <div>
                       {/* Name & Price */}
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-0.5 sm:gap-2 mb-1 sm:mb-1.5">
-                        <h4 className="font-bold text-xs sm:text-base text-zinc-900 line-clamp-1 sm:line-clamp-2 leading-tight">
+                        <h4 className={`font-bold text-xs sm:text-base ${isDark ? 'text-white' : 'text-zinc-900'} line-clamp-1 sm:line-clamp-2 leading-tight`}>
                           {product.name}
                         </h4>
-                        <span className="font-bold text-xs sm:text-base text-red-600 flex-shrink-0 tracking-tight">
+                        <span className="font-bold text-xs sm:text-base text-red-500 sm:text-red-600 flex-shrink-0 tracking-tight">
                           Rs. {formatPrice(activePrice)}
                         </span>
                       </div>
 
                       {/* Description */}
-                      <p className="text-[#78716c] text-[10px] sm:text-xs line-clamp-2 leading-tight sm:leading-relaxed mb-2 sm:mb-3">
+                      <p className={`${isDark ? 'text-zinc-400' : 'text-[#78716c]'} text-[10px] sm:text-xs line-clamp-2 leading-tight sm:leading-relaxed mb-2 sm:mb-3`}>
                         {product.description}
                       </p>
 
                       {/* Sizes Selector Capsule Track */}
                       {product.sizes && product.sizes.length > 0 && (
-                        <div className="bg-[#f5f1eb] rounded-full p-0.5 sm:p-1 flex items-center justify-between gap-0.5 sm:gap-1 mb-2.5 sm:mb-4 border border-[#eee8df]/80">
+                        <div className={`${isDark ? 'bg-zinc-800/80 border-zinc-700/80' : 'bg-[#f5f1eb] border-[#eee8df]/80'} rounded-full p-0.5 sm:p-1 flex items-center justify-between gap-0.5 sm:gap-1 mb-2.5 sm:mb-4 border`}>
                           {product.sizes.map((s) => {
                             const isSizeActive = selectedSize?.label === s.label;
                             return (
@@ -317,7 +333,7 @@ export default function MenuSection({ categories = [], products = [] }) {
                                 className={`flex-1 py-0.5 sm:py-1 px-1 sm:px-3 rounded-full text-[9px] sm:text-xs font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
                                   isSizeActive
                                     ? 'bg-gradient-to-r from-[#d93409] to-[#ea580c] text-white shadow-sm'
-                                    : 'text-[#635d56] hover:text-zinc-900 bg-transparent'
+                                    : isDark ? 'text-zinc-400 hover:text-white bg-transparent' : 'text-[#635d56] hover:text-zinc-900 bg-transparent'
                                 } ${isSoldOut ? 'opacity-70 cursor-not-allowed' : ''}`}
                               >
                                 {s.label}
@@ -329,18 +345,20 @@ export default function MenuSection({ categories = [], products = [] }) {
                     </div>
 
                     {/* Quantity & Actions */}
-                    <div className="space-y-1.5 sm:space-y-2 pt-1.5 sm:pt-2 border-t border-zinc-100">
+                    <div className={`space-y-1.5 sm:space-y-2 pt-1.5 sm:pt-2 border-t ${isDark ? 'border-zinc-800/80' : 'border-zinc-100'}`}>
                       {isSoldOut ? (
                         <div className="space-y-1 sm:space-y-1.5">
                           <button
                             type="button"
                             disabled
-                            className="w-full h-8 sm:h-10 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-400 text-[10px] sm:text-xs font-bold cursor-not-allowed uppercase tracking-wider"
+                            className={`w-full h-8 sm:h-10 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl ${
+                              isDark ? 'bg-zinc-800/60 border-zinc-700 text-zinc-500' : 'bg-zinc-100 border border-zinc-200 text-zinc-400'
+                            } text-[10px] sm:text-xs font-bold cursor-not-allowed uppercase tracking-wider`}
                           >
-                            <Ban className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400 shrink-0" />
+                            <Ban className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-500 shrink-0" />
                             <span className="truncate">Sold Out</span>
                           </button>
-                          <p className="text-[9px] sm:text-[11px] text-center text-zinc-400 font-medium italic truncate">
+                          <p className={`text-[9px] sm:text-[11px] text-center ${isDark ? 'text-zinc-500' : 'text-zinc-400'} font-medium italic truncate`}>
                             Unavailable today
                           </p>
                         </div>
@@ -348,22 +366,22 @@ export default function MenuSection({ categories = [], products = [] }) {
                         <>
                           <div className="flex items-center gap-1 sm:gap-2">
                             {/* Sleek, Modern Stepper */}
-                            <div className="flex items-center h-8 sm:h-10 rounded-lg sm:rounded-xl bg-zinc-100/90 border border-zinc-200/80 p-0.5 shadow-2xs">
+                            <div className={`flex items-center h-8 sm:h-10 rounded-lg sm:rounded-xl ${isDark ? 'bg-zinc-800/90 border-zinc-700/80' : 'bg-zinc-100/90 border-zinc-200/80'} border p-0.5 shadow-2xs`}>
                               <button
                                 type="button"
                                 onClick={() => setQty(product.id, -1)}
-                                className="w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                                className={`w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                                 aria-label="Decrease quantity"
                               >
                                 <Minus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
                               </button>
-                              <span className="w-5 sm:w-7 text-center font-bold text-[10px] sm:text-sm text-zinc-900">
+                              <span className={`w-5 sm:w-7 text-center font-bold text-[10px] sm:text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                                 {qty}
                               </span>
                               <button
                                 type="button"
                                 onClick={() => setQty(product.id, 1)}
-                                className="w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                                className={`w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                                 aria-label="Increase quantity"
                               >
                                 <Plus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
@@ -374,7 +392,11 @@ export default function MenuSection({ categories = [], products = [] }) {
                             <button
                               type="button"
                               onClick={(e) => handleAddToCart(product, e)}
-                              className="flex-1 h-8 sm:h-10 px-1 sm:px-3 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl bg-zinc-900 hover:bg-zinc-800 active:scale-[0.98] text-white font-bold text-[10px] sm:text-sm transition-all shadow-xs cursor-pointer"
+                              className={`flex-1 h-8 sm:h-10 px-1 sm:px-3 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl ${
+                                isDark
+                                  ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
+                                  : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                              } active:scale-[0.98] font-bold text-[10px] sm:text-sm transition-all shadow-xs cursor-pointer`}
                             >
                               <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-400 shrink-0" />
                               <span className="truncate">Add to Cart</span>

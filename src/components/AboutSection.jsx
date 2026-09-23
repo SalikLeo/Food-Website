@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Award, ArrowRight } from 'lucide-react';
 import { apiUrl } from '../config/api';
+import { useCart } from '../context/CartContext';
 
 export default function AboutSection({ categories = [], products = [], deals = [] }) {
+  const { isDark } = useCart();
   const [internalCategories, setInternalCategories] = useState([]);
   const [internalProducts, setInternalProducts] = useState([]);
   const [internalDeals, setInternalDeals] = useState([]);
@@ -43,13 +45,13 @@ export default function AboutSection({ categories = [], products = [], deals = [
   const dealsCount = allDeals.length > 0 ? allDeals.length : 4;
 
   return (
-    <section id="about" className="py-20 bg-cream border-t border-zinc-200">
+    <section id="about" className={`py-20 ${isDark ? 'bg-[#0d0d10] border-t border-zinc-800/80' : 'bg-cream border-t border-zinc-200'} transition-colors duration-300`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* Left Column: Image with 100% Fresh stamp */}
           <div className="lg:col-span-6 relative">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-zinc-200">
+            <div className={`relative rounded-3xl overflow-hidden shadow-2xl border ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
               <img
                 src="/assets/images/cat-pizza-BmV7hCev.jpg"
                 alt="Salik Fast Food Fresh Preparation"
@@ -73,47 +75,47 @@ export default function AboutSection({ categories = [], products = [], deals = [
           {/* Right Column: Copy & Stats */}
           <div className="lg:col-span-6 space-y-6">
             <div>
-              <span className="text-xs font-bold tracking-[0.2em] text-orange-600 uppercase">
+              <span className="text-xs font-bold tracking-[0.2em] text-orange-500 sm:text-orange-600 uppercase">
                 ABOUT US
               </span>
-              <h2 className="mt-2 text-4xl sm:text-5xl lg:text-6xl font-display uppercase tracking-tight text-zinc-900 leading-none">
-                TASTE THAT YOU <span className="text-orange-600">NEED</span>
+              <h2 className={`mt-2 text-4xl sm:text-5xl lg:text-6xl font-display uppercase tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'} leading-none`}>
+                TASTE THAT YOU <span className="text-orange-500 sm:text-orange-600">NEED</span>
               </h2>
             </div>
 
-            <p className="text-zinc-600 text-base leading-relaxed">
+            <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-base leading-relaxed`}>
               Salik Fast Food brings together freshly prepared pizzas, burgers, shawarma, sandwiches and delicious fast-food deals, made for great taste and value.
             </p>
 
-            <p className="text-zinc-600 text-sm leading-relaxed">
+            <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-sm leading-relaxed`}>
               Every order is cooked after you place it — hot dough, marinated chicken and our own sauces. From a single zinger burger to a full family deal, we keep the quality the same.
             </p>
 
             {/* 3 Metric cards */}
             <div className="grid grid-cols-3 gap-4 pt-4">
-              <div className="bg-white rounded-2xl p-4 border border-zinc-200 text-center shadow-sm">
-                <span className="font-display text-3xl sm:text-4xl text-zinc-900 block leading-none mb-1">
+              <div className={`${isDark ? 'bg-[#141419] border-white/10 text-white shadow-card-dark' : 'bg-white border-zinc-200 text-zinc-900 shadow-sm'} rounded-2xl p-4 border text-center`}>
+                <span className={`font-display text-3xl sm:text-4xl ${isDark ? 'text-white' : 'text-zinc-900'} block leading-none mb-1`}>
                   {categoriesCount}
                 </span>
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                <span className={`text-[11px] font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-500'} uppercase tracking-wider`}>
                   Categories
                 </span>
               </div>
 
-              <div className="bg-white rounded-2xl p-4 border border-zinc-200 text-center shadow-sm">
-                <span className="font-display text-3xl sm:text-4xl text-orange-600 block leading-none mb-1">
+              <div className={`${isDark ? 'bg-[#141419] border-white/10 text-white shadow-card-dark' : 'bg-white border-zinc-200 text-zinc-900 shadow-sm'} rounded-2xl p-4 border text-center`}>
+                <span className="font-display text-3xl sm:text-4xl text-orange-500 sm:text-orange-600 block leading-none mb-1">
                   {productsCount}
                 </span>
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                <span className={`text-[11px] font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-500'} uppercase tracking-wider`}>
                   Menu Items
                 </span>
               </div>
 
-              <div className="bg-white rounded-2xl p-4 border border-zinc-200 text-center shadow-sm">
+              <div className={`${isDark ? 'bg-[#141419] border-white/10 text-white shadow-card-dark' : 'bg-white border-zinc-200 text-zinc-900 shadow-sm'} rounded-2xl p-4 border text-center`}>
                 <span className="font-display text-3xl sm:text-4xl text-amber-500 block leading-none mb-1">
                   {dealsCount}
                 </span>
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                <span className={`text-[11px] font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-500'} uppercase tracking-wider`}>
                   Value Deals
                 </span>
               </div>

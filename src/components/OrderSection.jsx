@@ -34,7 +34,8 @@ export default function OrderSection() {
     setOrderModalOpen,
     isFreeDelivery,
     removeFromCart,
-    userProfile
+    userProfile,
+    isDark
   } = useCart();
 
   const [formData, setFormData] = useState(() => {
@@ -251,25 +252,25 @@ export default function OrderSection() {
   };
 
   return (
-    <section id="order" className="py-20 bg-cream border-t border-zinc-200">
+    <section id="order" className={`py-20 ${isDark ? 'bg-[#0a0a0d] border-t border-zinc-800/80' : 'bg-cream border-t border-zinc-200'} transition-colors duration-300`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Form */}
-          <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10 border border-zinc-200 shadow-sm">
+          <div className={`lg:col-span-7 ${isDark ? 'bg-[#141419] border-white/10 text-white shadow-card-dark' : 'bg-white border-zinc-200 text-zinc-900 shadow-sm'} rounded-3xl p-6 sm:p-10 border transition-all`}>
             
             <div className="mb-8">
-              <span className="text-xs font-bold tracking-[0.2em] text-orange-600 uppercase">
+              <span className="text-xs font-bold tracking-[0.2em] text-orange-500 sm:text-orange-600 uppercase">
                 CHECKOUT
               </span>
-              <h2 className="mt-1 text-4xl sm:text-5xl font-display uppercase tracking-tight text-zinc-900 leading-none">
+              <h2 className={`mt-1 text-4xl sm:text-5xl font-display uppercase tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'} leading-none`}>
                 PLACE YOUR ORDER
               </h2>
             </div>
 
             {errorMsg && (
-              <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
+              <div className={`mb-6 p-4 rounded-xl ${isDark ? 'bg-red-950/40 border-red-800/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700'} border text-xs font-semibold flex items-center gap-2`}>
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-500" />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -277,7 +278,7 @@ export default function OrderSection() {
             <form onSubmit={handleInitiatePlaceOrder} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-2">
+                  <label className={`block text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-zinc-700'} uppercase tracking-wider mb-2`}>
                     Customer Name *
                   </label>
                   <input
@@ -287,12 +288,16 @@ export default function OrderSection() {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Muhammad Ali"
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                    className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all ${
+                      isDark
+                        ? 'bg-black/40 border-zinc-700 text-white placeholder-zinc-500'
+                        : 'bg-white border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-2">
+                  <label className={`block text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-zinc-700'} uppercase tracking-wider mb-2`}>
                     Phone Number *
                   </label>
                   <input
@@ -305,13 +310,17 @@ export default function OrderSection() {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="03001234567"
-                    className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-montserrat tracking-wide transition-all"
+                    className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-montserrat tracking-wide transition-all ${
+                      isDark
+                        ? 'bg-black/40 border-zinc-700 text-white placeholder-zinc-500'
+                        : 'bg-white border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                    }`}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-2">
+                <label className={`block text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-zinc-700'} uppercase tracking-wider mb-2`}>
                   Delivery Address *
                 </label>
                 <input
@@ -321,12 +330,16 @@ export default function OrderSection() {
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="House, street, area, nearest landmark"
-                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                  className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all ${
+                    isDark
+                      ? 'bg-black/40 border-zinc-700 text-white placeholder-zinc-500'
+                      : 'bg-white border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-2">
+                <label className={`block text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-zinc-700'} uppercase tracking-wider mb-2`}>
                   Order Notes (Optional)
                 </label>
                 <input
@@ -335,19 +348,27 @@ export default function OrderSection() {
                   value={formData.notes}
                   onChange={handleChange}
                   placeholder="Extra spicy, no onion, landmark for delivery..."
-                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                  className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all ${
+                    isDark
+                      ? 'bg-black/40 border-zinc-700 text-white placeholder-zinc-500'
+                      : 'bg-white border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-2">
+                <label className={`block text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-zinc-700'} uppercase tracking-wider mb-2`}>
                   Payment Method
                 </label>
                 <select
                   name="paymentMethod"
                   value={formData.paymentMethod}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-white"
+                  className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all ${
+                    isDark
+                      ? 'bg-[#18181f] border-zinc-700 text-white'
+                      : 'bg-white border-zinc-200 text-zinc-900'
+                  }`}
                 >
                   <option value="Cash on Delivery">Cash on Delivery</option>
                   <option value="Easypaisa">Easypaisa</option>
@@ -370,15 +391,15 @@ export default function OrderSection() {
           </div>
 
           {/* Right Column: ORDER SUMMARY */}
-          <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 border border-zinc-200 shadow-sm">
-            <h3 className="font-display text-2xl tracking-wide uppercase text-zinc-900 pb-4 border-b border-zinc-200">
+          <div className={`lg:col-span-5 ${isDark ? 'bg-[#141419] border-white/10 text-white shadow-card-dark' : 'bg-white border-zinc-200 text-zinc-900 shadow-sm'} rounded-3xl p-6 sm:p-8 border transition-all`}>
+            <h3 className={`font-display text-2xl tracking-wide uppercase ${isDark ? 'text-white border-zinc-800' : 'text-zinc-900 border-zinc-200'} pb-4 border-b`}>
               Order Summary
             </h3>
 
             {cartItems.length === 0 ? (
-              <div className="py-10 text-center text-zinc-400 text-xs space-y-3.5">
-                <ShoppingBag className="w-10 h-10 mx-auto text-zinc-300" />
-                <p className="text-zinc-500">No items selected yet — add items from the menu and they'll appear here.</p>
+              <div className={`py-10 text-center ${isDark ? 'text-zinc-500' : 'text-zinc-400'} text-xs space-y-3.5`}>
+                <ShoppingBag className={`w-10 h-10 mx-auto ${isDark ? 'text-zinc-700' : 'text-zinc-300'}`} />
+                <p className={isDark ? 'text-zinc-400' : 'text-zinc-500'}>No items selected yet — add items from the menu and they'll appear here.</p>
                 <div className="flex items-center justify-center gap-2 pt-1">
                   <a
                     href="#menu"
@@ -389,7 +410,11 @@ export default function OrderSection() {
                         el.scrollIntoView({ behavior: 'smooth' });
                       }
                     }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 font-bold text-xs uppercase tracking-wider transition-all active:scale-95"
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full ${
+                      isDark
+                        ? 'bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 border border-orange-500/30'
+                        : 'bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200'
+                    } font-bold text-xs uppercase tracking-wider transition-all active:scale-95`}
                   >
                     <Utensils className="w-3.5 h-3.5" />
                     <span>Explore Menu</span>
@@ -403,7 +428,11 @@ export default function OrderSection() {
                         el.scrollIntoView({ behavior: 'smooth' });
                       }
                     }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-xs uppercase tracking-wider transition-all active:scale-95"
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full ${
+                      isDark
+                        ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30'
+                        : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
+                    } font-bold text-xs uppercase tracking-wider transition-all active:scale-95`}
                   >
                     <Flame className="w-3.5 h-3.5" />
                     <span>View Deals</span>
@@ -411,14 +440,16 @@ export default function OrderSection() {
                 </div>
               </div>
             ) : (
-              <div className="py-5 space-y-3 max-h-80 overflow-y-auto pr-1 divide-y divide-zinc-100">
+              <div className={`py-5 space-y-3 max-h-80 overflow-y-auto pr-1 divide-y ${isDark ? 'divide-zinc-800/80' : 'divide-zinc-100'}`}>
                 {cartItems.map((item) => (
                   <div key={item.cartKey} className="pt-3 first:pt-0 flex items-start justify-between text-xs group">
                     <div className="flex items-start gap-2 min-w-0 pr-2">
                       <button
                         type="button"
                         onClick={() => removeFromCart(item.cartKey)}
-                        className="p-1 -ml-1 mt-0.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all active:scale-90 flex-shrink-0 cursor-pointer"
+                        className={`p-1 -ml-1 mt-0.5 ${
+                          isDark ? 'text-zinc-500 hover:text-red-400 hover:bg-zinc-800' : 'text-zinc-400 hover:text-red-600 hover:bg-red-50'
+                        } rounded-md transition-all active:scale-90 flex-shrink-0 cursor-pointer`}
                         title="Remove item"
                         aria-label={`Remove ${item.name}`}
                       >
@@ -426,21 +457,21 @@ export default function OrderSection() {
                       </button>
                       <div className="min-w-0">
                         <div>
-                          <span className="font-bold text-zinc-800">
+                          <span className={`font-bold ${isDark ? 'text-white' : 'text-zinc-800'}`}>
                             {item.quantity}× {item.name}
                           </span>
                           {item.size && (
-                            <span className="text-orange-600 ml-1 font-medium">({item.size})</span>
+                            <span className="text-orange-500 ml-1 font-medium">({item.size})</span>
                           )}
                         </div>
                         {Boolean(item.description || item.includes) && (
-                          <p className="text-[10px] text-zinc-500 mt-0.5 leading-relaxed break-words">
+                          <p className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mt-0.5 leading-relaxed break-words`}>
                             {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
                           </p>
                         )}
                       </div>
                     </div>
-                    <span className="font-bold text-orange-600 font-sans flex-shrink-0 mt-0.5">
+                    <span className="font-bold text-orange-500 sm:text-orange-600 font-sans flex-shrink-0 mt-0.5">
                       Rs. {formatPrice(item.price * item.quantity)}
                     </span>
                   </div>
@@ -448,24 +479,24 @@ export default function OrderSection() {
               </div>
             )}
 
-            <div className="pt-4 border-t border-zinc-200 space-y-2 text-xs text-zinc-500">
+            <div className={`pt-4 border-t ${isDark ? 'border-zinc-800 text-zinc-400' : 'border-zinc-200 text-zinc-500'} space-y-2 text-xs`}>
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="text-zinc-800 font-semibold">
+                <span className={`${isDark ? 'text-zinc-200' : 'text-zinc-800'} font-semibold`}>
                   Rs. {formatPrice(subtotal)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery fee</span>
-                <span className={`font-semibold ${isFreeDelivery ? 'text-emerald-600 font-bold' : 'text-zinc-800'}`}>
+                <span className={`font-semibold ${isFreeDelivery ? 'text-emerald-400 font-bold' : isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
                   {isFreeDelivery ? 'FREE (Promotion)' : `Rs. ${formatPrice(deliveryFee)}`}
                 </span>
               </div>
-              <div className="flex justify-between items-baseline pt-4 border-t border-zinc-200">
-                <span className="font-montserrat text-sm font-bold text-zinc-900 uppercase tracking-wider">
+              <div className={`flex justify-between items-baseline pt-4 border-t ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
+                <span className={`font-montserrat text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'} uppercase tracking-wider`}>
                   TOTAL
                 </span>
-                <span className="font-montserrat text-2xl text-orange-600 font-extrabold flex items-baseline">
+                <span className="font-montserrat text-2xl text-orange-500 font-extrabold flex items-baseline">
                   <span className="text-base font-bold mr-1">Rs.</span>
                   <span>{formatPrice(total)}</span>
                 </span>

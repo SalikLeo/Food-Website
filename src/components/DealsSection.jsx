@@ -147,13 +147,15 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
 
                     {/* Deal Inclusions Checklist */}
                     <div
-                      className={`flex-1 flex flex-col justify-between bg-white rounded-b-2xl text-zinc-900 ${
+                      className={`flex-1 flex flex-col justify-between ${
+                        isDark ? 'bg-[#141419] text-white' : 'bg-white text-zinc-900'
+                      } rounded-b-2xl ${
                         isSpaciousCards ? 'p-6 sm:p-7' : 'p-5'
                       }`}
                     >
                       <div>
                         <h4
-                          className={`font-bold text-zinc-900 truncate ${
+                          className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'} truncate ${
                             isSpaciousCards ? 'text-base sm:text-lg mb-2.5' : 'text-sm mb-2'
                           }`}
                         >
@@ -163,7 +165,9 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                           {(deal.includes || []).map((item, idx) => (
                             <li
                               key={idx}
-                              className={`flex items-center gap-2 font-semibold text-zinc-800 ${
+                              className={`flex items-center gap-2 font-semibold ${
+                                isDark ? 'text-zinc-300' : 'text-zinc-800'
+                              } ${
                                 isSpaciousCards ? 'text-xs sm:text-[13px]' : 'text-xs'
                               }`}
                             >
@@ -179,25 +183,25 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                       </div>
 
                       {/* Quantity Stepper and Action Buttons */}
-                      <div className="space-y-2 pt-2 border-t border-zinc-100">
+                      <div className={`space-y-2 pt-2 border-t ${isDark ? 'border-zinc-800' : 'border-zinc-100'}`}>
                         <div className="flex items-center gap-2">
                           {/* Sleek, Modern Stepper */}
-                          <div className="flex items-center h-10 rounded-xl bg-zinc-100/90 border border-zinc-200/80 p-0.5 shadow-2xs">
+                          <div className={`flex items-center h-10 rounded-xl ${isDark ? 'bg-zinc-800/90 border-zinc-700/80' : 'bg-zinc-100/90 border-zinc-200/80'} border p-0.5 shadow-2xs`}>
                             <button
                               type="button"
                               onClick={() => setQty(deal.id, -1)}
-                              className="w-8 h-full rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                              className={`w-8 h-full rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Decrease quantity"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="w-7 text-center font-bold text-xs sm:text-sm text-zinc-900">
+                            <span className={`w-7 text-center font-bold text-xs sm:text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                               {qty}
                             </span>
                             <button
                               type="button"
                               onClick={() => setQty(deal.id, 1)}
-                              className="w-8 h-full rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                              className={`w-8 h-full rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Increase quantity"
                             >
                               <Plus className="w-3.5 h-3.5" />
@@ -208,7 +212,11 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                           <button
                             type="button"
                             onClick={(e) => handleAddToCart(deal, e)}
-                            className="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 active:scale-[0.98] text-white font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer"
+                            className={`flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl ${
+                              isDark
+                                ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
+                                : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                            } active:scale-[0.98] font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer`}
                           >
                             <ShoppingBag className="w-3.5 h-3.5 text-orange-400" />
                             <span>Add to Cart</span>
@@ -280,27 +288,27 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                       </div>
 
                       {/* Right Side: Copy, Inclusions & Actions */}
-                      <div className="lg:col-span-6 bg-white p-6 sm:p-8 rounded-2xl text-zinc-900 flex flex-col justify-between">
+                      <div className={`lg:col-span-6 ${isDark ? 'bg-[#141419] text-white' : 'bg-white text-zinc-900'} p-6 sm:p-8 rounded-2xl flex flex-col justify-between`}>
                         <div>
                           <div className="flex items-baseline justify-between mb-2">
-                            <h3 className="font-display text-4xl sm:text-5xl text-zinc-900 tracking-tight leading-none">
+                            <h3 className={`font-display text-4xl sm:text-5xl ${isDark ? 'text-white' : 'text-zinc-900'} tracking-tight leading-none`}>
                               {deal.name || 'FAMILY DEAL'}
                             </h3>
-                            <span className="text-2xl sm:text-3xl font-display text-orange-600 font-bold flex items-baseline">
+                            <span className="text-2xl sm:text-3xl font-display text-orange-500 sm:text-orange-600 font-bold flex items-baseline">
                               <span className="font-sans text-lg sm:text-xl font-bold mr-1">Rs.</span>
                               <span>{formatPrice(deal.price)}</span>
                             </span>
                           </div>
 
-                          <p className="text-zinc-600 text-sm mb-6 leading-relaxed">
+                          <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-sm mb-6 leading-relaxed`}>
                             One big combo bundle crafted for the entire family — packed with burgers, pizza, shawarmas, and chilled beverages.
                           </p>
 
                           {/* 2-Column Checklist */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
                             {(deal.includes || []).map((item, idx) => (
-                              <div key={idx} className="flex items-center gap-2 text-xs font-bold text-zinc-800">
-                                <Check className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                              <div key={idx} className={`flex items-center gap-2 text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                <Check className="w-4 h-4 text-orange-500 sm:text-orange-600 flex-shrink-0" />
                                 <span>{cleanDealInclusions(item)}</span>
                               </div>
                             ))}
@@ -308,11 +316,15 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-zinc-200">
+                        <div className={`flex flex-col sm:flex-row items-center gap-4 pt-4 border-t ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
                           <button
                             type="button"
                             onClick={(e) => handleAddToCart(deal, e)}
-                            className="w-full sm:w-1/2 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow cursor-pointer"
+                            className={`w-full sm:w-1/2 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl ${
+                              isDark
+                                ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
+                                : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                            } font-bold text-xs uppercase tracking-wider transition-colors shadow cursor-pointer`}
                           >
                             <ShoppingBag className="w-4 h-4 text-orange-400" />
                             <span>Add to Cart</span>
@@ -367,14 +379,14 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                         </div>
 
                         {/* Inclusions Card */}
-                        <div className="bg-white rounded-2xl p-5 mb-5 text-zinc-900">
-                          <span className="font-bold text-[11px] text-zinc-500 uppercase tracking-wider block mb-2">
+                        <div className={`${isDark ? 'bg-black/40 border border-white/10 text-white' : 'bg-white text-zinc-900'} rounded-2xl p-5 mb-5`}>
+                          <span className={`font-bold text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} uppercase tracking-wider block mb-2`}>
                             Included in this Bundle:
                           </span>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             {(deal.includes || []).map((item, idx) => (
-                              <div key={idx} className="flex items-center gap-2 text-xs font-bold text-zinc-800">
-                                <Check className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                              <div key={idx} className={`flex items-center gap-2 text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                <Check className="w-4 h-4 text-orange-500 sm:text-orange-600 flex-shrink-0" />
                                 <span className="truncate">{cleanDealInclusions(item)}</span>
                               </div>
                             ))}
@@ -385,21 +397,21 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                       {/* Bottom Stepper & Actions */}
                       <div className="space-y-2.5 pt-2">
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center h-10 border border-zinc-700 rounded-xl overflow-hidden bg-zinc-900">
+                          <div className={`flex items-center h-10 border ${isDark ? 'border-zinc-700 bg-zinc-900' : 'border-zinc-200 bg-zinc-100'} rounded-xl overflow-hidden`}>
                             <button
                               type="button"
                               onClick={() => setQty(deal.id, -1)}
-                              className="w-8 h-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-zinc-800 active:scale-90 transition-all cursor-pointer"
+                              className={`w-8 h-full flex items-center justify-center ${isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'} active:scale-90 transition-all cursor-pointer`}
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
-                            <span className="w-7 text-xs font-bold text-white text-center">
+                            <span className={`w-7 text-xs font-bold ${isDark ? 'text-white' : 'text-zinc-900'} text-center`}>
                               {qty}
                             </span>
                             <button
                               type="button"
                               onClick={() => setQty(deal.id, 1)}
-                              className="w-8 h-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-zinc-800 active:scale-90 transition-all cursor-pointer"
+                              className={`w-8 h-full flex items-center justify-center ${isDark ? 'text-zinc-300 hover:text-white hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'} active:scale-90 transition-all cursor-pointer`}
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>
@@ -408,9 +420,13 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                           <button
                             type="button"
                             onClick={(e) => handleAddToCart(deal, e)}
-                            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-zinc-100 active:scale-[0.98] text-zinc-950 font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                            className={`flex-1 h-10 flex items-center justify-center gap-2 rounded-xl ${
+                              isDark
+                                ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
+                                : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                            } active:scale-[0.98] font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer`}
                           >
-                            <ShoppingBag className="w-4 h-4 text-orange-600" />
+                            <ShoppingBag className="w-4 h-4 text-orange-400" />
                             <span>Add to Cart</span>
                           </button>
                         </div>
