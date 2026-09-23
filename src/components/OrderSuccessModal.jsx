@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, X, Clock, MapPin } from 'lucide-react';
+import { X, Clock, MapPin } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/formatters';
@@ -27,8 +27,8 @@ export default function OrderSuccessModal() {
     : 'Just now';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-tab-fade">
-      <div className="relative w-full max-w-md bg-[#18181c] border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden text-center space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xs animate-tab-fade overflow-y-auto">
+      <div className="relative w-full max-w-md bg-[#18181c] border border-zinc-800 rounded-3xl p-5 sm:p-7 shadow-2xl max-h-[90vh] overflow-y-auto modal-items-scroll text-center space-y-4 my-auto">
         
         {/* Decorative Top Accent Glow */}
         <div className="absolute -top-12 -left-12 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl pointer-events-none" />
@@ -36,18 +36,15 @@ export default function OrderSuccessModal() {
 
         <button
           onClick={() => setOrderModalOpen(false)}
-          className="absolute top-4 right-4 p-2 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors z-10"
           title="Close modal"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Icon & Title */}
-        <div className="flex flex-col items-center space-y-2">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center shadow-inner">
-            <CheckCircle2 className="w-10 h-10" />
-          </div>
+        {/* Title */}
+        <div className="flex flex-col items-center space-y-1 pt-1">
           <h3 className="font-montserrat text-xl sm:text-2xl font-bold uppercase tracking-tight text-white">
             Order Confirmed!
           </h3>
