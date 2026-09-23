@@ -219,7 +219,9 @@ export const CartProvider = ({ children }) => {
           size: sizeLabel,
           price: unitPrice,
           image: product.image,
-          quantity: quantity
+          quantity: quantity,
+          description: product.description || (Array.isArray(product.includes) ? product.includes.join(' + ') : product.includes) || null,
+          includes: product.includes || null
         }
       ];
     });

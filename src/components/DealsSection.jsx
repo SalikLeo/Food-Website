@@ -26,7 +26,11 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
 
   const handleAddToCart = (deal, e = null) => {
     const qty = getQty(deal.id);
-    addToCart(deal, null, qty, e?.currentTarget);
+    addToCart({
+      ...deal,
+      category: 'deals',
+      description: deal.description || (Array.isArray(deal.includes) ? deal.includes.join(' + ') : deal.includes) || ''
+    }, null, qty, e?.currentTarget);
   };
 
   const handleOrderNow = (deal) => {

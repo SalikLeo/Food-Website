@@ -370,6 +370,11 @@ export default function OrderSection() {
                         {item.size && (
                           <span className="text-orange-600 ml-1 font-medium">({item.size})</span>
                         )}
+                        {Boolean(item.description || item.includes) && (
+                          <p className="text-[10px] text-zinc-500 line-clamp-1 mt-0.5">
+                            {item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes)}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <span className="font-bold text-orange-600 font-sans flex-shrink-0">
@@ -493,12 +498,19 @@ export default function OrderSection() {
 
                 <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 py-1 modal-items-scroll">
                   {cartItems.map((item) => (
-                    <div key={item.cartKey} className="flex justify-between text-zinc-300">
-                      <span className="truncate max-w-[220px]">
-                        <strong className="text-white">{item.quantity}×</strong> {item.name}
-                        {item.size && <span className="text-orange-400 text-[11px] ml-1">({item.size})</span>}
-                      </span>
-                      <span className="font-semibold text-zinc-200">
+                    <div key={item.cartKey} className="flex justify-between items-start text-zinc-300">
+                      <div className="truncate max-w-[220px]">
+                        <div>
+                          <strong className="text-white">{item.quantity}×</strong> {item.name}
+                          {item.size && <span className="text-orange-400 text-[11px] ml-1">({item.size})</span>}
+                        </div>
+                        {Boolean(item.description || item.includes) && (
+                          <div className="text-[10px] text-zinc-400 line-clamp-1">
+                            {item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes)}
+                          </div>
+                        )}
+                      </div>
+                      <span className="font-semibold text-zinc-200 flex-shrink-0 ml-2">
                         Rs. {formatPrice(item.price * item.quantity)}
                       </span>
                     </div>

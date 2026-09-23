@@ -200,7 +200,14 @@ export default function CartDrawer({ isDark: isDarkProp }) {
                       }`}>
                         {item.name}
                       </h4>
-                      <div className="flex items-center gap-1.5 flex-wrap">
+                      {Boolean(item.description || item.includes) && (
+                        <p className={`text-[10px] sm:text-[11px] line-clamp-2 mt-0.5 leading-tight ${
+                          isDark ? 'text-zinc-400' : 'text-zinc-500'
+                        }`}>
+                          {item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes)}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                         {item.size && (
                           <span className={`inline-block text-[10px] font-semibold ${
                             isDark ? 'text-orange-400' : 'text-orange-600'
