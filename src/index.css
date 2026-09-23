@@ -300,6 +300,20 @@
   -webkit-user-select: text;
 }
 
+/* Disable sticky hover effects in mobile apps while keeping desktop website intact */
+.is-mobile-app *:hover,
+.is-mobile-app .group:hover * {
+  transform: none !important;
+}
+
+@media (hover: none) or (pointer: coarse) {
+  .smooth-hover:hover,
+  .glow-hover:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
 /* Periodic Cart Reminder Bounce (every 2.8 seconds) */
 @keyframes reminderBounce {
   0%, 100% {

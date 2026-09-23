@@ -473,7 +473,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   }, [soundEnabled]);
 
   return (
-    <div className="min-h-screen bg-[#d5d8de] text-zinc-900 mobile-app-container">
+    <div className="min-h-screen bg-[#d5d8de] text-zinc-900 mobile-app-container is-mobile-app">
       
       {/* Real-time New Order Popup / Notification Banner */}
       {newOrderAlert && (
