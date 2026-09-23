@@ -7,7 +7,6 @@ import MenuSection from './components/MenuSection';
 import OrderSection from './components/OrderSection';
 import AboutSection from './components/AboutSection';
 import ContactSection from './components/ContactSection';
-import FaqSection from './components/FaqSection';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import OrderSuccessModal from './components/OrderSuccessModal';
@@ -155,7 +154,6 @@ function WebsiteStorefront({
         <OrderSection />
         <AboutSection categories={categories} products={products} deals={deals} />
         <ContactSection />
-        <FaqSection faqs={faqs} />
       </main>
 
       <Footer categories={categories} settings={settings} />

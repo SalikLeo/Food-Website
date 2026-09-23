@@ -136,9 +136,6 @@ export default function Footer({ categories = [], settings = null }) {
               <li>
                 <a href="#contact" className="hover:text-primary transition-colors">Contact Salik Fast Food</a>
               </li>
-              <li>
-                <a href="#faq" className="hover:text-primary transition-colors">FAQs</a>
-              </li>
             </ul>
           </div>
 
