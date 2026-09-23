@@ -264,10 +264,6 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
-            {/* Light/Dark Theme Switch Toggle (Web only: both desktop & mobile view) */}
-            {!isCustomerApp && (
-              <ThemeToggle variant="compact" />
-            )}
 
             {/* Header Profile Trigger (Web only: both desktop & mobile view) */}
             {!isCustomerApp && (
