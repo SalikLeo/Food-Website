@@ -425,24 +425,20 @@ export default function OrderSection() {
             />
 
             {/* Modal Card */}
-            <div className="relative bg-[#161619] border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-white shadow-2xl z-10 animate-in zoom-in-95 duration-200">
+            <div className="relative bg-[#161619] border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-white shadow-2xl z-10 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
               {/* Close Button */}
               <button
                 type="button"
                 onClick={() => !loading && setShowConfirmModal(false)}
                 disabled={loading}
-                className="absolute top-5 right-5 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors disabled:opacity-40"
+                className="absolute top-5 right-5 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors disabled:opacity-40 cursor-pointer"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {/* Modal Header */}
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3.5 bg-orange-500/15 border border-orange-500/30 text-orange-400">
-                  <CheckCircle2 className="w-7 h-7" />
-                </div>
-
+              <div className="text-center mb-5">
                 <h3 className="font-display text-2xl sm:text-3xl uppercase tracking-wide text-white">
                   Ready to place your order?
                 </h3>
@@ -496,19 +492,12 @@ export default function OrderSection() {
                   <span>Price</span>
                 </div>
 
-                <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 py-1 modal-items-scroll">
+                <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1 py-1 modal-items-scroll">
                   {cartItems.map((item) => (
-                    <div key={item.cartKey} className="flex justify-between items-start text-zinc-300">
-                      <div className="truncate max-w-[220px]">
-                        <div>
-                          <strong className="text-white">{item.quantity}×</strong> {item.name}
-                          {item.size && <span className="text-orange-400 text-[11px] ml-1">({item.size})</span>}
-                        </div>
-                        {Boolean(item.description || item.includes) && (
-                          <div className="text-[10px] text-zinc-400 line-clamp-1">
-                            {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
-                          </div>
-                        )}
+                    <div key={item.cartKey} className="flex justify-between items-center text-zinc-300">
+                      <div className="truncate pr-2">
+                        <strong className="text-white">{item.quantity}×</strong> {item.name}
+                        {item.size && <span className="text-orange-400 text-[11px] ml-1">({item.size})</span>}
                       </div>
                       <span className="font-semibold text-zinc-200 flex-shrink-0 ml-2">
                         Rs. {formatPrice(item.price * item.quantity)}
