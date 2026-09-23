@@ -23,6 +23,8 @@ const formatOrderDateTime = (dateVal) => {
 
 export default function OrdersManager({
   orders = [],
+  allOrders = [],
+  totalPendingCount,
   pendingOutsideTodayCount = 0,
   onResetToAllPending,
   products = [],
@@ -32,6 +34,10 @@ export default function OrdersManager({
   onRefresh,
   onReceiptOpenChange
 }) {
+
+  const totalPendingOrders = typeof totalPendingCount === 'number'
+    ? totalPendingCount
+    : (allOrders && allOrders.length > 0 ? allOrders : orders).filter(o => o.status === 'Pending').length;
 
   const resolveItemDealDescription = (item) => {
     if (!item) return null;
@@ -955,13 +961,13 @@ export default function OrdersManager({
   return (
     <div className="space-y-3 sm:space-y-5">
       
-      {/* Prior Pending Orders Alert Banner (shown when viewing Today and older pending orders exist) */}
-      {pendingOutsideTodayCount > 0 && (
+      {/* Pending Orders Alert Banner (shown until there are no pending orders left) */}
+      {totalPendingOrders > 0 && (
         <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between gap-2 shadow-2xs">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
             <span>
-              You have <strong>{pendingOutsideTodayCount} pending {pendingOutsideTodayCount === 1 ? 'order' : 'orders'}</strong>
+              You have <strong>{totalPendingOrders} pending {totalPendingOrders === 1 ? 'order' : 'orders'}</strong>
             </span>
           </div>
           <button
@@ -999,9 +1005,9 @@ export default function OrdersManager({
               }`}
             >
               {st}
-              {st === 'Pending' && (orders || []).filter(o => o.status === 'Pending').length > 0 && (
+              {st === 'Pending' && totalPendingOrders > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-[10px]">
-                  {(orders || []).filter(o => o.status === 'Pending').length}
+                  {totalPendingOrders}
                 </span>
               )}
             </button>
@@ -1041,13 +1047,17 @@ export default function OrdersManager({
             No orders match the current filter{statusFilter !== 'All' ? ` with status "${statusFilter}"` : ''}{search ? ` and search "${search}"` : ''}.
           </p>
           <div className="mt-5 flex items-center justify-center gap-2.5 flex-wrap">
-            {typeof onResetToAllPending === 'function' && pendingOutsideTodayCount > 0 && (
+            {typeof onResetToAllPending === 'function' && totalPendingOrders > 0 && (
               <button
                 type="button"
-                onClick={onResetToAllPending}
+                onClick={() => {
+                  onResetToAllPending();
+                  setStatusFilter('Pending');
+                  setSearch('');
+                }}
                 className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
               >
-                View Pending Orders ({pendingOutsideTodayCount})
+                View Pending Orders ({totalPendingOrders})
               </button>
             )}
             {(statusFilter !== 'All' || search) && (

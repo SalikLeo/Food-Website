@@ -1149,6 +1149,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           {activeTab === 'orders' && (
             <OrdersManager
               orders={dateFilteredOrders}
+              allOrders={orders}
+              totalPendingCount={pendingOrdersCount}
               pendingOutsideTodayCount={pendingOutsideCount}
               onResetToAllPending={() => {
                 setTimeFilterMode('all');
