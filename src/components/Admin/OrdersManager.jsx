@@ -1169,69 +1169,26 @@ export default function OrdersManager({
                               <span className="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
                                 Items Ordered:
                               </span>
-                              {(() => {
-                                const { prepared, total, isAllDone } = getOrderPreparedCount(order);
-                                if (total === 0) return null;
-                                if (isAllDone) {
-                                  return (
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                                      <Check className="w-3 h-3 stroke-[3]" /> All Prepared ({prepared}/{total})
-                                    </span>
-                                  );
-                                }
-                                if (prepared > 0) {
-                                  return (
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-orange-100/90 px-2 py-0.5 rounded-full border border-orange-200">
-                                      {prepared}/{total} Prepared
-                                    </span>
-                                  );
-                                }
-                                return null;
-                              })()}
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                               {(order.items || []).map((it, idx) => {
-                                const isPrepared = Boolean(preparedItems[`${order.id}-${idx}`]);
                                 return (
                                   <div
                                     key={idx}
-                                    onClick={() => toggleItemPrepared(order.id, idx)}
-                                    className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer select-none group ${
-                                      isPrepared
-                                        ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-2xs'
-                                        : 'bg-zinc-50 hover:bg-zinc-100/80 border-zinc-200 text-zinc-900 shadow-2xs'
-                                    }`}
-                                    title={isPrepared ? "Item prepared! Click to unmark" : "Click to mark as prepared"}
+                                    className="flex items-center justify-between p-2.5 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-900 shadow-2xs select-none"
                                   >
-                                    <div className="flex items-center gap-2 min-w-0 pr-2">
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleItemPrepared(order.id, idx);
-                                        }}
-                                        className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all cursor-pointer ${
-                                          isPrepared
-                                            ? 'bg-emerald-600 border border-emerald-700 text-white shadow-2xs active:scale-90'
-                                            : 'bg-white border border-zinc-300 hover:border-emerald-500 hover:bg-emerald-50 text-transparent active:scale-90'
-                                        }`}
-                                        aria-label={isPrepared ? "Marked as prepared" : "Mark as prepared"}
-                                      >
-                                        <Check className={`w-3.5 h-3.5 stroke-[3] ${isPrepared ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 group-hover:text-emerald-600'}`} />
-                                      </button>
-                                      <div className="min-w-0 truncate">
-                                        <span className="font-bold text-zinc-900 text-xs truncate">
-                                          {it.quantity}× {it.name}
+                                    <div className="min-w-0 truncate pr-2">
+                                      <span className="font-bold text-zinc-900 text-xs truncate">
+                                        {it.quantity}× {it.name}
+                                      </span>
+                                      {it.size && (
+                                        <span className="ml-1 font-semibold text-xs text-orange-600">
+                                          ({it.size})
                                         </span>
-                                        {it.size && (
-                                          <span className="ml-1 font-semibold text-xs text-orange-600">
-                                            ({it.size})
-                                          </span>
-                                        )}
-                                      </div>
+                                      )}
                                     </div>
-                                    <span className={`font-bold flex-shrink-0 text-xs ${isPrepared ? 'text-emerald-800' : 'text-zinc-800'}`}>
+                                    <span className="font-bold flex-shrink-0 text-xs text-zinc-800">
                                       Rs. {formatPrice(it.price * it.quantity)}
                                     </span>
                                   </div>
@@ -1360,85 +1317,113 @@ export default function OrdersManager({
                     </div>
 
                     {/* Ordered Items List */}
-                    <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200/90 text-xs">
-                      <div className="flex items-center justify-between mb-2 flex-wrap gap-1.5">
-                        <span className="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
-                          Items:
-                        </span>
-                        {(() => {
-                          const { prepared, total, isAllDone } = getOrderPreparedCount(order);
-                          if (total === 0) return null;
-                          if (isAllDone) {
-                            return (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                                <Check className="w-3 h-3 stroke-[3]" /> All Prepared ({prepared}/{total})
-                              </span>
-                            );
-                          }
-                          if (prepared > 0) {
-                            return (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-orange-100/90 px-2 py-0.5 rounded-full border border-orange-200">
-                                {prepared}/{total} Prepared • {total - prepared} left
-                              </span>
-                            );
-                          }
-                          return (
-                            <span className="text-[10px] text-zinc-400 font-medium">
-                              (Tap tick to mark prepared)
+                    {(() => {
+                      const isPreparationActive = order.status === 'Pending' || order.status === 'Preparing';
+                      return (
+                        <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200/90 text-xs">
+                          <div className="flex items-center justify-between mb-2 flex-wrap gap-1.5">
+                            <span className="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                              Items:
                             </span>
-                          );
-                        })()}
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                        {(order.items || []).map((it, idx) => {
-                          const isPrepared = Boolean(preparedItems[`${order.id}-${idx}`]);
-                          return (
-                            <div
-                              key={idx}
-                              onClick={() => toggleItemPrepared(order.id, idx)}
-                              className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer select-none group ${
-                                isPrepared
-                                  ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-2xs'
-                                  : 'bg-white hover:bg-zinc-50/90 border-zinc-200 text-zinc-900 shadow-2xs'
-                              }`}
-                              title={isPrepared ? "Item prepared! Click to unmark" : "Click to mark as prepared"}
-                            >
-                              <div className="flex items-center gap-2 min-w-0 pr-2">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleItemPrepared(order.id, idx);
-                                  }}
-                                  className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all cursor-pointer ${
-                                    isPrepared
-                                      ? 'bg-emerald-600 border border-emerald-700 text-white shadow-2xs active:scale-90'
-                                      : 'bg-white border border-zinc-300 hover:border-emerald-500 hover:bg-emerald-50 text-transparent active:scale-90'
-                                  }`}
-                                  aria-label={isPrepared ? "Marked as prepared" : "Mark as prepared"}
-                                >
-                                  <Check className={`w-3.5 h-3.5 stroke-[3] ${isPrepared ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 group-hover:text-emerald-600'}`} />
-                                </button>
-                                <div className="min-w-0 truncate">
-                                  <span className="font-bold text-xs truncate text-zinc-900">
-                                    {it.quantity}× {it.name}
+                            {isPreparationActive && (() => {
+                              const { prepared, total, isAllDone } = getOrderPreparedCount(order);
+                              if (total === 0) return null;
+                              if (isAllDone) {
+                                return (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                    <Check className="w-3 h-3 stroke-[3]" /> All Prepared ({prepared}/{total})
                                   </span>
-                                  {it.size && (
-                                    <span className="ml-1 font-semibold text-xs text-orange-600">
-                                      ({it.size})
+                                );
+                              }
+                              if (prepared > 0) {
+                                return (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-orange-100/90 px-2 py-0.5 rounded-full border border-orange-200">
+                                    {prepared}/{total} Prepared • {total - prepared} left
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span className="text-[10px] text-zinc-400 font-medium">
+                                  (Tap tick to mark prepared)
+                                </span>
+                              );
+                            })()}
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            {(order.items || []).map((it, idx) => {
+                              if (!isPreparationActive) {
+                                return (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center justify-between p-2.5 rounded-lg border border-zinc-200 bg-white text-zinc-900 shadow-2xs select-none"
+                                  >
+                                    <div className="min-w-0 truncate pr-2">
+                                      <span className="font-bold text-xs truncate text-zinc-900">
+                                        {it.quantity}× {it.name}
+                                      </span>
+                                      {it.size && (
+                                        <span className="ml-1 font-semibold text-xs text-orange-600">
+                                          ({it.size})
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="font-bold flex-shrink-0 text-xs text-zinc-800">
+                                      Rs. {formatPrice(it.price * it.quantity)}
                                     </span>
-                                  )}
+                                  </div>
+                                );
+                              }
+
+                              const isPrepared = Boolean(preparedItems[`${order.id}-${idx}`]);
+                              return (
+                                <div
+                                  key={idx}
+                                  onClick={() => toggleItemPrepared(order.id, idx)}
+                                  className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer select-none group ${
+                                    isPrepared
+                                      ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-2xs'
+                                      : 'bg-white hover:bg-zinc-50/90 border-zinc-200 text-zinc-900 shadow-2xs'
+                                  }`}
+                                  title={isPrepared ? "Item prepared! Click to unmark" : "Click to mark as prepared"}
+                                >
+                                  <div className="flex items-center gap-2 min-w-0 pr-2">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleItemPrepared(order.id, idx);
+                                      }}
+                                      className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all cursor-pointer ${
+                                        isPrepared
+                                          ? 'bg-emerald-600 border border-emerald-700 text-white shadow-2xs active:scale-90'
+                                          : 'bg-white border border-zinc-300 hover:border-emerald-500 hover:bg-emerald-50 text-transparent active:scale-90'
+                                      }`}
+                                      aria-label={isPrepared ? "Marked as prepared" : "Mark as prepared"}
+                                    >
+                                      <Check className={`w-3.5 h-3.5 stroke-[3] ${isPrepared ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 group-hover:text-emerald-600'}`} />
+                                    </button>
+                                    <div className="min-w-0 truncate">
+                                      <span className="font-bold text-xs truncate text-zinc-900">
+                                        {it.quantity}× {it.name}
+                                      </span>
+                                      {it.size && (
+                                        <span className="ml-1 font-semibold text-xs text-orange-600">
+                                          ({it.size})
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <span className={`font-bold flex-shrink-0 text-xs ${isPrepared ? 'text-emerald-800' : 'text-zinc-800'}`}>
+                                    Rs. {formatPrice(it.price * it.quantity)}
+                                  </span>
                                 </div>
-                              </div>
-                              <span className={`font-bold flex-shrink-0 text-xs ${isPrepared ? 'text-emerald-800' : 'text-zinc-800'}`}>
-                                Rs. {formatPrice(it.price * it.quantity)}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
