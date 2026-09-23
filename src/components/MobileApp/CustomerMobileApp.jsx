@@ -2416,9 +2416,6 @@ export default function CustomerMobileApp({
                       : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
                   }`}
                 />
-                <span className={`text-[10px] mt-1 block ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
-                  11 digits mobile number (e.g. 03001234567)
-                </span>
               </div>
 
               <div>
@@ -2491,9 +2488,9 @@ export default function CustomerMobileApp({
 
                   <button
                     type="button"
-                    onClick={() => setCheckoutForm(prev => ({ ...prev, paymentMethod: 'Online Payment' }))}
+                    onClick={() => setCheckoutForm(prev => ({ ...prev, paymentMethod: 'Easypaisa' }))}
                     className={`py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform cursor-pointer ${
-                      checkoutForm.paymentMethod === 'Online Payment'
+                      checkoutForm.paymentMethod === 'Easypaisa'
                         ? 'bg-orange-600 text-white border-orange-500 shadow-xs'
                         : isDark
                           ? 'bg-black/40 border-white/10 text-zinc-300 hover:bg-white/5'
@@ -2501,13 +2498,13 @@ export default function CustomerMobileApp({
                     }`}
                   >
                     <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
-                      checkoutForm.paymentMethod === 'Online Payment' ? 'border-white bg-white' : 'border-zinc-400'
+                      checkoutForm.paymentMethod === 'Easypaisa' ? 'border-white bg-white' : 'border-zinc-400'
                     }`}>
-                      {checkoutForm.paymentMethod === 'Online Payment' && (
+                      {checkoutForm.paymentMethod === 'Easypaisa' && (
                         <span className="w-1.5 h-1.5 rounded-full bg-orange-600" />
                       )}
                     </span>
-                    <span>Online Payment</span>
+                    <span>Easypaisa</span>
                   </button>
                 </div>
               </div>
