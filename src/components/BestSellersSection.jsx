@@ -180,20 +180,23 @@ export default function BestSellersSection({ products = [], categories = [], set
                   />
 
                   {/* Top Badges */}
-                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 z-10">
-                    {isSoldOut ? (
-                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-md bg-zinc-900/95 text-amber-300 border border-amber-400/40 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider shadow-md flex items-center gap-1 sm:gap-1.5 backdrop-blur-xs">
-                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 animate-pulse" />
-                        <span className="hidden xs:inline">Sold Out Today</span>
-                        <span className="xs:hidden">Sold Out</span>
-                      </span>
-                    ) : (
-                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-md bg-orange-600 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shadow flex items-center gap-1">
-                        <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white shrink-0" />
-                        <span>#{index + 1} Best Seller</span>
-                      </span>
-                    )}
-                  </div>
+                  {(isSoldOut || product.tag) && (
+                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 z-10">
+                      {isSoldOut ? (
+                        <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-md bg-zinc-900/95 text-amber-300 border border-amber-400/40 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider shadow-md flex items-center gap-1 sm:gap-1.5 backdrop-blur-xs">
+                          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 animate-pulse" />
+                          <span className="hidden xs:inline">Sold Out Today</span>
+                          <span className="xs:hidden">Sold Out</span>
+                        </span>
+                      ) : (
+                        product.tag && (
+                          <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-md bg-orange-600 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shadow">
+                            {product.tag}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Card Content */}
