@@ -168,7 +168,7 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
                   className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl px-5 py-3 sm:px-6 sm:py-4 shadow-xl border border-white/60 hover:scale-105 active:scale-95 transition-all duration-200 flex flex-col items-start justify-center z-10"
                   aria-label="View Deals"
                 >
-                  <span className={`font-display font-bold ${isCustomerApp ? 'text-[1.75rem] leading-none' : 'text-xl sm:text-3xl'} md:text-4xl text-gradient-orange tracking-tight uppercase inline-block pr-2`}>
+                  <span className={`font-sans font-bold ${isCustomerApp ? 'text-[1.75rem] leading-none' : 'text-xl sm:text-3xl'} md:text-4xl text-gradient-orange tracking-tight uppercase inline-block pr-2`}>
                     DEALS FROM RS. {formatPrice(lowestDealPrice)}
                   </span>
                   <span className={`font-sans ${isCustomerApp ? 'text-xs font-semibold' : 'text-xs sm:text-sm'} md:text-base font-medium text-zinc-600 leading-normal mt-0.5 sm:mt-1.5 block whitespace-nowrap`}>
