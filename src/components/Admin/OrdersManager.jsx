@@ -1221,11 +1221,11 @@ export default function OrdersManager({
                                         <Check className={`w-3.5 h-3.5 stroke-[3] ${isPrepared ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 group-hover:text-emerald-600'}`} />
                                       </button>
                                       <div className="min-w-0 truncate">
-                                        <span className={`font-bold text-zinc-900 text-xs truncate ${isPrepared ? 'line-through text-zinc-500' : ''}`}>
+                                        <span className="font-bold text-zinc-900 text-xs truncate">
                                           {it.quantity}× {it.name}
                                         </span>
                                         {it.size && (
-                                          <span className={`ml-1 font-semibold text-xs ${isPrepared ? 'text-emerald-700/80' : 'text-orange-600'}`}>
+                                          <span className="ml-1 font-semibold text-xs text-orange-600">
                                             ({it.size})
                                           </span>
                                         )}
@@ -1421,11 +1421,11 @@ export default function OrdersManager({
                                   <Check className={`w-3.5 h-3.5 stroke-[3] ${isPrepared ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 group-hover:text-emerald-600'}`} />
                                 </button>
                                 <div className="min-w-0 truncate">
-                                  <span className={`font-bold text-xs truncate ${isPrepared ? 'line-through text-zinc-500' : 'text-zinc-900'}`}>
+                                  <span className="font-bold text-xs truncate text-zinc-900">
                                     {it.quantity}× {it.name}
                                   </span>
                                   {it.size && (
-                                    <span className={`ml-1 font-semibold text-xs ${isPrepared ? 'text-emerald-700/80' : 'text-orange-600'}`}>
+                                    <span className="ml-1 font-semibold text-xs text-orange-600">
                                       ({it.size})
                                     </span>
                                   )}
