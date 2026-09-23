@@ -12,8 +12,7 @@ import {
   ShoppingBag,
   ArrowRight,
   Loader2,
-  FileText,
-  Sparkles
+  FileText
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/formatters';
@@ -413,23 +412,7 @@ export default function UserProfileModal() {
 
           {/* TAB 1: COMPLETE PROFILE */}
           {profileTab === 'profile' && (
-            <div className="space-y-5">
-              
-              {/* Informational Hero Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-orange-500/15 via-amber-500/10 to-transparent border border-orange-500/30 flex items-start gap-3.5">
-                <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 mt-0.5">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'} tracking-wide`}>
-                    Saved Order Details
-                  </h3>
-                  <p className={`text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-600'} leading-relaxed mt-0.5`}>
-                    Save your Name, Phone, and Address here. When placing an order, these fields will automatically pre-fill so you never have to retype them (always editable at checkout).
-                  </p>
-                </div>
-              </div>
-
+            <div className="space-y-4">
               {/* Google Account Quick Connect / Status */}
               <div className={`p-3.5 rounded-2xl ${isDark ? 'bg-zinc-900/80 border-white/5' : 'bg-zinc-50 border-zinc-200'} border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3`}>
                 <div className="flex items-center gap-3">

@@ -2437,31 +2437,6 @@ export default function CustomerMobileApp({
               </div>
             </div>
 
-            {/* Intro Hero Banner */}
-            <div className={`rounded-3xl p-5 border relative overflow-hidden ${
-              isDark 
-                ? 'bg-gradient-to-r from-orange-950/40 via-[#181820] to-amber-950/30 border-white/10' 
-                : 'bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50/50 border-orange-200/70 shadow-xs'
-            }`}>
-              <div className="flex items-start gap-3.5">
-                <div className="w-11 h-11 rounded-2xl bg-orange-500/20 text-orange-500 flex items-center justify-center flex-shrink-0 shadow-inner">
-                  <User className="w-6 h-6 text-orange-500" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className={`text-base font-extrabold uppercase tracking-tight ${
-                    isDark ? 'text-white' : 'text-zinc-900'
-                  }`}>
-                    Saved Order Details
-                  </h3>
-                  <p className={`text-xs leading-relaxed ${
-                    isDark ? 'text-zinc-400' : 'text-zinc-600'
-                  }`}>
-                    Save your Name, Phone, and Delivery Address. These details will automatically auto-fill on your checkout screen so you never have to retype them (always editable).
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Google Authentication Account Card */}
             <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
               isDark ? 'bg-[#15151a] border-white/10' : 'bg-white border-zinc-200 shadow-xs'
