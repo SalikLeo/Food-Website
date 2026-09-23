@@ -1948,7 +1948,7 @@ export default function CustomerMobileApp({
                               <span className={`text-[11px] font-normal truncate ${
                                 isDark ? 'text-zinc-400' : 'text-zinc-500'
                               }`}>
-                                • {itemsList.length} {itemsList.length === 1 ? 'Item' : 'Items'} ({expandedOrders[order.id || idx] ? 'Hide Details' : 'View Details'})
+                                • {itemsList.length} {itemsList.length === 1 ? 'Item' : 'Items'} ({expandedOrders[order.id || idx] ? 'Hide Details' : 'Details'})
                               </span>
                             </span>
                             <ChevronDown className={`w-4 h-4 text-orange-500 shrink-0 transition-transform duration-300 ease-in-out ${
@@ -2023,23 +2023,23 @@ export default function CustomerMobileApp({
                       )}
 
                       {/* Order Footer: Total & REORDER Button */}
-                      <div className="flex items-center justify-between pt-1 gap-3">
+                      <div className="flex items-center justify-between pt-1 gap-2">
                         <div>
-                          <span className="font-sans text-base sm:text-lg font-extrabold text-orange-600 leading-tight">
+                          <span className="font-sans text-[15px] sm:text-lg font-extrabold text-orange-600 leading-tight whitespace-nowrap">
                             Rs. {formatPrice(order.total)}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
                           {String(order.status || '').toLowerCase() === 'delivered' && (
                             <>
                               {!reviewedOrderIds.includes(String(order.id)) && (
                                 <button
                                   type="button"
                                   onClick={() => switchView('add-review')}
-                                  className="px-2.5 py-1.5 sm:py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold text-xs uppercase tracking-wider flex items-center gap-1 border border-amber-500/25 active:scale-95 transition-all cursor-pointer"
+                                  className="px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1 border border-amber-500/25 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                                 >
-                                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                  <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400 shrink-0" />
                                   <span>Add Review</span>
                                 </button>
                               )}
@@ -2048,9 +2048,9 @@ export default function CustomerMobileApp({
                               <button
                                 type="button"
                                 onClick={() => handleReorderOrder(order)}
-                                className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer"
+                                className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap"
                               >
-                                <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                                <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5] shrink-0" />
                                 <span>Reorder</span>
                               </button>
                             </>
