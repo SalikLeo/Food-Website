@@ -5,7 +5,7 @@ import { apiUrl } from '../config/api';
 import { formatPrice } from '../utils/formatters';
 
 export default function BestSellersSection({ products = [], categories = [], settings = null }) {
-  const { addToCart } = useCart();
+  const { addToCart, isDark } = useCart();
   const [bestSellers, setBestSellers] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState({});
   const [quantities, setQuantities] = useState({});
@@ -118,11 +118,15 @@ export default function BestSellersSection({ products = [], categories = [], set
   return (
     <section
       id="best-sellers"
-      className="relative py-14 sm:py-20 bg-[#0c0c0e] border-t border-b border-zinc-800/80 overflow-hidden"
+      className={`relative py-14 sm:py-20 ${
+        isDark
+          ? 'bg-[#0c0c0e] border-zinc-800/80'
+          : 'bg-gradient-to-b from-[#fbf8f3] via-[#f7f2ea] to-[#f4eee4] border-zinc-200/90'
+      } border-t border-b overflow-hidden transition-colors duration-300`}
     >
       {/* Background ambient glow */}
-      <div className="absolute top-1/3 left-10 w-[450px] h-[450px] bg-orange-600/10 blur-[160px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-red-500/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className={`absolute top-1/3 left-10 w-[450px] h-[450px] ${isDark ? 'bg-orange-600/10' : 'bg-orange-500/8'} blur-[160px] rounded-full pointer-events-none`} />
+      <div className={`absolute bottom-10 right-10 w-[400px] h-[400px] ${isDark ? 'bg-red-500/10' : 'bg-amber-400/8'} blur-[150px] rounded-full pointer-events-none`} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -138,13 +142,13 @@ export default function BestSellersSection({ products = [], categories = [], set
             </div>
 
             <div className="relative inline-block">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display uppercase tracking-tight text-white leading-none">
+              <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-display uppercase tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'} leading-none`}>
                 BEST <span className="text-orange-500">SELLERS</span>
               </h2>
               <div className="h-1.5 w-20 bg-orange-600 rounded-full mt-2" />
             </div>
 
-            <p className="text-zinc-400 text-xs sm:text-sm mt-2.5 max-w-xl leading-relaxed">
+            <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-xs sm:text-sm mt-2.5 max-w-xl leading-relaxed`}>
               Top trending meals chosen by food lovers across Wah Model Town. Freshly prepared, loaded with flavors, and always piping hot.
             </p>
           </div>

@@ -5,7 +5,7 @@ import { apiUrl, isCustomerApp } from '../config/api';
 import { formatPrice } from '../utils/formatters';
 
 export default function Hero({ products: propProducts = [], deals: propDeals = [] }) {
-  const { settings } = useCart();
+  const { settings, isDark } = useCart();
   const [internalProducts, setInternalProducts] = useState([]);
   const [internalDeals, setInternalDeals] = useState([]);
 
@@ -48,19 +48,26 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
   return (
     <section
       id="home"
-      className={`relative ${isCustomerApp ? 'pt-20 pb-12' : 'pt-32 pb-16'} lg:pt-40 lg:pb-24 overflow-hidden bg-[#0d0d0e]`}
+      className={`relative ${isCustomerApp ? 'pt-20 pb-12' : 'pt-32 pb-16'} lg:pt-40 lg:pb-24 overflow-hidden ${isDark ? 'bg-[#0d0d0e]' : 'bg-[#fffaf5]'} transition-colors duration-300`}
       style={{
-        background: `
-          radial-gradient(ellipse 80% 70% at 95% 25%, rgba(165, 28, 28, 0.45) 0%, rgba(100, 18, 22, 0.25) 50%, transparent 80%),
-          radial-gradient(ellipse 70% 60% at 5% 45%, rgba(217, 85, 12, 0.28) 0%, rgba(146, 45, 10, 0.12) 45%, transparent 75%),
-          radial-gradient(ellipse 55% 35% at 50% 0%, rgba(120, 20, 20, 0.2) 0%, transparent 60%),
-          linear-gradient(180deg, #150908 0%, #0f0b0d 45%, #0d0d0e 85%)
-        `
+        background: isDark
+          ? `
+            radial-gradient(ellipse 80% 70% at 95% 25%, rgba(165, 28, 28, 0.45) 0%, rgba(100, 18, 22, 0.25) 50%, transparent 80%),
+            radial-gradient(ellipse 70% 60% at 5% 45%, rgba(217, 85, 12, 0.28) 0%, rgba(146, 45, 10, 0.12) 45%, transparent 75%),
+            radial-gradient(ellipse 55% 35% at 50% 0%, rgba(120, 20, 20, 0.2) 0%, transparent 60%),
+            linear-gradient(180deg, #150908 0%, #0f0b0d 45%, #0d0d0e 85%)
+          `
+          : `
+            radial-gradient(ellipse 80% 70% at 95% 20%, rgba(249, 115, 22, 0.15) 0%, rgba(251, 146, 60, 0.05) 50%, transparent 80%),
+            radial-gradient(ellipse 70% 60% at 5% 40%, rgba(234, 88, 12, 0.12) 0%, rgba(249, 115, 22, 0.04) 45%, transparent 75%),
+            radial-gradient(ellipse 55% 35% at 50% 0%, rgba(251, 191, 36, 0.12) 0%, transparent 60%),
+            linear-gradient(180deg, #fffaf5 0%, #fbf5ec 45%, #f6efe4 85%, #f3eae0 100%)
+          `
       }}
     >
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-amber-600/15 blur-[140px] rounded-full pointer-events-none" />
-      <div className="absolute top-16 right-0 w-[600px] h-[600px] bg-red-700/25 blur-[160px] rounded-full pointer-events-none" />
+      <div className={`absolute top-1/4 left-0 w-[500px] h-[500px] ${isDark ? 'bg-amber-600/15' : 'bg-orange-500/10'} blur-[140px] rounded-full pointer-events-none`} />
+      <div className={`absolute top-16 right-0 w-[600px] h-[600px] ${isDark ? 'bg-red-700/25' : 'bg-amber-400/15'} blur-[160px] rounded-full pointer-events-none`} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
@@ -75,14 +82,14 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.25rem] font-display uppercase tracking-tight text-white leading-[0.92]">
+            <h1 className={`text-5xl sm:text-6xl md:text-7xl lg:text-[5.25rem] font-display uppercase tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'} leading-[0.92]`}>
               SALIK FAST FOOD <br />
               WAH CANTT <br />
               <span className="text-gradient-orange">MADE FRESH.</span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-zinc-400 text-base sm:text-lg max-w-xl leading-relaxed">
+            <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600 font-medium'} text-base sm:text-lg max-w-xl leading-relaxed`}>
               Best pizza, zinger burgers, shawarma, broast wings and combo deals with fast home delivery in Wah Cantt — Wah Model Town.
             </p>
 
@@ -96,20 +103,24 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
               </a>
               <a
                 href="#menu"
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 hover:text-white font-bold text-sm uppercase tracking-wider transition-all"
+                className={`inline-flex items-center justify-center px-8 py-3.5 rounded-full ${
+                  isDark
+                    ? 'bg-zinc-900/90 hover:bg-zinc-800 border-zinc-700 text-zinc-200 hover:text-white'
+                    : 'bg-white hover:bg-zinc-50 border-zinc-200/90 text-zinc-800 hover:text-orange-600 shadow-sm'
+                } border font-bold text-sm uppercase tracking-wider transition-all`}
               >
                 Explore Menu
               </a>
             </div>
 
             {/* Trust Badges Row */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-zinc-800/80 w-full max-w-lg">
+            <div className={`grid grid-cols-3 gap-4 pt-6 border-t ${isDark ? 'border-zinc-800/80' : 'border-zinc-300/80'} w-full max-w-lg`}>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5 text-orange-400 font-bold text-sm">
                   <Clock className="w-4 h-4" />
                   <span>20-30 Min</span>
                 </div>
-                <span className="text-xs text-zinc-300 font-semibold uppercase tracking-wider mt-1">
+                <span className={`text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-600'} font-semibold uppercase tracking-wider mt-1`}>
                   HOME DELIVERY
                 </span>
               </div>
@@ -119,7 +130,7 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span>4.8 / 5</span>
                 </div>
-                <span className="text-xs text-zinc-300 font-semibold uppercase tracking-wider mt-1">
+                <span className={`text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-600'} font-semibold uppercase tracking-wider mt-1`}>
                   LOVED LOCALLY
                 </span>
               </div>
@@ -129,7 +140,7 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
                   <Utensils className="w-4 h-4" />
                   <span>{totalItems} ITEMS</span>
                 </div>
-                <span className="text-xs text-zinc-300 font-semibold uppercase tracking-wider mt-1">
+                <span className={`text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-600'} font-semibold uppercase tracking-wider mt-1`}>
                   FULL MENU
                 </span>
               </div>
@@ -144,7 +155,7 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
               <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/30 to-amber-500/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-500 -z-10" />
 
               {/* Main Image Frame */}
-              <div className="relative rounded-3xl overflow-hidden border border-zinc-800 bg-[#141416] shadow-2xl">
+              <div className={`relative rounded-3xl overflow-hidden border ${isDark ? 'border-zinc-800 bg-[#141416]' : 'border-zinc-200 bg-white'} shadow-2xl`}>
                 <img
                   src="/assets/hero-food.jpg"
                   alt="Delicious Fast Food Platter"

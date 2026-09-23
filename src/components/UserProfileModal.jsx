@@ -35,7 +35,8 @@ export default function UserProfileModal() {
     userProfile,
     recentOrders,
     reorder,
-    setIsCartOpen
+    setIsCartOpen,
+    isDark
   } = useCart();
 
   // Local editable form state for Name, Phone, Address
@@ -293,10 +294,14 @@ export default function UserProfileModal() {
       />
 
       {/* Main Modal Card */}
-      <div className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl bg-[#121216] border border-white/10 text-white shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className={`relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl ${
+        isDark ? 'bg-[#121216] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900 shadow-2xl'
+      } border shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200`}>
         
         {/* Header */}
-        <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-white/10 flex items-center justify-between bg-[#16161c]">
+        <div className={`px-5 py-4 sm:px-6 sm:py-5 border-b ${
+          isDark ? 'border-white/10 bg-[#16161c]' : 'border-zinc-200/90 bg-[#faf8f5]'
+        } flex items-center justify-between`}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-orange-500/15 border border-orange-500/30 text-orange-400 flex items-center justify-center font-bold">
               {customerUser?.picture ? (
@@ -311,10 +316,10 @@ export default function UserProfileModal() {
               )}
             </div>
             <div>
-              <h2 className="font-display text-xl sm:text-2xl tracking-wide leading-none text-white">
+              <h2 className={`font-display text-xl sm:text-2xl tracking-wide leading-none ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                 CUSTOMER PROFILE & ORDERS
               </h2>
-              <p className="text-[11px] text-zinc-400 mt-0.5">
+              <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mt-0.5`}>
                 Salik Fast Food • Wah Cantt
               </p>
             </div>
@@ -322,7 +327,11 @@ export default function UserProfileModal() {
 
           <button
             onClick={closeProfileModal}
-            className="w-9 h-9 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center border border-zinc-700/60 transition-all cursor-pointer focus:outline-none"
+            className={`w-9 h-9 rounded-full ${
+              isDark
+                ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border-zinc-700/60'
+                : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 border-zinc-200'
+            } flex items-center justify-center border transition-all cursor-pointer focus:outline-none`}
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -330,14 +339,16 @@ export default function UserProfileModal() {
         </div>
 
         {/* Tab Navigation Navigation Pills */}
-        <div className="px-5 pt-3.5 pb-2 bg-[#141418] border-b border-white/5 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <div className={`px-5 pt-3.5 pb-2 ${isDark ? 'bg-[#141418] border-white/5' : 'bg-[#f4efe6] border-zinc-200'} border-b flex items-center gap-2 overflow-x-auto no-scrollbar`}>
           <button
             type="button"
             onClick={() => setProfileTab('profile')}
             className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               profileTab === 'profile'
                 ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                : 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                : isDark
+                  ? 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                  : 'bg-white text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/80 shadow-2xs'
             }`}
           >
             <User className="w-3.5 h-3.5" />
@@ -350,7 +361,9 @@ export default function UserProfileModal() {
             className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               profileTab === 'orders'
                 ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                : 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                : isDark
+                  ? 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                  : 'bg-white text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/80 shadow-2xs'
             }`}
           >
             <RotateCcw className="w-3.5 h-3.5 text-orange-400" />
@@ -368,7 +381,9 @@ export default function UserProfileModal() {
             className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               profileTab === 'reviews'
                 ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30'
-                : 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                : isDark
+                  ? 'bg-zinc-800/60 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                  : 'bg-white text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/80 shadow-2xs'
             }`}
           >
             <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
@@ -394,17 +409,17 @@ export default function UserProfileModal() {
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white tracking-wide">
+                  <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'} tracking-wide`}>
                     Saved Order Details
                   </h3>
-                  <p className="text-xs text-zinc-300 leading-relaxed mt-0.5">
+                  <p className={`text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-600'} leading-relaxed mt-0.5`}>
                     Save your Name, Phone, and Address here. When placing an order, these fields will automatically pre-fill so you never have to retype them (always editable at checkout).
                   </p>
                 </div>
               </div>
 
               {/* Google Account Quick Connect / Status */}
-              <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className={`p-3.5 rounded-2xl ${isDark ? 'bg-zinc-900/80 border-white/5' : 'bg-zinc-50 border-zinc-200'} border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3`}>
                 <div className="flex items-center gap-3">
                   {customerUser?.picture ? (
                     <img
@@ -414,15 +429,15 @@ export default function UserProfileModal() {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center font-bold text-sm">
+                    <div className={`w-10 h-10 rounded-full ${isDark ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-200 text-zinc-600'} flex items-center justify-center font-bold text-sm`}>
                       <User className="w-5 h-5" />
                     </div>
                   )}
                   <div>
-                    <div className="text-xs font-bold text-white">
+                    <div className={`text-xs font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                       {customerUser ? customerUser.name : 'Google Account (Optional)'}
                     </div>
-                    <div className="text-[11px] text-zinc-400">
+                    <div className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                       {customerUser ? customerUser.email : 'Sign in to sync your profile & order receipts'}
                     </div>
                   </div>
@@ -470,7 +485,7 @@ export default function UserProfileModal() {
               <form onSubmit={handleSaveProfile} className="space-y-4">
                 {/* Full Name */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  <label className={`block text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-700'} mb-1.5`}>
                     Full Name *
                   </label>
                   <div className="relative">
@@ -481,14 +496,14 @@ export default function UserProfileModal() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g. M. Salik"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-zinc-500"
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl ${isDark ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400'} border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500`}
                     />
                   </div>
                 </div>
 
                 {/* Phone Number */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  <label className={`block text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-700'} mb-1.5`}>
                     Phone Number (11-Digit) *
                   </label>
                   <div className="relative">
@@ -502,17 +517,17 @@ export default function UserProfileModal() {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
                       placeholder="03001234567"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-zinc-500"
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl ${isDark ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400'} border text-xs font-mono focus:outline-none focus:ring-2 focus:ring-orange-500`}
                     />
                   </div>
-                  <span className="text-[10px] text-zinc-500 mt-1 block">
+                  <span className={`text-[10px] ${isDark ? 'text-zinc-500' : 'text-zinc-500'} mt-1 block`}>
                     Format: 03001234567 (used for delivery call and live order updates)
                   </span>
                 </div>
 
                 {/* Delivery Address */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  <label className={`block text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-700'} mb-1.5`}>
                     Delivery Address *
                   </label>
                   <div className="relative">
@@ -523,7 +538,7 @@ export default function UserProfileModal() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder="House/Shop #, Street, Sector, Area in Wah Cantt"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-zinc-500 resize-none"
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl ${isDark ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400'} border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none`}
                     />
                   </div>
                 </div>
@@ -548,11 +563,11 @@ export default function UserProfileModal() {
               </form>
 
               {/* Navigation Cards Under Profile */}
-              <div className="pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className={`pt-4 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'} grid grid-cols-1 sm:grid-cols-2 gap-3`}>
                 <button
                   type="button"
                   onClick={() => setProfileTab('orders')}
-                  className="p-3.5 rounded-2xl bg-zinc-900/90 border border-white/10 hover:border-orange-500/40 text-left transition-all group cursor-pointer"
+                  className={`p-3.5 rounded-2xl ${isDark ? 'bg-zinc-900/90 border-white/10 hover:border-orange-500/40' : 'bg-zinc-50 border-zinc-200 hover:border-orange-500/40'} border text-left transition-all group cursor-pointer`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-white flex items-center gap-2">

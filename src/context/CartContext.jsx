@@ -26,6 +26,63 @@ export const CartProvider = ({ children }) => {
   const [profileTab, setProfileTab] = useState('profile');
   const [userProfile, setUserProfile] = useState(() => getStoredUserProfile());
 
+  const [theme, setTheme] = useState(() => {
+    try {
+      const savedV2 = localStorage.getItem('salik_app_theme_v2');
+      if (savedV2 === 'light' || savedV2 === 'dark') return savedV2;
+      const saved = localStorage.getItem('salik_app_theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+      return 'dark'; // Default dark mode matching design
+    } catch {
+      return 'dark';
+    }
+  });
+
+  const isDark = theme === 'dark';
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('salik_app_theme_v2', theme);
+      localStorage.setItem('salik_app_theme', theme);
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      }
+      window.dispatchEvent(new CustomEvent('salik_theme_changed', { detail: theme }));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'salik_app_theme_v2' || e.key === 'salik_app_theme') {
+        const val = e.newValue;
+        if (val === 'light' || val === 'dark') {
+          setTheme(val);
+        }
+      }
+    };
+    const handleCustomTheme = (e) => {
+      if (e?.detail === 'light' || e?.detail === 'dark') {
+        setTheme(e.detail);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('salik_theme_changed', handleCustomTheme);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('salik_theme_changed', handleCustomTheme);
+    };
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   useEffect(() => {
     const handleProfileUpdate = (e) => {
       if (e?.detail) {
@@ -512,7 +569,11 @@ Notes: ${customerInfo.notes || 'None'}`
         openProfileModal,
         closeProfileModal,
         userProfile,
-        saveUserProfile: saveStoredUserProfile
+        saveUserProfile: saveStoredUserProfile,
+        theme,
+        isDark,
+        toggleTheme,
+        setTheme
       }}
     >
       {children}

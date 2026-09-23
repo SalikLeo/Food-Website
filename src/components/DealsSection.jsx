@@ -13,7 +13,7 @@ function isFamilyDeal(deal) {
 }
 
 export default function DealsSection({ deals = [], familyDeal = null }) {
-  const { addToCart } = useCart();
+  const { addToCart, isDark } = useCart();
   const [quantities, setQuantities] = useState({});
 
   const getQty = (id) => quantities[id] || 1;
@@ -69,7 +69,14 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
   }
 
   return (
-    <section id="deals" className="py-20 bg-[#0c0c0d] border-t border-zinc-900">
+    <section
+      id="deals"
+      className={`py-20 ${
+        isDark
+          ? 'bg-[#0c0c0d] border-zinc-900'
+          : 'bg-gradient-to-b from-[#f4eee4] via-[#f8f4ec] to-[#fbf8f3] border-zinc-200/80'
+      } border-t transition-colors duration-300`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* NORMAL COMBO DEALS SECTION */}
@@ -81,10 +88,10 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                 <Flame className="w-3.5 h-3.5 fill-orange-400" />
                 <span>COMBO DEALS</span>
               </div>
-              <h2 className="text-5xl sm:text-6xl font-display uppercase tracking-tight text-white">
+              <h2 className={`text-5xl sm:text-6xl font-display uppercase tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                 <span className="text-primary">GO</span> DEALS
               </h2>
-              <p className="text-zinc-400 text-base sm:text-lg">
+              <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-base sm:text-lg`}>
                 Best Deals. Better Taste. More Value.
               </p>
             </div>
@@ -96,7 +103,11 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                 return (
                   <div
                     key={deal.id}
-                    className="group relative flex flex-col justify-between bg-[#161618] rounded-2xl border border-zinc-800/80 overflow-hidden hover:border-orange-500/50 transition-all duration-300 hover:shadow-card-dark"
+                    className={`group relative flex flex-col justify-between ${
+                      isDark
+                        ? 'bg-[#161618] border-zinc-800/80 hover:shadow-card-dark'
+                        : 'bg-white border-zinc-200/90 shadow-md hover:shadow-xl'
+                    } rounded-2xl border overflow-hidden hover:border-orange-500/50 transition-all duration-300`}
                   >
                     {/* Deal Tag Badge */}
                     <div className="absolute top-3 left-3 z-10">
@@ -233,10 +244,10 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                 <Users className="w-3.5 h-3.5 fill-amber-400" />
                 <span>FAMILY DEALS & FEASTS</span>
               </div>
-              <h3 className="text-4xl sm:text-5xl font-display uppercase tracking-tight text-white">
+              <h3 className={`text-4xl sm:text-5xl font-display uppercase tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                 MEGA <span className="text-amber-500">FAMILY</span> BUNDLES
               </h3>
-              <p className="text-zinc-400 text-sm sm:text-base">
+              <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-sm sm:text-base`}>
                 Bigger savings, hearty portions for the whole family to feast together!
               </p>
             </div>
@@ -247,7 +258,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                 const deal = familyDeals[0];
                 const qty = getQty(deal.id);
                 return (
-                  <div className="relative rounded-3xl overflow-hidden border border-amber-500/40 bg-[#161619] shadow-2xl p-6 lg:p-8">
+                  <div className={`relative rounded-3xl overflow-hidden border border-amber-500/40 ${isDark ? 'bg-[#161619]' : 'bg-white shadow-xl'} shadow-2xl p-6 lg:p-8`}>
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                       {/* Left Side Image */}
                       <div className="lg:col-span-6 relative">
@@ -329,7 +340,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                   return (
                     <div
                       key={deal.id}
-                      className="relative rounded-3xl overflow-hidden border border-amber-500/40 bg-[#161619] shadow-xl flex flex-col justify-between p-6 group hover:border-amber-500 transition-all duration-300"
+                      className={`relative rounded-3xl overflow-hidden border border-amber-500/40 ${isDark ? 'bg-[#161619]' : 'bg-white shadow-xl'} shadow-xl flex flex-col justify-between p-6 group hover:border-amber-500 transition-all duration-300`}
                     >
                       <div>
                         {/* Header & Badges */}

@@ -16,6 +16,7 @@ import {
   User
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import ThemeToggle from './ThemeToggle';
 import { isCustomerApp } from '../config/api';
 import { 
   getStoredCustomerUser, 
@@ -25,7 +26,7 @@ import {
 } from '../services/googleAuth';
 
 export default function Header({ onAdminClick, hideAdmin = false }) {
-  const { itemCount, setIsCartOpen, openProfileModal } = useCart();
+  const { itemCount, setIsCartOpen, openProfileModal, isDark } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
@@ -139,8 +140,12 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
           isCustomerApp
             ? 'bg-[#101013]/95 backdrop-blur-md border-b border-white/10 pt-[max(env(safe-area-inset-top,0px),0.65rem)] pb-3 px-4 shadow-lg'
             : isScrolled
-              ? 'glass-nav py-3 shadow-[0_2px_8px_rgba(0,0,0,0.12)]'
-              : 'bg-black/30 backdrop-blur-md py-4 border-b border-white/5'
+              ? isDark
+                ? 'glass-nav py-3 shadow-[0_2px_8px_rgba(0,0,0,0.12)]'
+                : 'bg-white/95 backdrop-blur-md py-3 border-b border-zinc-200/90 shadow-sm text-zinc-900'
+              : isDark
+                ? 'bg-black/30 backdrop-blur-md py-4 border-b border-white/5'
+                : 'bg-white/70 backdrop-blur-md py-4 border-b border-zinc-200/40 text-zinc-900'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -152,7 +157,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               className={`${isCustomerApp ? 'h-9 w-auto' : 'h-12 w-auto'} object-contain transition-transform duration-200 group-hover:scale-105`}
             />
             <div className="flex flex-col">
-              <span className={`font-display tracking-wider ${isCustomerApp ? 'text-lg' : 'text-xl'} leading-none text-white group-hover:text-primary transition-colors`}>
+              <span className={`font-display tracking-wider ${isCustomerApp ? 'text-lg' : 'text-xl'} leading-none ${isDark ? 'text-white' : 'text-zinc-900'} group-hover:text-primary transition-colors`}>
                 SALIK FAST FOOD
               </span>
               <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-orange-400 uppercase mt-0.5 flex items-center gap-1.5">
@@ -170,13 +175,17 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
 
           {/* Desktop Nav Links (Web only) */}
           {!isCustomerApp && (
-            <nav className="hidden lg:flex items-center gap-1.5 text-sm font-semibold tracking-wide text-zinc-300">
+            <nav className={`hidden lg:flex items-center gap-1.5 text-sm font-semibold tracking-wide ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
               <a
                 href="#"
                 className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
                   !activeHash
-                    ? 'bg-white/10 text-amber-400'
-                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                    ? isDark
+                      ? 'bg-white/10 text-amber-400'
+                      : 'bg-orange-100 text-orange-600 font-bold'
+                    : isDark
+                      ? 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                      : 'text-zinc-700 hover:text-orange-600 hover:bg-orange-50/80'
                 }`}
               >
                 Home
@@ -185,8 +194,12 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 href="#deals"
                 className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
                   activeHash === '#deals'
-                    ? 'bg-white/10 text-amber-400'
-                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                    ? isDark
+                      ? 'bg-white/10 text-amber-400'
+                      : 'bg-orange-100 text-orange-600 font-bold'
+                    : isDark
+                      ? 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                      : 'text-zinc-700 hover:text-orange-600 hover:bg-orange-50/80'
                 }`}
               >
                 Deals
@@ -195,8 +208,12 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 href="#menu"
                 className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
                   activeHash === '#menu'
-                    ? 'bg-white/10 text-amber-400'
-                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                    ? isDark
+                      ? 'bg-white/10 text-amber-400'
+                      : 'bg-orange-100 text-orange-600 font-bold'
+                    : isDark
+                      ? 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                      : 'text-zinc-700 hover:text-orange-600 hover:bg-orange-50/80'
                 }`}
               >
                 Menu
@@ -205,8 +222,12 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 href="#about"
                 className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
                   activeHash === '#about'
-                    ? 'bg-white/10 text-amber-400'
-                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                    ? isDark
+                      ? 'bg-white/10 text-amber-400'
+                      : 'bg-orange-100 text-orange-600 font-bold'
+                    : isDark
+                      ? 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                      : 'text-zinc-700 hover:text-orange-600 hover:bg-orange-50/80'
                 }`}
               >
                 About Us
@@ -215,8 +236,12 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 href="#contact"
                 className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
                   activeHash === '#contact'
-                    ? 'bg-white/10 text-amber-400'
-                    : 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                    ? isDark
+                      ? 'bg-white/10 text-amber-400'
+                      : 'bg-orange-100 text-orange-600 font-bold'
+                    : isDark
+                      ? 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                      : 'text-zinc-700 hover:text-orange-600 hover:bg-orange-50/80'
                 }`}
               >
                 Contact
@@ -224,7 +249,11 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               {!hideAdmin && (
                 <button
                   onClick={onAdminClick}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all border border-zinc-700/50 ml-2 cursor-pointer"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full ${
+                    isDark
+                      ? 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border-zinc-700/50'
+                      : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-900 border-zinc-300/80'
+                  } transition-all border ml-2 cursor-pointer`}
                   title="Admin Dashboard"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
@@ -235,16 +264,25 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
             {/* Phone Link (Web only) */}
             {!isCustomerApp && (
               <a
                 href="tel:03095369472"
-                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-all"
+                className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold ${
+                  isDark
+                    ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700'
+                    : 'bg-white border-zinc-200/90 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300 shadow-2xs'
+                } border transition-all`}
               >
                 <Phone className="w-3.5 h-3.5 text-primary" />
                 <span>0309-5369472</span>
               </a>
+            )}
+
+            {/* Light/Dark Theme Switch Toggle (Web only: both desktop & mobile view) */}
+            {!isCustomerApp && (
+              <ThemeToggle variant="compact" />
             )}
 
             {/* Header Profile Trigger (Web only: both desktop & mobile view) */}
@@ -252,11 +290,15 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               <button
                 id="header-profile-btn"
                 onClick={() => openProfileModal('profile')}
-                className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50 transition-all focus:outline-none cursor-pointer"
+                className={`relative p-2.5 rounded-full ${
+                  isDark
+                    ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50'
+                    : 'bg-white border-zinc-200/90 text-zinc-700 hover:text-orange-600 hover:border-primary/50 shadow-2xs'
+                } border transition-all focus:outline-none cursor-pointer`}
                 aria-label="View Profile & Orders"
                 title="View Profile & Orders"
               >
-                <User className="w-5 h-5 text-zinc-200" />
+                <User className={`w-5 h-5 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
               </button>
             )}
 
@@ -265,10 +307,14 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               <button
                 id="header-cart-btn"
                 onClick={() => setIsCartOpen(true)}
-                className="relative p-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50 transition-all focus:outline-none cursor-pointer"
+                className={`relative p-2.5 rounded-full ${
+                  isDark
+                    ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50'
+                    : 'bg-white border-zinc-200/90 text-zinc-700 hover:text-orange-600 hover:border-primary/50 shadow-2xs'
+                } border transition-all focus:outline-none cursor-pointer`}
                 aria-label="View Cart"
               >
-                <ShoppingBag className="w-5 h-5 text-zinc-200" />
+                <ShoppingBag className={`w-5 h-5 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
                 {itemCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center animate-pulse shadow-sm">
                     {itemCount}
@@ -303,7 +349,11 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
             {/* Mobile Menu Toggle (Always available on mobile app & mobile web) */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`${isCustomerApp ? 'p-2' : 'lg:hidden p-2.5'} rounded-xl text-zinc-300 hover:text-white bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-all focus:outline-none active:scale-95`}
+              className={`${isCustomerApp ? 'p-2' : 'lg:hidden p-2.5'} rounded-xl ${
+                isDark
+                  ? 'text-zinc-300 hover:text-white bg-zinc-900/80 border-zinc-800 hover:border-zinc-700'
+                  : 'text-zinc-700 hover:text-zinc-900 bg-white border-zinc-200 hover:border-zinc-300 shadow-2xs'
+              } border transition-all focus:outline-none active:scale-95`}
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5 text-orange-400" /> : <MenuIcon className="w-5 h-5" />}
@@ -330,14 +380,18 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               }`}
             />
 
-            {/* Full-Height Drawer Panel with 100% Opaque Solid Dark Background */}
+            {/* Full-Height Drawer Panel */}
             <div
-              className={`absolute top-0 right-0 bottom-0 w-[86%] max-w-[360px] h-full bg-[#101013] border-l border-white/10 text-white shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-out z-10 ${
+              className={`absolute top-0 right-0 bottom-0 w-[86%] max-w-[360px] h-full ${
+                isDark ? 'bg-[#101013] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
+              } border-l shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-out z-10 ${
                 mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
               }`}
             >
               {/* Drawer Top Header */}
-              <div className="px-5 py-4 sm:px-6 sm:py-5 pt-[max(env(safe-area-inset-top,0px),1rem)] border-b border-zinc-800/80 flex items-center justify-between bg-[#141418]">
+              <div className={`px-5 py-4 sm:px-6 sm:py-5 pt-[max(env(safe-area-inset-top,0px),1rem)] border-b ${
+                isDark ? 'border-zinc-800/80 bg-[#141418]' : 'border-zinc-200/90 bg-[#faf8f5]'
+              } flex items-center justify-between`}>
                 <div className="flex items-center gap-3">
                   <img
                     src="/assets/salik-logo.png"
@@ -345,10 +399,10 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                     className="h-10 w-auto object-contain"
                   />
                   <div className="flex flex-col">
-                    <span className="font-display tracking-wider text-xl leading-none text-white">
-                      SALIK <span className="text-amber-400">FAST FOOD</span>
+                    <span className={`font-display tracking-wider text-xl leading-none ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                      SALIK <span className="text-amber-500">FAST FOOD</span>
                     </span>
-                    <span className="text-[10px] font-medium tracking-[0.2em] text-orange-400 uppercase mt-0.5">
+                    <span className="text-[10px] font-medium tracking-[0.2em] text-orange-500 uppercase mt-0.5">
                       Taste That You Need
                     </span>
                   </div>
@@ -357,7 +411,11 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 {/* Sleek Close Button */}
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-9 h-9 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center border border-zinc-700/60 transition-all focus:outline-none"
+                  className={`w-9 h-9 rounded-full ${
+                    isDark
+                      ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border-zinc-700/60'
+                      : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 border-zinc-200'
+                  } flex items-center justify-center border transition-all focus:outline-none cursor-pointer`}
                   aria-label="Close menu"
                 >
                   <X className="w-5 h-5" />
@@ -379,16 +437,20 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                         onClick={(e) => handleNavClick(e, item.href)}
                         className={`flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm font-semibold transition-all group ${
                           isActive
-                            ? 'bg-gradient-to-r from-orange-500/20 to-amber-500/10 text-amber-400 border border-orange-500/30 font-bold shadow-sm'
-                            : 'text-zinc-300 hover:text-white hover:bg-zinc-800/60 border border-transparent'
+                            ? 'bg-gradient-to-r from-orange-500/20 to-amber-500/10 text-orange-500 border border-orange-500/30 font-bold shadow-sm'
+                            : isDark
+                              ? 'text-zinc-300 hover:text-white hover:bg-zinc-800/60 border border-transparent'
+                              : 'text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100 border border-transparent'
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <span
                             className={`p-2 rounded-xl transition-colors ${
                               isActive
-                                ? 'bg-orange-500/20 text-orange-400'
-                                : 'bg-zinc-800/80 text-zinc-400 group-hover:text-white group-hover:bg-zinc-800'
+                                ? 'bg-orange-500/20 text-orange-500'
+                                : isDark
+                                  ? 'bg-zinc-800/80 text-zinc-400 group-hover:text-white group-hover:bg-zinc-800'
+                                  : 'bg-zinc-100 text-zinc-500 group-hover:text-zinc-900 group-hover:bg-zinc-200'
                             }`}
                           >
                             <Icon className="w-4 h-4" />
@@ -404,7 +466,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                           )}
                           <ChevronRight
                             className={`w-4 h-4 transition-transform group-hover:translate-x-0.5 ${
-                              isActive ? 'text-amber-400' : 'text-zinc-500'
+                              isActive ? 'text-amber-500' : 'text-zinc-400'
                             }`}
                           />
                         </div>
@@ -415,7 +477,14 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               </div>
 
               {/* Drawer Bottom Actions */}
-              <div className="p-5 pb-[max(env(safe-area-inset-bottom,0px),1.25rem)] border-t border-zinc-800/80 space-y-2.5 bg-[#141418]">
+              <div className={`p-5 pb-[max(env(safe-area-inset-bottom,0px),1.25rem)] border-t ${
+                isDark ? 'border-zinc-800/80 bg-[#141418]' : 'border-zinc-200/90 bg-[#faf8f5]'
+              } space-y-2.5`}>
+                {/* Neumorphic Theme Mode Toggle (Website Mobile Drawer) */}
+                <div className="pb-1">
+                  <ThemeToggle variant="full" />
+                </div>
+
                 {/* View Complete Profile CTA */}
                 <button
                   type="button"
@@ -423,9 +492,13 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                     setMobileMenuOpen(false);
                     openProfileModal('profile');
                   }}
-                  className="w-full py-3 rounded-xl bg-zinc-800/90 hover:bg-zinc-700 border border-zinc-700/80 text-zinc-100 font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all"
+                  className={`w-full py-3 rounded-xl ${
+                    isDark
+                      ? 'bg-zinc-800/90 hover:bg-zinc-700 border-zinc-700/80 text-zinc-100'
+                      : 'bg-white hover:bg-zinc-100 border-zinc-200 text-zinc-800 shadow-2xs'
+                  } border font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all`}
                 >
-                  <User className="w-4 h-4 text-orange-400" />
+                  <User className="w-4 h-4 text-orange-500" />
                   <span>View Complete Profile</span>
                 </button>
 
@@ -442,9 +515,13 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 {/* Direct Call Button */}
                 <a
                   href="tel:03095369472"
-                  className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/80 text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-colors"
+                  className={`w-full py-3 rounded-xl ${
+                    isDark
+                      ? 'bg-zinc-800 hover:bg-zinc-700 border-zinc-700/80 text-white'
+                      : 'bg-white hover:bg-zinc-100 border-zinc-200 text-zinc-800 shadow-2xs'
+                  } border font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-colors`}
                 >
-                  <Phone className="w-4 h-4 text-orange-400" />
+                  <Phone className="w-4 h-4 text-orange-500" />
                   <span>Call: 0309-5369472</span>
                 </a>
 

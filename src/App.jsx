@@ -16,7 +16,7 @@ import UserProfileModal from './components/UserProfileModal';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
-import { CartProvider } from './context/CartContext';
+import { CartProvider, useCart } from './context/CartContext';
 import { apiUrl, APP_MODE, isCustomerApp } from './config/api';
 
 export default function App() {
@@ -115,30 +115,54 @@ export default function App() {
           settings={settings}
         />
       ) : (
-        <div className="min-h-screen bg-[#0d0d0e] text-white selection:bg-orange-500 selection:text-white">
-          <Header
-            onAdminClick={handleOpenAdmin}
-            hideAdmin={false}
-          />
-          
-          <main>
-            <Hero products={products} deals={deals} />
-            <BestSellersSection products={products} categories={categories} settings={settings} />
-            <DealsSection deals={deals} familyDeal={familyDeal} />
-            <MenuSection categories={categories} products={products} />
-            <OrderSection />
-            <AboutSection categories={categories} products={products} deals={deals} />
-            <ContactSection />
-            <FaqSection faqs={faqs} />
-          </main>
-
-          <Footer categories={categories} settings={settings} />
-          <CartDrawer />
-          <OrderSuccessModal />
-          <UserProfileModal />
-          <CustomerNotificationBanner />
-        </div>
+        <WebsiteStorefront
+          categories={categories}
+          products={products}
+          deals={deals}
+          familyDeal={familyDeal}
+          faqs={faqs}
+          settings={settings}
+          handleOpenAdmin={handleOpenAdmin}
+        />
       )}
     </CartProvider>
+  );
+}
+
+function WebsiteStorefront({
+  categories,
+  products,
+  deals,
+  familyDeal,
+  faqs,
+  settings,
+  handleOpenAdmin
+}) {
+  const { isDark } = useCart();
+
+  return (
+    <div className={`min-h-screen ${isDark ? 'dark bg-[#0d0d0e] text-white' : 'light bg-[#faf8f5] text-zinc-900'} selection:bg-orange-500 selection:text-white transition-colors duration-300`}>
+      <Header
+        onAdminClick={handleOpenAdmin}
+        hideAdmin={false}
+      />
+      
+      <main>
+        <Hero products={products} deals={deals} />
+        <BestSellersSection products={products} categories={categories} settings={settings} />
+        <DealsSection deals={deals} familyDeal={familyDeal} />
+        <MenuSection categories={categories} products={products} />
+        <OrderSection />
+        <AboutSection categories={categories} products={products} deals={deals} />
+        <ContactSection />
+        <FaqSection faqs={faqs} />
+      </main>
+
+      <Footer categories={categories} settings={settings} />
+      <CartDrawer />
+      <OrderSuccessModal />
+      <UserProfileModal />
+      <CustomerNotificationBanner />
+    </div>
   );
 }
