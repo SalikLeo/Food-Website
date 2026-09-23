@@ -133,7 +133,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
     <div class="totals-row"><span>Subtotal</span><span class="bold">Rs. ${formatPrice(orderItemsSubtotal)}</span></div>
     <div class="totals-row"><span>Delivery Charges</span><span class="bold">${orderDeliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(orderDeliveryFee)}`}</span></div>
     <div class="totals-divider"></div>
-    <div class="grand-total"><span>TOTAL PAYABLE</span><span>Rs. ${formatPrice(orderTotal)}</span></div>
+    <div class="grand-total"><span>TOTAL AMOUNT</span><span>Rs. ${formatPrice(orderTotal)}</span></div>
   </div>
   <div class="footer">
     <p class="bold">Thank you for ordering!</p>
@@ -299,7 +299,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
             </div>
             <div className="my-1 h-[1.5px] bg-black w-full" />
             <div className="flex justify-between text-sm font-extrabold text-black">
-              <span>TOTAL PAYABLE</span>
+              <span>TOTAL AMOUNT</span>
               <span>Rs. {formatPrice(orderTotal)}</span>
             </div>
           </div>

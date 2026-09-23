@@ -350,13 +350,13 @@ export function drawReceiptCanvas(order, scale = 2) {
   ctx.lineTo(width - padX, curY);
   ctx.stroke();
 
-  // Clear 32px margin after solid divider line to Total Payable text baseline
+  // Clear 32px margin after solid divider line to Total Amount text baseline
   curY += 32;
 
   ctx.font = `800 24px ${fontSans}`;
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'left';
-  ctx.fillText('TOTAL PAYABLE', padX, curY);
+  ctx.fillText('TOTAL AMOUNT', padX, curY);
 
   ctx.textAlign = 'right';
   ctx.fillText(`Rs. ${formatPrice(total)}`, width - padX, curY);

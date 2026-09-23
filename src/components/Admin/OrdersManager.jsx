@@ -842,7 +842,7 @@ export default function OrdersManager({
     </div>
     <div class="totals-divider"></div>
     <div class="grand-total-row">
-      <span>TOTAL PAYABLE</span>
+      <span>TOTAL AMOUNT</span>
       <span>Rs. ${formatPrice(order.total || 0)}</span>
     </div>
   </div>
@@ -1909,7 +1909,7 @@ export default function OrdersManager({
                 </div>
                 <div className="my-1.5 h-[1.5px] bg-black w-full" />
                 <div className="flex justify-between text-sm font-extrabold text-black">
-                  <span>TOTAL PAYABLE</span>
+                  <span>TOTAL AMOUNT</span>
                   <span>Rs. {formatPrice(viewingReceiptOrder.total || 0)}</span>
                 </div>
               </div>
