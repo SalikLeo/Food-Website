@@ -2770,15 +2770,6 @@ export default function CustomerMobileApp({
             {/* Bottom Quick Contact & Account Actions */}
             <div className={`space-y-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
               <a
-                href="https://wa.me/923095369472"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-98 transition-transform cursor-pointer"
-              >
-                <WhatsAppIcon className="w-4 h-4 fill-white" />
-                <span>WhatsApp Order</span>
-              </a>
-              <a
                 href="tel:03095369472"
                 className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all border shadow-xs ${
                   isDark
@@ -2787,7 +2778,7 @@ export default function CustomerMobileApp({
                 }`}
               >
                 <Phone className="w-4 h-4 text-orange-600 stroke-[2.2]" />
-                <span>Call Now</span>
+                <span>Call: 0309-5369472</span>
               </a>
 
               {/* Google Login / Authenticated User Profile */}
