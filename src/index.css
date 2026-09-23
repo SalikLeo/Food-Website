@@ -323,23 +323,23 @@
   animation: reminderBounce 2.8s ease-in-out infinite;
 }
 
-/* Mobile Safe Area & Inset Adjustments (Notch & Navigation Bar) */
+/* Mobile Header & Bottom Navigation Adjustments */
 .mobile-app-header {
-  padding-top: max(env(safe-area-inset-top, 0px), 0.2rem);
+  padding-top: 0.25rem;
   padding-bottom: 0.35rem;
 }
 
 .admin-app-header {
-  padding-top: max(env(safe-area-inset-top, 0px), 0px);
+  padding-top: 0px;
   padding-bottom: 0px;
 }
 
 .mobile-app-container {
-  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 7.5rem), 8rem);
+  padding-bottom: 8rem;
 }
 
 .admin-app-container {
-  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 7.5rem), 8rem);
+  padding-bottom: 8rem;
 }
 
 
