@@ -1004,8 +1004,8 @@ export default function CustomerMobileApp({
             </div>
           </div>
 
-          {/* Right Action Icons: WhatsApp & Side Drawer */}
-          <div className="flex items-center gap-2.5">
+          {/* Right Action Icons: WhatsApp, Profile & Side Drawer */}
+          <div className="flex items-center gap-2">
 
             {/* WhatsApp Direct Chat */}
             <a
@@ -1021,6 +1021,23 @@ export default function CustomerMobileApp({
             >
               <WhatsAppIcon className="w-6 h-6 fill-emerald-500" />
             </a>
+
+            {/* Customer Profile Trigger Button (on left of menu) */}
+            <button
+              id="mobile-header-profile-btn"
+              onClick={() => switchView(currentView === 'profile' ? 'home' : 'profile')}
+              className={`w-10 h-10 rounded-xl border flex items-center justify-center active:scale-95 cursor-pointer transition-transform ${
+                currentView === 'profile'
+                  ? 'bg-orange-600 border-orange-500 text-white shadow-xs'
+                  : isDark 
+                    ? 'bg-zinc-800/80 border-white/10 text-zinc-200' 
+                    : 'bg-zinc-100 border-zinc-200 text-zinc-700 shadow-2xs'
+              }`}
+              aria-label="View Profile"
+              title="View Profile"
+            >
+              <User className={`w-5 h-5 ${currentView === 'profile' ? 'text-white' : isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
+            </button>
 
             {/* Side Drawer Menu Trigger Button */}
             <button

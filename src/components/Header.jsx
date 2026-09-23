@@ -346,6 +346,23 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               </a>
             )}
 
+            {/* Customer Profile Trigger Button (Mobile App) */}
+            {isCustomerApp && (
+              <button
+                id="header-profile-btn-app"
+                onClick={() => openProfileModal('profile')}
+                className={`p-2 rounded-xl border transition-all focus:outline-none cursor-pointer active:scale-95 ${
+                  isDark
+                    ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:text-white'
+                    : 'bg-white border-zinc-200/90 text-zinc-700 hover:text-orange-600 shadow-2xs'
+                }`}
+                aria-label="View Profile & Orders"
+                title="View Profile & Orders"
+              >
+                <User className={`w-5 h-5 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
+              </button>
+            )}
+
             {/* Mobile Menu Toggle (Always available on mobile app & mobile web) */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
