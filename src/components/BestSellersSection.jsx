@@ -150,8 +150,8 @@ export default function BestSellersSection({ products = [], categories = [], set
           </div>
         </div>
 
-        {/* 4 Cards Grid - Exact Same Design as Website Menu Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* 4 Cards Grid - 2 columns on mobile, 4 columns on desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6">
           {displayItems.map((product, index) => {
             const selectedSize = getSelectedSize(product);
             const activePrice = selectedSize ? selectedSize.price : product.price;
@@ -162,7 +162,7 @@ export default function BestSellersSection({ products = [], categories = [], set
             return (
               <div
                 key={product.id}
-                className={`bg-white rounded-2xl border border-zinc-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group ${
+                className={`bg-white rounded-xl sm:rounded-2xl border border-zinc-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group ${
                   isSoldOut ? 'opacity-90' : ''
                 }`}
               >
@@ -180,42 +180,43 @@ export default function BestSellersSection({ products = [], categories = [], set
                   />
 
                   {/* Top Badges */}
-                  <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 z-10">
                     {isSoldOut ? (
-                      <span className="px-2.5 py-1 rounded-md bg-zinc-900/95 text-amber-300 border border-amber-400/40 text-[10px] font-extrabold uppercase tracking-wider shadow-md flex items-center gap-1.5 backdrop-blur-xs">
-                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                        Sold Out Today
+                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-md bg-zinc-900/95 text-amber-300 border border-amber-400/40 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider shadow-md flex items-center gap-1 sm:gap-1.5 backdrop-blur-xs">
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 animate-pulse" />
+                        <span className="hidden xs:inline">Sold Out Today</span>
+                        <span className="xs:hidden">Sold Out</span>
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 rounded-md bg-orange-600 text-white text-[10px] font-bold uppercase tracking-wider shadow flex items-center gap-1">
-                        <Flame className="w-3 h-3 fill-white" />
-                        #{index + 1} Best Seller
+                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-md bg-orange-600 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shadow flex items-center gap-1">
+                        <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white shrink-0" />
+                        <span>#{index + 1} Best Seller</span>
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Card Content */}
-                <div className="p-5 flex-1 flex flex-col justify-between">
+                <div className="p-2.5 sm:p-5 flex-1 flex flex-col justify-between">
                   <div>
                     {/* Name & Price */}
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <h4 className="font-bold text-sm sm:text-base text-zinc-900">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-0.5 sm:gap-2 mb-1 sm:mb-1.5">
+                      <h4 className="font-bold text-xs sm:text-base text-zinc-900 line-clamp-1 sm:line-clamp-2 leading-tight">
                         {product.name}
                       </h4>
-                      <span className="font-bold text-sm sm:text-base text-red-600 flex-shrink-0 tracking-tight">
+                      <span className="font-bold text-xs sm:text-base text-red-600 flex-shrink-0 tracking-tight">
                         Rs. {formatPrice(activePrice)}
                       </span>
                     </div>
 
                     {/* Description */}
-                    <p className="text-[#78716c] text-xs line-clamp-2 leading-relaxed mb-3">
+                    <p className="text-[#78716c] text-[10px] sm:text-xs line-clamp-2 leading-tight sm:leading-relaxed mb-2 sm:mb-3">
                       {product.description}
                     </p>
 
                     {/* Sizes Selector Capsule Track */}
                     {product.sizes && product.sizes.length > 0 && (
-                      <div className="bg-[#f5f1eb] rounded-full p-1 flex items-center justify-between gap-1 mb-4 border border-[#eee8df]/80">
+                      <div className="bg-[#f5f1eb] rounded-full p-0.5 sm:p-1 flex items-center justify-between gap-0.5 sm:gap-1 mb-2.5 sm:mb-4 border border-[#eee8df]/80">
                         {product.sizes.map((s) => {
                           const isSizeActive = selectedSize?.label === s.label;
                           return (
@@ -224,7 +225,7 @@ export default function BestSellersSection({ products = [], categories = [], set
                               type="button"
                               disabled={isSoldOut}
                               onClick={() => handleSelectSize(product.id, s)}
-                              className={`flex-1 py-1 px-3 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
+                              className={`flex-1 py-0.5 sm:py-1 px-1 sm:px-3 rounded-full text-[9px] sm:text-xs font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
                                 isSizeActive
                                   ? 'bg-gradient-to-r from-[#d93409] to-[#ea580c] text-white shadow-sm'
                                   : 'text-[#635d56] hover:text-zinc-900 bg-transparent'
@@ -239,44 +240,44 @@ export default function BestSellersSection({ products = [], categories = [], set
                   </div>
 
                   {/* Quantity & Actions */}
-                  <div className="space-y-2 pt-2 border-t border-zinc-100">
+                  <div className="space-y-1.5 sm:space-y-2 pt-1.5 sm:pt-2 border-t border-zinc-100">
                     {isSoldOut ? (
-                      <div className="space-y-1.5">
+                      <div className="space-y-1 sm:space-y-1.5">
                         <button
                           type="button"
                           disabled
-                          className="w-full h-10 flex items-center justify-center gap-1.5 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-400 text-xs font-bold cursor-not-allowed uppercase tracking-wider"
+                          className="w-full h-8 sm:h-10 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-400 text-[10px] sm:text-xs font-bold cursor-not-allowed uppercase tracking-wider"
                         >
-                          <Ban className="w-3.5 h-3.5 text-zinc-400" />
-                          <span>Sold Out Today</span>
+                          <Ban className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400 shrink-0" />
+                          <span className="truncate">Sold Out</span>
                         </button>
-                        <p className="text-[11px] text-center text-zinc-400 font-medium italic">
-                          Temporarily unavailable today
+                        <p className="text-[9px] sm:text-[11px] text-center text-zinc-400 font-medium italic truncate">
+                          Unavailable today
                         </p>
                       </div>
                     ) : (
                       <>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                           {/* Sleek Stepper */}
-                          <div className="flex items-center h-10 rounded-xl bg-zinc-100/90 border border-zinc-200/80 p-0.5 shadow-2xs">
+                          <div className="flex items-center h-8 sm:h-10 rounded-lg sm:rounded-xl bg-zinc-100/90 border border-zinc-200/80 p-0.5 shadow-2xs">
                             <button
                               type="button"
                               onClick={() => setQty(product.id, -1)}
-                              className="w-8 h-full rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                              className="w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
                               aria-label="Decrease quantity"
                             >
-                              <Minus className="w-3.5 h-3.5" />
+                              <Minus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
                             </button>
-                            <span className="w-7 text-center font-bold text-xs sm:text-sm text-zinc-900">
+                            <span className="w-5 sm:w-7 text-center font-bold text-[10px] sm:text-sm text-zinc-900">
                               {qty}
                             </span>
                             <button
                               type="button"
                               onClick={() => setQty(product.id, 1)}
-                              className="w-8 h-full rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                              className="w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white active:scale-90 transition-all cursor-pointer"
                               aria-label="Increase quantity"
                             >
-                              <Plus className="w-3.5 h-3.5" />
+                              <Plus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
                             </button>
                           </div>
 
@@ -284,14 +285,14 @@ export default function BestSellersSection({ products = [], categories = [], set
                           <button
                             type="button"
                             onClick={(e) => handleAddToCart(product, e)}
-                            className={`flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl active:scale-[0.98] font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer ${
+                            className={`flex-1 h-8 sm:h-10 px-1 sm:px-3 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl active:scale-[0.98] font-bold text-[10px] sm:text-sm transition-all shadow-xs cursor-pointer ${
                               isAdded
                                 ? 'bg-emerald-600 text-white'
                                 : 'bg-zinc-900 hover:bg-zinc-800 text-white'
                             }`}
                           >
-                            <ShoppingBag className="w-3.5 h-3.5 text-orange-400" />
-                            <span>{isAdded ? 'Added!' : 'Add to Cart'}</span>
+                            <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-400 shrink-0" />
+                            <span className="truncate">{isAdded ? 'Added!' : 'Add to Cart'}</span>
                           </button>
                         </div>
 
@@ -299,9 +300,9 @@ export default function BestSellersSection({ products = [], categories = [], set
                         <button
                           type="button"
                           onClick={() => handleOrderNow(product)}
-                          className="w-full h-10 rounded-xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] active:scale-[0.98] text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full h-8 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] active:scale-[0.98] text-white font-bold text-[10px] sm:text-sm uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer"
                         >
-                          <Zap className="w-3.5 h-3.5 fill-white" />
+                          <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-white shrink-0" />
                           <span>Order Now</span>
                         </button>
                       </>
