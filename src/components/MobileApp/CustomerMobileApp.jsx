@@ -1238,9 +1238,6 @@ export default function CustomerMobileApp({
                       <Flame className="w-4 h-4 text-orange-500 fill-orange-500" />
                       <span>Hot Combo Deals</span>
                     </h2>
-                    <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                      Saver deals with burgers, pizza, fries & drinks
-                    </p>
                   </div>
                   <button
                     onClick={() => switchView('deals')}

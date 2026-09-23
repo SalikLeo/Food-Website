@@ -231,9 +231,6 @@ export default function OrderSection() {
               <h2 className="mt-1 text-4xl sm:text-5xl font-display uppercase tracking-tight text-zinc-900 leading-none">
                 PLACE YOUR ORDER
               </h2>
-              <p className="mt-2 text-zinc-500 text-sm">
-                Home delivery across the area. Minimum order Rs. {minOrder}.
-              </p>
             </div>
 
             {errorMsg && (
