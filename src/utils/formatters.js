@@ -84,5 +84,26 @@ export function cleanDealInclusions(val) {
     .trim();
 }
 
+/**
+ * Format deal inclusions or description as a clean comma-separated list of items without category brackets.
+ */
+export function formatDealDescription(val) {
+  if (!val) return '';
+  if (Array.isArray(val)) {
+    return val
+      .map(item => cleanDealInclusions(item))
+      .map(s => (typeof s === 'string' ? s.trim() : s))
+      .filter(Boolean)
+      .join(', ');
+  }
+  if (typeof val !== 'string') return String(val);
+  const cleaned = cleanDealInclusions(val);
+  return cleaned
+    .split(/\s*\+\s*/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .join(', ');
+}
+
 export default formatPrice;
 

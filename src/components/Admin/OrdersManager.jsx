@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle, Loader2 } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
-import { formatPrice, formatPaymentMethod, formatReceiptPaymentBadge, cleanDealInclusions } from '../../utils/formatters';
+import { formatPrice, formatPaymentMethod, formatReceiptPaymentBadge, cleanDealInclusions, formatDealDescription } from '../../utils/formatters';
 import { downloadReceiptImage, shareReceiptImageWhatsApp, printReceiptDocument } from '../../services/receiptImageService';
 
 // Format order date & time: DD/MM/YY, hh:mm am/pm
@@ -32,6 +32,41 @@ export default function OrdersManager({
   onRefresh,
   onReceiptOpenChange
 }) {
+
+  const resolveItemDealDescription = (item) => {
+    if (!item) return null;
+    if (item.description) {
+      const desc = formatDealDescription(item.description);
+      if (desc) return desc;
+    }
+    if (item.includes) {
+      const desc = formatDealDescription(item.includes);
+      if (desc) return desc;
+    }
+
+    const rawItemName = (item.name || '').split(' (')[0].trim().toLowerCase();
+    if (!rawItemName) return null;
+
+    if (familyDeal && familyDeal.name) {
+      const famName = familyDeal.name.split(' (')[0].trim().toLowerCase();
+      if (famName === rawItemName || rawItemName.includes('family')) {
+        const desc = formatDealDescription(familyDeal.includes || familyDeal.description);
+        if (desc) return desc;
+      }
+    }
+
+    const matched = (deals || []).find(d => {
+      const dName = (d.name || '').split(' (')[0].trim().toLowerCase();
+      return dName === rawItemName;
+    });
+
+    if (matched) {
+      const desc = formatDealDescription(matched.includes || matched.description);
+      if (desc) return desc;
+    }
+
+    return null;
+  };
 
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
@@ -415,6 +450,9 @@ export default function OrdersManager({
     const cleanName = selectedItem.isDeal
       ? selectedItem.name.split(' (')[0]
       : selectedItem.name;
+    const dealDesc = selectedItem.isDeal
+      ? formatDealDescription(selectedItem.description || selectedItem.includes)
+      : undefined;
 
     setEditItems(prev => {
       const existingIdx = prev.findIndex(it =>
@@ -435,7 +473,8 @@ export default function OrdersManager({
             size: sizeLabel,
             price,
             quantity: addQty,
-            image: selectedItem.image || '/assets/deal-family.png'
+            image: selectedItem.image || '/assets/deal-family.png',
+            ...(dealDesc ? { description: dealDesc } : {})
           }
         ];
       }
@@ -1173,6 +1212,7 @@ export default function OrdersManager({
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                               {(order.items || []).map((it, idx) => {
+                                const dealDesc = resolveItemDealDescription(it);
                                 return (
                                   <div
                                     key={idx}
@@ -1186,6 +1226,11 @@ export default function OrdersManager({
                                         <span className="ml-1 font-semibold text-xs text-orange-600">
                                           ({it.size})
                                         </span>
+                                      )}
+                                      {dealDesc && (
+                                        <p className="text-[11px] text-zinc-500 font-medium truncate mt-0.5 leading-tight">
+                                          {dealDesc}
+                                        </p>
                                       )}
                                     </div>
                                     <span className="font-bold flex-shrink-0 text-xs text-zinc-800">
@@ -1352,6 +1397,8 @@ export default function OrdersManager({
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                             {(order.items || []).map((it, idx) => {
+                              const dealDesc = resolveItemDealDescription(it);
+
                               if (!isPreparationActive) {
                                 return (
                                   <div
@@ -1366,6 +1413,11 @@ export default function OrdersManager({
                                         <span className="ml-1 font-semibold text-xs text-orange-600">
                                           ({it.size})
                                         </span>
+                                      )}
+                                      {dealDesc && (
+                                        <p className="text-[11px] text-zinc-500 font-medium truncate mt-0.5 leading-tight">
+                                          {dealDesc}
+                                        </p>
                                       )}
                                     </div>
                                     <span className="font-bold flex-shrink-0 text-xs text-zinc-800">
@@ -1411,6 +1463,11 @@ export default function OrdersManager({
                                         <span className="ml-1 font-semibold text-xs text-orange-600">
                                           ({it.size})
                                         </span>
+                                      )}
+                                      {dealDesc && (
+                                        <p className={`text-[11px] font-medium truncate mt-0.5 leading-tight ${isPrepared ? 'text-emerald-700/90' : 'text-zinc-500'}`}>
+                                          {dealDesc}
+                                        </p>
                                       )}
                                     </div>
                                   </div>
@@ -1508,7 +1565,12 @@ export default function OrdersManager({
                           <div className="min-w-0">
                             <span className="font-bold text-zinc-900 block truncate">{item.name}</span>
                             {item.size && (
-                              <span className="text-[10px] text-orange-600 font-semibold">Size: {item.size}</span>
+                              <span className="text-[10px] text-orange-600 font-semibold block">Size: {item.size}</span>
+                            )}
+                            {resolveItemDealDescription(item) && (
+                              <span className="text-[10px] text-zinc-500 font-medium block truncate mt-0.5">
+                                {resolveItemDealDescription(item)}
+                              </span>
                             )}
                           </div>
                         </div>

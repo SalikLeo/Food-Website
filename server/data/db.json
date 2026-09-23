@@ -1209,8 +1209,9 @@
       "subtotal": 800,
       "deliveryFee": 200,
       "total": 1000,
-      "status": "Pending",
-      "createdAt": "2026-09-22T13:38:17.327Z"
+      "status": "Out for Delivery",
+      "createdAt": "2026-09-22T13:38:17.327Z",
+      "updatedAt": "2026-09-23T06:13:00.902Z"
     },
     {
       "id": "ORD-242867-39",
