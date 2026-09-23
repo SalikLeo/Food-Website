@@ -1,7 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Award, ArrowRight } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
-export default function AboutSection() {
+export default function AboutSection({ categories = [], products = [], deals = [] }) {
+  const [internalCategories, setInternalCategories] = useState([]);
+  const [internalProducts, setInternalProducts] = useState([]);
+  const [internalDeals, setInternalDeals] = useState([]);
+
+  useEffect(() => {
+    if (categories.length === 0) {
+      fetch(apiUrl('/api/categories'))
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) setInternalCategories(data);
+        })
+        .catch(() => {});
+    }
+    if (products.length === 0) {
+      fetch(apiUrl('/api/products'))
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) setInternalProducts(data);
+        })
+        .catch(() => {});
+    }
+    if (deals.length === 0) {
+      fetch(apiUrl('/api/deals'))
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.deals) setInternalDeals(data.deals);
+        })
+        .catch(() => {});
+    }
+  }, [categories.length, products.length, deals.length]);
+
+  const allCategories = categories.length > 0 ? categories : internalCategories;
+  const allProducts = products.length > 0 ? products : internalProducts;
+  const allDeals = deals.length > 0 ? deals : internalDeals;
+
+  const categoriesCount = allCategories.length > 0 ? allCategories.length : 9;
+  const productsCount = allProducts.length > 0 ? allProducts.length : 57;
+  const dealsCount = allDeals.length > 0 ? allDeals.length : 4;
+
   return (
     <section id="about" className="py-20 bg-cream border-t border-zinc-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -53,7 +93,7 @@ export default function AboutSection() {
             <div className="grid grid-cols-3 gap-4 pt-4">
               <div className="bg-white rounded-2xl p-4 border border-zinc-200 text-center shadow-sm">
                 <span className="font-display text-3xl sm:text-4xl text-zinc-900 block leading-none mb-1">
-                  9
+                  {categoriesCount}
                 </span>
                 <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
                   Categories
@@ -62,7 +102,7 @@ export default function AboutSection() {
 
               <div className="bg-white rounded-2xl p-4 border border-zinc-200 text-center shadow-sm">
                 <span className="font-display text-3xl sm:text-4xl text-orange-600 block leading-none mb-1">
-                  60+
+                  {productsCount}
                 </span>
                 <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
                   Menu Items
@@ -71,7 +111,7 @@ export default function AboutSection() {
 
               <div className="bg-white rounded-2xl p-4 border border-zinc-200 text-center shadow-sm">
                 <span className="font-display text-3xl sm:text-4xl text-amber-500 block leading-none mb-1">
-                  12
+                  {dealsCount}
                 </span>
                 <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
                   Value Deals

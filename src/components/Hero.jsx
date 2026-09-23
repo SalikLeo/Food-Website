@@ -31,7 +31,7 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
   const allProducts = propProducts.length > 0 ? propProducts : internalProducts;
   const allDeals = propDeals.length > 0 ? propDeals : internalDeals;
 
-  const totalItems = allProducts.length > 0 ? allProducts.length : 22;
+  const totalItems = allProducts.length > 0 ? allProducts.length : 57;
 
   const lowestDealPrice = useMemo(() => {
     if (allDeals && allDeals.length > 0) {
@@ -107,7 +107,7 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5 text-orange-400 font-bold text-sm">
                   <Clock className="w-4 h-4" />
-                  <span>30-40 MIN</span>
+                  <span>20-30 Min</span>
                 </div>
                 <span className="text-xs text-zinc-300 font-semibold uppercase tracking-wider mt-1">
                   HOME DELIVERY

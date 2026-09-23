@@ -126,7 +126,7 @@ export default function App() {
             <DealsSection deals={deals} familyDeal={familyDeal} />
             <MenuSection categories={categories} products={products} />
             <OrderSection />
-            <AboutSection />
+            <AboutSection categories={categories} products={products} deals={deals} />
             <ContactSection />
             <FaqSection faqs={faqs} />
           </main>
