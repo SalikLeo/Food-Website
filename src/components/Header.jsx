@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Phone,
   ShoppingBag,
   Menu as MenuIcon,
   X,
@@ -265,21 +264,6 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
-            {/* Phone Link (Web only) */}
-            {!isCustomerApp && (
-              <a
-                href="tel:03095369472"
-                className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold ${
-                  isDark
-                    ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700'
-                    : 'bg-white border-zinc-200/90 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300 shadow-2xs'
-                } border transition-all`}
-              >
-                <Phone className="w-3.5 h-3.5 text-primary" />
-                <span>0309-5369472</span>
-              </a>
-            )}
-
             {/* Light/Dark Theme Switch Toggle (Web only: both desktop & mobile view) */}
             {!isCustomerApp && (
               <ThemeToggle variant="compact" />
@@ -527,19 +511,6 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>Order Now</span>
-                </a>
-
-                {/* Direct Call Button */}
-                <a
-                  href="tel:03095369472"
-                  className={`w-full py-3 rounded-xl ${
-                    isDark
-                      ? 'bg-zinc-800 hover:bg-zinc-700 border-zinc-700/80 text-white'
-                      : 'bg-white hover:bg-zinc-100 border-zinc-200 text-zinc-800 shadow-2xs'
-                  } border font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-colors`}
-                >
-                  <Phone className="w-4 h-4 text-orange-500" />
-                  <span>Call: 0309-5369472</span>
                 </a>
 
                 {/* Google Sign-in / User Profile Card */}
