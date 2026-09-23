@@ -1440,9 +1440,6 @@ export default function OrdersManager({
                         <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200/90 text-xs">
                           <div className="flex items-center justify-between mb-2 flex-wrap gap-1.5">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
-                                Items:
-                              </span>
                               <span className="px-1.5 py-0.5 rounded-md bg-zinc-200/80 text-zinc-700 font-extrabold text-[10px] normal-case tracking-normal">
                                 {(order.items || []).length} {(order.items || []).length === 1 ? 'Item' : 'Items'}
                               </span>
@@ -1466,7 +1463,7 @@ export default function OrdersManager({
                               }
                               return (
                                 <span className="text-[10px] text-zinc-400 font-medium">
-                                  (Tap tick to mark prepared)
+                                  (Tap to mark prepared)
                                 </span>
                               );
                             })()}
