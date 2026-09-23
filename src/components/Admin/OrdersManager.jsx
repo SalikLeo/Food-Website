@@ -39,6 +39,10 @@ export default function OrdersManager({
     ? totalPendingCount
     : (allOrders && allOrders.length > 0 ? allOrders : orders).filter(o => o.status === 'Pending').length;
 
+  const totalPreparingOrders = (allOrders && allOrders.length > 0 ? allOrders : orders).filter(o => o.status === 'Preparing').length;
+
+  const totalOutForDeliveryOrders = (allOrders && allOrders.length > 0 ? allOrders : orders).filter(o => o.status === 'Out for Delivery').length;
+
   const resolveItemDealDescription = (item) => {
     if (!item) return null;
     if (item.description) {
@@ -992,26 +996,47 @@ export default function OrdersManager({
             isStatusGrabbing ? 'cursor-grabbing' : 'cursor-grab'
           }`}
         >
-          {['All', 'Pending', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'].map(st => (
-            <button
-              key={st}
-              type="button"
-              onDragStart={(e) => e.preventDefault()}
-              onClick={() => handleStatusSelect(st)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all select-none ${
-                statusFilter === st
-                  ? 'bg-orange-600 text-white shadow-sm'
-                  : 'bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 shadow-2xs'
-              }`}
-            >
-              {st}
-              {st === 'Pending' && totalPendingOrders > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-[10px]">
-                  {totalPendingOrders}
-                </span>
-              )}
-            </button>
-          ))}
+          {['All', 'Pending', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'].map(st => {
+            const count = st === 'Pending'
+              ? totalPendingOrders
+              : st === 'Preparing'
+              ? totalPreparingOrders
+              : st === 'Out for Delivery'
+              ? totalOutForDeliveryOrders
+              : null;
+            const isSelected = statusFilter === st;
+
+            return (
+              <button
+                key={st}
+                type="button"
+                onDragStart={(e) => e.preventDefault()}
+                onClick={() => handleStatusSelect(st)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all select-none inline-flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'bg-orange-600 text-white shadow-sm'
+                    : 'bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 shadow-2xs'
+                }`}
+              >
+                <span>{st}</span>
+                {typeof count === 'number' && count > 0 && (
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold leading-none ${
+                      isSelected
+                        ? 'bg-white text-orange-600'
+                        : st === 'Pending'
+                        ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                        : st === 'Preparing'
+                        ? 'bg-blue-100 text-blue-900 border border-blue-300'
+                        : 'bg-purple-100 text-purple-900 border border-purple-300'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Search */}
