@@ -1949,7 +1949,7 @@ export default function CustomerMobileApp({
                               <span className={`text-[11px] font-normal truncate ${
                                 isDark ? 'text-zinc-400' : 'text-zinc-500'
                               }`}>
-                                • {itemsList.length} {itemsList.length === 1 ? 'Item' : 'Items'} ({expandedOrders[order.id || idx] ? 'Hide' : 'Details'})
+                                • {itemsList.length} {itemsList.length === 1 ? 'Item' : 'Items'} ({expandedOrders[order.id || idx] ? 'Hide' : 'View'})
                               </span>
                             </span>
                             <ChevronDown className={`w-4 h-4 text-orange-500 shrink-0 transition-transform duration-300 ease-in-out ${

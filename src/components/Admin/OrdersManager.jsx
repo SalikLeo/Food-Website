@@ -1202,7 +1202,7 @@ export default function OrdersManager({
                           className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 hover:text-zinc-900 text-xs font-semibold transition-colors cursor-pointer"
                           title={isExpanded ? 'Collapse Details' : 'View Details'}
                         >
-                          <span className="hidden sm:inline">{isExpanded ? 'Hide' : 'Details'}</span>
+                          <span className="hidden sm:inline">{isExpanded ? 'Hide' : 'View'}</span>
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                         </button>
                       </div>
