@@ -16,6 +16,11 @@
     overflow-x: hidden;
   }
 
+  ::selection {
+    background: #f97316;
+    color: #ffffff;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 5px;
