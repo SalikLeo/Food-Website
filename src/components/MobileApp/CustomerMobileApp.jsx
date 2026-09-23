@@ -178,9 +178,13 @@ export default function CustomerMobileApp({
     }
   }, [reviewedOrderIds]);
 
-  // Only show orders that are pending review
+  // Only show orders that are delivered and pending review
   const pendingReviewOrders = useMemo(() => {
-    return (recentOrders || []).filter(o => o && o.id && !reviewedOrderIds.includes(String(o.id)));
+    return (recentOrders || []).filter(o => 
+      o && o.id && 
+      String(o.status || '').toLowerCase() === 'delivered' &&
+      !reviewedOrderIds.includes(String(o.id))
+    );
   }, [recentOrders, reviewedOrderIds]);
 
   const pendingReviewsCount = pendingReviewOrders.length;
@@ -2024,26 +2028,30 @@ export default function CustomerMobileApp({
                         </div>
 
                         <div className="flex items-center gap-2">
-                          {!reviewedOrderIds.includes(String(order.id)) && (
-                            <button
-                              type="button"
-                              onClick={() => switchView('add-review')}
-                              className="px-2.5 py-1.5 sm:py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold text-xs uppercase tracking-wider flex items-center gap-1 border border-amber-500/25 active:scale-95 transition-all cursor-pointer"
-                            >
-                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                              <span>Add Review</span>
-                            </button>
-                          )}
+                          {String(order.status || '').toLowerCase() === 'delivered' && (
+                            <>
+                              {!reviewedOrderIds.includes(String(order.id)) && (
+                                <button
+                                  type="button"
+                                  onClick={() => switchView('add-review')}
+                                  className="px-2.5 py-1.5 sm:py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold text-xs uppercase tracking-wider flex items-center gap-1 border border-amber-500/25 active:scale-95 transition-all cursor-pointer"
+                                >
+                                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                  <span>Add Review</span>
+                                </button>
+                              )}
 
-                          {/* REORDER BUTTON */}
-                          <button
-                            type="button"
-                            onClick={() => handleReorderOrder(order)}
-                            className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-                            <span>Reorder</span>
-                          </button>
+                              {/* REORDER BUTTON */}
+                              <button
+                                type="button"
+                                onClick={() => handleReorderOrder(order)}
+                                className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                                <span>Reorder</span>
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
 

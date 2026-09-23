@@ -471,6 +471,10 @@ export default function OrdersManager({
 
   const onSelectStatus = (order, newStatus) => {
     if (!order || order.status === newStatus) return;
+    if (String(order.status || '').toLowerCase() === 'delivered') {
+      alert('Once an order is delivered, its status cannot be changed further.');
+      return;
+    }
     setStatusChangeConfirmModal({ order, newStatus });
   };
 
@@ -1026,18 +1030,14 @@ export default function OrdersManager({
                           </span>
                         </div>
 
-                        {/* Status Dropdown */}
-                        <select
-                          value={order.status}
-                          onChange={(e) => onSelectStatus(order, e.target.value)}
-                          className="px-2.5 py-1 rounded-full text-xs font-bold border focus:outline-none bg-emerald-50 text-emerald-700 border-emerald-200 cursor-pointer"
+                        {/* Status Badge (Immutable once Delivered) */}
+                        <span
+                          className="px-2.5 py-1 rounded-full text-xs font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 select-none inline-flex items-center gap-1"
+                          title="Delivered orders are final"
                         >
-                          <option value="Pending">Pending</option>
-                          <option value="Preparing">Preparing</option>
-                          <option value="Out for Delivery">Out for Delivery</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Cancelled">Cancelled</option>
-                        </select>
+                          <Check className="w-3 h-3 text-emerald-600 stroke-[2.5]" />
+                          <span>Delivered</span>
+                        </span>
 
                         {/* View Receipt Modal */}
                         <button

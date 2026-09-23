@@ -423,6 +423,9 @@ export const db = {
     const data = readDb();
     const order = (data.orders || []).find(o => o.id === id);
     if (!order) return null;
+    if (String(order.status || '').toLowerCase() === 'delivered') {
+      return order; // Status cannot be changed once delivered
+    }
     order.status = status;
     order.updatedAt = new Date().toISOString();
     writeDb(data);
