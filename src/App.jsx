@@ -136,12 +136,7 @@ export default function App() {
           <CartDrawer />
           <OrderSuccessModal />
           <UserProfileModal />
-          <CustomerNotificationBanner
-            onAddReview={() => {
-              const el = document.getElementById('reviews');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-          />
+          <CustomerNotificationBanner />
         </div>
       )}
     </CartProvider>

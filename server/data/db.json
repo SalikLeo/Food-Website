@@ -999,9 +999,9 @@
       "subtotal": 150,
       "deliveryFee": 200,
       "total": 350,
-      "status": "Preparing",
+      "status": "Out for Delivery",
       "createdAt": "2026-09-23T11:30:14.267Z",
-      "updatedAt": "2026-09-23T11:32:52.444Z"
+      "updatedAt": "2026-09-23T11:50:42.350Z"
     },
     {
       "id": "ORD-325989-61",

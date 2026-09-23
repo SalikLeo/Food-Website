@@ -9,7 +9,7 @@ export default function CustomerNotificationBanner({ onTrackOrder, onAddReview }
     if (activeOrderNotification) {
       const timer = setTimeout(() => {
         dismissOrderNotification();
-      }, 9000);
+      }, 10000);
       return () => clearTimeout(timer);
     }
   }, [activeOrderNotification, dismissOrderNotification]);
@@ -20,20 +20,44 @@ export default function CustomerNotificationBanner({ onTrackOrder, onAddReview }
   const cleanId = String(order?.id || '').replace(/^#/, '');
   const isDelivered = String(newStatus || order?.status || '').toLowerCase() === 'delivered';
 
+  // Clean duplicate emoji from title so the icon container handles the emoji
+  const cleanTitle = (details?.title || 'Order Update!')
+    .replace(/^[\p{Emoji}\s]+/u, '')
+    .trim() || 'ORDER UPDATE';
+
+  const handleAction = () => {
+    dismissOrderNotification();
+    if (isDelivered) {
+      if (typeof onAddReview === 'function') {
+        onAddReview(order);
+      } else if (typeof openProfileModal === 'function') {
+        openProfileModal('reviews');
+      }
+    } else {
+      if (typeof onTrackOrder === 'function') {
+        onTrackOrder(order);
+      } else if (typeof openProfileModal === 'function') {
+        openProfileModal('orders');
+      }
+    }
+  };
+
   return (
-    <div className="fixed top-3 inset-x-0 mx-auto z-50 w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
-      <div className="p-3.5 sm:p-4 rounded-2xl border-2 border-orange-500 bg-white/98 dark:bg-[#1a1a24]/98 text-zinc-900 dark:text-white shadow-2xl backdrop-blur-md ring-4 ring-orange-500/20">
-        <div className="flex items-center justify-between pb-2 border-b border-zinc-200/50 dark:border-white/10">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-orange-600 text-white flex items-center justify-center text-base shadow-xs shrink-0 animate-bounce">
+    <div className="fixed top-4 inset-x-0 mx-auto z-[130] w-[94%] max-w-md animate-in slide-in-from-top-4 duration-300">
+      <div className="p-4 sm:p-4.5 rounded-2xl border-2 border-orange-500 bg-[#16161e] text-white shadow-[0_16px_45px_rgba(0,0,0,0.85)] ring-4 ring-orange-500/25">
+        
+        {/* Top Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center text-xl shadow-sm shrink-0">
               {details?.icon || '🔔'}
             </div>
             <div className="min-w-0">
-              <h3 className="font-montserrat text-xs sm:text-sm font-extrabold uppercase text-orange-600 dark:text-orange-500 leading-none truncate">
-                {details?.title || 'Order Update!'}
+              <h3 className="font-montserrat text-sm font-extrabold uppercase text-orange-400 leading-tight tracking-wide truncate">
+                {cleanTitle}
               </h3>
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold mt-0.5 block truncate">
-                Order #{cleanId} • Status: {newStatus}
+              <span className="text-[11px] text-zinc-300 font-semibold mt-0.5 block truncate">
+                Order #{cleanId} • Status: <span className="text-white font-bold">{newStatus}</span>
               </span>
             </div>
           </div>
@@ -41,62 +65,50 @@ export default function CustomerNotificationBanner({ onTrackOrder, onAddReview }
           <button
             type="button"
             onClick={dismissOrderNotification}
-            className="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition-colors cursor-pointer"
-            title="Dismiss"
+            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            title="Dismiss notification"
+            aria-label="Dismiss notification"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-2 line-clamp-2">
+        {/* High contrast, crisp body text */}
+        <p className="text-xs sm:text-[13px] text-zinc-100 font-medium leading-relaxed my-3 break-words">
           {details?.body}
         </p>
 
-        <div className="mt-2.5 flex items-center gap-2">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2.5 pt-1">
           {isDelivered ? (
             <button
               type="button"
-              onClick={() => {
-                dismissOrderNotification();
-                if (typeof openProfileModal === 'function') {
-                  openProfileModal('reviews');
-                } else if (onAddReview) {
-                  onAddReview(order);
-                } else if (onTrackOrder) {
-                  onTrackOrder(order);
-                } else {
-                  const el = document.getElementById('reviews');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-              className="flex-1 py-1.5 px-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+              onClick={handleAction}
+              className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
             >
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+              <Star className="w-4 h-4 fill-amber-300 text-amber-300 shrink-0" />
               <span>Add Review</span>
             </button>
           ) : (
-            onTrackOrder && (
-              <button
-                type="button"
-                onClick={() => {
-                  dismissOrderNotification();
-                  onTrackOrder(order);
-                }}
-                className="flex-1 py-1.5 px-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
-              >
-                <span>Track Order</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )
+            <button
+              type="button"
+              onClick={handleAction}
+              className="flex-1 py-2.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
+            >
+              <span>Track Order</span>
+              <ArrowRight className="w-4 h-4 shrink-0" />
+            </button>
           )}
+
           <button
             type="button"
             onClick={dismissOrderNotification}
-            className={`${(isDelivered || onTrackOrder) ? '' : 'flex-1'} py-1.5 px-3 rounded-lg bg-zinc-100 dark:bg-white/10 hover:bg-zinc-200 dark:hover:bg-white/15 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition-all cursor-pointer`}
+            className="py-2.5 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 text-xs font-semibold transition-all cursor-pointer active:scale-95"
           >
             Dismiss
           </button>
         </div>
+
       </div>
     </div>
   );
