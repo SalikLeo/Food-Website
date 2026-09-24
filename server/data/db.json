@@ -4,7 +4,7 @@
       "id": "pizza",
       "label": "Pizza",
       "blurb": "",
-      "count": 18
+      "count": 17
     },
     {
       "id": "burgers",
@@ -40,7 +40,7 @@
       "id": "nuggets",
       "label": "Chicken Nuggets",
       "blurb": "Crunchy chicken bites with dips",
-      "count": 2
+      "count": 1
     },
     {
       "id": "special",
@@ -148,29 +148,6 @@
       "inStock": true,
       "tag": "",
       "updatedAt": "2026-09-24T10:16:23.140Z"
-    },
-    {
-      "id": "pizza-2",
-      "name": "Chicken Fajita",
-      "description": "Fajita chicken, bell pepper, onion, herbs",
-      "category": "pizza",
-      "image": "/assets/images/p-pizza-fajita-BB8kQFoB.jpg",
-      "price": 450,
-      "sizes": [
-        {
-          "label": "Small",
-          "price": 450
-        },
-        {
-          "label": "Medium",
-          "price": 800
-        },
-        {
-          "label": "Large",
-          "price": 1200
-        }
-      ],
-      "inStock": true
     },
     {
       "id": "pizza-3",
@@ -868,15 +845,6 @@
       "description": "Single crispy fried zinger chicken piece",
       "image": "/assets/images/p-zinger-piece-CSLsNx9t.jpg",
       "price": 230,
-      "inStock": true
-    },
-    {
-      "id": "nuggets-6",
-      "name": "Nuggets (6 Pcs)",
-      "category": "nuggets",
-      "description": "Six crunchy chicken nuggets with dip",
-      "image": "/assets/images/p-nuggets-12-t1kdd9YG.jpg",
-      "price": 250,
       "inStock": true
     },
     {

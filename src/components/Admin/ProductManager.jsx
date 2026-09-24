@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Plus, Edit2, Trash2, UploadCloud, Search, Check, X, Image as ImageIcon, FolderTree, Save, Undo2 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
 import { formatPrice } from '../../utils/formatters';
+import CustomSelect from '../Common/CustomSelect';
 
 export default function ProductManager({ products = [], categories = [], onRefresh }) {
   const [search, setSearch] = useState('');
@@ -418,18 +419,19 @@ export default function ProductManager({ products = [], categories = [], onRefre
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             {/* Category Filter Dropdown */}
-            <select
+            <CustomSelect
               value={selectedCat}
               onChange={(e) => setSelectedCat(e.target.value)}
-              className="w-full sm:w-auto py-2.5 px-3 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 focus:outline-none focus:border-orange-500 shadow-2xs cursor-pointer font-medium"
-            >
-              <option value="all">All Categories ({products.length})</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.label} ({products.filter(p => p.category === c.id).length})
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: 'all', label: `All Categories (${products.length})` },
+                ...categories.map(c => ({
+                  value: c.id,
+                  label: `${c.label} (${products.filter(p => p.category === c.id).length})`
+                }))
+              ]}
+              buttonClassName="w-full sm:w-auto py-2.5 px-3 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 focus:outline-none focus:border-orange-500 shadow-2xs cursor-pointer font-medium"
+              menuClassName="w-56"
+            />
 
             {/* Manage Categories Button (under categories dropdown on mobile) */}
             <button
@@ -601,15 +603,14 @@ export default function ProductManager({ products = [], categories = [], onRefre
                   <label className="block font-bold text-zinc-700 uppercase tracking-wider mb-1.5">
                     Category *
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-zinc-300 text-zinc-900 focus:outline-none focus:border-orange-500 capitalize shadow-2xs"
-                  >
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.label}</option>
-                    ))}
-                  </select>
+                    options={categories.map(c => ({ value: c.id, label: c.label }))}
+                    className="w-full"
+                    buttonClassName="w-full px-3.5 py-2.5 rounded-xl bg-white border border-zinc-300 text-zinc-900 focus:outline-none focus:border-orange-500 capitalize shadow-2xs font-medium text-xs"
+                    menuClassName="w-full"
+                  />
                 </div>
               </div>
 

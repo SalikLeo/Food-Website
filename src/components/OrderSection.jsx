@@ -18,6 +18,7 @@ import { useCart } from '../context/CartContext';
 import { formatPrice, cleanDealInclusions } from '../utils/formatters';
 import { apiUrl } from '../config/api';
 import { getStoredUserProfile, saveStoredUserProfile } from '../services/userProfile';
+import CustomSelect from './Common/CustomSelect';
 
 export default function OrderSection() {
   const {
@@ -366,19 +367,23 @@ export default function OrderSection() {
                 <label className={`block text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-zinc-700'} uppercase tracking-wider mb-2`}>
                   Payment Method
                 </label>
-                <select
+                <CustomSelect
                   name="paymentMethod"
                   value={formData.paymentMethod}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all ${
+                  options={[
+                    { value: 'Cash on Delivery', label: 'Cash on Delivery' },
+                    { value: 'Easypaisa', label: 'Easypaisa' }
+                  ]}
+                  isDark={isDark}
+                  className="w-full"
+                  buttonClassName={`w-full px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
                     isDark
-                      ? 'bg-[#18181f] border-zinc-700 text-white'
-                      : 'bg-white border-zinc-200 text-zinc-900'
+                      ? 'bg-[#18181f] border-zinc-700 text-white hover:border-zinc-600'
+                      : 'bg-white border-zinc-200 text-zinc-900 hover:border-zinc-300'
                   }`}
-                >
-                  <option value="Cash on Delivery">Cash on Delivery</option>
-                  <option value="Easypaisa">Easypaisa</option>
-                </select>
+                  menuClassName="w-full"
+                />
               </div>
 
               {/* Action Buttons Row */}

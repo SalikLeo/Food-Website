@@ -14,6 +14,7 @@ import {
   X
 } from 'lucide-react';
 import { formatPrice } from '../../utils/formatters';
+import CustomSelect from '../Common/CustomSelect';
 
 export default function ItemSalesManager({
   orders = [],
@@ -321,29 +322,31 @@ export default function ItemSalesManager({
 
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
             {/* Category Filter */}
-            <select
+            <CustomSelect
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="py-2 px-3 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 focus:outline-none focus:border-orange-500 shadow-2xs capitalize cursor-pointer"
-            >
-              <option value="all">All Categories</option>
-              {availableCategories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+              options={[
+                { value: 'all', label: 'All Categories' },
+                ...availableCategories.map(cat => ({ value: cat, label: cat }))
+              ]}
+              buttonClassName="py-2 px-3 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 focus:outline-none focus:border-orange-500 shadow-2xs capitalize cursor-pointer font-medium"
+              menuClassName="w-44"
+            />
 
             {/* Sort Dropdown */}
-            <select
+            <CustomSelect
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="py-2 px-3 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 focus:outline-none focus:border-orange-500 shadow-2xs cursor-pointer"
-            >
-              <option value="qty_desc">Sort: Most Sold (Units)</option>
-              <option value="rev_desc">Sort: Highest Revenue (Rs.)</option>
-              <option value="orders_desc">Sort: Most Frequent Orders</option>
-              <option value="qty_asc">Sort: Least Sold</option>
-              <option value="name_asc">Sort: Item Name (A-Z)</option>
-            </select>
+              options={[
+                { value: 'qty_desc', label: 'Sort: Most Sold (Units)' },
+                { value: 'rev_desc', label: 'Sort: Highest Revenue (Rs.)' },
+                { value: 'orders_desc', label: 'Sort: Most Frequent Orders' },
+                { value: 'qty_asc', label: 'Sort: Least Sold' },
+                { value: 'name_asc', label: 'Sort: Item Name (A-Z)' }
+              ]}
+              buttonClassName="py-2 px-3 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 focus:outline-none focus:border-orange-500 shadow-2xs cursor-pointer font-medium"
+              menuClassName="w-56"
+            />
           </div>
         </div>
 

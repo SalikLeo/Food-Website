@@ -43,6 +43,17 @@
     caret-color: #ea580c;
   }
 
+  select, option {
+    color: #18181b;
+    background-color: #ffffff;
+  }
+
+  .dark select,
+  .dark option {
+    color: #f4f4f5;
+    background-color: #18181b;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 5px;

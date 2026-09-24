@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
 import { formatPrice, cleanDealInclusions } from '../../utils/formatters';
+import CustomSelect from '../Common/CustomSelect';
 
 const PRESET_DEAL_IMAGES = [
   { label: 'Family Deal Bundle', src: '/assets/deal-family.png' },
@@ -1394,17 +1395,17 @@ export default function DealsManager({
                     }}
                   />
 
-                  <select
+                  <CustomSelect
                     value={selectedImage}
                     onChange={(e) => setSelectedImage(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl bg-white border border-zinc-300 text-zinc-800 text-xs focus:outline-none focus:border-orange-500"
-                  >
-                    {PRESET_DEAL_IMAGES.map((img) => (
-                      <option key={img.src} value={img.src}>
-                        {img.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={PRESET_DEAL_IMAGES.map((img) => ({
+                      value: img.src,
+                      label: img.label
+                    }))}
+                    className="flex-1"
+                    buttonClassName="w-full px-3 py-2 rounded-xl bg-white border border-zinc-300 text-zinc-800 text-xs focus:outline-none focus:border-orange-500 shadow-2xs font-medium"
+                    menuClassName="w-full"
+                  />
                 </div>
               </div>
 

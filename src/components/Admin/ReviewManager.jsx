@@ -13,6 +13,7 @@ import {
   Filter,
   Check
 } from 'lucide-react';
+import CustomSelect from '../Common/CustomSelect';
 // Format review date & time: DD/MM/YY, hh:mm am/pm
 const formatReviewDate = (review) => {
   if (review?.createdAt) {
@@ -486,17 +487,20 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
               {/* Rating */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-zinc-700 block">Rating</label>
-                <select
+                <CustomSelect
                   value={newReview.rating}
                   onChange={(e) => setNewReview({ ...newReview, rating: Number(e.target.value) })}
-                  className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-300 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-orange-500"
-                >
-                  <option value="5">⭐⭐⭐⭐⭐ (5 Stars)</option>
-                  <option value="4">⭐⭐⭐⭐ (4 Stars)</option>
-                  <option value="3">⭐⭐⭐ (3 Stars)</option>
-                  <option value="2">⭐⭐ (2 Stars)</option>
-                  <option value="1">⭐ (1 Star)</option>
-                </select>
+                  options={[
+                    { value: 5, label: '⭐⭐⭐⭐⭐ (5 Stars)' },
+                    { value: 4, label: '⭐⭐⭐⭐ (4 Stars)' },
+                    { value: 3, label: '⭐⭐⭐ (3 Stars)' },
+                    { value: 2, label: '⭐⭐ (2 Stars)' },
+                    { value: 1, label: '⭐ (1 Star)' }
+                  ]}
+                  className="w-full"
+                  buttonClassName="w-full px-3 py-2 rounded-xl bg-white border border-zinc-300 text-xs font-semibold text-zinc-800 focus:outline-none focus:border-orange-500 shadow-2xs"
+                  menuClassName="w-full"
+                />
               </div>
 
               {/* Customer Name */}

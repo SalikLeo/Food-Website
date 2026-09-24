@@ -30,6 +30,7 @@ import DeliverySettingsManager from './DeliverySettingsManager';
 import ItemSalesManager from './ItemSalesManager';
 import ReviewManager from './ReviewManager';
 import RidersManager from './RidersManager';
+import CustomSelect from '../Common/CustomSelect';
 import { apiUrl, APP_MODE } from '../../config/api';
 import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
@@ -977,34 +978,24 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                   </span>
 
                   {/* Month Dropdown */}
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-orange-300 bg-orange-50 text-orange-950 font-bold shadow-2xs">
-                    <select
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                      className="bg-transparent text-xs font-bold focus:outline-none cursor-pointer pr-1 text-zinc-900"
-                    >
-                      {MONTH_NAMES.map((mName, idx) => (
-                        <option key={idx} value={idx}>
-                          {mName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                    options={MONTH_NAMES.map((mName, idx) => ({ value: idx, label: mName }))}
+                    buttonClassName="px-2.5 py-1 rounded-lg border border-orange-300 bg-orange-50 text-orange-950 font-bold text-xs shadow-2xs hover:bg-orange-100/70"
+                    menuClassName="w-36"
+                  />
 
                   {/* Year Dropdown */}
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-800 font-semibold">
+                  <div className="flex items-center gap-1">
                     <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Year:</span>
-                    <select
+                    <CustomSelect
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(Number(e.target.value))}
-                      className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer pr-1 text-zinc-900"
-                    >
-                      {availableYears.map(y => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
+                      options={availableYears.map(y => ({ value: y, label: String(y) }))}
+                      buttonClassName="px-2.5 py-1 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-800 font-semibold text-xs hover:bg-zinc-100"
+                      menuClassName="w-28"
+                    />
                   </div>
                 </div>
               </div>
@@ -1019,19 +1010,13 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                   </span>
 
                   {/* Year Dropdown */}
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-orange-300 bg-orange-50 text-orange-950 font-bold shadow-2xs">
-                    <select
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(Number(e.target.value))}
-                      className="bg-transparent text-xs font-bold focus:outline-none cursor-pointer pr-1 text-zinc-900"
-                    >
-                      {availableYears.map(y => (
-                        <option key={y} value={y}>
-                          {y} (Full Year)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                    options={availableYears.map(y => ({ value: y, label: `${y} (Full Year)` }))}
+                    buttonClassName="px-2.5 py-1 rounded-lg border border-orange-300 bg-orange-50 text-orange-950 font-bold text-xs shadow-2xs hover:bg-orange-100/70"
+                    menuClassName="w-40"
+                  />
                 </div>
               </div>
             )}
