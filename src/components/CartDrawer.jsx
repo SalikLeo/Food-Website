@@ -194,7 +194,7 @@ export default function CartDrawer({ isDark: isDarkProp }) {
                 <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch py-0.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h4 className={`font-bold text-sm sm:text-base truncate ${
+                      <h4 className={`font-bold text-sm sm:text-base break-words leading-tight ${
                         isDark ? 'text-white' : 'text-zinc-900'
                       }`}>
                         {item.name}

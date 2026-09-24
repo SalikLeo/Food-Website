@@ -1713,24 +1713,13 @@ export default function CustomerMobileApp({
                         {/* Product Details */}
                         <div className="flex-1 flex flex-col justify-between min-w-0">
                           <div>
-                            <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                              <h4 className={`font-bold text-base leading-tight truncate ${
-                                isDark ? 'text-white' : 'text-zinc-900'
-                              }`}>
-                                {product.name}
-                              </h4>
-                              {(searchQuery.trim() || selectedCatId === 'all') && product.category && (
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                                  isDark 
-                                    ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
-                                    : 'bg-orange-50 text-orange-700 border border-orange-200'
-                                }`}>
-                                  {categoryEmojis[product.category] || '🍽️'} {product.category}
-                                </span>
-                              )}
-                            </div>
+                            <h4 className={`font-bold text-base leading-tight break-words mb-1 ${
+                              isDark ? 'text-white' : 'text-zinc-900'
+                            }`}>
+                              {product.name}
+                            </h4>
                             {product.description && (
-                              <p className={`text-[11px] line-clamp-2 mt-1 leading-snug ${
+                              <p className={`text-[11px] line-clamp-2 leading-snug ${
                                 isDark ? 'text-zinc-400' : 'text-zinc-600'
                               }`}>
                                 {product.description}
@@ -2188,7 +2177,7 @@ export default function CustomerMobileApp({
                               }`}>
                                 {itemsList.map((item, itemIdx) => (
                                   <div key={itemIdx} className="flex items-center justify-between py-0.5 text-xs">
-                                    <span className={`truncate mr-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                    <span className={`break-words min-w-0 mr-2 leading-snug ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
                                       <strong className="text-orange-500 font-montserrat font-bold mr-1.5">{item.quantity}x</strong>
                                       <span className="font-medium">{item.name}</span>
                                       {item.size && (
