@@ -47,6 +47,26 @@ const categoryEmojis = {
   nuggets: '🍗',
   special: '⭐'
 };
+const getSystemTheme = () => {
+  try {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+  } catch (e) {
+    // fallback
+  }
+  return 'light';
+};
+
+const getInitialTheme = () => {
+  try {
+    const manual = localStorage.getItem('salik_theme_manual_override');
+    if (manual === 'light' || manual === 'dark') return manual;
+    return getSystemTheme();
+  } catch {
+    return getSystemTheme();
+  }
+};
 
 export default function CustomerMobileApp({ 
   categories = [], 
@@ -83,21 +103,23 @@ export default function CustomerMobileApp({
   const totalItems = rawTotalItems || itemCount || (cartItems || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
   const totalPrice = rawTotalPrice || total || subtotal;
 
-  // Theme state: 'light' | 'dark' (persisted in localStorage, default 'light')
-  const [theme, setTheme] = useState(() => {
-    try {
-      const savedV3 = localStorage.getItem('salik_app_theme_v3');
-      if (savedV3 === 'light' || savedV3 === 'dark') return savedV3;
-      return 'light'; // Default light mode
-    } catch {
-      return 'light';
-    }
-  });
+  // Theme state: adapts to mobile/system theme by default, preserves manual toggle
+  const [theme, setTheme] = useState(() => getInitialTheme());
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('salik_theme_manual_override', next);
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     try {
-      localStorage.setItem('salik_app_theme_v3', theme);
-      localStorage.setItem('salik_app_theme_v2', theme);
       localStorage.setItem('salik_app_theme', theme);
       if (theme === 'dark') {
         document.documentElement.classList.add('dark');
@@ -112,9 +134,37 @@ export default function CustomerMobileApp({
     }
   }, [theme]);
 
+  // Adapt to mobile/system theme changes dynamically when no manual override is set
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = (e) => {
+      try {
+        const manual = localStorage.getItem('salik_theme_manual_override');
+        if (!manual) {
+          setTheme(e.matches ? 'dark' : 'light');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleSystemChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleSystemChange);
+    }
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleSystemChange);
+      } else if (mediaQuery.removeListener) {
+        mediaQuery.removeListener(handleSystemChange);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const handleStorage = (e) => {
-      if (e.key === 'salik_app_theme_v3' || e.key === 'salik_app_theme_v2' || e.key === 'salik_app_theme') {
+      if (e.key === 'salik_theme_manual_override' || e.key === 'salik_app_theme') {
         const val = e.newValue;
         if (val === 'light' || val === 'dark') {
           setTheme(val);
@@ -135,7 +185,6 @@ export default function CustomerMobileApp({
   }, []);
 
   const isDark = theme === 'dark';
-  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
   // Navigation states: 'home' | 'category' | 'deals' | 'orders' | 'checkout' | 'add-review'
   const [currentView, setCurrentView] = useState('home');
