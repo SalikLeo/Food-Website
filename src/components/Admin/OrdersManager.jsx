@@ -237,7 +237,6 @@ export default function OrdersManager({
 
   // Status Change Confirmation Modal State (for Delivered Orders)
   const [statusChangeConfirmModal, setStatusChangeConfirmModal] = useState(null);
-  const [confirmRiderId, setConfirmRiderId] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // In-App Rider Assignment Modal State (replaces native select dialog)
@@ -694,11 +693,6 @@ export default function OrdersManager({
       alert('Once an order is delivered, its status cannot be changed further.');
       return;
     }
-    if (newStatus === 'Out for Delivery') {
-      setConfirmRiderId(order.riderId || '');
-    } else {
-      setConfirmRiderId('');
-    }
     setStatusChangeConfirmModal({ order, newStatus });
   };
 
@@ -707,16 +701,7 @@ export default function OrdersManager({
     const { order, newStatus } = statusChangeConfirmModal;
     setIsUpdatingStatus(true);
     try {
-      let riderData = null;
-      if (newStatus === 'Out for Delivery') {
-        const selectedRider = (riders || []).find(r => r.id === confirmRiderId);
-        riderData = {
-          riderId: confirmRiderId || null,
-          riderName: selectedRider ? selectedRider.name : null,
-          riderPhone: selectedRider ? selectedRider.phone : null
-        };
-      }
-      await handleStatusChange(order.id, newStatus, riderData);
+      await handleStatusChange(order.id, newStatus);
       setStatusChangeConfirmModal(null);
     } finally {
       setIsUpdatingStatus(false);
@@ -1674,7 +1659,7 @@ export default function OrdersManager({
 
                     {/* Ordered Items List */}
                     {(() => {
-                      const isPreparationActive = order.status === 'Pending' || order.status === 'Preparing';
+                      const isPreparationActive = order.status === 'Preparing';
                       return (
                         <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200/90 text-xs">
                           <div className="flex items-center justify-between mb-2 flex-wrap gap-1.5">
@@ -2453,78 +2438,7 @@ export default function OrdersManager({
               </div>
             </div>
 
-            {/* Delivery Rider Selection in Status Change Modal */}
-            {statusChangeConfirmModal.newStatus === 'Out for Delivery' && (
-              <div className="p-3.5 rounded-xl bg-purple-50/90 border border-purple-200 space-y-2.5">
-                <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Bike className="w-4 h-4 text-purple-700" />
-                  <span>Assign Delivery Rider:</span>
-                </label>
 
-                {riders.length === 0 ? (
-                  <div className="p-3 bg-white rounded-xl border border-dashed border-purple-300 text-center text-xs text-purple-800">
-                    ⚠️ No riders added yet. You can add delivery riders from the Riders tab or assign later.
-                  </div>
-                ) : (
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                    <button
-                      type="button"
-                      onClick={() => setConfirmRiderId('')}
-                      className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-medium text-left transition-all cursor-pointer ${
-                        confirmRiderId === ''
-                          ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
-                          : 'bg-white hover:bg-purple-50/70 border-purple-200 text-zinc-700'
-                      }`}
-                    >
-                      <span>-- Assign Rider Later --</span>
-                      {confirmRiderId === '' && <Check className="w-4 h-4 text-white" />}
-                    </button>
-
-                    {riders.map(r => {
-                      const activeCount = (allOrders && allOrders.length > 0 ? allOrders : orders).filter(o => o.riderId === r.id && o.status === 'Out for Delivery').length;
-                      const isSelected = confirmRiderId === r.id;
-                      return (
-                        <button
-                          key={r.id}
-                          type="button"
-                          onClick={() => setConfirmRiderId(r.id)}
-                          className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs text-left transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
-                              : 'bg-white hover:bg-purple-50/70 border-purple-200 text-zinc-900'
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5 min-w-0 flex-wrap pr-2">
-                            <span className="font-bold">{r.name}</span>
-                            {r.phone && (
-                              <span className={`text-[11px] font-medium ${isSelected ? 'text-purple-100' : 'text-zinc-500'}`}>
-                                • {r.phone}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              isSelected
-                                ? 'bg-purple-700 text-purple-100'
-                                : activeCount > 0
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-emerald-100 text-emerald-800'
-                            }`}>
-                              {activeCount > 0 ? `${activeCount} Active` : 'Available'}
-                            </span>
-                            {isSelected && <Check className="w-4 h-4 text-white" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <p className="text-[11px] text-zinc-500 leading-relaxed">
-                  Customer will see assigned rider details once order is Out for Delivery.
-                </p>
-              </div>
-            )}
 
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-2.5 pt-2">
@@ -2613,24 +2527,24 @@ export default function OrdersManager({
                       }}
                       className={`w-full flex items-center justify-between p-3 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
                         !assigningRiderOrder.riderId
-                          ? 'bg-zinc-800 text-white border-zinc-800 shadow-xs'
-                          : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200 text-zinc-700'
+                          ? 'bg-purple-50/90 border-purple-300 ring-2 ring-purple-200 text-purple-950 shadow-xs'
+                          : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
-                          !assigningRiderOrder.riderId ? 'bg-zinc-700 text-white' : 'bg-zinc-200 text-zinc-600'
+                          !assigningRiderOrder.riderId ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-zinc-100 text-zinc-500 border border-zinc-200'
                         }`}>
                           ✕
                         </div>
                         <div>
-                          <span className="block font-bold">Unassigned (No Rider)</span>
-                          <span className={`text-[11px] ${!assigningRiderOrder.riderId ? 'text-zinc-300' : 'text-zinc-500'}`}>
+                          <span className="block font-bold text-zinc-900">Unassigned (No Rider)</span>
+                          <span className={`text-[11px] ${!assigningRiderOrder.riderId ? 'text-purple-700 font-medium' : 'text-zinc-500'}`}>
                             Do not assign any rider to this parcel
                           </span>
                         </div>
                       </div>
-                      {!assigningRiderOrder.riderId && <Check className="w-4 h-4 text-white" />}
+                      {!assigningRiderOrder.riderId && <Check className="w-4 h-4 text-purple-700 stroke-[2.5]" />}
                     </button>
                   </div>
 
@@ -2673,7 +2587,7 @@ export default function OrdersManager({
                                   </span>
                                 )}
                                 {isCurrent && (
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-600 text-white">
+                                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-600 text-white shadow-2xs">
                                     Assigned
                                   </span>
                                 )}
