@@ -383,10 +383,14 @@
 }
 
 /* Mobile Header & Bottom Navigation Adjustments */
-.mobile-app-header,
+.mobile-app-header {
+  padding-top: 0.25rem;
+  padding-bottom: 0.35rem;
+}
+
 .admin-app-header {
-  padding-top: max(env(safe-area-inset-top, 0px), 0.5rem);
-  padding-bottom: 0.625rem;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 .mobile-app-container {

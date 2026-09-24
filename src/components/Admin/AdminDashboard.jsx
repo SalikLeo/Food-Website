@@ -718,12 +718,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                 />
               </div>
               <div className="flex flex-col justify-center min-w-0">
-                <h1 className="font-montserrat tracking-tight text-lg font-bold leading-tight flex items-center gap-1.5 text-zinc-900 truncate">
-                  SALIK <span className="text-orange-500">FAST FOOD</span>
-                </h1>
-                <span className="text-[10px] text-zinc-500 font-semibold flex items-center gap-1 mt-0.5 leading-tight truncate">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block shrink-0" />
-                  <span className="text-orange-600 font-bold uppercase tracking-wider text-[10px]">Store Administrator</span>
+                <div className="flex items-center gap-1.5">
+                  <h1 className="font-montserrat text-sm sm:text-base font-bold uppercase tracking-tight text-zinc-900 leading-none truncate">
+                    SALIK <span className="text-orange-600">FAST FOOD</span>
+                  </h1>
+                </div>
+                <span className="text-[10px] sm:text-[11px] text-zinc-500 font-semibold uppercase tracking-wider mt-0.5 flex items-center gap-1.5 leading-tight truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block shrink-0" />
+                  <span className="text-orange-600 font-bold">Store Administrator</span>
                 </span>
               </div>
             </div>
