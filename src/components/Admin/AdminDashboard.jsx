@@ -463,6 +463,15 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     };
     window.addEventListener('salik_sync_riders', handleSyncRiders);
 
+    const handleSyncReviews = (e) => {
+      if (e && e.detail && e.detail.deletedId) {
+        const cleanId = String(e.detail.deletedId).trim();
+        knownReviewIdsRef.current.delete(cleanId);
+        setReviews(prev => prev.filter(r => String(r.id).trim() !== cleanId));
+      }
+    };
+    window.addEventListener('salik_sync_reviews', handleSyncReviews);
+
     // Fast 3-second live polling for immediate new orders and reviews
     const pollUpdates = () => {
       fetch(apiUrl('/api/orders'))
@@ -500,6 +509,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     return () => {
       clearInterval(interval);
       window.removeEventListener('salik_sync_riders', handleSyncRiders);
+      window.removeEventListener('salik_sync_reviews', handleSyncReviews);
       window.removeEventListener('focus', onFocusOrVisible);
       document.removeEventListener('visibilitychange', onFocusOrVisible);
     };

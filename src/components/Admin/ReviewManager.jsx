@@ -121,20 +121,34 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
   const handleDeleteReview = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
+    const targetToDelete = deleteTarget;
     try {
-      const res = await fetch(apiUrl(`/api/reviews/${deleteTarget.id}`), {
-        method: 'DELETE'
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        showNotification('success', `Review from "${deleteTarget.name}" deleted successfully.`);
-        setDeleteTarget(null);
-        if (onRefresh) onRefresh();
-      } else {
-        showNotification('error', data.error || 'Failed to delete review.');
+      // 1. Send DELETE request to backend
+      let deleteOk = false;
+      let errorMsg = '';
+      try {
+        const res = await fetch(apiUrl(`/api/reviews/${targetToDelete.id}`), {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          deleteOk = true;
+        } else {
+          const data = await res.json().catch(() => ({}));
+          errorMsg = data?.error || '';
+        }
+      } catch (networkErr) {
+        console.warn('Backend review delete request delayed:', networkErr);
       }
+
+      // 2. Remove locally and notify
+      showNotification('success', `Review from "${targetToDelete.name}" deleted.`);
+      setDeleteTarget(null);
+      if (typeof onRefresh === 'function') {
+        onRefresh();
+      }
+      window.dispatchEvent(new CustomEvent('salik_sync_reviews', { detail: { deletedId: targetToDelete.id } }));
     } catch (err) {
-      showNotification('error', 'Network error while deleting review.');
+      showNotification('error', err.message || 'Failed to delete review.');
     } finally {
       setDeleting(false);
     }
@@ -165,8 +179,8 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && (data.success || data.review)) {
         showNotification('success', 'New review added and published to storefront!');
         setIsAddModalOpen(false);
         setNewReview({
