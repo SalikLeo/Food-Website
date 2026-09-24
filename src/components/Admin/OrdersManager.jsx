@@ -970,13 +970,6 @@ export default function OrdersManager({
       </div>
     ` : ''}
 
-    ${order.riderName ? `
-      <div class="meta-row">
-        <span class="meta-label">Delivery Rider:</span>
-        <span class="meta-value">${order.riderName} (${order.riderPhone || '-'})</span>
-      </div>
-    ` : ''}
-
     ${order.notes ? `
       <div class="notes-box">
         <strong>Notes:</strong> ${order.notes}
@@ -2194,25 +2187,6 @@ export default function OrdersManager({
                 {viewingReceiptOrder.notes && (
                   <div className="pt-0.5 text-[11px] italic">
                     <span className="font-bold not-italic">Notes:</span> {viewingReceiptOrder.notes}
-                  </div>
-                )}
-                {(viewingReceiptOrder.riderName || viewingReceiptOrder.riderPhone) && (
-                  <div className="pt-1 mt-1 border-t border-dashed border-zinc-400 flex items-center justify-between">
-                    <div>
-                      <span className="font-bold">Delivery Rider:</span>{' '}
-                      <span className="font-semibold">{viewingReceiptOrder.riderName || 'Assigned Rider'}</span>
-                      {viewingReceiptOrder.riderPhone && (
-                        <span className="text-[11px] text-zinc-700 ml-1 font-mono">({viewingReceiptOrder.riderPhone})</span>
-                      )}
-                    </div>
-                    {viewingReceiptOrder.riderPhone && (
-                      <a
-                        href={`tel:${viewingReceiptOrder.riderPhone}`}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-600 hover:bg-orange-700 text-white font-bold text-[10px] transition-colors cursor-pointer"
-                      >
-                        Call
-                      </a>
-                    )}
                   </div>
                 )}
               </div>
