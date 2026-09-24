@@ -320,36 +320,33 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
                 key={review.id}
                 className="bg-white rounded-2xl p-4 sm:p-5 border border-zinc-200 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between group space-y-3.5"
               >
-                {/* Header */}
+                {/* Header: Customer Name, Order ID, and Stars */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h4 className="font-bold text-sm text-zinc-900 leading-tight">
                       {review.name}
                     </h4>
-                    <div className="flex items-center gap-1.5 flex-wrap text-xs text-zinc-500 mt-1">
-                      {review.orderId && (
-                        <span className="font-sans font-bold text-orange-600">
-                          #{review.orderId}
-                        </span>
-                      )}
-                      {review.orderId && review.itemOrdered && (
-                        <span className="text-zinc-300">•</span>
-                      )}
-                      {review.itemOrdered && (
-                        <span className="text-zinc-600 font-medium">
-                          {review.itemOrdered}
-                        </span>
-                      )}
-                    </div>
+                    {review.orderId && (
+                      <span className="font-sans font-bold text-xs text-orange-600 block mt-0.5">
+                        #{review.orderId}
+                      </span>
+                    )}
                   </div>
 
                   {/* Rating */}
-                  <div className="flex items-center gap-0.5 text-amber-400 flex-shrink-0">
+                  <div className="flex items-center gap-0.5 text-amber-400 flex-shrink-0 pt-0.5">
                     {[...Array(review.rating || 5)].map((_, i) => (
                       <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
                 </div>
+
+                {/* Ordered Items (Full Width) */}
+                {review.itemOrdered && (
+                  <p className="w-full text-xs text-zinc-600 font-medium leading-relaxed">
+                    {review.itemOrdered}
+                  </p>
+                )}
 
                 {/* Comment */}
                 <p className="text-xs text-zinc-700 leading-relaxed font-normal bg-zinc-50/70 p-3 rounded-xl border border-zinc-100">
