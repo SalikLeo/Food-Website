@@ -209,6 +209,15 @@ export default function CustomerMobileApp({
   const hasDragged = useRef(false);
   const [reorderToast, setReorderToast] = useState('');
 
+  // Automatically dismiss info/popup toast messages after a short delay (3 seconds)
+  useEffect(() => {
+    if (!reorderToast) return;
+    const timer = setTimeout(() => {
+      setReorderToast('');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [reorderToast]);
+
   // Selected sizes and quantities per product
   const [selectedSizes, setSelectedSizes] = useState({});
   const [quantities, setQuantities] = useState({});
@@ -820,7 +829,6 @@ export default function CustomerMobileApp({
       setIsCartOpen(true);
     }
     setReorderToast(`Items from Order #${order.id || 'recent'} added to cart!`);
-    setTimeout(() => setReorderToast(''), 4000);
   };
 
   // Create sample order if none exists so user can test immediately
