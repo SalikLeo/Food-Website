@@ -171,6 +171,22 @@ export default function RidersManager({
 
   const handleDeleteRider = async () => {
     if (!deletingRider) return;
+
+    // Check if this rider is currently assigned to active deliveries
+    const activeDeliveries = (orders || []).filter(
+      o => o.riderId === deletingRider.id && o.status === 'Out for Delivery'
+    );
+
+    if (activeDeliveries.length > 0) {
+      alert(
+        `Cannot delete "${deletingRider.name}" because they have ${activeDeliveries.length} active delivery parcel${
+          activeDeliveries.length > 1 ? 's' : ''
+        } (Out for Delivery).\n\nPlease complete or reassign their orders before deleting.`
+      );
+      setDeletingRider(null);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // 1. Remove from localStorage immediately
@@ -186,9 +202,15 @@ export default function RidersManager({
 
       // 2. Delete on backend
       try {
-        await fetch(apiUrl(`/api/riders/${deletingRider.id}`), {
+        const res = await fetch(apiUrl(`/api/riders/${deletingRider.id}`), {
           method: 'DELETE'
         });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data && data.error) {
+            console.warn('Backend delete error:', data.error);
+          }
+        }
       } catch (apiErr) {
         console.warn('Backend delete sync delayed:', apiErr);
       }
@@ -343,8 +365,12 @@ export default function RidersManager({
                     <button
                       type="button"
                       onClick={() => setDeletingRider(rider)}
-                      className="p-1.5 rounded-lg bg-zinc-50 hover:bg-red-50 border border-zinc-200 hover:border-red-200 text-zinc-500 hover:text-red-600 transition-colors cursor-pointer"
-                      title="Delete rider"
+                      className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                        activeCount > 0
+                          ? 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-700'
+                          : 'bg-zinc-50 hover:bg-red-50 border-zinc-200 hover:border-red-200 text-zinc-500 hover:text-red-600'
+                      }`}
+                      title={activeCount > 0 ? `Cannot delete: ${activeCount} active parcel${activeCount > 1 ? 's' : ''} on way` : 'Delete rider'}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -538,58 +564,100 @@ export default function RidersManager({
       )}
 
       {/* DELETE CONFIRMATION MODAL */}
-      {deletingRider && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-          onClick={() => {
-            if (!isSubmitting) setDeletingRider(null);
-          }}
-        >
+      {deletingRider && (() => {
+        const activeOrdersList = (orders || []).filter(
+          o => o.riderId === deletingRider.id && o.status === 'Out for Delivery'
+        );
+        const hasActiveDeliveries = activeOrdersList.length > 0;
+
+        return (
           <div
-            className="bg-white rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-zinc-200 space-y-4 animate-in zoom-in-95 duration-150 text-center my-auto"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+            onClick={() => {
+              if (!isSubmitting) setDeletingRider(null);
+            }}
           >
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center mx-auto">
-              <Trash2 className="w-6 h-6" />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-zinc-900">
-                Delete Rider "{deletingRider.name}"?
-              </h3>
-              <p className="text-xs text-zinc-500 leading-relaxed">
-                Are you sure you want to delete this rider? If this rider is currently assigned to any active orders, they will be unassigned.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-center gap-2.5 pt-2">
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => setDeletingRider(null)}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleDeleteRider}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-60"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Deleting...</span>
-                  </>
+            <div
+              className="bg-white rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-zinc-200 space-y-4 animate-in zoom-in-95 duration-150 text-center my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto border ${
+                hasActiveDeliveries
+                  ? 'bg-amber-50 text-amber-600 border-amber-200'
+                  : 'bg-red-50 text-red-600 border-red-200'
+              }`}>
+                {hasActiveDeliveries ? (
+                  <AlertTriangle className="w-6 h-6 text-amber-600" />
                 ) : (
-                  <span>Yes, Delete</span>
+                  <Trash2 className="w-6 h-6" />
                 )}
-              </button>
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="text-base font-bold text-zinc-900">
+                  {hasActiveDeliveries ? 'Cannot Delete Rider' : `Delete Rider "${deletingRider.name}"?`}
+                </h3>
+
+                {hasActiveDeliveries ? (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left space-y-1.5">
+                    <p className="text-xs text-amber-900 font-bold flex items-center gap-1.5">
+                      <span>⚠️ {activeOrdersList.length} Active {activeOrdersList.length === 1 ? 'Delivery' : 'Deliveries'} in Progress</span>
+                    </p>
+                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                      <strong>{deletingRider.name}</strong> is currently assigned to order{activeOrdersList.length > 1 ? 's' : ''} (<strong>{activeOrdersList.map(o => `#${o.id}`).join(', ')}</strong>) that {activeOrdersList.length > 1 ? 'are' : 'is'} <strong>Out for Delivery</strong>.
+                    </p>
+                    <p className="text-[11px] text-zinc-600 font-medium pt-0.5">
+                      Please mark these orders as Delivered or reassign them to another rider before deleting.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    Are you sure you want to delete <strong>{deletingRider.name}</strong>? This action cannot be undone.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-center gap-2.5 pt-2">
+                {hasActiveDeliveries ? (
+                  <button
+                    type="button"
+                    onClick={() => setDeletingRider(null)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-900 text-white font-bold text-xs transition-colors cursor-pointer active:scale-98"
+                  >
+                    Got It, Keep Rider
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={() => setDeletingRider(null)}
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={handleDeleteRider}
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-60"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Deleting...</span>
+                        </>
+                      ) : (
+                        <span>Yes, Delete</span>
+                      )}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

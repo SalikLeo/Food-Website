@@ -405,6 +405,14 @@ app.put('/api/riders/:id', (req, res) => {
 
 app.delete('/api/riders/:id', (req, res) => {
   try {
+    const activeOrders = (db.getOrders() || []).filter(
+      o => o.riderId === req.params.id && o.status === 'Out for Delivery'
+    );
+    if (activeOrders.length > 0) {
+      return res.status(400).json({
+        error: `Cannot delete rider: Currently delivering ${activeOrders.length} active order${activeOrders.length > 1 ? 's' : ''} (Out for Delivery). Please reassign or deliver the orders first.`
+      });
+    }
     const deleted = db.deleteRider(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Rider not found' });
     res.json({ success: true, message: 'Rider deleted successfully' });
