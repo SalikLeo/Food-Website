@@ -1881,7 +1881,7 @@ export default function CustomerMobileApp({
               }`}>
                 {/* Heading on Top */}
                 <div className="flex items-center justify-between">
-                  <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-wide border ${
+                  <span className={`px-3.5 py-1.5 rounded-full text-sm sm:text-base font-extrabold uppercase tracking-wide border ${
                     isDark 
                       ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
                       : 'bg-white/20 text-white border-white/40 backdrop-blur-xs'
@@ -1896,20 +1896,15 @@ export default function CustomerMobileApp({
                 </div>
 
                 {/* Body: Items List on Left, Image on Right */}
-                <div className="flex items-center justify-between gap-3 pt-0.5">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-montserrat font-extrabold text-xl sm:text-2xl text-white mb-2 leading-tight tracking-tight">
-                      {featuredDeal.name}
-                    </h3>
-                    <ul className={`space-y-1.5 text-xs ${isDark ? 'text-zinc-200' : 'text-white/95'}`}>
-                      {(featuredDeal.includes || []).map((itemStr, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5 leading-snug">
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${isDark ? 'bg-amber-400' : 'bg-white'}`} />
-                          <span className="font-medium">{cleanDealInclusions(itemStr)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <ul className={`flex-1 min-w-0 space-y-1.5 text-xs ${isDark ? 'text-zinc-200' : 'text-white/95'}`}>
+                    {(featuredDeal.includes || []).map((itemStr, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${isDark ? 'bg-amber-400' : 'bg-white'}`} />
+                        <span className="font-medium">{cleanDealInclusions(itemStr)}</span>
+                      </li>
+                    ))}
+                  </ul>
 
                   <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 flex items-center justify-center">
                     <img
@@ -1949,7 +1944,7 @@ export default function CustomerMobileApp({
                 >
                   {/* Heading on Top */}
                   <div className="flex items-center justify-between">
-                    <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-wide border ${
+                    <span className={`px-3.5 py-1.5 rounded-full text-sm sm:text-base font-extrabold uppercase tracking-wide border ${
                       isDark 
                         ? 'bg-orange-600/20 text-orange-400 border-orange-500/30' 
                         : 'bg-orange-100 text-orange-700 border-orange-200'
@@ -1962,22 +1957,15 @@ export default function CustomerMobileApp({
                   </div>
 
                   {/* Body: Items List on Left, Image on Right */}
-                  <div className="flex items-center justify-between gap-3 pt-0.5">
-                    <div className="flex-1 min-w-0">
-                      <h3 className={`font-montserrat font-extrabold text-lg sm:text-xl mb-2 leading-tight tracking-tight ${
-                        isDark ? 'text-white' : 'text-zinc-900'
-                      }`}>
-                        {deal.name}
-                      </h3>
-                      <ul className={`space-y-1.5 text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                        {(deal.includes || []).map((itemStr, idx) => (
-                          <li key={idx} className="flex items-start gap-1.5 leading-snug">
-                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 mt-1.5" />
-                            <span className="font-medium">{cleanDealInclusions(itemStr)}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                  <div className="flex items-center justify-between gap-3 pt-1">
+                    <ul className={`flex-1 min-w-0 space-y-1.5 text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                      {(deal.includes || []).map((itemStr, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 mt-1.5" />
+                          <span className="font-medium">{cleanDealInclusions(itemStr)}</span>
+                        </li>
+                      ))}
+                    </ul>
 
                     <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center">
                       <img
