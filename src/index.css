@@ -17,8 +17,30 @@
   }
 
   ::selection {
-    background: #f97316;
+    background-color: rgba(249, 115, 22, 0.25);
+    color: inherit;
+  }
+
+  .dark ::selection,
+  [data-theme='dark'] ::selection {
+    background-color: rgba(249, 115, 22, 0.4);
     color: #ffffff;
+  }
+
+  input::selection,
+  textarea::selection {
+    background-color: rgba(249, 115, 22, 0.25);
+    color: inherit;
+  }
+
+  .dark input::selection,
+  .dark textarea::selection {
+    background-color: rgba(249, 115, 22, 0.4);
+    color: #ffffff;
+  }
+
+  input, textarea {
+    caret-color: #ea580c;
   }
 
   /* Custom scrollbar */

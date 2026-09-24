@@ -140,7 +140,7 @@ function WebsiteStorefront({
   const { isDark } = useCart();
 
   return (
-    <div className={`min-h-screen ${isDark ? 'dark bg-[#0d0d0e] text-white' : 'light bg-[#faf8f5] text-zinc-900'} selection:bg-orange-500 selection:text-white transition-colors duration-300`}>
+    <div className={`min-h-screen ${isDark ? 'dark bg-[#0d0d0e] text-white selection:bg-orange-500/35 selection:text-white' : 'light bg-[#faf8f5] text-zinc-900 selection:bg-orange-500/25 selection:text-inherit'} transition-colors duration-300`}>
       <Header
         onAdminClick={handleOpenAdmin}
         hideAdmin={false}
