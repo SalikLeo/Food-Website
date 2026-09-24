@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle, Loader2, Bike } from 'lucide-react';
+import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle, Loader2, Bike, ReceiptText } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
 import { formatPrice, formatPaymentMethod, formatReceiptPaymentBadge, cleanDealInclusions, formatDealDescription } from '../../utils/formatters';
@@ -1305,11 +1305,13 @@ export default function OrdersManager({
 
                         {/* View Receipt Modal */}
                         <button
+                          type="button"
                           onClick={() => setViewingReceiptOrder(order)}
-                          className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 text-xs font-semibold shadow-2xs active:scale-95 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                           title="View & Print Receipt"
+                          aria-label="View & Print Receipt"
                         >
-                          <span>Receipt</span>
+                          <ReceiptText className="w-4 h-4" />
                         </button>
 
                         {/* Smooth Dropdown Toggle Button */}
@@ -1573,11 +1575,13 @@ export default function OrdersManager({
                         </div>
 
                         <button
+                          type="button"
                           onClick={() => setViewingReceiptOrder(order)}
-                          className="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 text-xs font-semibold shadow-2xs active:scale-95 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                           title="View & Print Receipt"
+                          aria-label="View & Print Receipt"
                         >
-                          <span>Receipt</span>
+                          <ReceiptText className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
