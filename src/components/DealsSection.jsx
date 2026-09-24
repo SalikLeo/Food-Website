@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Flame, Check, Plus, Minus, ShoppingBag, Users } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { formatPrice, cleanDealInclusions } from '../utils/formatters';
+import { formatPrice, cleanDealInclusions, isMarketingDealDescription } from '../utils/formatters';
 
 function isFamilyDeal(deal) {
   if (!deal) return false;
@@ -27,7 +27,8 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
   const handleAddToCart = (deal, e = null) => {
     const qty = getQty(deal.id);
     const cleanedIncludes = cleanDealInclusions(deal.includes || []);
-    const cleanDesc = cleanDealInclusions(deal.description || (Array.isArray(cleanedIncludes) ? cleanedIncludes.join(' + ') : cleanedIncludes) || '');
+    const itemsSummary = Array.isArray(cleanedIncludes) && cleanedIncludes.length > 0 ? cleanedIncludes.join(' + ') : '';
+    const cleanDesc = itemsSummary || (deal.description && !isMarketingDealDescription(deal.description) ? cleanDealInclusions(deal.description) : '') || '';
     addToCart({
       ...deal,
       category: 'deals',

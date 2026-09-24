@@ -85,6 +85,14 @@ export function cleanDealInclusions(val) {
 }
 
 /**
+ * Check if a text is an editorial marketing description rather than a list of food items
+ */
+export function isMarketingDealDescription(val) {
+  if (!val || typeof val !== 'string') return false;
+  return /bundle|crafted|entire family|packed with|chilled beverages|delicious|combination of|special mix/i.test(val);
+}
+
+/**
  * Format deal inclusions or description as a clean comma-separated list of items without category brackets.
  */
 export function formatDealDescription(val) {
@@ -97,6 +105,7 @@ export function formatDealDescription(val) {
       .join(', ');
   }
   if (typeof val !== 'string') return String(val);
+  if (isMarketingDealDescription(val)) return '';
   const cleaned = cleanDealInclusions(val);
   return cleaned
     .split(/\s*\+\s*/)

@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
-import { formatPrice, cleanDealInclusions } from '../utils/formatters';
+import { formatPrice, cleanDealInclusions, formatDealDescription, isMarketingDealDescription } from '../utils/formatters';
 import { apiUrl } from '../config/api';
 import { getStoredUserProfile, saveStoredUserProfile } from '../services/userProfile';
 import CustomSelect from './Common/CustomSelect';
@@ -475,9 +475,9 @@ export default function OrderSection() {
                             <span className="text-orange-500 ml-1 font-medium">({item.size})</span>
                           )}
                         </div>
-                        {Boolean(item.description || item.includes) && (
+                        {Boolean(item.includes || (item.description && !isMarketingDealDescription(item.description))) && (
                           <p className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mt-0.5 leading-relaxed break-words`}>
-                            {cleanDealInclusions(item.description || (Array.isArray(item.includes) ? item.includes.join(' + ') : item.includes))}
+                            {formatDealDescription(item.includes || item.description)}
                           </p>
                         )}
                       </div>

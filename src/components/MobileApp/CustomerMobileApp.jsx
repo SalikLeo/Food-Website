@@ -13,7 +13,7 @@ import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
 import CustomerReceiptModal from '../CustomerReceiptModal';
 import CustomerNotificationBanner from '../CustomerNotificationBanner';
-import { formatPrice, cleanDealInclusions } from '../../utils/formatters';
+import { formatPrice, cleanDealInclusions, isMarketingDealDescription } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
 import { notifyCustomerReviewSubmitted } from '../../services/notificationService';
 import { 
@@ -799,7 +799,8 @@ export default function CustomerMobileApp({
 
   const handleAddDeal = (deal, e = null) => {
     const cleanedIncludes = cleanDealInclusions(deal.includes || []);
-    const cleanDesc = cleanDealInclusions(deal.description || (Array.isArray(cleanedIncludes) ? cleanedIncludes.join(' + ') : cleanedIncludes) || '');
+    const itemsSummary = Array.isArray(cleanedIncludes) && cleanedIncludes.length > 0 ? cleanedIncludes.join(' + ') : '';
+    const cleanDesc = itemsSummary || (deal.description && !isMarketingDealDescription(deal.description) ? cleanDealInclusions(deal.description) : '') || '';
     addToCart({
       id: deal.id,
       name: deal.name,
