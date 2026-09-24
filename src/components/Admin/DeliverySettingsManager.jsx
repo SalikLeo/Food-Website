@@ -6,7 +6,6 @@ import {
   Save,
   Smartphone,
   Monitor,
-  ArrowUp,
   Sliders,
   Flame,
   Check,
@@ -39,8 +38,6 @@ export default function DeliverySettingsManager({ onRefresh }) {
   const [floatingButtons, setFloatingButtons] = useState({
     whatsappWeb: true,
     whatsappMobile: true,
-    backToTopWeb: true,
-    backToTopMobile: true,
     cartWeb: true,
     cartMobile: true
   });
@@ -88,8 +85,6 @@ export default function DeliverySettingsManager({ onRefresh }) {
           setFloatingButtons({
             whatsappWeb: settingsRes.floatingButtons.whatsappWeb !== false,
             whatsappMobile: settingsRes.floatingButtons.whatsappMobile !== false,
-            backToTopWeb: settingsRes.floatingButtons.backToTopWeb !== false,
-            backToTopMobile: settingsRes.floatingButtons.backToTopMobile !== false,
             cartWeb: settingsRes.floatingButtons.cartWeb !== false,
             cartMobile: settingsRes.floatingButtons.cartMobile !== false
           });
@@ -184,8 +179,6 @@ export default function DeliverySettingsManager({ onRefresh }) {
         floatingButtons: {
           whatsappWeb: Boolean(floatingButtons.whatsappWeb),
           whatsappMobile: Boolean(floatingButtons.whatsappMobile),
-          backToTopWeb: Boolean(floatingButtons.backToTopWeb),
-          backToTopMobile: Boolean(floatingButtons.backToTopMobile),
           cartWeb: Boolean(floatingButtons.cartWeb),
           cartMobile: Boolean(floatingButtons.cartMobile)
         },
@@ -908,131 +901,6 @@ export default function DeliverySettingsManager({ onRefresh }) {
                       <div
                         className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
                           floatingButtons.whatsappMobile ? 'translate-x-6' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Move to Top Floating Button */}
-            <div className="p-5 rounded-2xl bg-zinc-50/80 border border-zinc-200 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-xs">
-                    <ArrowUp className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-zinc-900">
-                      Move to Top (Back to Top)
-                    </h4>
-                    <p className="text-[11px] text-zinc-500">
-                      Floating orange smooth scroll button
-                    </p>
-                  </div>
-                </div>
-                <span
-                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                    floatingButtons.backToTopWeb || floatingButtons.backToTopMobile
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-zinc-200 text-zinc-600 border-zinc-300'
-                  }`}
-                >
-                  {floatingButtons.backToTopWeb && floatingButtons.backToTopMobile
-                    ? 'Active (All Devices)'
-                    : floatingButtons.backToTopWeb
-                    ? 'Web View Only'
-                    : floatingButtons.backToTopMobile
-                    ? 'Mobile View Only'
-                    : 'Hidden on All'}
-                </span>
-              </div>
-
-              {/* Toggles */}
-              <div className="space-y-3 pt-2">
-                {/* Web View Toggle */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-zinc-200 shadow-2xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600">
-                      <Monitor className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-zinc-800 block">Web / Desktop View</span>
-                      <span className="text-[10px] text-zinc-400">Screens 640px and wider</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className={`text-[11px] font-bold tracking-wider transition-colors ${
-                        floatingButtons.backToTopWeb ? 'text-emerald-600' : 'text-zinc-400'
-                      }`}
-                    >
-                      {floatingButtons.backToTopWeb ? 'ON' : 'OFF'}
-                    </span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={floatingButtons.backToTopWeb}
-                      onClick={() =>
-                        setFloatingButtons((prev) => ({
-                          ...prev,
-                          backToTopWeb: !prev.backToTopWeb
-                        }))
-                      }
-                      className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out focus:outline-none shadow-inner ${
-                        floatingButtons.backToTopWeb ? 'bg-emerald-500' : 'bg-zinc-300'
-                      }`}
-                      aria-label="Toggle Back to Top on Web"
-                    >
-                      <div
-                        className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
-                          floatingButtons.backToTopWeb ? 'translate-x-6' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mobile View Toggle */}
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white border border-zinc-200 shadow-2xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600">
-                      <Smartphone className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-zinc-800 block">Mobile Phone View</span>
-                      <span className="text-[10px] text-zinc-400">Mobile phones & small screens</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className={`text-[11px] font-bold tracking-wider transition-colors ${
-                        floatingButtons.backToTopMobile ? 'text-emerald-600' : 'text-zinc-400'
-                      }`}
-                    >
-                      {floatingButtons.backToTopMobile ? 'ON' : 'OFF'}
-                    </span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={floatingButtons.backToTopMobile}
-                      onClick={() =>
-                        setFloatingButtons((prev) => ({
-                          ...prev,
-                          backToTopMobile: !prev.backToTopMobile
-                        }))
-                      }
-                      className={`w-12 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 ease-in-out focus:outline-none shadow-inner ${
-                        floatingButtons.backToTopMobile ? 'bg-emerald-500' : 'bg-zinc-300'
-                      }`}
-                      aria-label="Toggle Back to Top on Mobile"
-                    >
-                      <div
-                        className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
-                          floatingButtons.backToTopMobile ? 'translate-x-6' : 'translate-x-0'
                         }`}
                       />
                     </button>

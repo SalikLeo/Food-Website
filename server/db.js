@@ -149,10 +149,14 @@ const INITIAL_REVIEWS = [
 function readDb() {
   try {
     const raw = fs.readFileSync(dbFile, 'utf8');
-    return JSON.parse(raw);
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data.riders)) {
+      data.riders = [];
+    }
+    return data;
   } catch (err) {
     console.error('Error reading db.json:', err);
-    return { categories: [], deals: [], products: [], orders: [], faqs: [], siteInfo: {} };
+    return { categories: [], deals: [], products: [], orders: [], faqs: [], siteInfo: {}, riders: [] };
   }
 }
 
@@ -419,7 +423,7 @@ export const db = {
     return newOrder;
   },
 
-  updateOrderStatus(id, status) {
+  updateOrderStatus(id, status, riderData = null) {
     const data = readDb();
     const order = (data.orders || []).find(o => o.id === id);
     if (!order) return null;
@@ -427,6 +431,38 @@ export const db = {
       return order; // Status cannot be changed once delivered
     }
     order.status = status;
+    if (riderData) {
+      if (riderData.riderId !== undefined) order.riderId = riderData.riderId;
+      if (riderData.riderName !== undefined) order.riderName = riderData.riderName;
+      if (riderData.riderPhone !== undefined) order.riderPhone = riderData.riderPhone;
+    }
+    order.updatedAt = new Date().toISOString();
+    writeDb(data);
+    return order;
+  },
+
+  assignOrderRider(id, { riderId, riderName, riderPhone } = {}) {
+    const data = readDb();
+    const order = (data.orders || []).find(o => o.id === id);
+    if (!order) return null;
+    if (!riderId) {
+      order.riderId = null;
+      order.riderName = null;
+      order.riderPhone = null;
+    } else {
+      let rName = riderName;
+      let rPhone = riderPhone;
+      if (!rName || !rPhone) {
+        const found = (data.riders || []).find(r => r.id === riderId);
+        if (found) {
+          rName = rName || found.name;
+          rPhone = rPhone || found.phone;
+        }
+      }
+      order.riderId = riderId;
+      order.riderName = rName || '';
+      order.riderPhone = rPhone ? String(rPhone).replace(/\D/g, '').slice(0, 11) : '';
+    }
     order.updatedAt = new Date().toISOString();
     writeDb(data);
     return order;
@@ -682,6 +718,70 @@ export const db = {
     return order;
   },
 
+  // Riders Management
+  getRiders() {
+    const data = readDb();
+    return data.riders || [];
+  },
+
+  getRiderById(id) {
+    const data = readDb();
+    return (data.riders || []).find(r => r.id === id) || null;
+  },
+
+  createRider(riderData) {
+    const data = readDb();
+    const cleanPhone = String(riderData.phone || '').replace(/\D/g, '').slice(0, 11);
+    const newRider = {
+      id: `rider-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: (riderData.name || '').trim(),
+      phone: cleanPhone,
+      createdAt: new Date().toISOString()
+    };
+    data.riders = [...(data.riders || []), newRider];
+    writeDb(data);
+    return newRider;
+  },
+
+  updateRider(id, updates) {
+    const data = readDb();
+    const idx = (data.riders || []).findIndex(r => r.id === id);
+    if (idx === -1) return null;
+    const cleanPhone = updates.phone !== undefined ? String(updates.phone).replace(/\D/g, '').slice(0, 11) : data.riders[idx].phone;
+    const newName = updates.name !== undefined ? updates.name.trim() : data.riders[idx].name;
+    data.riders[idx] = {
+      ...data.riders[idx],
+      name: newName,
+      phone: cleanPhone,
+      updatedAt: new Date().toISOString()
+    };
+    // Sync updated rider info to active orders assigned to this rider
+    (data.orders || []).forEach(o => {
+      if (o.riderId === id) {
+        if (updates.name !== undefined) o.riderName = newName;
+        if (updates.phone !== undefined) o.riderPhone = cleanPhone;
+      }
+    });
+    writeDb(data);
+    return data.riders[idx];
+  },
+
+  deleteRider(id) {
+    const data = readDb();
+    const initialLen = (data.riders || []).length;
+    data.riders = (data.riders || []).filter(r => r.id !== id);
+    // Unassign deleted rider from active undelivered orders
+    (data.orders || []).forEach(o => {
+      if (o.riderId === id && o.status !== 'Delivered') {
+        o.riderId = null;
+        o.riderName = null;
+        o.riderPhone = null;
+      }
+    });
+    writeDb(data);
+    return (data.riders || []).length !== initialLen;
+  },
+
   // Stats for Admin Dashboard
   getStats() {
     const data = readDb();
@@ -689,6 +789,7 @@ export const db = {
     const products = data.products || [];
     const deals = data.deals || [];
     const reviews = data.reviews || [];
+    const riders = data.riders || [];
     
     const totalRevenue = orders
       .filter(o => o.status !== 'Cancelled')
@@ -702,7 +803,8 @@ export const db = {
       totalOrders: orders.length,
       pendingOrders,
       totalRevenue,
-      totalReviews: reviews.length
+      totalReviews: reviews.length,
+      totalRiders: riders.length
     };
   }
 };

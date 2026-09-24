@@ -235,10 +235,24 @@ app.post('/api/orders', (req, res) => {
 
 app.patch('/api/orders/:id/status', (req, res) => {
   try {
-    const { status } = req.body;
-    const updated = db.updateOrderStatus(req.params.id, status);
+    const { status, riderId, riderName, riderPhone } = req.body;
+    const riderData = riderId !== undefined
+      ? { riderId, riderName, riderPhone }
+      : null;
+    const updated = db.updateOrderStatus(req.params.id, status, riderData);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
     res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/orders/:id/rider', (req, res) => {
+  try {
+    const { riderId, riderName, riderPhone } = req.body;
+    const updated = db.assignOrderRider(req.params.id, { riderId, riderName, riderPhone });
+    if (!updated) return res.status(404).json({ error: 'Order not found' });
+    res.json({ success: true, order: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -343,6 +357,60 @@ app.get('/api/faqs', (req, res) => {
 
 app.get('/api/site-info', (req, res) => {
   res.json(db.getSiteInfo());
+});
+
+// Riders Management Endpoints
+app.get('/api/riders', (req, res) => {
+  try {
+    const riders = db.getRiders();
+    res.json(riders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/riders', (req, res) => {
+  try {
+    const { name, phone } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Rider name is required' });
+    }
+    const cleanPhone = String(phone || '').replace(/\D/g, '').slice(0, 11);
+    if (!cleanPhone || cleanPhone.length !== 11) {
+      return res.status(400).json({ error: 'Rider phone number must be 11 digits (e.g. 03001234567)' });
+    }
+    const newRider = db.createRider({ name: name.trim(), phone: cleanPhone });
+    res.status(201).json({ success: true, rider: newRider });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/riders/:id', (req, res) => {
+  try {
+    const { name, phone } = req.body;
+    if (phone !== undefined) {
+      const cleanPhone = String(phone || '').replace(/\D/g, '').slice(0, 11);
+      if (!cleanPhone || cleanPhone.length !== 11) {
+        return res.status(400).json({ error: 'Rider phone number must be 11 digits (e.g. 03001234567)' });
+      }
+    }
+    const updated = db.updateRider(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Rider not found' });
+    res.json({ success: true, rider: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/riders/:id', (req, res) => {
+  try {
+    const deleted = db.deleteRider(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Rider not found' });
+    res.json({ success: true, message: 'Rider deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Admin Stats

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle, Loader2 } from 'lucide-react';
+import { Phone, MapPin, Clock, CheckCircle, CheckCircle2, Truck, AlertTriangle, Printer, Search, Edit3, Plus, Minus, Trash2, X, ShoppingBag, Check, ChevronDown, Calendar, ArrowLeft, Download, MessageCircle, Loader2, Bike } from 'lucide-react';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl } from '../../config/api';
 import { formatPrice, formatPaymentMethod, formatReceiptPaymentBadge, cleanDealInclusions, formatDealDescription } from '../../utils/formatters';
@@ -31,6 +31,7 @@ export default function OrdersManager({
   deals = [],
   familyDeal = null,
   settings = {},
+  riders = [],
   onRefresh,
   onReceiptOpenChange
 }) {
@@ -80,6 +81,8 @@ export default function OrdersManager({
 
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
+  const [activeStatusDropdownOrderId, setActiveStatusDropdownOrderId] = useState(null);
+  const [activeDropdownAlign, setActiveDropdownAlign] = useState('left');
 
   // Click-and-drag to scroll order status filters
   const statusScrollRef = useRef(null);
@@ -225,7 +228,11 @@ export default function OrdersManager({
 
   // Status Change Confirmation Modal State (for Delivered Orders)
   const [statusChangeConfirmModal, setStatusChangeConfirmModal] = useState(null);
+  const [confirmRiderId, setConfirmRiderId] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // In-App Rider Assignment Modal State (replaces native select dialog)
+  const [assigningRiderOrder, setAssigningRiderOrder] = useState(null);
 
   // Sync receipt state with AdminDashboard header visibility and modal stack
   useEffect(() => {
@@ -265,19 +272,33 @@ export default function OrdersManager({
     }
   }, [statusChangeConfirmModal]);
 
+  // Sync assigning rider modal with modal stack
+  useEffect(() => {
+    if (assigningRiderOrder) {
+      const closer = () => setAssigningRiderOrder(null);
+      window.__salikModalStack = window.__salikModalStack || [];
+      window.__salikModalStack.push(closer);
+      return () => {
+        window.__salikModalStack = (window.__salikModalStack || []).filter(fn => fn !== closer);
+      };
+    }
+  }, [assigningRiderOrder]);
+
   // Sync modal state with AdminDashboard back handler
   useEffect(() => {
-    window.__salikAdminModalOpen = Boolean(viewingReceiptOrder || modifyingOrder || statusChangeConfirmModal);
+    window.__salikAdminModalOpen = Boolean(viewingReceiptOrder || modifyingOrder || statusChangeConfirmModal || assigningRiderOrder);
     return () => {
       window.__salikAdminModalOpen = false;
     };
-  }, [viewingReceiptOrder, modifyingOrder, statusChangeConfirmModal]);
+  }, [viewingReceiptOrder, modifyingOrder, statusChangeConfirmModal, assigningRiderOrder]);
 
   // Handle desktop ESC key to dismiss topmost modal
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        if (statusChangeConfirmModal) {
+        if (assigningRiderOrder) {
+          setAssigningRiderOrder(null);
+        } else if (statusChangeConfirmModal) {
           setStatusChangeConfirmModal(null);
         } else if (viewingReceiptOrder) {
           setViewingReceiptOrder(null);
@@ -286,11 +307,11 @@ export default function OrdersManager({
         }
       }
     };
-    if (statusChangeConfirmModal || viewingReceiptOrder || modifyingOrder) {
+    if (assigningRiderOrder || statusChangeConfirmModal || viewingReceiptOrder || modifyingOrder) {
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [statusChangeConfirmModal, viewingReceiptOrder, modifyingOrder]);
+  }, [assigningRiderOrder, statusChangeConfirmModal, viewingReceiptOrder, modifyingOrder]);
 
   // Native Android hardware/gesture back button listener (Capacitor)
   useEffect(() => {
@@ -549,20 +570,101 @@ export default function OrdersManager({
     }
   };
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  const handleStatusChange = async (orderId, newStatus, riderData = null) => {
     try {
+      const payload = { status: newStatus };
+      if (riderData) {
+        payload.riderId = riderData.riderId;
+        payload.riderName = riderData.riderName;
+        payload.riderPhone = riderData.riderPhone;
+      }
       const res = await fetch(apiUrl(`/api/orders/${orderId}/status`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         onRefresh();
+
+        // 1. Immediately update localStorage cache if this order is in local recent orders
+        try {
+          const cleanId = String(orderId).replace(/^#/, '');
+          const saved = localStorage.getItem('salik_recent_orders');
+          if (saved) {
+            const list = JSON.parse(saved);
+            const updated = list.map(o => {
+              if (String(o.id).replace(/^#/, '') === cleanId) {
+                const upd = { ...o, status: newStatus, updatedAt: new Date().toISOString() };
+                if (riderData) {
+                  upd.riderId = riderData.riderId;
+                  upd.riderName = riderData.riderName;
+                  upd.riderPhone = riderData.riderPhone;
+                }
+                return upd;
+              }
+              return o;
+            });
+            localStorage.setItem('salik_recent_orders', JSON.stringify(updated));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        // 2. Dispatch instant global events across all views and open modals
+        window.dispatchEvent(new CustomEvent('salik_sync_orders'));
+        window.dispatchEvent(new CustomEvent('salik_order_status_updated', { detail: { id: orderId, status: newStatus } }));
+        window.dispatchEvent(new Event('storage'));
       } else {
         alert('Failed to update status');
       }
     } catch {
       alert('Error updating status');
+    }
+  };
+
+  const handleAssignRider = async (orderId, riderId) => {
+    try {
+      const selectedRider = (riders || []).find(r => r.id === riderId);
+      const res = await fetch(apiUrl(`/api/orders/${orderId}/rider`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          riderId: riderId || null,
+          riderName: selectedRider ? selectedRider.name : null,
+          riderPhone: selectedRider ? selectedRider.phone : null
+        })
+      });
+      if (res.ok) {
+        onRefresh();
+        // Update local cache
+        try {
+          const cleanId = String(orderId).replace(/^#/, '');
+          const saved = localStorage.getItem('salik_recent_orders');
+          if (saved) {
+            const list = JSON.parse(saved);
+            const updated = list.map(o => {
+              if (String(o.id).replace(/^#/, '') === cleanId) {
+                return {
+                  ...o,
+                  riderId: riderId || null,
+                  riderName: selectedRider ? selectedRider.name : null,
+                  riderPhone: selectedRider ? selectedRider.phone : null,
+                  updatedAt: new Date().toISOString()
+                };
+              }
+              return o;
+            });
+            localStorage.setItem('salik_recent_orders', JSON.stringify(updated));
+          }
+        } catch (e) {}
+
+        window.dispatchEvent(new CustomEvent('salik_sync_orders'));
+        window.dispatchEvent(new Event('storage'));
+      } else {
+        alert('Failed to assign rider');
+      }
+    } catch {
+      alert('Error assigning rider');
     }
   };
 
@@ -572,6 +674,11 @@ export default function OrdersManager({
       alert('Once an order is delivered, its status cannot be changed further.');
       return;
     }
+    if (newStatus === 'Out for Delivery') {
+      setConfirmRiderId(order.riderId || '');
+    } else {
+      setConfirmRiderId('');
+    }
     setStatusChangeConfirmModal({ order, newStatus });
   };
 
@@ -580,7 +687,16 @@ export default function OrdersManager({
     const { order, newStatus } = statusChangeConfirmModal;
     setIsUpdatingStatus(true);
     try {
-      await handleStatusChange(order.id, newStatus);
+      let riderData = null;
+      if (newStatus === 'Out for Delivery') {
+        const selectedRider = (riders || []).find(r => r.id === confirmRiderId);
+        riderData = {
+          riderId: confirmRiderId || null,
+          riderName: selectedRider ? selectedRider.name : null,
+          riderPhone: selectedRider ? selectedRider.phone : null
+        };
+      }
+      await handleStatusChange(order.id, newStatus, riderData);
       setStatusChangeConfirmModal(null);
     } finally {
       setIsUpdatingStatus(false);
@@ -851,6 +967,13 @@ export default function OrdersManager({
       <div class="address-block">
         <span class="meta-label">Delivery Address:</span>
         <div class="address-text">${order.address}</div>
+      </div>
+    ` : ''}
+
+    ${order.riderName ? `
+      <div class="meta-row">
+        <span class="meta-label">Delivery Rider:</span>
+        <span class="meta-value">${order.riderName} (${order.riderPhone || '-'})</span>
       </div>
     ` : ''}
 
@@ -1147,9 +1270,9 @@ export default function OrdersManager({
             return (
               <div
                 key={order.id}
-                className={`bg-white rounded-2xl border transition-all overflow-hidden ${
+                className={`bg-white rounded-2xl border transition-all ${
                   isDelivered
-                    ? 'border-emerald-200/90 hover:border-emerald-300 shadow-2xs'
+                    ? 'border-emerald-200/90 hover:border-emerald-300 shadow-2xs overflow-hidden'
                     : 'border-zinc-200/90 hover:border-zinc-300 shadow-2xs'
                 }`}
               >
@@ -1190,10 +1313,10 @@ export default function OrdersManager({
                         {/* View Receipt Modal */}
                         <button
                           onClick={() => setViewingReceiptOrder(order)}
-                          className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer"
-                          title="View Receipt"
+                          className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 text-xs font-semibold shadow-2xs active:scale-95 transition-all cursor-pointer"
+                          title="View & Print Receipt"
                         >
-                          <Printer className="w-3.5 h-3.5" />
+                          <span>Receipt</span>
                         </button>
 
                         {/* Smooth Dropdown Toggle Button */}
@@ -1216,6 +1339,14 @@ export default function OrdersManager({
                     >
                       <div className="overflow-hidden">
                         <div className="p-4 sm:p-5 pt-3 border-t border-zinc-100 bg-zinc-50/50 space-y-4">
+                          {/* Delivered by Rider Info */}
+                          {order.riderName && (
+                            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900">
+                              <Bike className="w-4 h-4 text-purple-600 shrink-0" />
+                              <span>Delivered by Rider: <strong>{order.riderName}</strong> {order.riderPhone && `(${order.riderPhone})`}</span>
+                            </div>
+                          )}
+
                           {/* Customer Info & Address */}
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-zinc-700">
                             <div>
@@ -1342,35 +1473,119 @@ export default function OrdersManager({
                           </button>
                         )}
 
-                        {/* Status Dropdown */}
-                        <select
-                          value={order.status}
-                          onChange={(e) => onSelectStatus(order, e.target.value)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors focus:outline-none cursor-pointer ${
-                            order.status === 'Pending'
-                              ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200'
-                              : order.status === 'Preparing'
-                              ? 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200'
-                              : order.status === 'Out for Delivery'
-                              ? 'bg-purple-50 hover:bg-purple-100 text-purple-800 border-purple-200'
-                              : order.status === 'Delivered'
-                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                              : 'bg-red-50 hover:bg-red-100 text-red-800 border-red-200'
-                          }`}
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Preparing">Preparing</option>
-                          <option value="Out for Delivery">Out for Delivery</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Cancelled">Cancelled</option>
-                        </select>
+                        {/* Delivery Rider Selector Button with Out for Delivery */}
+                        {order.status === 'Out for Delivery' && (
+                          <div className="flex items-center gap-1.5 animate-in fade-in duration-200">
+                            <button
+                              type="button"
+                              onClick={() => setAssigningRiderOrder(order)}
+                              className={`flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 rounded-lg border text-xs font-semibold transition-all shadow-2xs max-w-[170px] sm:max-w-[220px] truncate active:scale-95 cursor-pointer ${
+                                order.riderName
+                                  ? 'bg-purple-100 hover:bg-purple-200/80 border-purple-300 text-purple-900'
+                                  : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
+                              }`}
+                              title={order.riderName ? `Assigned: ${order.riderName} (${order.riderPhone || 'No phone'}) - Tap to change` : 'Tap to select rider'}
+                            >
+                              <Bike className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                              <span className="truncate">
+                                {order.riderName ? order.riderName : 'Select Rider'}
+                              </span>
+                              <ChevronDown className="w-3.5 h-3.5 text-purple-600 shrink-0 opacity-70 ml-0.5" />
+                            </button>
+
+                            {order.riderPhone && (
+                              <a
+                                href={`tel:${order.riderPhone}`}
+                                className="p-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white shadow-2xs transition-colors flex items-center justify-center shrink-0 active:scale-95"
+                                title={`Call Rider ${order.riderName || ''} (${order.riderPhone})`}
+                              >
+                                <Phone className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Custom In-App Status Dropdown */}
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              // If button's left edge is closer than 220px to viewport left edge (e.g. on mobile or wrapped header), align left-0.
+                              // Otherwise align right-0 so it expands inward into the card
+                              const alignLeft = rect.left < 220;
+                              setActiveDropdownAlign(alignLeft ? 'left' : 'right');
+                              setActiveStatusDropdownOrderId(activeStatusDropdownOrderId === order.id ? null : order.id);
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none shadow-2xs active:scale-95 ${
+                              order.status === 'Pending'
+                                ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200'
+                                : order.status === 'Preparing'
+                                ? 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200'
+                                : order.status === 'Out for Delivery'
+                                ? 'bg-purple-50 hover:bg-purple-100 text-purple-800 border-purple-200'
+                                : order.status === 'Delivered'
+                                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                                : 'bg-red-50 hover:bg-red-100 text-red-800 border-red-200'
+                            }`}
+                          >
+                            <span>{order.status}</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 opacity-70 ${activeStatusDropdownOrderId === order.id ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          {/* Custom Dropdown Menu Popover */}
+                          {activeStatusDropdownOrderId === order.id && (
+                            <>
+                              <div 
+                                className="fixed inset-0 z-40 bg-black/10 sm:bg-transparent" 
+                                onClick={() => setActiveStatusDropdownOrderId(null)} 
+                              />
+                              <div 
+                                className={`absolute top-full mt-1.5 w-48 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-xl border border-zinc-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                                  activeDropdownAlign === 'left' ? 'left-0' : 'right-0 max-sm:left-0'
+                                }`}
+                              >
+                                <div className="px-3 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-100 mb-1">
+                                  Update Order Status
+                                </div>
+                                {[
+                                  { label: 'Pending', color: 'text-amber-800 hover:bg-amber-50', dot: 'bg-amber-500' },
+                                  { label: 'Preparing', color: 'text-blue-800 hover:bg-blue-50', dot: 'bg-blue-500' },
+                                  { label: 'Out for Delivery', color: 'text-purple-800 hover:bg-purple-50', dot: 'bg-purple-500' },
+                                  { label: 'Delivered', color: 'text-emerald-800 hover:bg-emerald-50', dot: 'bg-emerald-500' },
+                                  { label: 'Cancelled', color: 'text-red-800 hover:bg-red-50', dot: 'bg-red-500' },
+                                ].map((st) => (
+                                  <button
+                                    key={st.label}
+                                    type="button"
+                                    onClick={() => {
+                                      setActiveStatusDropdownOrderId(null);
+                                      onSelectStatus(order, st.label);
+                                    }}
+                                    className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-left transition-colors cursor-pointer ${st.color} ${
+                                      order.status === st.label ? 'bg-zinc-100/90 font-bold' : ''
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className={`w-2.5 h-2.5 rounded-full ${st.dot} flex-shrink-0 shadow-xs`} />
+                                      <span>{st.label}</span>
+                                    </div>
+                                    {order.status === st.label && (
+                                      <Check className="w-3.5 h-3.5 text-zinc-700 stroke-[2.5]" />
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
 
                         <button
                           onClick={() => setViewingReceiptOrder(order)}
-                          className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer"
-                          title="View Receipt"
+                          className="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 text-xs font-semibold shadow-2xs active:scale-95 transition-all cursor-pointer"
+                          title="View & Print Receipt"
                         >
-                          <Printer className="w-4 h-4" />
+                          <span>Receipt</span>
                         </button>
                       </div>
                     </div>
@@ -1387,6 +1602,12 @@ export default function OrdersManager({
                           <Phone className="w-3 h-3" />
                           <span>{order.phone}</span>
                         </a>
+                        {order.riderName && order.status !== 'Out for Delivery' && (
+                          <div className="mt-1.5 text-xs text-purple-700 font-semibold flex items-center gap-1">
+                            <Bike className="w-3 h-3 text-purple-600 shrink-0" />
+                            <span>Rider: {order.riderName}</span>
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -1975,6 +2196,25 @@ export default function OrdersManager({
                     <span className="font-bold not-italic">Notes:</span> {viewingReceiptOrder.notes}
                   </div>
                 )}
+                {(viewingReceiptOrder.riderName || viewingReceiptOrder.riderPhone) && (
+                  <div className="pt-1 mt-1 border-t border-dashed border-zinc-400 flex items-center justify-between">
+                    <div>
+                      <span className="font-bold">Delivery Rider:</span>{' '}
+                      <span className="font-semibold">{viewingReceiptOrder.riderName || 'Assigned Rider'}</span>
+                      {viewingReceiptOrder.riderPhone && (
+                        <span className="text-[11px] text-zinc-700 ml-1 font-mono">({viewingReceiptOrder.riderPhone})</span>
+                      )}
+                    </div>
+                    {viewingReceiptOrder.riderPhone && (
+                      <a
+                        href={`tel:${viewingReceiptOrder.riderPhone}`}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-600 hover:bg-orange-700 text-white font-bold text-[10px] transition-colors cursor-pointer"
+                      >
+                        Call
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Items Table - Proper Tabular Grid Design */}
@@ -2210,6 +2450,77 @@ export default function OrdersManager({
               </div>
             </div>
 
+            {/* Delivery Rider Selection in Status Change Modal */}
+            {statusChangeConfirmModal.newStatus === 'Out for Delivery' && (
+              <div className="p-3.5 rounded-xl bg-purple-50/90 border border-purple-200 space-y-2.5">
+                <label className="block text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Bike className="w-4 h-4 text-purple-700" />
+                  <span>Assign Delivery Rider:</span>
+                </label>
+
+                {riders.length === 0 ? (
+                  <div className="p-3 bg-white rounded-xl border border-dashed border-purple-300 text-center text-xs text-purple-800">
+                    ⚠️ No riders added yet. You can add delivery riders from the Riders tab or assign later.
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmRiderId('')}
+                      className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-medium text-left transition-all cursor-pointer ${
+                        confirmRiderId === ''
+                          ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
+                          : 'bg-white hover:bg-purple-50/70 border-purple-200 text-zinc-700'
+                      }`}
+                    >
+                      <span>-- Assign Rider Later --</span>
+                      {confirmRiderId === '' && <Check className="w-4 h-4 text-white" />}
+                    </button>
+
+                    {riders.map(r => {
+                      const activeCount = (allOrders && allOrders.length > 0 ? allOrders : orders).filter(o => o.riderId === r.id && o.status === 'Out for Delivery').length;
+                      const isSelected = confirmRiderId === r.id;
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => setConfirmRiderId(r.id)}
+                          className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
+                              : 'bg-white hover:bg-purple-50/70 border-purple-200 text-zinc-900'
+                          }`}
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-bold">{r.name}</span>
+                            <span className={`text-[11px] ${isSelected ? 'text-purple-100' : 'text-zinc-500'}`}>
+                              {r.phone || 'No phone'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              isSelected
+                                ? 'bg-purple-700 text-purple-100'
+                                : activeCount > 0
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-emerald-100 text-emerald-800'
+                            }`}>
+                              {activeCount > 0 ? `${activeCount} Active` : 'Available'}
+                            </span>
+                            {isSelected && <Check className="w-4 h-4 text-white" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  Customer will see assigned rider details once order is Out for Delivery.
+                </p>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-2.5 pt-2">
               <button
@@ -2234,6 +2545,170 @@ export default function OrdersManager({
                 ) : (
                   <span>Yes, Change Status</span>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom In-App Rider Assignment Modal */}
+      {assigningRiderOrder && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setAssigningRiderOrder(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 bg-gradient-to-r from-purple-700 to-indigo-700 text-white flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-white/15 text-white backdrop-blur-xs">
+                  <Bike className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm sm:text-base leading-tight">
+                    Select Delivery Rider
+                  </h3>
+                  <p className="text-xs text-purple-200 font-medium">
+                    Order #{assigningRiderOrder.id} • {assigningRiderOrder.customerName || 'Customer'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAssigningRiderOrder(null)}
+                className="p-1.5 rounded-full hover:bg-white/20 text-purple-100 hover:text-white transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content List */}
+            <div className="p-4 overflow-y-auto space-y-2 flex-1 divide-y divide-zinc-100">
+              {riders.length === 0 ? (
+                <div className="py-8 text-center space-y-2">
+                  <Bike className="w-10 h-10 text-purple-300 mx-auto" />
+                  <p className="text-sm font-bold text-zinc-700">No Riders Added Yet</p>
+                  <p className="text-xs text-zinc-500 max-w-xs mx-auto">
+                    Please go to the Riders tab in the admin panel to add your delivery riders first.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Option: Unassign Rider */}
+                  <div className="pb-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await handleAssignRider(assigningRiderOrder.id, '');
+                        setAssigningRiderOrder(null);
+                      }}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
+                        !assigningRiderOrder.riderId
+                          ? 'bg-zinc-800 text-white border-zinc-800 shadow-xs'
+                          : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200 text-zinc-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
+                          !assigningRiderOrder.riderId ? 'bg-zinc-700 text-white' : 'bg-zinc-200 text-zinc-600'
+                        }`}>
+                          ✕
+                        </div>
+                        <div>
+                          <span className="block font-bold">Unassigned (No Rider)</span>
+                          <span className={`text-[11px] ${!assigningRiderOrder.riderId ? 'text-zinc-300' : 'text-zinc-500'}`}>
+                            Do not assign any rider to this parcel
+                          </span>
+                        </div>
+                      </div>
+                      {!assigningRiderOrder.riderId && <Check className="w-4 h-4 text-white" />}
+                    </button>
+                  </div>
+
+                  {/* Rider Cards */}
+                  <div className="pt-2 space-y-2">
+                    {riders.map(r => {
+                      const isCurrent = assigningRiderOrder.riderId === r.id;
+                      const activeCount = (allOrders && allOrders.length > 0 ? allOrders : orders).filter(
+                        o => o.riderId === r.id && o.status === 'Out for Delivery'
+                      ).length;
+
+                      return (
+                        <div
+                          key={r.id}
+                          className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                            isCurrent
+                              ? 'bg-purple-50 border-purple-400 ring-2 ring-purple-300 shadow-xs'
+                              : 'bg-white hover:bg-purple-50/50 border-zinc-200'
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await handleAssignRider(assigningRiderOrder.id, r.id);
+                              setAssigningRiderOrder(null);
+                            }}
+                            className="flex-1 flex items-center gap-3 text-left cursor-pointer"
+                          >
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
+                              isCurrent ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700'
+                            }`}>
+                              <Bike className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-sm text-zinc-900 truncate">{r.name}</span>
+                                {isCurrent && (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-600 text-white">
+                                    Assigned
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs text-zinc-500 font-medium">
+                                  {r.phone || 'No phone'}
+                                </span>
+                                <span className="text-zinc-300">•</span>
+                                <span className={`text-[11px] font-semibold ${
+                                  activeCount > 0 ? 'text-amber-600' : 'text-emerald-600'
+                                }`}>
+                                  {activeCount > 0 ? `${activeCount} parcel${activeCount > 1 ? 's' : ''} on way` : 'Available'}
+                                </span>
+                              </div>
+                            </div>
+                          </button>
+
+                          {r.phone && (
+                            <a
+                              href={`tel:${r.phone}`}
+                              className="ml-2 p-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-700 transition-colors shrink-0 active:scale-95"
+                              title={`Call ${r.name}`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Phone className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-3.5 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-500">
+              <span>Tap rider to assign immediately</span>
+              <button
+                type="button"
+                onClick={() => setAssigningRiderOrder(null)}
+                className="px-4 py-2 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-800 font-bold transition-colors cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>

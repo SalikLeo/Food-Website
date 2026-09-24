@@ -4,7 +4,7 @@ import {
   MessageCircle, Menu, X, ShoppingBag, 
   Clock, MapPin, ChevronRight, ChevronDown, Check, Sparkles, Phone,
   Sun, Moon, RotateCcw, PackageCheck, ReceiptText, AlertCircle, Ban,
-  User, CheckCircle2, Send, Star, MessageSquareHeart
+  User, CheckCircle2, Send, Star, MessageSquareHeart, Truck, Bike
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { apiUrl } from '../../config/api';
@@ -83,14 +83,16 @@ export default function CustomerMobileApp({
   const totalItems = rawTotalItems || itemCount || (cartItems || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
   const totalPrice = rawTotalPrice || total || subtotal;
 
-  // Theme state: 'light' | 'dark' (persisted in localStorage, default 'light')
+  // Theme state: 'light' | 'dark' (persisted in localStorage, default 'dark' or stored preference)
   const [theme, setTheme] = useState(() => {
     try {
       const savedV2 = localStorage.getItem('salik_app_theme_v2');
       if (savedV2 === 'light' || savedV2 === 'dark') return savedV2;
-      return 'light';
+      const saved = localStorage.getItem('salik_app_theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+      return 'dark';
     } catch {
-      return 'light';
+      return 'dark';
     }
   });
 
@@ -98,10 +100,40 @@ export default function CustomerMobileApp({
     try {
       localStorage.setItem('salik_app_theme_v2', theme);
       localStorage.setItem('salik_app_theme', theme);
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      }
+      window.dispatchEvent(new CustomEvent('salik_theme_changed', { detail: theme }));
     } catch (e) {
       console.error(e);
     }
   }, [theme]);
+
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'salik_app_theme_v2' || e.key === 'salik_app_theme') {
+        const val = e.newValue;
+        if (val === 'light' || val === 'dark') {
+          setTheme(val);
+        }
+      }
+    };
+    const handleCustomTheme = (e) => {
+      if (e?.detail === 'light' || e?.detail === 'dark') {
+        setTheme(e.detail);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('salik_theme_changed', handleCustomTheme);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('salik_theme_changed', handleCustomTheme);
+    };
+  }, []);
 
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
@@ -360,7 +392,15 @@ export default function CustomerMobileApp({
         onError: (err) => {
           setGoogleLoading(false);
           console.warn('Google sign-in:', err);
-          if (err && typeof err === 'string' && !err.includes('popup_closed_by_user')) {
+          const errStr = String(err || '').toLowerCase();
+          const isClosedOrCancelled = 
+            errStr.includes('popup') || 
+            errStr.includes('closed') || 
+            errStr.includes('cancel') || 
+            errStr.includes('denied') || 
+            errStr.includes('dismissed') ||
+            errStr.includes('user_');
+          if (err && typeof err === 'string' && !isClosedOrCancelled) {
             setReorderToast(err);
           }
         },
@@ -620,13 +660,62 @@ export default function CustomerMobileApp({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Helper for size selection
+  // Delivery Rider Contact Card (Shown when order is Out for Delivery and has an assigned rider)
+  const renderRiderContact = (order) => {
+    const raw = String(order?.status || 'Pending').trim().toLowerCase();
+    const isOutForDelivery = raw.includes('out') || raw.includes('delivery') || raw.includes('way') || raw.includes('ship') || raw.includes('rider');
+    if (!isOutForDelivery || (!order?.riderName && !order?.riderPhone)) return null;
+
+    return (
+      <div className={`mt-3 p-3 rounded-xl border flex items-center justify-between gap-3 ${
+        isDark
+          ? 'bg-purple-950/40 border-purple-500/30 text-purple-200'
+          : 'bg-purple-50/90 border-purple-200 text-purple-950 shadow-2xs'
+      }`}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+            isDark ? 'bg-purple-600/30 text-purple-300 border border-purple-500/40' : 'bg-purple-600 text-white shadow-2xs'
+          }`}>
+            <Bike className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <span className={`text-[10px] font-bold uppercase tracking-wider block ${
+              isDark ? 'text-purple-300' : 'text-purple-700'
+            }`}>
+              Your Delivery Rider
+            </span>
+            <h4 className={`text-xs sm:text-sm font-bold truncate ${
+              isDark ? 'text-white' : 'text-zinc-900'
+            }`}>
+              {order.riderName || 'Assigned Rider'}
+            </h4>
+          </div>
+        </div>
+
+        {order.riderPhone && (
+          <a
+            href={`tel:${order.riderPhone}`}
+            className="px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-transform shrink-0 cursor-pointer"
+            title={`Call ${order.riderName || 'Rider'}: ${order.riderPhone}`}
+          >
+            <Phone className="w-3.5 h-3.5 fill-white/20" />
+            <span>Call ({order.riderPhone})</span>
+          </a>
+        )}
+      </div>
+    );
+  };
+
+  // Helper for size selection - defaults to smallest size
   const getSelectedSize = (product) => {
     if (!product.sizes || product.sizes.length === 0) return null;
     const current = selectedSizes[product.id];
     if (current) return current;
-    const med = product.sizes.find(s => s.label.toLowerCase() === 'medium');
-    return med || product.sizes[0];
+    // Default to Small / smallest size (by price ascending or first size)
+    const small = product.sizes.find(s => s.label.toLowerCase() === 'small');
+    if (small) return small;
+    const sorted = [...product.sizes].sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    return sorted[0] || product.sizes[0];
   };
 
   const handleSelectSize = (productId, sizeObj) => {
@@ -1378,7 +1467,7 @@ export default function CustomerMobileApp({
 
                       <button
                         onClick={(e) => handleAddDeal(deal, e)}
-                        className="w-full py-2 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full py-2 rounded-xl bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Add Deal</span>
@@ -1420,37 +1509,30 @@ export default function CustomerMobileApp({
               </div>
             </div>
 
-            {/* Category Search Header Card */}
-            <div className={`rounded-2xl p-3 sm:p-4 border ${
-              isDark 
-                ? 'bg-[#141418] border-white/10' 
-                : 'bg-white border-zinc-200 shadow-2xs'
-            }`}>
-              {/* Global Search Bar */}
-              <div className="relative w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                <input
-                  type="text"
-                  placeholder="Search food across all categories (Pizza, Burgers...)"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-10 pr-16 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all ${
-                    isDark 
-                      ? 'bg-black/40 border-white/10 text-white placeholder-zinc-500' 
-                      : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+            {/* Global Search Bar */}
+            <div className="relative w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Search food across all categories (Pizza, Burgers...)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-16 py-3 rounded-2xl border text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all ${
+                  isDark 
+                    ? 'bg-[#141418] border-white/10 text-white placeholder-zinc-500 shadow-sm' 
+                    : 'bg-white border-zinc-200 text-zinc-900 placeholder-zinc-400 shadow-2xs'
+                }`}
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer active:scale-95 transition-transform ${
+                    isDark ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-200 text-zinc-700'
                   }`}
-                />
-                {searchQuery && (
-                  <button 
-                    onClick={() => setSearchQuery('')}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer ${
-                      isDark ? 'bg-zinc-800 text-zinc-300 ' : 'bg-zinc-200 text-zinc-700 '
-                    }`}
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
             {/* Horizontal Category Switcher Bar (Pills) */}
@@ -1462,7 +1544,7 @@ export default function CustomerMobileApp({
                 }}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 cursor-pointer ${
                   selectedCatId === 'all' && !searchQuery.trim()
-                    ? 'bg-orange-600 text-white shadow-md'
+                    ? 'bg-orange-500 text-white shadow-md'
                     : isDark
                       ? 'bg-[#18181e] text-zinc-400 border border-white/5 '
                       : 'bg-white text-zinc-600 border border-zinc-200  shadow-2xs'
@@ -1482,7 +1564,7 @@ export default function CustomerMobileApp({
                     }}
                     className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 cursor-pointer ${
                       isActive
-                        ? 'bg-orange-600 text-white shadow-md'
+                        ? 'bg-orange-500 text-white shadow-md'
                         : isDark
                           ? 'bg-[#18181e] text-zinc-400 border border-white/5 '
                           : 'bg-white text-zinc-600 border border-zinc-200  shadow-2xs'
@@ -1520,7 +1602,7 @@ export default function CustomerMobileApp({
                 {searchQuery.trim() && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="px-5 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-95 transition-all"
+                    className="px-5 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-95 transition-all"
                   >
                     Clear Search
                   </button>
@@ -1546,10 +1628,10 @@ export default function CustomerMobileApp({
                             : 'bg-white border-zinc-200/90 shadow-xs  '
                       }`}
                     >
-                      <div className="flex gap-3.5">
+                      <div className="flex gap-3 sm:gap-3.5">
                         
-                        {/* Food Image */}
-                        <div className={`w-24 h-24 rounded-2xl overflow-hidden border flex-shrink-0 relative ${
+                        {/* Food Image (10% bigger overall & 10% wider for enhanced visuals) */}
+                        <div className={`w-[138px] sm:w-[150px] h-[106px] sm:h-[116px] rounded-2xl overflow-hidden border flex-shrink-0 relative ${
                           isDark ? 'bg-black/40 border-white/5' : 'bg-zinc-50 border-zinc-200'
                         }`}>
                           <img
@@ -1566,7 +1648,7 @@ export default function CustomerMobileApp({
                             </span>
                           )}
                           {product.tag && !isOutOfStock && (
-                            <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-orange-600 text-white font-bold text-[9px] uppercase tracking-wider">
+                            <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-orange-500 text-white font-bold text-[9px] uppercase tracking-wider">
                               {product.tag}
                             </span>
                           )}
@@ -1586,7 +1668,7 @@ export default function CustomerMobileApp({
                                   isDark 
                                     ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
                                     : 'bg-orange-50 text-orange-700 border border-orange-200'
-                                }}`}>
+                                }`}>
                                   {categoryEmojis[product.category] || '🍽️'} {product.category}
                                 </span>
                               )}
@@ -1602,7 +1684,7 @@ export default function CustomerMobileApp({
 
                           {/* Price */}
                           <div className="mt-2 flex items-baseline gap-1.5">
-                            <span className="text-orange-600 font-sans font-extrabold text-base leading-none">
+                            <span className="text-orange-500 font-sans font-extrabold text-base leading-none">
                               Rs. {formatPrice(displayPrice)}
                             </span>
                             {hasSizes && (
@@ -1629,7 +1711,7 @@ export default function CustomerMobileApp({
                                 onClick={() => handleSelectSize(product.id, s)}
                                 className={`flex-1 py-1.5 px-3 rounded-full text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
                                   isSelected
-                                    ? 'bg-gradient-to-r from-[#d93409] to-[#ea580c] text-white shadow-xs'
+                                    ? 'bg-orange-500 text-white shadow-xs'
                                     : isDark
                                       ? 'text-zinc-400  bg-transparent'
                                       : 'text-[#635d56]  bg-transparent'
@@ -1684,7 +1766,7 @@ export default function CustomerMobileApp({
                           className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                             isOutOfStock
                               ? (isDark ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed')
-                              : 'bg-orange-600  text-white shadow-md active:scale-95'
+                              : 'bg-orange-500 text-white shadow-md active:scale-95'
                           }`}
                         >
                           {isOutOfStock ? (
@@ -1692,7 +1774,7 @@ export default function CustomerMobileApp({
                           ) : (
                             <Plus className="w-4 h-4" />
                           )}
-                          <span>{isOutOfStock ? 'Sold Out' : `Add ${qty > 1 ? `(${qty})` : ''}`}</span>
+                          <span>{isOutOfStock ? 'Sold Out' : `Add to Cart ${qty > 1 ? `(${qty})` : ''}`}</span>
                         </button>
 
                       </div>
@@ -1961,14 +2043,14 @@ export default function CustomerMobileApp({
                   return (
                     <div
                       key={order.id || idx}
-                      className={`rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3.5 border ${
+                      className={`rounded-2xl px-3.5 py-3 sm:px-4 sm:py-3.5 border ${
                         isDark 
-                          ? 'bg-[#15151a] border-white/10 shadow-lg' 
-                          : 'bg-white border-zinc-200 shadow-xs'
+                          ? 'bg-[#181820] border-zinc-700/80 shadow-md' 
+                          : 'bg-white border-zinc-300 shadow-xs'
                       }`}
                     >
                       {/* Top Order Meta */}
-                      <div className="flex items-center justify-between pb-2 sm:pb-2.5 border-b border-white/5">
+                      <div className={`flex items-center justify-between pb-2 sm:pb-2.5 border-b ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
                         <div className="flex items-center gap-2">
                           <span className={`font-sans text-xs sm:text-sm font-semibold tracking-normal ${
                             isDark ? 'text-zinc-200' : 'text-zinc-800'
@@ -1981,10 +2063,10 @@ export default function CustomerMobileApp({
                           <button
                             type="button"
                             onClick={() => setViewingReceiptOrder(order)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border active:scale-95 transition-transform cursor-pointer ${
                               isDark
-                                ? 'bg-zinc-800/90  text-zinc-200 border-white/10 shadow-xs'
-                                : 'bg-zinc-100  text-zinc-700 border-zinc-200 shadow-xs'
+                                ? 'bg-zinc-800 text-zinc-200 border-zinc-700 shadow-xs'
+                                : 'bg-zinc-100 text-zinc-700 border-zinc-300 shadow-xs'
                             }`}
                           >
                             <ReceiptText className="w-3 h-3 text-orange-500" />
@@ -2110,7 +2192,7 @@ export default function CustomerMobileApp({
                       {/* Order Footer: Total & REORDER Button */}
                       <div className="flex items-center justify-between pt-1 gap-2">
                         <div>
-                          <span className="font-sans text-[15px] sm:text-lg font-extrabold text-orange-600 leading-tight whitespace-nowrap">
+                          <span className="font-sans text-[15px] sm:text-lg font-extrabold text-orange-500 leading-tight whitespace-nowrap">
                             Rs. {formatPrice(order.total)}
                           </span>
                         </div>
@@ -2133,7 +2215,7 @@ export default function CustomerMobileApp({
                               <button
                                 type="button"
                                 onClick={() => handleReorderOrder(order)}
-                                className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-600 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap"
+                                className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-orange-500 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap"
                               >
                                 <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5] shrink-0" />
                                 <span>Reorder</span>
@@ -2142,6 +2224,9 @@ export default function CustomerMobileApp({
                           )}
                         </div>
                       </div>
+
+                      {/* Delivery Rider Contact Card (Hidden unless Out for Delivery with an assigned rider) */}
+                      {renderRiderContact(order)}
 
                     </div>
                   );
@@ -2198,7 +2283,7 @@ export default function CustomerMobileApp({
                   <h3 className={`text-base font-extrabold uppercase tracking-tight ${
                     isDark ? 'text-white' : 'text-zinc-900'
                   }`}>
-                    Order Feedback & Reviews
+                    Pending Order Feedback & Reviews
                   </h3>
                   <p className={`text-xs leading-relaxed ${
                     isDark ? 'text-zinc-400' : 'text-zinc-600'
@@ -2306,9 +2391,6 @@ export default function CustomerMobileApp({
                           }`}>
                             {orderDate}
                           </span>
-                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-bold text-[10px] uppercase tracking-wider border border-amber-500/20">
-                            Pending Review
-                          </span>
                         </div>
                       </div>
 
@@ -2327,51 +2409,8 @@ export default function CustomerMobileApp({
                         </p>
                       </div>
 
-                      {/* Interactive Rating Selection */}
-                      <div className="pt-3.5 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className={`text-xs font-bold uppercase tracking-wider ${
-                            isDark ? 'text-zinc-300' : 'text-zinc-700'
-                          }`}>
-                            Your Rating:
-                          </span>
-                          <span className="text-xs font-semibold text-amber-400">
-                            {ratingDescriptions[rating] || `${rating} Stars`}
-                          </span>
-                        </div>
-
-                        {/* Star Buttons */}
-                        <div className="flex items-center gap-2 py-1">
-                          {[1, 2, 3, 4, 5].map((starNum) => {
-                            const isFilled = starNum <= rating;
-                            return (
-                              <button
-                                key={starNum}
-                                type="button"
-                                onClick={() => setOrderRating(order.id, starNum)}
-                                className="p-1 sm:p-1.5 rounded-xl active:scale-90 transition-transform cursor-pointer"
-                                aria-label={`Rate ${starNum} stars`}
-                              >
-                                <Star
-                                  className={`w-7 h-7 sm:w-8 sm:h-8 transition-colors ${
-                                    isFilled 
-                                      ? 'text-amber-400 fill-amber-400 drop-shadow-[0_2px_8px_rgba(251,191,36,0.4)]' 
-                                      : isDark ? 'text-zinc-700' : 'text-zinc-300'
-                                  }`}
-                                />
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
                       {/* Feedback Comment Textarea */}
-                      <div className="pt-3 space-y-1.5">
-                        <label className={`text-[11px] font-bold uppercase tracking-wider block ${
-                          isDark ? 'text-zinc-400' : 'text-zinc-600'
-                        }`}>
-                          Write Feedback (Optional)
-                        </label>
+                      <div className="pt-2">
                         <textarea
                           rows={2}
                           value={comment}
@@ -2385,18 +2424,50 @@ export default function CustomerMobileApp({
                         />
                       </div>
 
-                      {/* Submit Action */}
-                      <div className="pt-3.5 flex justify-end">
+                      {/* Interactive Rating Selection & Submit Action */}
+                      <div className={`pt-2.5 border-t ${isDark ? 'border-white/5' : 'border-zinc-100'} flex items-center justify-between gap-2 flex-wrap`}>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`text-[11px] font-bold uppercase tracking-wider ${
+                            isDark ? 'text-zinc-300' : 'text-zinc-700'
+                          }`}>
+                            Rating:
+                          </span>
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((starNum) => {
+                              const isFilled = starNum <= rating;
+                              return (
+                                <button
+                                  key={starNum}
+                                  type="button"
+                                  onClick={() => setOrderRating(order.id, starNum)}
+                                  className="p-1 rounded-lg active:scale-90 transition-transform cursor-pointer"
+                                  aria-label={`Rate ${starNum} stars`}
+                                >
+                                  <Star
+                                    className={`w-5 h-5 transition-colors ${
+                                      isFilled 
+                                        ? 'text-amber-400 fill-amber-400 drop-shadow-[0_2px_8px_rgba(251,191,36,0.4)]' 
+                                        : isDark ? 'text-zinc-700' : 'text-zinc-300'
+                                    }`}
+                                  />
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <span className="text-[11px] font-bold text-amber-400 ml-1">
+                            {ratingDescriptions[rating] || `${rating} Stars`}
+                          </span>
+                        </div>
+
                         <button
                           type="button"
                           onClick={() => handleInitiateReviewSubmit(order)}
-                          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer shrink-0"
                         >
                           <Send className="w-3.5 h-3.5" />
-                          <span>Submit Review</span>
+                          <span>Submit</span>
                         </button>
                       </div>
-
                     </div>
                   );
                 })}
@@ -2437,71 +2508,6 @@ export default function CustomerMobileApp({
               </div>
             </div>
 
-            {/* Google Authentication Account Card */}
-            <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
-              isDark ? 'bg-[#15151a] border-white/10' : 'bg-white border-zinc-200 shadow-xs'
-            }`}>
-              <div className="flex items-center gap-3">
-                {customerUser?.picture ? (
-                  <img
-                    src={customerUser.picture}
-                    alt={customerUser.name}
-                    className="w-10 h-10 rounded-full object-cover border border-orange-500/50"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center font-bold text-sm">
-                    <User className="w-5 h-5" />
-                  </div>
-                )}
-                <div>
-                  <div className={`text-xs font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-                    {customerUser ? customerUser.name : 'Google Account (Optional)'}
-                  </div>
-                  <div className="text-[11px] text-zinc-400">
-                    {customerUser ? customerUser.email : 'Sign in with Google to sync account'}
-                  </div>
-                </div>
-              </div>
-
-              {customerUser ? (
-                <button
-                  type="button"
-                  onClick={handleCustomerLogout}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-                >
-                  Logout
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleGoogleLogin}
-                  disabled={googleLoading}
-                  className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-900 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50 border border-zinc-300"
-                >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                    />
-                  </svg>
-                  <span>{googleLoading ? 'Connecting...' : 'Login with Google'}</span>
-                </button>
-              )}
-            </div>
-
             {/* Profile Form */}
             <form onSubmit={handleSaveProfileForm} className={`rounded-2xl p-4 sm:p-5 border space-y-4 ${
               isDark ? 'bg-[#15151a] border-white/10 shadow-lg' : 'bg-white border-zinc-200 shadow-sm'
@@ -2530,7 +2536,7 @@ export default function CustomerMobileApp({
                 <label className={`block text-xs font-bold uppercase tracking-wider mb-1.5 ${
                   isDark ? 'text-zinc-300' : 'text-zinc-700'
                 }`}>
-                  Phone Number (11-Digit) *
+                  Phone Number *
                 </label>
                 <input
                   type="tel"
@@ -2624,7 +2630,7 @@ export default function CustomerMobileApp({
                     <span>Reviews</span>
                   </span>
                   {pendingReviewsCount > 0 ? (
-                    <span className="text-[10px] font-bold bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-bold bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-full">
                       {pendingReviewsCount}
                     </span>
                   ) : (
@@ -2990,7 +2996,7 @@ export default function CustomerMobileApp({
                     <span className="text-base shrink-0">🏠</span>
                     <span className="truncate">Home & Categories</span>
                   </span>
-                  <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 ml-1" />
+                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'home' ? 'text-white' : 'text-zinc-400'}`} />
                 </button>
 
                 <button
@@ -3007,10 +3013,10 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <Flame className="w-4.5 h-4.5 fill-orange-500 text-orange-500 shrink-0" />
+                    <Flame className={`w-4.5 h-4.5 shrink-0 ${currentView === 'deals' ? 'fill-white text-white' : 'fill-orange-500 text-orange-500'}`} />
                     <span className="truncate">Saver Deals</span>
                   </span>
-                  <ChevronRight className="w-4 h-4 text-orange-500 shrink-0 ml-1" />
+                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'deals' ? 'text-white' : 'text-orange-500'}`} />
                 </button>
 
                 <button
@@ -3028,7 +3034,7 @@ export default function CustomerMobileApp({
                     <span className="text-base shrink-0">🍽️</span>
                     <span className="truncate">Explore Menu</span>
                   </span>
-                  <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 ml-1" />
+                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'category' ? 'text-white' : 'text-zinc-400'}`} />
                 </button>
 
                 {/* RECENT ORDERS */}
@@ -3046,16 +3052,18 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <RotateCcw className="w-4.5 h-4.5 text-orange-500 shrink-0" />
+                    <RotateCcw className={`w-4.5 h-4.5 shrink-0 ${currentView === 'orders' ? 'text-white' : 'text-orange-500'}`} />
                     <span className="truncate">Recent Orders</span>
                   </span>
                   <div className="flex items-center gap-1.5 shrink-0 ml-1">
                     {recentOrders.length > 0 && (
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-orange-600 text-white font-bold">
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                        currentView === 'orders' ? 'bg-white/25 text-white' : 'bg-orange-600 text-white'
+                      }`}>
                         {recentOrders.length}
                       </span>
                     )}
-                    <ChevronRight className="w-4 h-4 text-zinc-400" />
+                    <ChevronRight className={`w-4 h-4 ${currentView === 'orders' ? 'text-white' : 'text-zinc-400'}`} />
                   </div>
                 </button>
 
@@ -3074,16 +3082,18 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <Star className="w-4.5 h-4.5 text-amber-400 fill-amber-400 shrink-0" />
+                    <Star className={`w-4.5 h-4.5 shrink-0 ${currentView === 'add-review' ? 'text-white fill-white' : 'text-amber-400 fill-amber-400'}`} />
                     <span className="truncate">Add Review</span>
                   </span>
                   <div className="flex items-center gap-1.5 shrink-0 ml-1">
                     {pendingReviewsCount > 0 && (
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-orange-600 text-white font-bold">
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                        currentView === 'add-review' ? 'bg-white/25 text-white' : 'bg-orange-600 text-white'
+                      }`}>
                         {pendingReviewsCount}
                       </span>
                     )}
-                    <ChevronRight className="w-4 h-4 text-zinc-400" />
+                    <ChevronRight className={`w-4 h-4 ${currentView === 'add-review' ? 'text-white' : 'text-zinc-400'}`} />
                   </div>
                 </button>
 
@@ -3102,10 +3112,10 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <User className="w-4.5 h-4.5 text-orange-500 shrink-0" />
+                    <User className={`w-4.5 h-4.5 shrink-0 ${currentView === 'profile' ? 'text-white' : 'text-orange-500'}`} />
                     <span className="truncate">View Profile</span>
                   </span>
-                  <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0 ml-1" />
+                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'profile' ? 'text-white' : 'text-zinc-400'}`} />
                 </button>
               </nav>
 
@@ -3283,7 +3293,7 @@ export default function CustomerMobileApp({
 
       {/* Cart & Modals */}
       <CartDrawer isDark={isDark} />
-      <OrderSuccessModal />
+      <OrderSuccessModal isDark={isDark} />
 
       {/* ============================================================== */}
       {/* 6. GOOGLE SIGN-IN SETUP & DEMO MODAL */}
@@ -3376,7 +3386,7 @@ export default function CustomerMobileApp({
           />
 
           {/* Modal Card */}
-          <div className={`relative w-full max-w-sm rounded-3xl p-5 sm:p-6 border shadow-2xl z-10 animate-scale-in max-h-[90vh] overflow-y-auto modal-items-scroll ${
+          <div className={`relative w-full max-w-sm rounded-3xl p-5 sm:p-6 border shadow-2xl z-10 animate-scale-in max-h-[90vh] overflow-y-auto overflow-x-hidden ${
             isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
           }`}>
             {/* Close Button */}

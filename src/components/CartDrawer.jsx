@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Minus, Trash2, Truck, AlertTriangle } from 'lucide-react';
+import { X, Plus, Minus, Trash2, Truck, AlertTriangle, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice, cleanDealInclusions } from '../utils/formatters';
 
@@ -86,9 +86,9 @@ export default function CartDrawer({ isDark: isDarkProp }) {
         }`}
       />
 
-      {/* Right side drawer: max-w-[420px] on desktop with backdrop, full width on small mobile */}
+      {/* Right side drawer: max-w-[500px] on desktop with backdrop, full width on small mobile */}
       <div
-        className={`absolute top-0 right-0 bottom-0 h-full w-full sm:max-w-[420px] shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-in-out z-10 ${
+        className={`absolute top-0 right-0 bottom-0 h-full w-full sm:max-w-[490px] md:max-w-[500px] shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-in-out z-10 ${
           isDark 
             ? 'bg-[#15151a] text-white border-l border-white/10' 
             : 'bg-white text-zinc-900'
@@ -97,21 +97,26 @@ export default function CartDrawer({ isDark: isDarkProp }) {
         }`}
       >
         {/* Header */}
-        <div className={`px-6 py-5 border-b flex items-center justify-between flex-shrink-0 mobile-side-drawer-top ${
+        <div className={`px-4 sm:px-6 py-4 border-b flex items-center justify-between gap-3 flex-shrink-0 mobile-side-drawer-top ${
           isDark 
             ? 'bg-[#18181e] border-white/10' 
             : 'bg-white border-zinc-200/80'
         }`}>
-          <h3 className={`font-montserrat text-xl uppercase tracking-tight font-extrabold flex items-center gap-1.5 ${
-            isDark ? 'text-white' : 'text-zinc-900'
-          }`}>
-            <span>YOUR CART</span>
-            {itemCount > 0 && <span className="text-[#e53e10]">({itemCount})</span>}
-          </h3>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-orange-500/15 border border-orange-500/30 text-orange-400 flex items-center justify-center font-bold shrink-0">
+              <ShoppingBag className="w-5 h-5 text-orange-400" />
+            </div>
+            <h3 className={`font-montserrat text-base sm:text-xl uppercase tracking-tight font-bold flex items-center gap-1.5 truncate ${
+              isDark ? 'text-white' : 'text-zinc-900'
+            }`}>
+              <span>YOUR CART</span>
+              {itemCount > 0 && <span className={isDark ? 'text-orange-400' : 'text-orange-600'}>({itemCount})</span>}
+            </h3>
+          </div>
 
           <button
             onClick={() => setIsCartOpen(false)}
-            className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors focus:outline-none cursor-pointer ${
+            className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors focus:outline-none cursor-pointer shrink-0 ${
               isDark 
                 ? 'border-red-500/30 hover:border-red-500/60 text-red-400 hover:bg-red-500/10' 
                 : 'border-red-300 hover:border-red-500 text-red-500 hover:bg-red-50'
@@ -178,7 +183,7 @@ export default function CartDrawer({ isDark: isDarkProp }) {
                 <img
                   src={item.image}
                   alt={item.name}
-                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border flex-shrink-0 aspect-square ${
+                  className={`w-20 sm:w-24 h-16 sm:h-20 rounded-xl object-cover border flex-shrink-0 ${
                     isDark ? 'bg-zinc-900 border-white/10' : 'bg-zinc-100 border-zinc-100'
                   }`}
                   onError={(e) => {
@@ -189,7 +194,7 @@ export default function CartDrawer({ isDark: isDarkProp }) {
                 <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch py-0.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h4 className={`font-bold text-xs sm:text-sm truncate ${
+                      <h4 className={`font-bold text-sm sm:text-base truncate ${
                         isDark ? 'text-white' : 'text-zinc-900'
                       }`}>
                         {item.name}
@@ -262,7 +267,9 @@ export default function CartDrawer({ isDark: isDarkProp }) {
                       </button>
                     </div>
 
-                    <span className="font-montserrat font-bold text-xs sm:text-sm text-[#e53e10]">
+                    <span className={`font-montserrat font-semibold text-xs sm:text-sm ${
+                      isDark ? 'text-orange-400' : 'text-orange-600'
+                    }`}>
                       Rs. {formatPrice(item.price * item.quantity)}
                     </span>
                   </div>
@@ -326,11 +333,11 @@ export default function CartDrawer({ isDark: isDarkProp }) {
             <div className="space-y-2 text-xs font-montserrat">
               <div className={`flex justify-between ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                 <span className="font-medium">Subtotal</span>
-                <span className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>Rs. {formatPrice(subtotal)}</span>
+                <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>Rs. {formatPrice(subtotal)}</span>
               </div>
               <div className={`flex justify-between ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                 <span className="font-medium">Delivery fee</span>
-                <span className={`font-bold ${isFreeDelivery ? 'text-emerald-500' : isDark ? 'text-white' : 'text-zinc-900'}`}>
+                <span className={`font-semibold ${isFreeDelivery ? 'text-emerald-500' : isDark ? 'text-white' : 'text-zinc-900'}`}>
                   {isFreeDelivery ? 'FREE' : `Rs. ${formatPrice(deliveryFee)}`}
                 </span>
               </div>
@@ -342,8 +349,10 @@ export default function CartDrawer({ isDark: isDarkProp }) {
                 }`}>
                   TOTAL
                 </span>
-                <span className="font-montserrat text-2xl text-[#e53e10] font-bold flex items-baseline">
-                  <span className="text-base font-bold mr-1">Rs.</span>
+                <span className={`font-montserrat text-2xl ${
+                  isDark ? 'text-orange-400' : 'text-orange-600'
+                } font-bold flex items-baseline`}>
+                  <span className="text-base font-semibold mr-1">Rs.</span>
                   <span>{formatPrice(total)}</span>
                 </span>
               </div>

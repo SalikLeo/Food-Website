@@ -106,6 +106,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
     <div class="meta-row"><span class="bold">Customer:</span><span>${order.customerName || 'Customer'}</span></div>
     <div class="meta-row"><span class="bold">Phone:</span><span>${order.phone || '-'}</span></div>
     ${order.address ? `<div class="meta-row"><span class="bold">Address:</span><span>${order.address}</span></div>` : ''}
+    ${order.riderName ? `<div class="meta-row"><span class="bold">Rider:</span><span>${order.riderName} (${order.riderPhone || '-'})</span></div>` : ''}
   </div>
   <table>
     <thead>
@@ -240,6 +241,25 @@ export default function CustomerReceiptModal({ order, onClose }) {
             {order.notes && (
               <div className="pt-0.5 text-[11px] italic">
                 <span className="font-bold not-italic">Notes:</span> {order.notes}
+              </div>
+            )}
+            {(order.riderName || order.riderPhone) && (
+              <div className="pt-1 mt-1 border-t border-dashed border-zinc-400 flex items-center justify-between">
+                <div>
+                  <span className="font-bold">Delivery Rider:</span>{' '}
+                  <span className="font-semibold">{order.riderName || 'Assigned Rider'}</span>
+                  {order.riderPhone && (
+                    <span className="text-[11px] text-zinc-700 ml-1 font-mono">({order.riderPhone})</span>
+                  )}
+                </div>
+                {order.riderPhone && (
+                  <a
+                    href={`tel:${order.riderPhone}`}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-600 hover:bg-orange-700 text-white font-bold text-[10px] transition-colors cursor-pointer"
+                  >
+                    Call
+                  </a>
+                )}
               </div>
             )}
           </div>

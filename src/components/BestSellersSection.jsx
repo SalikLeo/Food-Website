@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ShoppingBag, Plus, Minus, Zap, Flame, Ban } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Flame, Ban } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { apiUrl } from '../config/api';
 import { formatPrice } from '../utils/formatters';
@@ -63,14 +63,16 @@ export default function BestSellersSection({ products = [], categories = [], set
     }).slice(0, 4);
   }, [bestSellers, products, allowedCategories]);
 
-  // Size helper
+  // Size helper - defaults to smallest size
   const getSelectedSize = (product) => {
     if (!product.sizes || product.sizes.length === 0) return null;
     const current = selectedSizes[product.id];
     if (current) return current;
-    // Default to Medium if available, else first size
-    const med = product.sizes.find((s) => s.label.toLowerCase() === 'medium');
-    return med || product.sizes[0];
+    // Default to Small / smallest size (by price ascending or first size)
+    const small = product.sizes.find((s) => s.label.toLowerCase() === 'small');
+    if (small) return small;
+    const sorted = [...product.sizes].sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    return sorted[0] || product.sizes[0];
   };
 
   const handleSelectSize = (productId, sizeObj) => {
@@ -102,15 +104,6 @@ export default function BestSellersSection({ products = [], categories = [], set
     }, 1500);
   };
 
-  const handleOrderNow = (product) => {
-    if (product.inStock === false) return;
-    handleAddToCart(product);
-    const orderSec = document.getElementById('order');
-    if (orderSec) {
-      orderSec.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   if (!displayItems || displayItems.length === 0) {
     return null;
   }
@@ -134,7 +127,7 @@ export default function BestSellersSection({ products = [], categories = [], set
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 sm:mb-12">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-orange-600 animate-ping" />
+              <span className="flex h-2.5 w-2.5 rounded-full bg-orange-500 animate-ping" />
               <span className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-orange-500 flex items-center gap-1.5">
                 <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
                 <span>Wah Cantt's Most Ordered</span>
@@ -145,7 +138,7 @@ export default function BestSellersSection({ products = [], categories = [], set
               <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-display uppercase tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'} leading-none`}>
                 BEST <span className="text-orange-500">SELLERS</span>
               </h2>
-              <div className="h-1.5 w-20 bg-orange-600 rounded-full mt-2" />
+              <div className="h-1.5 w-20 bg-orange-500 rounded-full mt-2" />
             </div>
 
             <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-xs sm:text-sm mt-2.5 max-w-xl leading-relaxed`}>
@@ -198,7 +191,7 @@ export default function BestSellersSection({ products = [], categories = [], set
                         </span>
                       ) : (
                         product.tag && (
-                          <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-md bg-orange-600 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shadow">
+                          <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-md bg-orange-500 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shadow">
                             {product.tag}
                           </span>
                         )
@@ -212,10 +205,10 @@ export default function BestSellersSection({ products = [], categories = [], set
                   <div>
                     {/* Name & Price */}
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-0.5 sm:gap-2 mb-1 sm:mb-1.5">
-                      <h4 className={`font-bold text-xs sm:text-base ${isDark ? 'text-white' : 'text-zinc-900'} line-clamp-1 sm:line-clamp-2 leading-tight`}>
+                      <h4 className={`font-bold text-[15px] sm:text-base ${isDark ? 'text-white' : 'text-zinc-900'} line-clamp-1 sm:line-clamp-2 leading-tight`}>
                         {product.name}
                       </h4>
-                      <span className="font-bold text-xs sm:text-base text-red-500 sm:text-red-600 flex-shrink-0 tracking-tight">
+                      <span className="font-extrabold text-[15px] sm:text-base text-orange-500 flex-shrink-0 tracking-tight">
                         Rs. {formatPrice(activePrice)}
                       </span>
                     </div>
@@ -238,7 +231,7 @@ export default function BestSellersSection({ products = [], categories = [], set
                               onClick={() => handleSelectSize(product.id, s)}
                               className={`flex-1 py-0.5 sm:py-1 px-1 sm:px-3 rounded-full text-[9px] sm:text-xs font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
                                 isSizeActive
-                                  ? 'bg-gradient-to-r from-[#d93409] to-[#ea580c] text-white shadow-sm'
+                                  ? 'bg-orange-500 text-white shadow-sm'
                                   : isDark ? 'text-zinc-400 hover:text-white bg-transparent' : 'text-[#635d56] hover:text-zinc-900 bg-transparent'
                               } ${isSoldOut ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
@@ -270,27 +263,27 @@ export default function BestSellersSection({ products = [], categories = [], set
                       </div>
                     ) : (
                       <>
-                        <div className="flex items-center gap-1 sm:gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
                           {/* Sleek Stepper */}
-                          <div className={`flex items-center h-8 sm:h-10 rounded-lg sm:rounded-xl ${isDark ? 'bg-zinc-800/90 border-zinc-700/80' : 'bg-zinc-100/90 border-zinc-200/80'} border p-0.5 shadow-2xs`}>
+                          <div className={`flex items-center h-9 sm:h-10 rounded-lg sm:rounded-xl ${isDark ? 'bg-zinc-800/90 border-zinc-700/80' : 'bg-zinc-100/90 border-zinc-200/80'} border p-0.5 shadow-2xs`}>
                             <button
                               type="button"
                               onClick={() => setQty(product.id, -1)}
-                              className={`w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
+                              className={`w-6 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Decrease quantity"
                             >
-                              <Minus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
+                              <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                             </button>
-                            <span className={`w-5 sm:w-7 text-center font-bold text-[10px] sm:text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                            <span className={`w-5 sm:w-7 text-center font-bold text-xs sm:text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                               {qty}
                             </span>
                             <button
                               type="button"
                               onClick={() => setQty(product.id, 1)}
-                              className={`w-5 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
+                              className={`w-6 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Increase quantity"
                             >
-                              <Plus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
+                              <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                             </button>
                           </div>
 
@@ -298,28 +291,18 @@ export default function BestSellersSection({ products = [], categories = [], set
                           <button
                             type="button"
                             onClick={(e) => handleAddToCart(product, e)}
-                            className={`flex-1 h-8 sm:h-10 px-1 sm:px-3 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl active:scale-[0.98] font-bold text-[10px] sm:text-sm transition-all shadow-xs cursor-pointer ${
+                            className={`flex-1 h-9 sm:h-10 px-2 sm:px-3 flex items-center justify-center gap-1.5 rounded-lg sm:rounded-xl active:scale-[0.98] font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer ${
                               isAdded
                                 ? 'bg-emerald-600 text-white'
                                 : isDark
                                   ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
-                                  : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                                  : 'bg-zinc-100 hover:bg-zinc-200/90 border border-zinc-300 text-zinc-900'
                             }`}
                           >
-                            <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-400 shrink-0" />
+                            <ShoppingBag className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isAdded ? 'text-white' : 'text-orange-500'} shrink-0`} />
                             <span className="truncate">{isAdded ? 'Added!' : 'Add to Cart'}</span>
                           </button>
                         </div>
-
-                        {/* Order Now */}
-                        <button
-                          type="button"
-                          onClick={() => handleOrderNow(product)}
-                          className="w-full h-8 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] active:scale-[0.98] text-white font-bold text-[10px] sm:text-sm uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer"
-                        >
-                          <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-white shrink-0" />
-                          <span>Order Now</span>
-                        </button>
                       </>
                     )}
                   </div>

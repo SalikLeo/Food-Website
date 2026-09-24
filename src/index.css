@@ -315,18 +315,38 @@
   -webkit-user-select: text;
 }
 
-/* Disable all hover effects in mobile apps completely while keeping desktop website intact */
+/* ==========================================================================
+   MOBILE APP TOUCH & HOVER PURGE
+   Completely remove any type of hover animations, hover states, transforms,
+   shadows, and sticky hover transitions in mobile user app.
+   ========================================================================== */
+.is-mobile-app,
+.is-mobile-app * {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .is-mobile-app *:hover,
 .is-mobile-app *::before:hover,
 .is-mobile-app *::after:hover,
 .is-mobile-app .group:hover *,
+.is-mobile-app [class*="group-hover:"],
 .is-mobile-app button:hover,
-.is-mobile-app a:hover {
+.is-mobile-app a:hover,
+.is-mobile-app div:hover {
   transform: none !important;
   box-shadow: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
 }
 
+/* Also purge hover animations globally for touch devices */
 @media (hover: none) or (pointer: coarse) {
+  *,
+  *::before,
+  *::after {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   .smooth-hover:hover,
   .glow-hover:hover,
   .is-mobile-app button:hover,
@@ -335,6 +355,7 @@
   .is-mobile-app .group:hover * {
     transform: none !important;
     box-shadow: none !important;
+    filter: none !important;
   }
 }
 
@@ -362,14 +383,10 @@
 }
 
 /* Mobile Header & Bottom Navigation Adjustments */
-.mobile-app-header {
-  padding-top: 0.25rem;
-  padding-bottom: 0.35rem;
-}
-
+.mobile-app-header,
 .admin-app-header {
-  padding-top: 0px;
-  padding-bottom: 0px;
+  padding-top: max(env(safe-area-inset-top, 0px), 0.5rem);
+  padding-bottom: 0.625rem;
 }
 
 .mobile-app-container {
@@ -429,5 +446,26 @@
   padding: 0 !important;
   opacity: 0 !important;
   cursor: pointer !important;
+}
+
+/* Fix select and option colors across all browsers and Android webview */
+select {
+  color: #18181b !important;
+  background-color: #ffffff;
+}
+
+select option {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+}
+
+.dark select {
+  color: #ffffff !important;
+  background-color: #18181b;
+}
+
+.dark select option {
+  background-color: #18181b !important;
+  color: #ffffff !important;
 }
 

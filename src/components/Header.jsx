@@ -12,7 +12,8 @@ import {
   MapPin,
   ChevronRight,
   Star,
-  User
+  User,
+  RotateCcw
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import ThemeToggle from './ThemeToggle';
@@ -71,7 +72,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
       setIsScrolled(window.scrollY > 20);
 
       // Detect current section for active highlight
-      const sections = ['contact', 'about', 'menu', 'deals'];
+      const sections = ['menu', 'deals'];
       const scrollPos = window.scrollY + 220;
       let found = '';
       for (const id of sections) {
@@ -128,8 +129,8 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
     { label: 'Home', href: '#', icon: Home },
     { label: 'Deals', href: '#deals', icon: Flame, badge: 'HOT' },
     { label: 'Menu', href: '#menu', icon: Utensils },
-    { label: 'About Us', href: '#about', icon: Info },
-    { label: 'Contact', href: '#contact', icon: MapPin },
+    { label: 'Your Orders', action: 'orders', icon: RotateCcw },
+    { label: 'Review', action: 'reviews', icon: Star },
   ];
 
   return (
@@ -217,34 +218,28 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               >
                 Menu
               </a>
-              <a
-                href="#about"
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                  activeHash === '#about'
-                    ? isDark
-                      ? 'bg-white/10 text-amber-400'
-                      : 'bg-orange-100 text-orange-600 font-bold'
-                    : isDark
-                      ? 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
-                      : 'text-zinc-700 hover:text-orange-600 hover:bg-orange-50/80'
+              <button
+                type="button"
+                onClick={() => openProfileModal('orders')}
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                  isDark
+                    ? 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                    : 'text-zinc-700 hover:text-orange-600 hover:bg-orange-50/80'
                 }`}
               >
-                About Us
-              </a>
-              <a
-                href="#contact"
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                  activeHash === '#contact'
-                    ? isDark
-                      ? 'bg-white/10 text-amber-400'
-                      : 'bg-orange-100 text-orange-600 font-bold'
-                    : isDark
-                      ? 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
-                      : 'text-zinc-700 hover:text-orange-600 hover:bg-orange-50/80'
+                Your Orders
+              </button>
+              <button
+                type="button"
+                onClick={() => openProfileModal('reviews')}
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                  isDark
+                    ? 'text-zinc-300 hover:text-amber-400 hover:bg-white/10'
+                    : 'text-zinc-700 hover:text-orange-600 hover:bg-orange-50/80'
                 }`}
               >
-                Contact
-              </a>
+                Review
+              </button>
               {!hideAdmin && (
                 <button
                   onClick={onAdminClick}
@@ -264,6 +259,11 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
+
+            {/* Desktop Theme Toggle (Web only) */}
+            {!isCustomerApp && (
+              <ThemeToggle variant="compact" className="hidden lg:flex mr-1" />
+            )}
 
             {/* Header Profile Trigger (Web only: both desktop & mobile view) */}
             {!isCustomerApp && (
@@ -425,8 +425,44 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                 <div className="space-y-1.5">
                   {navLinks.map((item) => {
                     const isActive =
-                      activeHash === item.href || (!activeHash && item.href === '#');
+                      item.href && (activeHash === item.href || (!activeHash && item.href === '#'));
                     const Icon = item.icon;
+
+                    if (item.action) {
+                      return (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            openProfileModal(item.action);
+                          }}
+                          className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm font-semibold transition-all group cursor-pointer ${
+                            isDark
+                              ? 'text-zinc-300 hover:text-white hover:bg-zinc-800/60 border border-transparent'
+                              : 'text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100 border border-transparent'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`p-2 rounded-xl transition-colors ${
+                                isDark
+                                  ? 'bg-zinc-800/80 text-zinc-400 group-hover:text-white group-hover:bg-zinc-800'
+                                  : 'bg-zinc-100 text-zinc-500 group-hover:text-zinc-900 group-hover:bg-zinc-200'
+                              }`}
+                            >
+                              <Icon className="w-4 h-4" />
+                            </span>
+                            <span>{item.label}</span>
+                          </div>
+
+                          <ChevronRight
+                            className="w-4 h-4 transition-transform group-hover:translate-x-0.5 text-zinc-400"
+                          />
+                        </button>
+                      );
+                    }
+
                     return (
                       <a
                         key={item.label}
@@ -496,7 +532,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                   } border font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all`}
                 >
                   <User className="w-4 h-4 text-orange-500" />
-                  <span>View Complete Profile</span>
+                  <span>View My Profile</span>
                 </button>
 
                 {/* Order Online CTA */}

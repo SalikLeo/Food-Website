@@ -225,7 +225,7 @@ export async function notifyAdminNewOrder(order, count = 1) {
 /**
  * Format Customer Friendly Status Text
  */
-export function getStatusNotificationDetails(status, orderId) {
+export function getStatusNotificationDetails(status, orderId, riderName = null) {
   const cleanId = String(orderId || '').replace(/^#/, '');
   const norm = String(status || '').toLowerCase().trim();
 
@@ -248,7 +248,9 @@ export function getStatusNotificationDetails(status, orderId) {
   if (norm.includes('out') || norm.includes('way') || norm.includes('dispatch') || norm.includes('rider')) {
     return {
       title: '🛵 Out for Delivery!',
-      body: `Your order #${cleanId} is on the way to your address!`,
+      body: riderName
+        ? `Your order #${cleanId} is on the way! Rider ${riderName} is delivering your food.`
+        : `Your order #${cleanId} is on the way to your address!`,
       icon: '🛵',
       color: 'bg-orange-600'
     };

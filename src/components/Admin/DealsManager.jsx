@@ -406,6 +406,7 @@ export default function DealsManager({
   const [dealType, setDealType] = useState('normal'); // 'normal' | 'family'
   const [dealName, setDealName] = useState('');
   const [priceInput, setPriceInput] = useState('');
+  const [descriptionInput, setDescriptionInput] = useState('');
   const [selectedImage, setSelectedImage] = useState('/assets/deal-1.png');
 
   // Item Rows: Array of { id, qty, name }
@@ -517,6 +518,7 @@ export default function DealsManager({
     setDealType(isFam ? 'family' : 'normal');
     setDealName(deal.name || '');
     setPriceInput(deal.price || '');
+    setDescriptionInput(deal.description || '');
     setSelectedImage(deal.image || (isFam ? '/assets/deal-family.png' : '/assets/deal-1.png'));
 
     const parsed = (deal.includes || []).map((str, idx) =>
@@ -539,10 +541,12 @@ export default function DealsManager({
     if (initialType === 'family') {
       const famCount = familyDeals.length + 1;
       setDealName(`Family Deal ${famCount}`);
+      setDescriptionInput('One big combo bundle crafted for the entire family — packed with burgers, pizza, shawarmas, and chilled beverages.');
       setSelectedImage('/assets/deal-family.png');
     } else {
       const normCount = normalDeals.length + 1;
       setDealName(`Deal ${normCount}`);
+      setDescriptionInput('');
       setSelectedImage(`/assets/deal-${Math.min(normCount, 11)}.png`);
     }
 
@@ -557,6 +561,7 @@ export default function DealsManager({
   const closeModal = () => {
     setModalMode(null);
     setActiveDeal(null);
+    setDescriptionInput('');
     setItemRows([]);
   };
 
@@ -690,6 +695,7 @@ export default function DealsManager({
     setIsSaving(true);
     const formattedIncludes = validItems.map((it) => `${it.qty} ${it.name}`);
     const generatedDescription = formattedIncludes.join(' + ');
+    const finalDescription = descriptionInput.trim() || generatedDescription;
 
     const numMatch = dealName.match(/\d+/);
     const numberStr = numMatch ? String(numMatch[0]).padStart(2, '0') : undefined;
@@ -702,7 +708,7 @@ export default function DealsManager({
       price: Number(priceInput),
       image: selectedImage || (dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png'),
       includes: formattedIncludes,
-      description: generatedDescription,
+      description: finalDescription,
       tag: dealType === 'family' ? 'Family Bundle' : '',
       featured: modalMode === 'edit' && activeDeal ? !!activeDeal.featured : false
     };
@@ -967,9 +973,14 @@ export default function DealsManager({
                   />
 
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-sm text-zinc-900 mb-1.5 truncate">
+                    <h4 className="font-bold text-sm text-zinc-900 mb-1 truncate">
                       {deal.name || (isFam ? `Family Deal ${deal.number || ''}` : `Deal ${deal.number || ''}`)}
                     </h4>
+                    {deal.description && deal.description !== (deal.includes || []).join(' + ') && (
+                      <p className="text-[11px] text-zinc-500 line-clamp-2 mb-1.5 leading-snug">
+                        {deal.description}
+                      </p>
+                    )}
                     <ul className="space-y-1 text-xs text-zinc-700">
                       {(deal.includes || []).map((it, idx) => (
                         <li key={idx} className="flex items-center gap-1.5 text-zinc-600">
@@ -1198,6 +1209,24 @@ export default function DealsManager({
                 </div>
               </div>
 
+              {/* 2. Deal Description (Optional) */}
+              <div>
+                <label className="block font-bold text-zinc-700 uppercase tracking-wider mb-1">
+                  Deal Description <span className="text-zinc-400 font-normal lowercase">(optional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={descriptionInput}
+                  onChange={(e) => setDescriptionInput(e.target.value)}
+                  placeholder={
+                    dealType === 'family'
+                      ? 'e.g. One big combo bundle crafted for the entire family — packed with burgers, pizza, shawarmas, and chilled beverages.'
+                      : 'e.g. Delicious combo bundle with crispy burgers and chilled drink.'
+                  }
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-zinc-300 text-zinc-900 font-medium text-xs focus:outline-none focus:border-orange-500 shadow-2xs resize-none placeholder-zinc-400"
+                />
+              </div>
+
               {/* 3. ROW-BY-ROW ITEMS BUILDER WITH CATEGORIES & SELECTION DISABLE */}
               <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-3 sm:p-3.5 space-y-2">
                 <div className="px-0.5">
@@ -1229,92 +1258,94 @@ export default function DealsManager({
                             : 'border-zinc-200/90 hover:border-zinc-300'
                         }`}
                       >
-                        {/* Top Bar: Item Index & Remove Action */}
-                        <div className="flex items-center justify-between">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600 font-bold text-[11px]">
+                        {/* Top Header Row: Item Badge (Left) + Qty & Delete (Right) */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 font-bold text-[11px] select-none">
                             Item #{idx + 1}
                           </span>
 
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveRow(idx)}
-                            disabled={itemRows.length <= 1}
-                            className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer"
-                            title="Remove item"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                        {/* Full-width Combobox */}
-                        <ItemCombobox
-                          value={item.name}
-                          onChange={(val) => handleItemNameChange(idx, val)}
-                          allCatalogItems={allCatalogItems}
-                          disabledBaseNames={disabledBaseNames}
-                          hasDuplicate={isDup}
-                          placeholder="Search or select food item (e.g. Zinger Burger)..."
-                        />
-
-                        {/* Bottom Row: Quantity Stepper + Size Selector */}
-                        <div className="flex items-center justify-between gap-3 flex-wrap pt-0.5">
-                          {/* Quantity Input */}
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
-                              Qty:
-                            </span>
-                            <input
-                              type="number"
-                              min="1"
-                              max="99"
-                              value={item.qty}
-                              onChange={(e) => handleSetItemQtyDirect(idx, e.target.value)}
-                              onBlur={() => {
-                                if (!item.qty || Number(item.qty) < 1) {
-                                  handleSetItemQtyDirect(idx, 1);
-                                }
-                              }}
-                              className="w-12 h-8 text-center font-bold text-xs text-zinc-900 bg-white border border-zinc-300 rounded-xl shadow-2xs focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                            />
-                          </div>
-
-                          {/* Quick Size Selector Pills */}
-                          {sizeInfo && (
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
-                                Size:
+                          <div className="flex items-center gap-2">
+                            {/* Qty Stepper / Input */}
+                            <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-0.5 shadow-2xs">
+                              <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                                Qty:
                               </span>
-                              <div className="inline-flex p-0.5 bg-zinc-100 rounded-xl border border-zinc-200 shadow-2xs">
-                                {sizeInfo.availableSizes.map((sz) => {
-                                  const isSelected =
-                                    sizeInfo.currentSize &&
-                                    sizeInfo.currentSize.toLowerCase() === sz.toLowerCase();
-                                  return (
-                                    <button
-                                      key={sz}
-                                      type="button"
-                                      onClick={() => handleToggleItemSize(idx, sz)}
-                                      className={`px-2.5 py-1 text-xs rounded-lg font-bold transition-all cursor-pointer ${
-                                        isSelected
-                                          ? 'bg-orange-600 text-white shadow-xs'
-                                          : 'text-zinc-600 hover:text-zinc-950 hover:bg-white/80'
-                                      }`}
-                                    >
-                                      {sz}
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                              <input
+                                type="number"
+                                min="1"
+                                max="99"
+                                value={item.qty}
+                                onChange={(e) => handleSetItemQtyDirect(idx, e.target.value)}
+                                onBlur={() => {
+                                  if (!item.qty || Number(item.qty) < 1) {
+                                    handleSetItemQtyDirect(idx, 1);
+                                  }
+                                }}
+                                className="w-7 text-center font-bold text-xs text-zinc-900 bg-transparent focus:outline-none"
+                              />
                             </div>
-                          )}
+
+                            {/* Remove Action */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveRow(idx)}
+                              disabled={itemRows.length <= 1}
+                              className="p-1 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer"
+                              title="Remove item"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
+
+                        {/* Next Line: Full-width Searchbar Combobox */}
+                        <div className="w-full">
+                          <ItemCombobox
+                            value={item.name}
+                            onChange={(val) => handleItemNameChange(idx, val)}
+                            allCatalogItems={allCatalogItems}
+                            disabledBaseNames={disabledBaseNames}
+                            hasDuplicate={isDup}
+                            placeholder="Search or select food item (e.g. Zinger Burger)..."
+                          />
+                        </div>
+
+                        {/* Quick Size Selector Pills (if multi-size item selected) */}
+                        {sizeInfo && (
+                          <div className="flex items-center justify-end gap-1.5 pt-0.5 pr-1">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                              Size:
+                            </span>
+                            <div className="inline-flex p-0.5 bg-zinc-100 rounded-lg border border-zinc-200 shadow-2xs">
+                              {sizeInfo.availableSizes.map((sz) => {
+                                const isSelected =
+                                  sizeInfo.currentSize &&
+                                  sizeInfo.currentSize.toLowerCase() === sz.toLowerCase();
+                                return (
+                                  <button
+                                    key={sz}
+                                    type="button"
+                                    onClick={() => handleToggleItemSize(idx, sz)}
+                                    className={`px-2 py-0.5 text-[11px] rounded font-bold transition-all cursor-pointer ${
+                                      isSelected
+                                        ? 'bg-orange-500 text-white shadow-2xs'
+                                        : 'text-zinc-600 hover:text-zinc-950 hover:bg-white/80'
+                                    }`}
+                                  >
+                                    {sz}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Duplicate Alert Notice */}
                         {isDup && (
-                          <div className="flex items-center gap-1.5 text-xs text-red-600 font-medium pt-1">
+                          <div className="flex items-center gap-1.5 text-xs text-red-600 font-medium pt-0.5">
                             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                             <span>
-                              This item is already added in another row! Increase quantity on the existing item above instead.
+                              This item is already added! Increase quantity above instead.
                             </span>
                           </div>
                         )}
@@ -1323,14 +1354,14 @@ export default function DealsManager({
                   })}
                 </div>
 
-                {/* + Add Another Item Button */}
+                {/* Add Another Item Button */}
                 <button
                   type="button"
                   onClick={handleAddRow}
                   className="w-full py-2.5 rounded-xl border border-dashed border-zinc-300 hover:border-orange-400 bg-white hover:bg-orange-50/40 text-zinc-700 hover:text-orange-700 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>+ Add Another Item</span>
+                  <span>Add Another Item</span>
                 </button>
               </div>
 

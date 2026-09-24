@@ -172,7 +172,7 @@ export const CartProvider = ({ children }) => {
 
           // If the app has loaded before and the status has changed on the server
           if (initialSyncDoneRef.current && statusChanged && previousKnownStatus && previousKnownStatus !== currentServerStatus) {
-            const details = getStatusNotificationDetails(currentServerStatus, cleanId);
+            const details = getStatusNotificationDetails(currentServerStatus, cleanId, serverOrder.riderName);
             setActiveOrderNotification({
               order: { ...localOrder, ...serverOrder },
               oldStatus: previousKnownStatus,
@@ -184,7 +184,11 @@ export const CartProvider = ({ children }) => {
           }
           knownStatusesRef.current.set(cleanId, currentServerStatus);
 
-          if (statusChanged || totalChanged || feeChanged || subtotalChanged) {
+          const riderChanged = serverOrder.riderId !== localOrder.riderId ||
+            serverOrder.riderName !== localOrder.riderName ||
+            serverOrder.riderPhone !== localOrder.riderPhone;
+
+          if (statusChanged || totalChanged || feeChanged || subtotalChanged || riderChanged) {
             hasChanges = true;
             return {
               ...localOrder,
@@ -193,6 +197,9 @@ export const CartProvider = ({ children }) => {
               deliveryFee: serverOrder.deliveryFee !== undefined ? serverOrder.deliveryFee : localOrder.deliveryFee,
               subtotal: serverOrder.subtotal !== undefined ? serverOrder.subtotal : localOrder.subtotal,
               items: serverOrder.items && serverOrder.items.length > 0 ? serverOrder.items : localOrder.items,
+              riderId: serverOrder.riderId !== undefined ? serverOrder.riderId : localOrder.riderId,
+              riderName: serverOrder.riderName !== undefined ? serverOrder.riderName : localOrder.riderName,
+              riderPhone: serverOrder.riderPhone !== undefined ? serverOrder.riderPhone : localOrder.riderPhone,
               updatedAt: serverOrder.updatedAt || new Date().toISOString()
             };
           }
@@ -219,27 +226,61 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Sync recent orders periodically & on window focus/visibility
+  // Sync recent orders periodically & on window focus/visibility/status events
   useEffect(() => {
     // Request notification permissions for Android Native & Web
     requestNotificationPermission().catch(() => {});
 
     syncRecentOrders();
-    const interval = setInterval(syncRecentOrders, 2000);
+    const interval = setInterval(syncRecentOrders, 1000);
+
     const onFocus = () => syncRecentOrders();
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         syncRecentOrders();
       }
     };
+
+    // Instant status change handler (0ms latency for active sliders)
+    const onDirectStatusUpdate = (e) => {
+      if (e?.detail?.id && e?.detail?.status) {
+        const cleanTargetId = String(e.detail.id).replace(/^#/, '');
+        setRecentOrders(prev => {
+          return prev.map(o => {
+            if (String(o.id).replace(/^#/, '') === cleanTargetId) {
+              return { ...o, status: e.detail.status, updatedAt: new Date().toISOString() };
+            }
+            return o;
+          });
+        });
+      }
+      syncRecentOrders();
+    };
+
+    const onStorageSync = () => {
+      try {
+        const saved = localStorage.getItem('salik_recent_orders');
+        if (saved) {
+          setRecentOrders(JSON.parse(saved));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      syncRecentOrders();
+    };
+
     window.addEventListener('focus', onFocus);
     window.addEventListener('salik_sync_orders', onFocus);
+    window.addEventListener('salik_order_status_updated', onDirectStatusUpdate);
+    window.addEventListener('storage', onStorageSync);
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('salik_sync_orders', onFocus);
+      window.removeEventListener('salik_order_status_updated', onDirectStatusUpdate);
+      window.removeEventListener('storage', onStorageSync);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, []);

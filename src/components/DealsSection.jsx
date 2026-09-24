@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Flame, Check, Plus, Minus, ShoppingBag, Users, Zap } from 'lucide-react';
+import { Flame, Check, Plus, Minus, ShoppingBag, Users } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice, cleanDealInclusions } from '../utils/formatters';
 
@@ -34,14 +34,6 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
       includes: cleanedIncludes,
       description: cleanDesc
     }, null, qty, e?.currentTarget);
-  };
-
-  const handleOrderNow = (deal) => {
-    handleAddToCart(deal);
-    const orderSection = document.getElementById('order');
-    if (orderSection) {
-      orderSection.scrollIntoView({ behavior: 'smooth' });
-    }
   };
 
   // Separate normal deals and family deals
@@ -111,7 +103,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                   >
                     {/* Deal Tag Badge */}
                     <div className="absolute top-3 left-3 z-10">
-                      <span className="px-2.5 py-1 rounded-full bg-orange-600 text-white text-[10px] font-extrabold tracking-wider uppercase shadow-md">
+                      <span className="px-2.5 py-1 rounded-full bg-orange-500 text-white text-[10px] font-extrabold tracking-wider uppercase shadow-md">
                         DEAL {deal.number || deal.id.replace('deal-', '')}
                       </span>
                     </div>
@@ -138,7 +130,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                         className={`absolute bottom-3 right-3 z-10 bg-amber-400 text-zinc-950 font-sans font-bold tracking-wide shadow-md ${
                           isSpaciousCards
                             ? 'text-sm sm:text-base px-3 py-1.5 rounded-lg'
-                            : 'text-xs sm:text-sm px-2.5 py-1 rounded-md'
+                            : 'text-sm sm:text-base px-2.5 py-1 rounded-md'
                         }`}
                       >
                         Rs. {formatPrice(deal.price)}
@@ -156,7 +148,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                       <div>
                         <h4
                           className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'} truncate ${
-                            isSpaciousCards ? 'text-base sm:text-lg mb-2.5' : 'text-sm mb-2'
+                            isSpaciousCards ? 'text-base sm:text-lg mb-2.5' : 'text-[15px] sm:text-base mb-2'
                           }`}
                         >
                           {deal.name || `Deal ${deal.number || ''}`}
@@ -172,7 +164,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                               }`}
                             >
                               <Check
-                                className={`text-orange-600 flex-shrink-0 ${
+                                className={`text-orange-500 flex-shrink-0 ${
                                   isSpaciousCards ? 'w-4 h-4' : 'w-3.5 h-3.5'
                                 }`}
                               />
@@ -215,23 +207,13 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             className={`flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl ${
                               isDark
                                 ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
-                                : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                                : 'bg-zinc-100 hover:bg-zinc-200/90 border border-zinc-300 text-zinc-900'
                             } active:scale-[0.98] font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer`}
                           >
-                            <ShoppingBag className="w-3.5 h-3.5 text-orange-400" />
+                            <ShoppingBag className="w-3.5 h-3.5 text-orange-500" />
                             <span>Add to Cart</span>
                           </button>
                         </div>
-
-                        {/* ORDER NOW Orange Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleOrderNow(deal)}
-                          className="w-full h-10 rounded-xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] active:scale-[0.98] text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <Zap className="w-3.5 h-3.5 fill-white" />
-                          <span>Order Now</span>
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -248,12 +230,12 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
           <div className="space-y-8">
             {/* Family Deals Header */}
             <div className="text-center max-w-2xl mx-auto space-y-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold tracking-widest uppercase">
-                <Users className="w-3.5 h-3.5 fill-amber-400" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-bold tracking-widest uppercase">
+                <Users className="w-3.5 h-3.5 fill-orange-500" />
                 <span>FAMILY DEALS & FEASTS</span>
               </div>
               <h3 className={`text-4xl sm:text-5xl font-display uppercase tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-                MEGA <span className="text-amber-500">FAMILY</span> BUNDLES
+                MEGA <span className="text-orange-500 sm:text-orange-600">FAMILY</span> BUNDLES
               </h3>
               <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-sm sm:text-base`}>
                 Bigger savings, hearty portions for the whole family to feast together!
@@ -294,21 +276,21 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             <h3 className={`font-display text-4xl sm:text-5xl ${isDark ? 'text-white' : 'text-zinc-900'} tracking-tight leading-none`}>
                               {deal.name || 'FAMILY DEAL'}
                             </h3>
-                            <span className="text-2xl sm:text-3xl font-display text-orange-500 sm:text-orange-600 font-bold flex items-baseline">
+                            <span className="text-2xl sm:text-3xl font-display text-orange-500 font-bold flex items-baseline">
                               <span className="font-sans text-lg sm:text-xl font-bold mr-1">Rs.</span>
                               <span>{formatPrice(deal.price)}</span>
                             </span>
                           </div>
 
                           <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-sm mb-6 leading-relaxed`}>
-                            One big combo bundle crafted for the entire family — packed with burgers, pizza, shawarmas, and chilled beverages.
+                            {deal.description || 'One big combo bundle crafted for the entire family — packed with burgers, pizza, shawarmas, and chilled beverages.'}
                           </p>
 
                           {/* 2-Column Checklist */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
                             {(deal.includes || []).map((item, idx) => (
                               <div key={idx} className={`flex items-center gap-2 text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                                <Check className="w-4 h-4 text-orange-500 sm:text-orange-600 flex-shrink-0" />
+                                <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
                                 <span>{cleanDealInclusions(item)}</span>
                               </div>
                             ))}
@@ -316,27 +298,18 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                         </div>
 
                         {/* Actions */}
-                        <div className={`flex flex-col sm:flex-row items-center gap-4 pt-4 border-t ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
+                        <div className={`flex items-center gap-4 pt-4 border-t ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
                           <button
                             type="button"
                             onClick={(e) => handleAddToCart(deal, e)}
-                            className={`w-full sm:w-1/2 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl ${
+                            className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl ${
                               isDark
                                 ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
-                                : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                                : 'bg-zinc-100 hover:bg-zinc-200/90 border border-zinc-300 text-zinc-900'
                             } font-bold text-xs uppercase tracking-wider transition-colors shadow cursor-pointer`}
                           >
-                            <ShoppingBag className="w-4 h-4 text-orange-400" />
+                            <ShoppingBag className="w-4 h-4 text-orange-500" />
                             <span>Add to Cart</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleOrderNow(deal)}
-                            className="w-full sm:w-1/2 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] text-white font-bold text-xs uppercase tracking-wider shadow hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-                          >
-                            <Zap className="w-4 h-4 fill-white" />
-                            <span>Order Now</span>
                           </button>
                         </div>
                       </div>
@@ -386,7 +359,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             {(deal.includes || []).map((item, idx) => (
                               <div key={idx} className={`flex items-center gap-2 text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                                <Check className="w-4 h-4 text-orange-500 sm:text-orange-600 flex-shrink-0" />
+                                <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
                                 <span className="truncate">{cleanDealInclusions(item)}</span>
                               </div>
                             ))}
@@ -395,7 +368,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                       </div>
 
                       {/* Bottom Stepper & Actions */}
-                      <div className="space-y-2.5 pt-2">
+                      <div className="pt-2">
                         <div className="flex items-center gap-2">
                           <div className={`flex items-center h-10 border ${isDark ? 'border-zinc-700 bg-zinc-900' : 'border-zinc-200 bg-zinc-100'} rounded-xl overflow-hidden`}>
                             <button
@@ -423,22 +396,13 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             className={`flex-1 h-10 flex items-center justify-center gap-2 rounded-xl ${
                               isDark
                                 ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
-                                : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                                : 'bg-zinc-100 hover:bg-zinc-200/90 border border-zinc-300 text-zinc-900'
                             } active:scale-[0.98] font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer`}
                           >
-                            <ShoppingBag className="w-4 h-4 text-orange-400" />
+                            <ShoppingBag className="w-4 h-4 text-orange-500" />
                             <span>Add to Cart</span>
                           </button>
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleOrderNow(deal)}
-                          className="w-full h-10 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#e53e10] to-[#f56505] hover:from-[#d1350a] hover:to-[#e05703] active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-xs cursor-pointer transition-all"
-                        >
-                          <Zap className="w-3.5 h-3.5 fill-white" />
-                          <span>Order Now</span>
-                        </button>
                       </div>
 
                     </div>

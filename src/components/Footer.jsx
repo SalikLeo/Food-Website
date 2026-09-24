@@ -1,31 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowUp, Phone, MapPin, Clock, Heart, ShoppingBag } from 'lucide-react';
+import React from 'react';
+import { Phone, MapPin, Clock, Heart, ShoppingBag } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
 import { isCustomerApp } from '../config/api';
 
 export default function Footer({ categories = [], settings = null }) {
   const { itemCount, setIsCartOpen } = useCart();
-  const [showTopBtn, setShowTopBtn] = useState(false);
 
   const cartWeb = settings?.floatingButtons?.cartWeb !== false;
   const cartMobile = settings?.floatingButtons?.cartMobile !== false;
   const whatsappWeb = settings?.floatingButtons?.whatsappWeb !== false;
   const whatsappMobile = settings?.floatingButtons?.whatsappMobile !== false;
-  const backToTopWeb = settings?.floatingButtons?.backToTopWeb !== false;
-  const backToTopMobile = settings?.floatingButtons?.backToTopMobile !== false;
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowTopBtn(window.scrollY > 400);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   // Helper for responsive display classes (Web = sm screen and above, Mobile = below sm)
   const getDisplayClass = (webEnabled, mobileEnabled) => {
@@ -37,34 +22,14 @@ export default function Footer({ categories = [], settings = null }) {
 
   const cartDisplayClass = getDisplayClass(cartWeb, cartMobile);
   const whatsappDisplayClass = getDisplayClass(whatsappWeb, whatsappMobile);
-  const backToTopDisplayClass = getDisplayClass(backToTopWeb, backToTopMobile);
-
-  const isTopBtnActiveMobile = showTopBtn && backToTopMobile;
-  const isTopBtnActiveWeb = showTopBtn && backToTopWeb;
-
-  const isWhatsappActiveMobile = whatsappMobile;
-  const isWhatsappActiveWeb = whatsappWeb;
 
   const getWhatsappBottomClass = () => {
-    const mobilePos = isTopBtnActiveMobile ? 'bottom-[3.6rem]' : 'bottom-3.5';
-    const webPos = isTopBtnActiveWeb ? 'sm:bottom-[4.75rem]' : 'sm:bottom-6';
-    return `${mobilePos} ${webPos}`;
+    return 'bottom-4 sm:bottom-6';
   };
 
   const getCartBottomClass = () => {
-    const countWeb = (isTopBtnActiveWeb ? 1 : 0) + (isWhatsappActiveWeb ? 1 : 0);
-    const countMobile = (isTopBtnActiveMobile ? 1 : 0) + (isWhatsappActiveMobile ? 1 : 0);
-
-    let mobilePos = 'bottom-3.5';
-    if (countMobile === 2) mobilePos = 'bottom-[6.375rem]';
-    else if (countMobile === 1) mobilePos = 'bottom-[3.6rem]';
-    else mobilePos = 'bottom-3.5';
-
-    let webPos = 'sm:bottom-6';
-    if (countWeb === 2) webPos = 'sm:bottom-[8rem]';
-    else if (countWeb === 1) webPos = 'sm:bottom-[4.75rem]';
-    else webPos = 'sm:bottom-6';
-
+    const mobilePos = whatsappMobile ? 'bottom-[4.75rem]' : 'bottom-4';
+    const webPos = whatsappWeb ? 'sm:bottom-[5.75rem]' : 'sm:bottom-6';
     return `${mobilePos} ${webPos}`;
   };
 
@@ -227,18 +192,33 @@ export default function Footer({ categories = [], settings = null }) {
               id="floating-cart-btn"
               type="button"
               onClick={() => setIsCartOpen(true)}
-              className={`${cartDisplayClass} fixed right-3.5 sm:right-6 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#18181b] hover:bg-[#27272a] text-white border border-zinc-700/80 hover:border-orange-500/80 shadow-lg shadow-black/50 hover:shadow-orange-500/20 items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out group ${getCartBottomClass()}`}
-              aria-label="View Cart"
+              className={`${cartDisplayClass} fixed right-4 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-500 text-white shadow-2xl border-2 border-white/30 items-center justify-center hover:scale-105 active:scale-90 transition-all duration-200 cursor-pointer group ${
+                itemCount > 0
+                  ? 'shadow-[0_10px_28px_rgba(234,88,12,0.65)]'
+                  : 'shadow-[0_8px_20px_rgba(0,0,0,0.3)]'
+              } ${getCartBottomClass()}`}
+              aria-label={`Cart with ${itemCount} items`}
             >
-              <ShoppingBag className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] text-zinc-100 group-hover:text-orange-400 transition-colors" strokeWidth={2.2} />
-
+              {/* Pulsating radar ripple ring when cart has items */}
               {itemCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] sm:min-w-[20px] h-[18px] sm:h-[20px] px-1 rounded-full bg-orange-600 text-white font-extrabold text-[9px] sm:text-[10px] flex items-center justify-center shadow-md border-2 border-[#18181b] animate-in zoom-in-50">
-                  {itemCount}
-                </span>
+                <span
+                  className="absolute inset-0 rounded-full bg-orange-500 opacity-40 animate-ping pointer-events-none"
+                  style={{ animationDuration: '2.8s' }}
+                />
               )}
 
-              <span className="absolute right-14 sm:right-16 bg-zinc-900 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-zinc-700">
+              <div className="relative flex items-center justify-center">
+                <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-sm group-hover:scale-105 transition-transform" strokeWidth={2.3} />
+
+                {/* Badge count */}
+                {itemCount > 0 && (
+                  <span className="absolute -top-3 -right-3.5 bg-black text-white text-[10px] sm:text-[11px] font-bold min-w-[20px] sm:min-w-[22px] h-[20px] sm:h-[22px] px-1 rounded-full flex items-center justify-center border-2 border-white shadow-md animate-scale-in">
+                    {itemCount > 99 ? '99+' : itemCount}
+                  </span>
+                )}
+              </div>
+
+              <span className="absolute right-16 sm:right-18 bg-zinc-900 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-zinc-700">
                 {itemCount > 0 ? `View Cart (${itemCount})` : 'View Cart'}
               </span>
             </button>
@@ -250,31 +230,16 @@ export default function Footer({ categories = [], settings = null }) {
               href="https://wa.me/923095369472?text=Hi%20Salik%20Fast%20Food%2C%20I%20would%20like%20to%20place%20an%20order."
               target="_blank"
               rel="noopener noreferrer"
-              className={`${whatsappDisplayClass} fixed right-3.5 sm:right-6 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-[#20ba5a] to-[#2bf075] hover:from-[#1da851] hover:to-[#26db6a] text-white shadow-lg shadow-emerald-950/40 hover:shadow-emerald-500/40 items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out group ${getWhatsappBottomClass()}`}
+              className={`${whatsappDisplayClass} fixed right-4 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-[#20ba5a] to-[#2bf075] hover:from-[#1da851] hover:to-[#26db6a] text-white shadow-lg shadow-emerald-950/40 hover:shadow-emerald-500/40 border-2 border-white/30 items-center justify-center hover:scale-105 active:scale-90 transition-all duration-200 ease-in-out group ${getWhatsappBottomClass()}`}
               aria-label="Direct WhatsApp Contact"
             >
-              <svg viewBox="0 0 32 32" className="w-[25px] h-[25px] sm:w-[29px] sm:h-[29px] fill-white drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 32 32" className="w-6 h-6 sm:w-7 sm:h-7 fill-white drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
                 <path d="M16 2C8.28 2 2 8.28 2 16c0 2.68.75 5.19 2.06 7.34L2 30l6.87-2.02C10.96 29.17 13.41 30 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.54c-2.31 0-4.48-.73-6.28-1.98l-.45-.31-4.22 1.24 1.25-4.09-.32-.47A11.45 11.45 0 0 1 4.46 16c0-6.36 5.18-11.54 11.54-11.54 6.36 0 11.54 5.18 11.54 11.54 0 6.36-5.18 11.54-11.54 11.54zm6.54-8.62c-.36-.18-2.12-1.05-2.45-1.17-.33-.12-.57-.18-.81.18-.24.36-.93 1.17-1.14 1.41-.21.24-.42.27-.78.09-.36-.18-1.52-.56-2.9-1.79-1.07-.96-1.8-2.14-2.01-2.5-.21-.36-.02-.56.16-.74.16-.16.36-.42.54-.63.18-.21.24-.36.36-.6.12-.24.06-.45-.03-.63-.09-.18-.81-1.95-1.11-2.67-.29-.7-.59-.6-.81-.61l-.69-.01c-.24 0-.63.09-.96.45-.33.36-1.26 1.23-1.26 3 0 1.77 1.29 3.48 1.47 3.72.18.24 2.54 3.88 6.15 5.44.86.37 1.53.59 2.05.76.86.27 1.64.23 2.26.14.69-.1 2.12-.87 2.42-1.71.3-.84.3-1.56.21-1.71-.09-.15-.33-.24-.69-.42z"/>
               </svg>
-              <span className="absolute right-14 sm:right-16 bg-zinc-900 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-zinc-700">
+              <span className="absolute right-16 sm:right-18 bg-zinc-900 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-zinc-700">
                 Chat on WhatsApp
               </span>
             </a>
-          )}
-
-          {/* Web Back to Top Button */}
-          {backToTopDisplayClass !== 'hidden' && (
-            <button
-              onClick={scrollToTop}
-              className={`${backToTopDisplayClass} fixed right-3.5 sm:right-6 z-40 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-950/40 hover:shadow-orange-500/40 transition-all duration-300 active:scale-95 items-center justify-center bottom-3.5 sm:bottom-6 ${
-                showTopBtn
-                  ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
-                  : 'opacity-0 translate-y-4 scale-90 pointer-events-none'
-              }`}
-              aria-label="Back to top"
-            >
-              <ArrowUp className="w-[22px] h-[22px] sm:w-[26px] sm:h-[26px]" strokeWidth={2.5} />
-            </button>
           )}
         </>
       )}

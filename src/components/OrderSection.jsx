@@ -28,6 +28,8 @@ export default function OrderSection() {
     isMinOrderMet,
     minOrder,
     getWhatsAppMessage,
+    isCartOpen,
+    setIsCartOpen,
     clearCart,
     setLastOrder,
     saveRecentOrder,
@@ -173,9 +175,11 @@ export default function OrderSection() {
       const data = await res.json();
       if (res.ok && data.success) {
         setShowConfirmModal(false);
+        if (typeof setIsCartOpen === 'function') setIsCartOpen(false);
         setLastOrder(data.order);
         saveRecentOrder(data.order);
         setOrderModalOpen(true);
+        if (typeof clearCart === 'function') clearCart();
         saveStoredUserProfile({
           name: formData.name,
           phone: formData.phone,
@@ -249,6 +253,8 @@ export default function OrderSection() {
     });
     const message = getWhatsAppMessage(formData);
     window.open(`https://wa.me/923095369472?text=${message}`, '_blank');
+    if (typeof setIsCartOpen === 'function') setIsCartOpen(false);
+    if (typeof clearCart === 'function') clearCart();
   };
 
   return (
@@ -279,7 +285,7 @@ export default function OrderSection() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className={`block text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-zinc-700'} uppercase tracking-wider mb-2`}>
-                    Customer Name *
+                    Name *
                   </label>
                   <input
                     type="text"
@@ -380,7 +386,7 @@ export default function OrderSection() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all disabled:opacity-50 cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-[0.98] text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                   <span>{loading ? 'Placing Order...' : 'Place Order'}</span>
@@ -471,7 +477,7 @@ export default function OrderSection() {
                         )}
                       </div>
                     </div>
-                    <span className="font-bold text-orange-500 sm:text-orange-600 font-sans flex-shrink-0 mt-0.5">
+                    <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'} font-sans flex-shrink-0 mt-0.5`}>
                       Rs. {formatPrice(item.price * item.quantity)}
                     </span>
                   </div>
@@ -493,11 +499,11 @@ export default function OrderSection() {
                 </span>
               </div>
               <div className={`flex justify-between items-baseline pt-4 border-t ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
-                <span className={`font-montserrat text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'} uppercase tracking-wider`}>
+                <span className={`font-montserrat text-sm font-semibold ${isDark ? 'text-white' : 'text-zinc-900'} uppercase tracking-wider`}>
                   TOTAL
                 </span>
-                <span className="font-montserrat text-2xl text-orange-500 font-extrabold flex items-baseline">
-                  <span className="text-base font-bold mr-1">Rs.</span>
+                <span className="font-montserrat text-2xl text-orange-500 font-bold flex items-baseline">
+                  <span className="text-base font-semibold mr-1">Rs.</span>
                   <span>{formatPrice(total)}</span>
                 </span>
               </div>
@@ -519,13 +525,17 @@ export default function OrderSection() {
             />
 
             {/* Modal Card */}
-            <div className="relative bg-[#161619] border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-white shadow-2xl z-10 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className={`relative rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl z-10 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto overflow-x-hidden border ${
+              isDark ? 'bg-[#161619] border-zinc-800 text-white' : 'bg-white border-zinc-200 text-zinc-900 shadow-xl'
+            }`}>
               {/* Close Button */}
               <button
                 type="button"
                 onClick={() => !loading && setShowConfirmModal(false)}
                 disabled={loading}
-                className="absolute top-5 right-5 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors disabled:opacity-40 cursor-pointer"
+                className={`absolute top-5 right-5 p-2 rounded-xl transition-colors disabled:opacity-40 cursor-pointer ${
+                  isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />
@@ -533,89 +543,117 @@ export default function OrderSection() {
 
               {/* Modal Header */}
               <div className="text-center mb-5">
-                <h3 className="font-display text-2xl sm:text-3xl uppercase tracking-wide text-white">
+                <h3 className={`font-display text-2xl sm:text-3xl uppercase tracking-wide ${
+                  isDark ? 'text-white' : 'text-zinc-900'
+                }`}>
                   Ready to place your order?
                 </h3>
-                <p className="text-zinc-400 text-xs mt-1">
+                <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   Please review your delivery details and items below before confirming.
                 </p>
               </div>
 
               {/* Customer & Address Review Box */}
-              <div className="bg-zinc-900/90 rounded-2xl p-4 border border-zinc-800 text-xs space-y-2.5 mb-4">
-                <div className="flex items-center justify-between pb-2 border-b border-zinc-800 text-zinc-300">
-                  <span className="text-zinc-500 flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-zinc-400" /> Customer
+              <div className={`rounded-2xl p-4 border text-xs space-y-2.5 mb-4 ${
+                isDark ? 'bg-zinc-900/90 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+              }`}>
+                <div className={`flex items-center justify-between pb-2 border-b ${
+                  isDark ? 'border-zinc-800 text-zinc-300' : 'border-zinc-200 text-zinc-700'
+                }`}>
+                  <span className={`${isDark ? 'text-zinc-500' : 'text-zinc-500'} flex items-center gap-1.5`}>
+                    <User className="w-3.5 h-3.5 text-orange-500" /> Customer
                   </span>
-                  <span className="font-bold text-white text-sm">{formData.name}</span>
+                  <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>{formData.name}</span>
                 </div>
 
-                <div className="flex items-center justify-between pb-2 border-b border-zinc-800 text-zinc-300">
-                  <span className="text-zinc-500 flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-zinc-400" /> Phone
+                <div className={`flex items-center justify-between pb-2 border-b ${
+                  isDark ? 'border-zinc-800 text-zinc-300' : 'border-zinc-200 text-zinc-700'
+                }`}>
+                  <span className={`${isDark ? 'text-zinc-500' : 'text-zinc-500'} flex items-center gap-1.5`}>
+                    <Phone className="w-3.5 h-3.5 text-orange-500" /> Phone
                   </span>
-                  <span className="font-bold text-white text-sm">{formData.phone}</span>
+                  <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>{formData.phone}</span>
                 </div>
 
-                <div className="flex items-start justify-between pb-2 border-b border-zinc-800 text-zinc-300">
-                  <span className="text-zinc-500 flex items-center gap-1.5 flex-shrink-0">
-                    <MapPin className="w-3.5 h-3.5 text-zinc-400" /> Address
+                <div className={`flex items-start justify-between pb-2 border-b ${
+                  isDark ? 'border-zinc-800 text-zinc-300' : 'border-zinc-200 text-zinc-700'
+                }`}>
+                  <span className={`${isDark ? 'text-zinc-500' : 'text-zinc-500'} flex items-center gap-1.5 flex-shrink-0`}>
+                    <MapPin className="w-3.5 h-3.5 text-orange-500" /> Address
                   </span>
-                  <span className="font-semibold text-right text-zinc-200 max-w-[240px] leading-relaxed">
+                  <span className={`font-semibold text-right max-w-[240px] leading-relaxed ${
+                    isDark ? 'text-zinc-200' : 'text-zinc-800'
+                  }`}>
                     {formData.address}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-zinc-300">
-                  <span className="text-zinc-500">Payment</span>
-                  <span className="font-semibold text-zinc-200">{formData.paymentMethod}</span>
+                <div className={`flex items-center justify-between ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                  <span className={isDark ? 'text-zinc-500' : 'text-zinc-500'}>Payment</span>
+                  <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>{formData.paymentMethod}</span>
                 </div>
 
                 {formData.notes && (
-                  <div className="pt-2 border-t border-zinc-800/80 text-[11px] text-zinc-400 italic">
-                    <strong className="text-zinc-300 not-italic">Note: </strong>
+                  <div className={`pt-2 border-t text-[11px] italic ${
+                    isDark ? 'border-zinc-800/80 text-zinc-400' : 'border-zinc-200 text-zinc-500'
+                  }`}>
+                    <strong className={`not-italic ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>Note: </strong>
                     {formData.notes}
                   </div>
                 )}
               </div>
 
               {/* Items Summary & Total Box */}
-              <div className="bg-zinc-900/50 rounded-2xl p-4 border border-zinc-800/80 text-xs space-y-2 mb-6">
-                <div className="flex items-center justify-between text-zinc-400 text-[11px] font-bold uppercase tracking-wider pb-1 border-b border-zinc-800">
+              <div className={`rounded-2xl p-4 border text-xs space-y-2 mb-6 ${
+                isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-zinc-50 border-zinc-200'
+              }`}>
+                <div className={`flex items-center justify-between text-[11px] font-bold uppercase tracking-wider pb-1 border-b ${
+                  isDark ? 'text-zinc-400 border-zinc-800' : 'text-zinc-500 border-zinc-200'
+                }`}>
                   <span>Selected Items ({cartItems.reduce((s, i) => s + i.quantity, 0)})</span>
                   <span>Price</span>
                 </div>
 
                 <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1 py-1 modal-items-scroll">
                   {cartItems.map((item) => (
-                    <div key={item.cartKey} className="flex justify-between items-center text-zinc-300">
+                    <div key={item.cartKey} className={`flex justify-between items-center ${
+                      isDark ? 'text-zinc-300' : 'text-zinc-700'
+                    }`}>
                       <div className="truncate pr-2">
-                        <strong className="text-white">{item.quantity}×</strong> {item.name}
-                        {item.size && <span className="text-orange-400 text-[11px] ml-1">({item.size})</span>}
+                        <strong className={isDark ? 'text-white' : 'text-zinc-900'}>{item.quantity}×</strong> {item.name}
+                        {item.size && <span className="text-orange-500 text-[11px] ml-1">({item.size})</span>}
                       </div>
-                      <span className="font-semibold text-zinc-200 flex-shrink-0 ml-2">
+                      <span className={`font-semibold flex-shrink-0 ml-2 ${
+                        isDark ? 'text-zinc-200' : 'text-zinc-800'
+                      }`}>
                         Rs. {formatPrice(item.price * item.quantity)}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-2 border-t border-zinc-800 space-y-1 text-zinc-400 text-[11px]">
+                <div className={`pt-2 border-t space-y-1 text-[11px] ${
+                  isDark ? 'border-zinc-800 text-zinc-400' : 'border-zinc-200 text-zinc-500'
+                }`}>
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span className="font-semibold text-zinc-200">Rs. {formatPrice(subtotal)}</span>
+                    <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>Rs. {formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Delivery Fee</span>
-                    <span className={isFreeDelivery ? 'text-emerald-400 font-bold' : 'text-zinc-200 font-semibold'}>
+                    <span className={isFreeDelivery ? 'text-emerald-500 font-bold' : isDark ? 'text-zinc-200 font-semibold' : 'text-zinc-800 font-semibold'}>
                       {isFreeDelivery ? 'FREE (Promotion)' : `Rs. ${formatPrice(deliveryFee)}`}
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-2.5 border-t border-zinc-800 flex justify-between items-baseline font-montserrat">
-                  <span className="text-xs uppercase tracking-wider text-zinc-300 font-semibold">TOTAL TO PAY</span>
-                  <span className="text-xl font-extrabold text-amber-400">Rs. {formatPrice(total)}</span>
+                <div className={`pt-2.5 border-t flex justify-between items-baseline font-montserrat ${
+                  isDark ? 'border-zinc-800' : 'border-zinc-200'
+                }`}>
+                  <span className={`text-xs uppercase tracking-wider font-semibold ${
+                    isDark ? 'text-zinc-300' : 'text-zinc-700'
+                  }`}>TOTAL TO PAY</span>
+                  <span className="text-xl font-bold text-amber-500">Rs. {formatPrice(total)}</span>
                 </div>
               </div>
 
@@ -625,7 +663,7 @@ export default function OrderSection() {
                   type="button"
                   onClick={executePlaceOrder}
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="w-full py-3.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                   <span>{loading ? 'Placing Order...' : 'Yes, Confirm & Place Order'}</span>
@@ -635,7 +673,9 @@ export default function OrderSection() {
                   type="button"
                   onClick={() => !loading && setShowConfirmModal(false)}
                   disabled={loading}
-                  className="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer"
+                  className={`w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer border ${
+                    isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border-zinc-700' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-900 border-zinc-300'
+                  }`}
                 >
                   Change / Edit Details
                 </button>

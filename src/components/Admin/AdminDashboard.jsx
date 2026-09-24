@@ -20,7 +20,8 @@ import {
   ChevronRight,
   Bell,
   Volume2,
-  VolumeX
+  VolumeX,
+  Bike
 } from 'lucide-react';
 import ProductManager from './ProductManager';
 import OrdersManager from './OrdersManager';
@@ -28,6 +29,7 @@ import DealsManager from './DealsManager';
 import DeliverySettingsManager from './DeliverySettingsManager';
 import ItemSalesManager from './ItemSalesManager';
 import ReviewManager from './ReviewManager';
+import RidersManager from './RidersManager';
 import { apiUrl, APP_MODE } from '../../config/api';
 import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
@@ -77,6 +79,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const [familyDeal, setFamilyDeal] = useState(null);
   const [orders, setOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [riders, setRiders] = useState([]);
   const [settings, setSettings] = useState({ deliveryFee: 100, minOrder: 500 });
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -402,14 +405,15 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [prodsRes, catsRes, dealsRes, ordersRes, statsRes, settingsRes, reviewsRes] = await Promise.all([
+      const [prodsRes, catsRes, dealsRes, ordersRes, statsRes, settingsRes, reviewsRes, ridersRes] = await Promise.all([
         fetch(apiUrl('/api/products')).then(r => r.json()),
         fetch(apiUrl('/api/categories')).then(r => r.json()),
         fetch(apiUrl('/api/deals')).then(r => r.json()),
         fetch(apiUrl('/api/orders')).then(r => r.json()),
         fetch(apiUrl('/api/stats')).then(r => r.json()),
         fetch(apiUrl('/api/settings')).then(r => r.json()).catch(() => ({ deliveryFee: 100 })),
-        fetch(apiUrl('/api/reviews')).then(r => r.json()).catch(() => [])
+        fetch(apiUrl('/api/reviews')).then(r => r.json()).catch(() => []),
+        fetch(apiUrl('/api/riders')).then(r => r.json()).catch(() => [])
       ]);
 
       setProducts(prodsRes || []);
@@ -418,6 +422,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       setFamilyDeal(dealsRes?.familyDeal || null);
       if (ordersRes) processIncomingOrders(ordersRes);
       if (reviewsRes) processIncomingReviews(reviewsRes);
+      setRiders(ridersRes || []);
       setStats(statsRes || {});
       if (settingsRes && typeof settingsRes.deliveryFee === 'number') {
         setSettings(settingsRes);
@@ -675,14 +680,12 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                 />
               </div>
               <div className="flex flex-col justify-center min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h1 className="font-montserrat text-sm sm:text-base font-bold uppercase tracking-tight text-zinc-900 leading-none truncate">
-                    SALIK <span className="text-orange-600">FAST FOOD</span>
-                  </h1>
-                </div>
-                <span className="text-[10px] sm:text-[11px] text-zinc-500 font-semibold uppercase tracking-wider mt-0.5 flex items-center gap-1.5 leading-tight truncate">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block shrink-0" />
-                  <span className="text-orange-600 font-bold">Store Administrator</span>
+                <h1 className="font-montserrat tracking-tight text-lg font-bold leading-tight flex items-center gap-1.5 text-zinc-900 truncate">
+                  SALIK <span className="text-orange-500">FAST FOOD</span>
+                </h1>
+                <span className="text-[10px] text-zinc-500 font-semibold flex items-center gap-1 mt-0.5 leading-tight truncate">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block shrink-0" />
+                  <span className="text-orange-600 font-bold uppercase tracking-wider text-[10px]">Store Administrator</span>
                 </span>
               </div>
             </div>
@@ -1111,6 +1114,18 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           </button>
 
           <button
+            onClick={() => switchTab('riders')}
+            className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'riders'
+                ? 'bg-orange-600 text-white shadow-sm'
+                : 'bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 shadow-2xs'
+            }`}
+          >
+            <Bike className="w-4 h-4 flex-shrink-0" />
+            <span>Riders ({riders.length})</span>
+          </button>
+
+          <button
             onClick={() => switchTab('reviews')}
             className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'reviews'
@@ -1159,6 +1174,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               deals={deals}
               familyDeal={familyDeal}
               settings={settings}
+              riders={riders}
               onRefresh={fetchData}
               onReceiptOpenChange={setIsReceiptOpen}
             />
@@ -1180,6 +1196,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               products={products}
               deals={deals}
               familyDeal={familyDeal}
+            />
+          )}
+
+          {activeTab === 'riders' && (
+            <RidersManager
+              riders={riders}
+              orders={orders}
+              onRefresh={fetchData}
             />
           )}
 
