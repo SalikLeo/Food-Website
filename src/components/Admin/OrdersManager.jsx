@@ -2491,11 +2491,13 @@ export default function OrdersManager({
                               : 'bg-white hover:bg-purple-50/70 border-purple-200 text-zinc-900'
                           }`}
                         >
-                          <div className="flex flex-col">
+                          <div className="flex items-center gap-1.5 min-w-0 flex-wrap pr-2">
                             <span className="font-bold">{r.name}</span>
-                            <span className={`text-[11px] ${isSelected ? 'text-purple-100' : 'text-zinc-500'}`}>
-                              {r.phone || 'No phone'}
-                            </span>
+                            {r.phone && (
+                              <span className={`text-[11px] font-medium ${isSelected ? 'text-purple-100' : 'text-zinc-500'}`}>
+                                • {r.phone}
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-2">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -2660,8 +2662,13 @@ export default function OrdersManager({
                               <Bike className="w-5 h-5" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-bold text-sm text-zinc-900 truncate">{r.name}</span>
+                                {r.phone && (
+                                  <span className="text-xs text-zinc-500 font-medium">
+                                    • {r.phone}
+                                  </span>
+                                )}
                                 {isCurrent && (
                                   <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-600 text-white">
                                     Assigned
@@ -2669,10 +2676,6 @@ export default function OrdersManager({
                                 )}
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs text-zinc-500 font-medium">
-                                  {r.phone || 'No phone'}
-                                </span>
-                                <span className="text-zinc-300">•</span>
                                 <span className={`text-[11px] font-semibold ${
                                   activeCount > 0 ? 'text-amber-600' : 'text-emerald-600'
                                 }`}>

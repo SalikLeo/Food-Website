@@ -1023,8 +1023,12 @@
       "subtotal": 1450,
       "deliveryFee": 200,
       "total": 1650,
-      "status": "Pending",
-      "createdAt": "2026-09-24T11:46:02.145Z"
+      "status": "Out for Delivery",
+      "createdAt": "2026-09-24T11:46:02.145Z",
+      "riderId": "rider-1790235082079-8z3k",
+      "riderName": "Salik",
+      "riderPhone": "03213415645",
+      "updatedAt": "2026-09-24T13:23:15.486Z"
     },
     {
       "id": "ORD-944048-92",

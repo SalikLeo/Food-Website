@@ -316,38 +316,43 @@ export default function RidersManager({
                 className="bg-white rounded-2xl border border-zinc-200 p-4 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between space-y-3.5"
               >
                 {/* Rider Top Info */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white font-extrabold flex items-center justify-center text-sm shadow-xs shrink-0">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-white font-extrabold flex items-center justify-center text-xs shadow-xs shrink-0">
                       {rider.name
                         ? rider.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
                         : 'RD'}
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-zinc-900 truncate">
-                        {rider.name}
-                      </h3>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <Phone className="w-3 h-3 text-orange-600 shrink-0" />
-                        <a
-                          href={`tel:${rider.phone}`}
-                          className="text-xs font-semibold text-zinc-700 hover:text-orange-600 hover:underline tracking-wide truncate"
-                          title="Click to call rider"
-                        >
-                          {rider.phone}
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyPhone(rider.id, rider.phone)}
-                          className="p-1 rounded-md text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
-                          title="Copy phone number"
-                        >
-                          {copiedId === rider.id ? (
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3 h-3" />
-                          )}
-                        </button>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="text-sm font-bold text-zinc-900 truncate">
+                          {rider.name}
+                        </h3>
+                        {rider.phone && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-zinc-300">•</span>
+                            <Phone className="w-3 h-3 text-orange-600 shrink-0" />
+                            <a
+                              href={`tel:${rider.phone}`}
+                              className="text-xs font-semibold text-zinc-700 hover:text-orange-600 hover:underline tracking-wide"
+                              title="Click to call rider"
+                            >
+                              {rider.phone}
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyPhone(rider.id, rider.phone)}
+                              className="p-0.5 rounded text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
+                              title="Copy phone number"
+                            >
+                              {copiedId === rider.id ? (
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
