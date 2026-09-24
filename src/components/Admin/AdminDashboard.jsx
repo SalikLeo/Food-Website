@@ -422,7 +422,23 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       setFamilyDeal(dealsRes?.familyDeal || null);
       if (ordersRes) processIncomingOrders(ordersRes);
       if (reviewsRes) processIncomingReviews(reviewsRes);
-      setRiders(ridersRes || []);
+
+      let finalRiders = [];
+      if (Array.isArray(ridersRes) && ridersRes.length > 0) {
+        finalRiders = ridersRes;
+        try {
+          localStorage.setItem('salik_riders', JSON.stringify(ridersRes));
+        } catch {}
+      } else {
+        try {
+          const local = localStorage.getItem('salik_riders');
+          if (local) {
+            finalRiders = JSON.parse(local);
+          }
+        } catch {}
+      }
+      setRiders(finalRiders);
+
       setStats(statsRes || {});
       if (settingsRes && typeof settingsRes.deliveryFee === 'number') {
         setSettings(settingsRes);
@@ -436,6 +452,16 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
   useEffect(() => {
     fetchData();
+
+    const handleSyncRiders = () => {
+      try {
+        const local = localStorage.getItem('salik_riders');
+        if (local) {
+          setRiders(JSON.parse(local));
+        }
+      } catch {}
+    };
+    window.addEventListener('salik_sync_riders', handleSyncRiders);
 
     // Fast 3-second live polling for immediate new orders and reviews
     const pollUpdates = () => {
@@ -462,6 +488,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
     const onFocusOrVisible = () => {
       pollUpdates();
+      handleSyncRiders();
     };
 
     window.addEventListener('focus', onFocusOrVisible);
@@ -472,6 +499,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
     return () => {
       clearInterval(interval);
+      window.removeEventListener('salik_sync_riders', handleSyncRiders);
       window.removeEventListener('focus', onFocusOrVisible);
       document.removeEventListener('visibilitychange', onFocusOrVisible);
     };

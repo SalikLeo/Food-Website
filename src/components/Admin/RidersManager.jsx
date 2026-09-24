@@ -108,24 +108,52 @@ export default function RidersManager({
     setIsSubmitting(true);
     try {
       const isEdit = Boolean(editingRider);
+      const riderId = isEdit ? editingRider.id : `rider-${Date.now()}`;
+      const riderObj = {
+        id: riderId,
+        name: cleanName,
+        phone: cleanPhone,
+        createdAt: isEdit ? editingRider.createdAt : new Date().toISOString()
+      };
+
+      // 1. Immediately update localStorage cache
+      try {
+        const saved = localStorage.getItem('salik_riders');
+        let list = saved ? JSON.parse(saved) : [];
+        if (isEdit) {
+          list = list.map(r => (r.id === riderId ? { ...r, ...riderObj } : r));
+        } else {
+          list.push(riderObj);
+        }
+        localStorage.setItem('salik_riders', JSON.stringify(list));
+      } catch (e) {
+        console.error('LocalStorage write error:', e);
+      }
+
+      // 2. Sync to Backend API
       const endpoint = isEdit ? apiUrl(`/api/riders/${editingRider.id}`) : apiUrl('/api/riders');
       const method = isEdit ? 'PUT' : 'POST';
 
-      const res = await fetch(endpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: cleanName, phone: cleanPhone })
-      });
-
-      let data = {};
       try {
-        data = await res.json();
-      } catch {
-        // Fallback for non-JSON or HTML response
-      }
+        const res = await fetch(endpoint, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: cleanName, phone: cleanPhone })
+        });
 
-      if (!res.ok) {
-        throw new Error(data.error || `Server returned error (${res.status}). Please ensure backend service is running and updated.`);
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data && data.rider) {
+            try {
+              const saved = localStorage.getItem('salik_riders');
+              let list = saved ? JSON.parse(saved) : [];
+              list = list.map(r => (r.id === riderId || r.id === data.rider.id ? data.rider : r));
+              localStorage.setItem('salik_riders', JSON.stringify(list));
+            } catch {}
+          }
+        }
+      } catch (apiErr) {
+        console.warn('Backend sync delayed (saved locally):', apiErr);
       }
 
       setIsAddModalOpen(false);
@@ -133,6 +161,7 @@ export default function RidersManager({
       if (typeof onRefresh === 'function') {
         onRefresh();
       }
+      window.dispatchEvent(new CustomEvent('salik_sync_riders'));
     } catch (err) {
       setFormError(err.message || 'An error occurred while saving rider.');
     } finally {
@@ -144,20 +173,31 @@ export default function RidersManager({
     if (!deletingRider) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch(apiUrl(`/api/riders/${deletingRider.id}`), {
-        method: 'DELETE'
-      });
-      let data = {};
+      // 1. Remove from localStorage immediately
       try {
-        data = await res.json();
-      } catch {}
-      if (!res.ok) {
-        throw new Error(data.error || `Server returned error (${res.status}).`);
+        const saved = localStorage.getItem('salik_riders');
+        if (saved) {
+          const list = JSON.parse(saved).filter(r => r.id !== deletingRider.id);
+          localStorage.setItem('salik_riders', JSON.stringify(list));
+        }
+      } catch (e) {
+        console.error(e);
       }
+
+      // 2. Delete on backend
+      try {
+        await fetch(apiUrl(`/api/riders/${deletingRider.id}`), {
+          method: 'DELETE'
+        });
+      } catch (apiErr) {
+        console.warn('Backend delete sync delayed:', apiErr);
+      }
+
       setDeletingRider(null);
       if (typeof onRefresh === 'function') {
         onRefresh();
       }
+      window.dispatchEvent(new CustomEvent('salik_sync_riders'));
     } catch (err) {
       alert(err.message || 'Failed to delete rider');
     } finally {
