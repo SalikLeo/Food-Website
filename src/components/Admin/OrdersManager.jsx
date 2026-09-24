@@ -1315,10 +1315,10 @@ export default function OrdersManager({
                         {/* Smooth Dropdown Toggle Button */}
                         <button
                           onClick={() => toggleOrderExpand(order.id)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 hover:text-zinc-900 text-xs font-semibold transition-colors cursor-pointer"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 hover:text-zinc-900 text-xs font-semibold transition-colors cursor-pointer active:scale-95"
                           title={isExpanded ? 'Collapse Details' : 'View Details'}
                         >
-                          <span className="hidden sm:inline">{isExpanded ? 'Hide' : 'View'}</span>
+                          <span>{isExpanded ? 'Hide' : 'View'}</span>
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                         </button>
                       </div>

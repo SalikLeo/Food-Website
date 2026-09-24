@@ -1023,12 +1023,12 @@
       "subtotal": 1450,
       "deliveryFee": 200,
       "total": 1650,
-      "status": "Out for Delivery",
+      "status": "Delivered",
       "createdAt": "2026-09-24T11:46:02.145Z",
       "riderId": "rider-1790235082079-8z3k",
       "riderName": "Salik",
       "riderPhone": "03213415645",
-      "updatedAt": "2026-09-24T13:23:15.486Z"
+      "updatedAt": "2026-09-24T13:36:42.803Z"
     },
     {
       "id": "ORD-944048-92",
@@ -1078,8 +1078,12 @@
       "subtotal": 1450,
       "deliveryFee": 200,
       "total": 1650,
-      "status": "Pending",
-      "createdAt": "2026-09-24T10:49:04.048Z"
+      "status": "Out for Delivery",
+      "createdAt": "2026-09-24T10:49:04.048Z",
+      "updatedAt": "2026-09-24T13:36:13.442Z",
+      "riderId": "rider-1790235082079-8z3k",
+      "riderName": "Salik",
+      "riderPhone": "03213415645"
     },
     {
       "id": "ORD-668076-61",
