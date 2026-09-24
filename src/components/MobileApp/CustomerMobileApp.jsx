@@ -1492,14 +1492,14 @@ export default function CustomerMobileApp({
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                        <span className={`text-xs sm:text-[13px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wide ${
                           isDark 
                             ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
                             : 'bg-orange-100 text-orange-700 border border-orange-200'
                         }`}>
                           {deal.name}
                         </span>
-                        <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                        <span className={`text-sm font-extrabold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                           Rs. {deal.price}
                         </span>
                       </div>
@@ -1523,10 +1523,10 @@ export default function CustomerMobileApp({
 
                       <button
                         onClick={(e) => handleAddDeal(deal, e)}
-                        className="w-full py-2 rounded-xl bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full py-2.5 rounded-xl bg-orange-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        <span>Add Deal</span>
+                        <span>Add {deal.name}</span>
                       </button>
                     </div>
                   ))}
@@ -1881,7 +1881,7 @@ export default function CustomerMobileApp({
               }`}>
                 {/* Heading on Top */}
                 <div className="flex items-center justify-between">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                  <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-wide border ${
                     isDark 
                       ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
                       : 'bg-white/20 text-white border-white/40 backdrop-blur-xs'
@@ -1890,7 +1890,7 @@ export default function CustomerMobileApp({
                       ? '👑 MEGA FAMILY SAVER'
                       : (featuredDeal.name ? `👑 ${featuredDeal.name.toUpperCase()}` : '🔥 SPECIAL DEAL')}
                   </span>
-                  <span className={`text-lg font-bold font-sans ${isDark ? 'text-amber-400' : 'text-white'}`}>
+                  <span className={`text-xl font-extrabold font-sans ${isDark ? 'text-amber-400' : 'text-white'}`}>
                     Rs. {formatPrice(featuredDeal.price)}
                   </span>
                 </div>
@@ -1898,7 +1898,7 @@ export default function CustomerMobileApp({
                 {/* Body: Items List on Left, Image on Right */}
                 <div className="flex items-center justify-between gap-3 pt-0.5">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-base text-white mb-2">
+                    <h3 className="font-montserrat font-extrabold text-xl sm:text-2xl text-white mb-2 leading-tight tracking-tight">
                       {featuredDeal.name}
                     </h3>
                     <ul className={`space-y-1.5 text-xs ${isDark ? 'text-zinc-200' : 'text-white/95'}`}>
@@ -1926,13 +1926,13 @@ export default function CustomerMobileApp({
                 {/* Add Button at Bottom */}
                 <button
                   onClick={(e) => handleAddDeal(featuredDeal, e)}
-                  className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  className={`w-full py-2.5 rounded-xl font-extrabold text-sm uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     isDark 
                       ? 'bg-amber-500  text-black' 
                       : 'bg-white  text-orange-800'
                   }`}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
                   <span>Add {featuredDeal.name}</span>
                 </button>
               </div>
@@ -1949,28 +1949,35 @@ export default function CustomerMobileApp({
                 >
                   {/* Heading on Top */}
                   <div className="flex items-center justify-between">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
+                    <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold uppercase tracking-wide border ${
                       isDark 
                         ? 'bg-orange-600/20 text-orange-400 border-orange-500/30' 
                         : 'bg-orange-100 text-orange-700 border-orange-200'
                     }`}>
                       {deal.name}
                     </span>
-                    <span className={`text-base font-bold font-sans ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                    <span className={`text-lg font-extrabold font-sans ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                       Rs. {formatPrice(deal.price)}
                     </span>
                   </div>
 
                   {/* Body: Items List on Left, Image on Right */}
                   <div className="flex items-center justify-between gap-3 pt-0.5">
-                    <ul className={`flex-1 min-w-0 space-y-1.5 text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                      {(deal.includes || []).map((itemStr, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5 leading-snug">
-                          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 mt-1.5" />
-                          <span className="font-medium">{cleanDealInclusions(itemStr)}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`font-montserrat font-extrabold text-lg sm:text-xl mb-2 leading-tight tracking-tight ${
+                        isDark ? 'text-white' : 'text-zinc-900'
+                      }`}>
+                        {deal.name}
+                      </h3>
+                      <ul className={`space-y-1.5 text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                        {(deal.includes || []).map((itemStr, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 mt-1.5" />
+                            <span className="font-medium">{cleanDealInclusions(itemStr)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
 
                     <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center">
                       <img
@@ -1987,9 +1994,9 @@ export default function CustomerMobileApp({
                   {/* Add Button at Bottom */}
                   <button
                     onClick={(e) => handleAddDeal(deal, e)}
-                    className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-extrabold text-sm uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 stroke-[2.5]" />
                     <span>Add {deal.name}</span>
                   </button>
                 </div>
