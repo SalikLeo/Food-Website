@@ -28,13 +28,11 @@ export const CartProvider = ({ children }) => {
 
   const [theme, setTheme] = useState(() => {
     try {
-      const savedV2 = localStorage.getItem('salik_app_theme_v2');
-      if (savedV2 === 'light' || savedV2 === 'dark') return savedV2;
-      const saved = localStorage.getItem('salik_app_theme');
-      if (saved === 'light' || saved === 'dark') return saved;
-      return 'dark'; // Default dark mode matching design
+      const savedV3 = localStorage.getItem('salik_app_theme_v3');
+      if (savedV3 === 'light' || savedV3 === 'dark') return savedV3;
+      return 'light'; // Default light mode
     } catch {
-      return 'dark';
+      return 'light';
     }
   });
 
@@ -42,6 +40,7 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
     try {
+      localStorage.setItem('salik_app_theme_v3', theme);
       localStorage.setItem('salik_app_theme_v2', theme);
       localStorage.setItem('salik_app_theme', theme);
       if (theme === 'dark') {
@@ -59,7 +58,7 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
     const handleStorage = (e) => {
-      if (e.key === 'salik_app_theme_v2' || e.key === 'salik_app_theme') {
+      if (e.key === 'salik_app_theme_v3' || e.key === 'salik_app_theme_v2' || e.key === 'salik_app_theme') {
         const val = e.newValue;
         if (val === 'light' || val === 'dark') {
           setTheme(val);
