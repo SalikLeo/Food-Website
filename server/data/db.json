@@ -1078,9 +1078,9 @@
       "subtotal": 1450,
       "deliveryFee": 200,
       "total": 1650,
-      "status": "Out for Delivery",
+      "status": "Preparing",
       "createdAt": "2026-09-24T10:49:04.048Z",
-      "updatedAt": "2026-09-24T13:36:13.442Z",
+      "updatedAt": "2026-09-24T13:49:20.888Z",
       "riderId": "rider-1790235082079-8z3k",
       "riderName": "Salik",
       "riderPhone": "03213415645"

@@ -1472,14 +1472,13 @@ export default function OrdersManager({
                             <button
                               type="button"
                               onClick={() => setAssigningRiderOrder(order)}
-                              className={`flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 rounded-lg border text-xs font-semibold transition-all shadow-2xs max-w-[170px] sm:max-w-[220px] truncate active:scale-95 cursor-pointer ${
+                              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all shadow-2xs max-w-[170px] sm:max-w-[220px] truncate active:scale-95 cursor-pointer ${
                                 order.riderName
                                   ? 'bg-purple-100 hover:bg-purple-200/80 border-purple-300 text-purple-900'
                                   : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
                               }`}
                               title={order.riderName ? `Assigned: ${order.riderName} (${order.riderPhone || 'No phone'}) - Tap to change` : 'Tap to select rider'}
                             >
-                              <Bike className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                               <span className="truncate">
                                 {order.riderName ? order.riderName : 'Select Rider'}
                               </span>
