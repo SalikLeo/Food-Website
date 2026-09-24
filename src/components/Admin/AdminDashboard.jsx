@@ -1200,6 +1200,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               familyDeal={familyDeal}
               settings={settings}
               riders={riders}
+              categories={categories}
               onRefresh={fetchData}
               onReceiptOpenChange={setIsReceiptOpen}
             />

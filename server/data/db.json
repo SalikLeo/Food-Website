@@ -1084,9 +1084,9 @@
       "subtotal": 2580,
       "deliveryFee": 200,
       "total": 2780,
-      "status": "Out for Delivery",
+      "status": "Delivered",
       "createdAt": "2026-09-24T10:27:48.076Z",
-      "updatedAt": "2026-09-24T16:05:00.496Z",
+      "updatedAt": "2026-09-24T16:18:57.475Z",
       "riderId": "rider-1790235082079-8z3k",
       "riderName": "Salik",
       "riderPhone": "03213415645"
@@ -1153,10 +1153,10 @@
       "total": 3550,
       "status": "Preparing",
       "createdAt": "2026-09-23T19:31:37.399Z",
-      "updatedAt": "2026-09-24T16:02:27.671Z",
-      "riderId": "rider-1790235082079-8z3k",
-      "riderName": "Salik",
-      "riderPhone": "03213415645"
+      "updatedAt": "2026-09-24T16:20:46.441Z",
+      "riderId": null,
+      "riderName": null,
+      "riderPhone": null
     },
     {
       "id": "ORD-489987-75",
@@ -1258,9 +1258,9 @@
       "subtotal": 2550,
       "deliveryFee": 200,
       "total": 2750,
-      "status": "Out for Delivery",
+      "status": "Delivered",
       "createdAt": "2026-09-23T18:34:18.305Z",
-      "updatedAt": "2026-09-24T16:00:26.409Z",
+      "updatedAt": "2026-09-24T16:18:59.557Z",
       "riderId": "rider-1790235082079-8z3k",
       "riderName": "Salik",
       "riderPhone": "03213415645"
@@ -2006,9 +2006,9 @@
       "subtotal": 800,
       "deliveryFee": 200,
       "total": 1000,
-      "status": "Out for Delivery",
+      "status": "Delivered",
       "createdAt": "2026-09-22T13:38:17.327Z",
-      "updatedAt": "2026-09-23T06:13:00.902Z"
+      "updatedAt": "2026-09-24T16:19:01.781Z"
     },
     {
       "id": "ORD-242867-39",
@@ -2042,9 +2042,9 @@
       "subtotal": 4180,
       "deliveryFee": 200,
       "total": 4380,
-      "status": "Out for Delivery",
+      "status": "Delivered",
       "createdAt": "2026-09-22T13:37:22.867Z",
-      "updatedAt": "2026-09-24T16:00:05.069Z",
+      "updatedAt": "2026-09-24T16:19:03.733Z",
       "riderId": null,
       "riderName": null,
       "riderPhone": null
@@ -2088,9 +2088,9 @@
       "subtotal": 6580,
       "deliveryFee": 200,
       "total": 6780,
-      "status": "Pending",
+      "status": "Delivered",
       "createdAt": "2026-09-22T13:33:51.327Z",
-      "updatedAt": "2026-09-22T13:34:59.691Z"
+      "updatedAt": "2026-09-24T16:19:05.873Z"
     },
     {
       "id": "ORD-218065-41",

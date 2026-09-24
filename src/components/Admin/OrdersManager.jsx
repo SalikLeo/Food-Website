@@ -28,6 +28,7 @@ export default function OrdersManager({
   pendingOutsideTodayCount = 0,
   onResetToAllPending,
   products = [],
+  categories = [],
   deals = [],
   familyDeal = null,
   settings = {},
@@ -44,16 +45,54 @@ export default function OrdersManager({
 
   const totalOutForDeliveryOrders = (allOrders && allOrders.length > 0 ? allOrders : orders).filter(o => o.status === 'Out for Delivery').length;
 
+  const resolveCategoryLabel = (rawCategory) => {
+    if (!rawCategory) return '';
+    const clean = String(rawCategory).toLowerCase().trim();
+    const found = (categories || []).find(c => c.id === clean || c.label?.toLowerCase() === clean);
+    if (found && found.label) return found.label;
+
+    const map = {
+      pizza: 'Pizza',
+      burgers: 'Burgers',
+      burger: 'Burgers',
+      shawarma: 'Shawarma',
+      sandwiches: 'Sandwiches',
+      sandwich: 'Sandwiches',
+      fries: 'Fries',
+      wings: 'Hot Wings',
+      hotwings: 'Hot Wings',
+      nuggets: 'Nuggets',
+      special: 'Special Items',
+      beverages: 'Beverages',
+      sauces: 'Sauces'
+    };
+    if (map[clean]) return map[clean];
+
+    return clean
+      .split(/[\s_-]+/)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
   const resolveItemDealItems = (item) => {
     if (!item) return null;
+
+    const rawItemName = (item.name || '').split(' (')[0].trim().toLowerCase();
+    const isDeal = item.category === 'deals' ||
+                   String(item.id || '').startsWith('deal-') ||
+                   String(item.id || '') === 'family-deal' ||
+                   rawItemName.includes('deal') ||
+                   rawItemName.includes('family') ||
+                   (deals || []).some(d => (d.name || '').split(' (')[0].trim().toLowerCase() === rawItemName) ||
+                   (familyDeal && (familyDeal.name || '').split(' (')[0].trim().toLowerCase() === rawItemName);
+
+    if (!isDeal) return null;
 
     // 1. Direct includes array/string on item
     if (item.includes && (Array.isArray(item.includes) ? item.includes.length > 0 : String(item.includes).trim())) {
       const items = formatDealDescription(item.includes);
       if (items) return items;
     }
-
-    const rawItemName = (item.name || '').split(' (')[0].trim().toLowerCase();
 
     // 2. Match familyDeal from state/db
     if (familyDeal && familyDeal.name) {
@@ -86,7 +125,33 @@ export default function OrdersManager({
 
     return null;
   };
-  const resolveItemDealDescription = resolveItemDealItems;
+
+  // Resolves the subtitle for an order item:
+  // - For deals: shows the deal items (inclusions)
+  // - For regular items: shows their category instead of description
+  const resolveItemSubtitle = (item) => {
+    if (!item) return null;
+
+    const dealItems = resolveItemDealItems(item);
+    if (dealItems) return dealItems;
+
+    let cat = item.category;
+    const rawName = (item.name || '').split(' (')[0].trim().toLowerCase();
+    if (!cat || cat === 'menu') {
+      const p = (products || []).find(prod => 
+        prod.id === item.id || (prod.name || '').split(' (')[0].trim().toLowerCase() === rawName
+      );
+      if (p && p.category) cat = p.category;
+    }
+
+    if (cat && cat !== 'menu' && cat !== 'deals') {
+      return resolveCategoryLabel(cat);
+    }
+
+    return null;
+  };
+
+  const resolveItemDealDescription = resolveItemSubtitle;
 
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
@@ -596,6 +661,10 @@ export default function OrdersManager({
         payload.riderId = riderData.riderId;
         payload.riderName = riderData.riderName;
         payload.riderPhone = riderData.riderPhone;
+      } else if (newStatus === 'Out for Delivery' || newStatus === 'Preparing' || newStatus === 'Pending') {
+        payload.riderId = null;
+        payload.riderName = null;
+        payload.riderPhone = null;
       }
       const res = await fetch(apiUrl(`/api/orders/${orderId}/status`), {
         method: 'PATCH',
@@ -618,6 +687,10 @@ export default function OrdersManager({
                   upd.riderId = riderData.riderId;
                   upd.riderName = riderData.riderName;
                   upd.riderPhone = riderData.riderPhone;
+                } else if (newStatus === 'Out for Delivery' || newStatus === 'Preparing' || newStatus === 'Pending') {
+                  upd.riderId = null;
+                  upd.riderName = null;
+                  upd.riderPhone = null;
                 }
                 return upd;
               }
@@ -701,7 +774,11 @@ export default function OrdersManager({
     const { order, newStatus } = statusChangeConfirmModal;
     setIsUpdatingStatus(true);
     try {
-      await handleStatusChange(order.id, newStatus);
+      let riderData = null;
+      if (newStatus === 'Out for Delivery' || newStatus === 'Preparing' || newStatus === 'Pending') {
+        riderData = { riderId: null, riderName: null, riderPhone: null };
+      }
+      await handleStatusChange(order.id, newStatus, riderData);
       setStatusChangeConfirmModal(null);
     } finally {
       setIsUpdatingStatus(false);
@@ -1415,7 +1492,7 @@ export default function OrdersManager({
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                               {(order.items || []).map((it, idx) => {
-                                const dealItems = resolveItemDealItems(it);
+                                const itemSubtitle = resolveItemSubtitle(it);
                                 return (
                                   <div
                                     key={idx}
@@ -1432,9 +1509,9 @@ export default function OrdersManager({
                                           </span>
                                         )}
                                       </div>
-                                      {dealItems && (
-                                        <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug break-words" title={dealItems}>
-                                          {dealItems}
+                                      {itemSubtitle && (
+                                        <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug break-words" title={itemSubtitle}>
+                                          {itemSubtitle}
                                         </p>
                                       )}
                                     </div>
@@ -1605,12 +1682,6 @@ export default function OrdersManager({
                           <Phone className="w-3 h-3" />
                           <span>{order.phone}</span>
                         </a>
-                        {order.riderName && order.status !== 'Out for Delivery' && (
-                          <div className="mt-1.5 text-xs text-purple-700 font-semibold flex items-center gap-1">
-                            <Bike className="w-3 h-3 text-purple-600 shrink-0" />
-                            <span>Rider: {order.riderName}</span>
-                          </div>
-                        )}
                       </div>
 
                       <div>
@@ -1695,7 +1766,7 @@ export default function OrdersManager({
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                             {(order.items || []).map((it, idx) => {
-                              const dealItems = resolveItemDealItems(it);
+                              const itemSubtitle = resolveItemSubtitle(it);
 
                               if (!isPreparationActive) {
                                 return (
@@ -1714,9 +1785,9 @@ export default function OrdersManager({
                                           </span>
                                         )}
                                       </div>
-                                      {dealItems && (
-                                        <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug break-words" title={dealItems}>
-                                          {dealItems}
+                                      {itemSubtitle && (
+                                        <p className="text-[11px] text-zinc-500 font-medium mt-1 leading-snug break-words" title={itemSubtitle}>
+                                          {itemSubtitle}
                                         </p>
                                       )}
                                     </div>
@@ -1766,9 +1837,9 @@ export default function OrdersManager({
                                           </span>
                                         )}
                                       </div>
-                                      {dealItems && (
-                                        <p className={`text-[11px] font-medium mt-1 leading-snug break-words ${isPrepared ? 'text-emerald-700/90' : 'text-zinc-500'}`} title={dealItems}>
-                                          {dealItems}
+                                      {itemSubtitle && (
+                                        <p className={`text-[11px] font-medium mt-1 leading-snug break-words ${isPrepared ? 'text-emerald-700/90' : 'text-zinc-500'}`} title={itemSubtitle}>
+                                          {itemSubtitle}
                                         </p>
                                       )}
                                     </div>
@@ -1869,9 +1940,9 @@ export default function OrdersManager({
                             {item.size && (
                               <span className="text-[10px] text-orange-600 font-semibold block">Size: {item.size}</span>
                             )}
-                            {resolveItemDealItems(item) && (
+                            {resolveItemSubtitle(item) && (
                               <span className="text-[10px] text-zinc-500 font-medium block mt-0.5 break-words">
-                                {resolveItemDealItems(item)}
+                                {resolveItemSubtitle(item)}
                               </span>
                             )}
                           </div>
