@@ -911,7 +911,6 @@ export default function OrdersManager({
       letter-spacing: 0.3px;
       text-align: left;
       padding: 4px 4px;
-      background: #f4f4f5;
       border-bottom: 1px solid #000;
       border-right: 1px solid #000;
       color: #000;
@@ -2280,7 +2279,7 @@ export default function OrdersManager({
               <div className="py-2.5">
                 <table className="w-full text-left border-collapse border border-black text-xs">
                   <thead>
-                    <tr className="bg-zinc-100 font-sans font-bold text-[11px] uppercase tracking-wide border-b border-black text-black">
+                    <tr className="font-sans font-bold text-[11px] uppercase tracking-wide border-b border-black text-black">
                       <th className="py-1 px-1.5 border-r border-black w-6 text-center">#</th>
                       <th className="py-1 px-2 border-r border-black">Item</th>
                       <th className="py-1 px-1.5 border-r border-black text-center w-8">Qty</th>
