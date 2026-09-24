@@ -2046,7 +2046,7 @@ export default function CustomerMobileApp({
                       className={`rounded-2xl px-3.5 py-3 sm:px-4 sm:py-3.5 border ${
                         isDark 
                           ? 'bg-[#181820] border-zinc-700/80 shadow-md' 
-                          : 'bg-white border-zinc-300 shadow-xs'
+                          : 'bg-white border-zinc-300 shadow-sm ring-1 ring-black/5'
                       }`}
                     >
                       {/* Top Order Meta */}
@@ -2100,10 +2100,10 @@ export default function CustomerMobileApp({
                           <button
                             type="button"
                             onClick={() => toggleOrderExpanded(order.id || idx)}
-                            className={`w-full my-1.5 px-3 py-1.5 sm:py-2 rounded-xl flex items-center justify-between text-xs active:scale-[0.99] transition-transform cursor-pointer ${
+                            className={`w-full my-1.5 px-3 py-1.5 sm:py-2 rounded-xl flex items-center justify-between text-xs active:scale-[0.99] transition-transform cursor-pointer border ${
                               isDark 
-                                ? 'bg-white/5  text-zinc-300 border border-white/5' 
-                                : 'bg-zinc-50  text-zinc-700 border border-zinc-200/80'
+                                ? 'bg-white/5 text-zinc-300 border-white/10' 
+                                : 'bg-zinc-50 text-zinc-700 border-zinc-300/80'
                             }`}
                           >
                             <span className="flex items-center gap-1.5 min-w-0 pr-1">
@@ -2133,7 +2133,7 @@ export default function CustomerMobileApp({
                           >
                             <div className="overflow-hidden">
                               <div className={`p-3 rounded-xl space-y-2 border ${
-                                isDark ? 'bg-black/40 border-white/5' : 'bg-zinc-50 border-zinc-200/60'
+                                isDark ? 'bg-black/40 border-white/10' : 'bg-zinc-50 border-zinc-300/80'
                               }`}>
                                 {itemsList.map((item, itemIdx) => (
                                   <div key={itemIdx} className="flex items-center justify-between py-0.5 text-xs">
@@ -2371,12 +2371,12 @@ export default function CustomerMobileApp({
                       key={order.id || idx}
                       className={`rounded-2xl p-4 sm:p-5 border transition-all ${
                         isDark 
-                          ? 'bg-[#15151a] border-white/10 shadow-lg' 
-                          : 'bg-white border-zinc-200 shadow-xs'
+                          ? 'bg-[#181820] border-zinc-700/80 shadow-md' 
+                          : 'bg-white border-zinc-300 shadow-sm ring-1 ring-black/5'
                       }`}
                     >
                       {/* Top Order Information */}
-                      <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                      <div className={`flex items-center justify-between pb-3 border-b ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
                         <div className="flex items-center gap-2">
                           <span className={`font-sans font-bold text-xs sm:text-sm ${
                             isDark ? 'text-white' : 'text-zinc-900'
@@ -2395,7 +2395,7 @@ export default function CustomerMobileApp({
                       </div>
 
                       {/* Items Ordered Pill Summary */}
-                      <div className="py-3 border-b border-white/5 space-y-1.5">
+                      <div className={`py-3 border-b ${isDark ? 'border-zinc-800' : 'border-zinc-200'} space-y-1.5`}>
                         <div className="flex items-center justify-between text-xs">
                           <span className={`font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                             Items Ordered:
@@ -2418,14 +2418,14 @@ export default function CustomerMobileApp({
                           placeholder="Tell us about the taste, packaging, and delivery speed..."
                           className={`w-full px-3.5 py-2.5 rounded-xl text-xs resize-none transition-all outline-none border focus:border-orange-500 focus:ring-1 focus:ring-orange-500 ${
                             isDark 
-                              ? 'bg-[#1b1b22] border-white/10 text-white placeholder-zinc-500' 
-                              : 'bg-zinc-50 border-zinc-200 text-zinc-900 placeholder-zinc-400'
+                              ? 'bg-[#1b1b22] border-zinc-700/80 text-white placeholder-zinc-500' 
+                              : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400'
                           }`}
                         />
                       </div>
 
                       {/* Interactive Rating Selection & Submit Action */}
-                      <div className={`pt-2.5 border-t ${isDark ? 'border-white/5' : 'border-zinc-100'} flex items-center justify-between gap-2 flex-wrap`}>
+                      <div className={`pt-2.5 border-t ${isDark ? 'border-zinc-800' : 'border-zinc-200'} flex items-center justify-between gap-2 flex-wrap`}>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className={`text-[11px] font-bold uppercase tracking-wider ${
                             isDark ? 'text-zinc-300' : 'text-zinc-700'
