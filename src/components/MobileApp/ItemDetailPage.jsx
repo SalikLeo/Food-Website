@@ -416,7 +416,7 @@ export default function ItemDetailPage({
           >
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5" />
-              <span>{isOutOfStock ? 'Sold Out' : 'Add to Cart'}</span>
+              <span>{isOutOfStock ? 'Sold Out' : 'Add'}</span>
             </div>
             {!isOutOfStock && (
               <span className="font-sans font-black text-white text-base">
