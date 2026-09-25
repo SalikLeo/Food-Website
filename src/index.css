@@ -271,7 +271,7 @@
 @keyframes tabFadeIn {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -283,7 +283,7 @@
 @keyframes pageEnter {
   0% {
     opacity: 0;
-    transform: translateY(28px) scale(0.98);
+    transform: translateY(18px) scale(0.985);
   }
   100% {
     opacity: 1;
@@ -298,7 +298,7 @@
   }
   100% {
     opacity: 0;
-    transform: translateY(20px) scale(0.98);
+    transform: translateY(12px) scale(0.985);
   }
 }
 
@@ -332,17 +332,17 @@
 }
 
 .animate-tab-fade {
-  animation: tabFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: tabFadeIn 0.17s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
 }
 
 .animate-page-enter {
-  animation: pageEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: pageEnter 0.17s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
 }
 
 .animate-page-exit {
-  animation: pageExit 0.20s cubic-bezier(0.35, 0, 0.65, 1) forwards;
+  animation: pageExit 0.12s cubic-bezier(0.35, 0, 0.65, 1) forwards;
   will-change: transform, opacity;
 }
 

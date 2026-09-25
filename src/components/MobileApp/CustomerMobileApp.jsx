@@ -208,7 +208,7 @@ export default function CustomerMobileApp({
       setCurrentView('item-detail');
       window.scrollTo({ top: 0, behavior: 'instant' });
       setOpeningItemId(null);
-    }, 130);
+    }, 80);
   };
 
   const handleCloseItemDetail = () => {
