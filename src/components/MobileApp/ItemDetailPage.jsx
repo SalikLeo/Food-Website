@@ -157,8 +157,8 @@ export default function ItemDetailPage({
             }}
           />
 
-          {/* Gradient Overlay for Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+          {/* Subtle Top Gradient for Badge Readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent pointer-events-none" />
 
           {/* Badges on Top Left */}
           <div className="absolute top-3.5 left-3.5 flex flex-wrap gap-2">
@@ -182,11 +182,6 @@ export default function ItemDetailPage({
               <span className="text-base font-black uppercase tracking-widest text-white">Currently Sold Out</span>
             </div>
           )}
-
-          {/* Price Tag in Bottom Right */}
-          <div className="absolute bottom-3.5 right-3.5 px-4 py-1.5 rounded-2xl bg-orange-500/95 backdrop-blur-md text-white font-black text-lg sm:text-xl shadow-lg border border-orange-400/40">
-            Rs. {formatPrice(unitPrice)}
-          </div>
         </div>
 
         {/* Title & Description */}
