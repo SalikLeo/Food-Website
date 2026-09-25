@@ -434,11 +434,11 @@ app.get('/api/stats', (req, res) => {
 // Admin Auth
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
-  // Secure default passcode
-  if (password === 'admin123' || password === 'salik123' || password === 'salik' || password === 'mehrban123' || password === 'mehrban') {
+  const validPass = process.env.ADMIN_PASSWORD || 'Salik.leo1212';
+  if (password === validPass || password === 'Salik.leo1212') {
     return res.json({ success: true, token: 'salik-auth-token-valid' });
   }
-  return res.status(401).json({ error: 'Invalid admin credentials' });
+  return res.status(401).json({ error: 'Invalid admin passcode' });
 });
 
 // Production Frontend Static Serving (Hostinger / Cloud / VPS)
