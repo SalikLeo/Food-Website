@@ -664,7 +664,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 1. Floating Cart Button */}
             <div className="p-5 rounded-2xl bg-zinc-50/80 border border-zinc-200 space-y-4">
               <div className="flex items-center justify-between">
