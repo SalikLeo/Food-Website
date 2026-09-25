@@ -2030,9 +2030,7 @@ export default function CustomerMobileApp({
                       ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
                       : 'bg-white/20 text-white border-white/40 backdrop-blur-xs'
                   }`}>
-                    {featuredDeal.dealType === 'family' || featuredDeal.id === 'family-deal' || (featuredDeal.name && featuredDeal.name.toLowerCase().includes('family'))
-                      ? '👑 MEGA FAMILY SAVER'
-                      : (featuredDeal.name ? `👑 ${featuredDeal.name.toUpperCase()}` : '🔥 SPECIAL DEAL')}
+                    {featuredDeal.name}
                   </span>
                   <span className={`text-xl font-extrabold font-sans ${isDark ? 'text-amber-400' : 'text-white'}`}>
                     Rs. {formatPrice(featuredDeal.price)}
