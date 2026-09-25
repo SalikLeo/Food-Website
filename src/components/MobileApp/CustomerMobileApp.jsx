@@ -1364,7 +1364,11 @@ export default function CustomerMobileApp({
                 {infiniteBanners.map((banner, idx) => (
                   <div 
                     key={banner._key || idx}
-                    className="w-full flex-shrink-0 p-4 sm:p-5 flex items-center justify-between gap-3 overflow-hidden"
+                    onClick={() => {
+                      if (hasDragged.current) return;
+                      banner.action();
+                    }}
+                    className="w-full flex-shrink-0 p-4 sm:p-5 flex items-center justify-between gap-3 overflow-hidden cursor-pointer active:opacity-95"
                   >
                     <div className="flex-1 space-y-1.5 min-w-0 pr-1">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase border ${
