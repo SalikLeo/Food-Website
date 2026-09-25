@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  Smartphone, Download, Zap, Bike, Bell, CheckCircle2
+  Download, Zap, Bike, Bell, CheckCircle2
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
@@ -45,10 +45,9 @@ export default function DownloadAppSection() {
             <div className="lg:col-span-7 space-y-6">
               
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-bold uppercase tracking-wider">
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <span>OFFICIAL ANDROID APP</span>
-                </div>
+                <span className="text-xs font-bold tracking-[0.2em] text-orange-500 sm:text-orange-600 uppercase block">
+                  OFFICIAL ANDROID APP
+                </span>
                 
                 <h2 className={`text-3xl sm:text-4xl md:text-5xl font-display uppercase tracking-tight ${
                   isDark ? 'text-white' : 'text-zinc-900'
