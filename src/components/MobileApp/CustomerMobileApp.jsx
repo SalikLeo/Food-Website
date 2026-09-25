@@ -247,14 +247,16 @@ export default function CustomerMobileApp({
   const [selectedCatId, setSelectedCatId] = useState('pizza');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Promo Hero Banner Slider state & drag tracking
-  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  // Promo Hero Banner Slider state & drag tracking (infinite loop starting at index 1 = real first slide)
+  const [activeBannerIndex, setActiveBannerIndex] = useState(1);
+  const [enableBannerTransition, setEnableBannerTransition] = useState(true);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
   const dragStartY = useRef(0);
   const isPointerDown = useRef(false);
   const hasDragged = useRef(false);
+  const isLoopResetting = useRef(false);
   const [reorderToast, setReorderToast] = useState('');
 
   // Automatically dismiss info/popup toast messages after a short delay (3 seconds)
@@ -689,11 +691,42 @@ export default function CustomerMobileApp({
   }, [viewingReceiptOrder, showGoogleSetupModal, showConfirmModal, reviewToConfirm, reviewSuccessData, orderModalOpen, isCartOpen, mobileMenuOpen, searchQuery, currentView, previousView, setIsCartOpen, setOrderModalOpen]);
 
 
-  // Auto-rotate promo banners (pauses while dragging)
+  // Re-enable smooth transition after silent loop jump
+  useEffect(() => {
+    if (!enableBannerTransition) {
+      const raf = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setEnableBannerTransition(true);
+          isLoopResetting.current = false;
+        });
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [enableBannerTransition]);
+
+  // Handle transition end for seamless infinite loop wrapping
+  const handleBannerTransitionEnd = () => {
+    if (!infiniteBanners || infiniteBanners.length === 0) return;
+    if (activeBannerIndex >= infiniteBanners.length - 1) {
+      // Reached clone of first slide (index 4) -> jump silently to real first slide (index 1)
+      isLoopResetting.current = true;
+      setEnableBannerTransition(false);
+      setActiveBannerIndex(1);
+    } else if (activeBannerIndex <= 0) {
+      // Reached clone of last slide (index 0) -> jump silently to real last slide (index 3)
+      isLoopResetting.current = true;
+      setEnableBannerTransition(false);
+      setActiveBannerIndex(infiniteBanners.length - 2);
+    }
+  };
+
+  // Auto-rotate promo banners (pauses while dragging or silently resetting)
   useEffect(() => {
     if (currentView !== 'home' || isDragging) return;
     const interval = setInterval(() => {
-      setActiveBannerIndex(prev => (prev + 1) % 3);
+      if (isLoopResetting.current) return;
+      setEnableBannerTransition(true);
+      setActiveBannerIndex(prev => prev + 1);
     }, 4500);
     return () => clearInterval(interval);
   }, [currentView, isDragging, activeBannerIndex]);
@@ -737,11 +770,13 @@ export default function CustomerMobileApp({
       setIsDragging(false);
       const threshold = 40;
       if (dragOffset < -threshold) {
-        // Dragged left -> next slide
-        setActiveBannerIndex(prev => (prev + 1) % 3);
+        // Dragged left -> next slide forward
+        setEnableBannerTransition(true);
+        setActiveBannerIndex(prev => prev + 1);
       } else if (dragOffset > threshold) {
-        // Dragged right -> prev slide
-        setActiveBannerIndex(prev => (prev - 1 + 3) % 3);
+        // Dragged right -> prev slide backward
+        setEnableBannerTransition(true);
+        setActiveBannerIndex(prev => prev - 1);
       }
       setDragOffset(0);
       setTimeout(() => {
@@ -1143,6 +1178,17 @@ export default function CustomerMobileApp({
     }
   ];
 
+  // Infinite looped banners track: [Clone Last, Slide 0, Slide 1, Slide 2, Clone First]
+  const infiniteBanners = useMemo(() => {
+    if (!promoBanners || promoBanners.length === 0) return [];
+    const len = promoBanners.length;
+    return [
+      { ...promoBanners[len - 1], _key: 'clone-last' },
+      ...promoBanners.map((b, i) => ({ ...b, _key: `real-${b.id || i}` })),
+      { ...promoBanners[0], _key: 'clone-first' }
+    ];
+  }, [promoBanners]);
+
   return (
     <div className={`min-h-screen mobile-app-container is-mobile-app ${
       isDark 
@@ -1309,14 +1355,15 @@ export default function CustomerMobileApp({
               {/* Sliding Carousel Track */}
               <div 
                 className="flex items-stretch w-full relative z-10"
+                onTransitionEnd={handleBannerTransitionEnd}
                 style={{
                   transform: `translateX(calc(-${activeBannerIndex * 100}% + ${dragOffset}px))`,
-                  transition: isDragging ? 'none' : 'transform 350ms cubic-bezier(0.2, 0.9, 0.3, 1)'
+                  transition: isDragging || !enableBannerTransition ? 'none' : 'transform 380ms cubic-bezier(0.2, 0.9, 0.3, 1)'
                 }}
               >
-                {promoBanners.map((banner, idx) => (
+                {infiniteBanners.map((banner, idx) => (
                   <div 
-                    key={banner.id || idx}
+                    key={banner._key || idx}
                     className="w-full flex-shrink-0 p-4 sm:p-5 flex items-center justify-between gap-3 overflow-hidden"
                   >
                     <div className="flex-1 space-y-1.5 min-w-0 pr-1">
@@ -1380,21 +1427,25 @@ export default function CustomerMobileApp({
 
               {/* Slider Dots */}
               <div className="relative z-20 flex items-center justify-center gap-1.5 pb-2.5">
-                {promoBanners.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveBannerIndex(idx);
-                    }}
-                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                      activeBannerIndex === idx 
-                        ? (isDark ? 'w-6 bg-orange-500' : 'w-6 bg-white') 
-                        : (isDark ? 'w-2 bg-white/20' : 'w-2 bg-white/40')
-                    }`}
-                  />
-                ))}
+                {promoBanners.map((_, idx) => {
+                  const activeDot = (activeBannerIndex - 1 + promoBanners.length) % promoBanners.length;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEnableBannerTransition(true);
+                        setActiveBannerIndex(idx + 1);
+                      }}
+                      className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                        activeDot === idx 
+                          ? (isDark ? 'w-6 bg-orange-500' : 'w-6 bg-white') 
+                          : (isDark ? 'w-2 bg-white/20' : 'w-2 bg-white/40')
+                      }`}
+                    />
+                  );
+                })}
               </div>
             </div>
 
