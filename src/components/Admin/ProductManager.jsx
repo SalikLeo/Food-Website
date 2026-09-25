@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Edit2, Trash2, UploadCloud, Search, Check, X, Image as ImageIcon, FolderTree, Save, Undo2 } from 'lucide-react';
-import { apiUrl } from '../../config/api';
+import { apiUrl, resolveImageUrl } from '../../config/api';
 import { formatPrice } from '../../utils/formatters';
 import CustomSelect from '../Common/CustomSelect';
 
@@ -477,11 +477,12 @@ export default function ProductManager({ products = [], categories = [], onRefre
                 <tr key={product.id} className="divide-x divide-zinc-100 hover:bg-zinc-50/80 transition-colors">
                   <td className="px-5 py-3 flex items-center gap-3">
                     <img
-                      src={product.image}
+                      src={resolveImageUrl(product.image)}
                       alt={product.name}
                       className="w-12 h-12 rounded-lg object-cover bg-zinc-100 border border-zinc-200 flex-shrink-0"
                       onError={(e) => {
-                        e.target.src = '/assets/images/cat-special-CdXGKIOV.jpg';
+                        e.target.onerror = null;
+                        e.target.src = resolveImageUrl('/assets/images/cat-special-CdXGKIOV.jpg');
                       }}
                     />
                     <div>
@@ -636,7 +637,7 @@ export default function ProductManager({ products = [], categories = [], onRefre
                 <div className="flex items-center gap-3">
                   {imagePreview && (
                     <img
-                      src={imagePreview}
+                      src={resolveImageUrl(imagePreview)}
                       alt="Preview"
                       className="w-16 h-16 rounded-xl object-cover border border-zinc-200 bg-zinc-100"
                     />

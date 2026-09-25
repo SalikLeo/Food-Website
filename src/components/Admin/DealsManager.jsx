@@ -14,23 +14,23 @@ import {
   Star,
   Search
 } from 'lucide-react';
-import { apiUrl } from '../../config/api';
+import { apiUrl, resolveImageUrl } from '../../config/api';
 import { formatPrice, cleanDealInclusions } from '../../utils/formatters';
 import CustomSelect from '../Common/CustomSelect';
 
 const PRESET_DEAL_IMAGES = [
-  { label: 'Family Deal Bundle', src: '/assets/deal-family.png' },
-  { label: 'Deal 1 (Zinger + Patty + Coke)', src: '/assets/deal-1.png' },
-  { label: 'Deal 2 (Zinger + Nuggets + Coke)', src: '/assets/deal-2.png' },
-  { label: 'Deal 3 (5 Zingers + Coke 1.5L)', src: '/assets/deal-3.png' },
-  { label: 'Deal 4 (Zinger + Pizza + Coke)', src: '/assets/deal-4.png' },
-  { label: 'Deal 5 (2 Small Pizzas + Coke)', src: '/assets/deal-5.png' },
-  { label: 'Deal 6 (1 Large Pizza + Coke 1.5L)', src: '/assets/deal-6.png' },
-  { label: 'Deal 7 (Small + Medium Pizza + Coke)', src: '/assets/deal-7.png' },
-  { label: 'Deal 8 (2 Medium Pizzas + Coke)', src: '/assets/deal-8.png' },
-  { label: 'Deal 9 (2 Large Pizzas + Coke)', src: '/assets/deal-9.png' },
-  { label: 'Deal 10 (Medium + Large Pizza + Coke)', src: '/assets/deal-10.png' },
-  { label: 'Deal 11 (3 Zingers + Coke 1L)', src: '/assets/deal-11.png' },
+  { label: 'Family Deal Bundle', src: resolveImageUrl('/assets/deal-family.png') },
+  { label: 'Deal 1 (Zinger + Patty + Coke)', src: resolveImageUrl('/assets/deal-1.png') },
+  { label: 'Deal 2 (Zinger + Nuggets + Coke)', src: resolveImageUrl('/assets/deal-2.png') },
+  { label: 'Deal 3 (5 Zingers + Coke 1.5L)', src: resolveImageUrl('/assets/deal-3.png') },
+  { label: 'Deal 4 (Zinger + Pizza + Coke)', src: resolveImageUrl('/assets/deal-4.png') },
+  { label: 'Deal 5 (2 Small Pizzas + Coke)', src: resolveImageUrl('/assets/deal-5.png') },
+  { label: 'Deal 6 (1 Large Pizza + Coke 1.5L)', src: resolveImageUrl('/assets/deal-6.png') },
+  { label: 'Deal 7 (Small + Medium Pizza + Coke)', src: resolveImageUrl('/assets/deal-7.png') },
+  { label: 'Deal 8 (2 Medium Pizzas + Coke)', src: resolveImageUrl('/assets/deal-8.png') },
+  { label: 'Deal 9 (2 Large Pizzas + Coke)', src: resolveImageUrl('/assets/deal-9.png') },
+  { label: 'Deal 10 (Medium + Large Pizza + Coke)', src: resolveImageUrl('/assets/deal-10.png') },
+  { label: 'Deal 11 (3 Zingers + Coke 1L)', src: resolveImageUrl('/assets/deal-11.png') },
 ];
 
 function isFamilyDeal(deal) {
@@ -963,13 +963,14 @@ export default function DealsManager({
                 {/* Deal Image & Items List */}
                 <div className="flex items-start gap-3.5 pt-1">
                   <img
-                    src={deal.image}
+                    src={resolveImageUrl(deal.image)}
                     alt={deal.name}
                     className={`w-20 h-20 object-contain rounded-xl p-1.5 border flex-shrink-0 shadow-2xs ${
                       isFam ? 'bg-amber-50/50 border-amber-200' : 'bg-zinc-50 border-zinc-200'
                     }`}
                     onError={(e) => {
-                      e.target.src = isFam ? '/assets/deal-family.png' : '/assets/deal-1.png';
+                      e.target.onerror = null;
+                      e.target.src = resolveImageUrl(isFam ? '/assets/deal-family.png' : '/assets/deal-1.png');
                     }}
                   />
 
@@ -1387,11 +1388,12 @@ export default function DealsManager({
 
                 <div className="flex items-center gap-3">
                   <img
-                    src={selectedImage}
+                    src={resolveImageUrl(selectedImage)}
                     alt="Preview"
                     className="w-12 h-12 rounded-xl object-contain bg-zinc-50 border border-zinc-200 p-1 flex-shrink-0"
                     onError={(e) => {
-                      e.target.src = dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png';
+                      e.target.onerror = null;
+                      e.target.src = resolveImageUrl(dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png');
                     }}
                   />
 

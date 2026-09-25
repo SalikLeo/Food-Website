@@ -65,8 +65,25 @@ export const apiUrl = (path = '') => {
   return `${API_BASE_URL}${cleanPath}`;
 };
 
+/**
+ * Resolves an image URL to load live from the cloud server on mobile apps
+ * @param {string} path e.g. '/assets/images/cat-pizza.jpg' or 'https://...'
+ */
+export const resolveImageUrl = (path = '') => {
+  if (!path || typeof path !== 'string') return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:') || path.startsWith('blob:')) {
+    return path;
+  }
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (APP_MODE === 'customer' || APP_MODE === 'admin' || (typeof window !== 'undefined' && window.Capacitor)) {
+    return `${DEFAULT_MOBILE_API}${cleanPath}`;
+  }
+  return cleanPath;
+};
+
 export default {
   API_BASE_URL,
   APP_MODE,
-  apiUrl
+  apiUrl,
+  resolveImageUrl
 };

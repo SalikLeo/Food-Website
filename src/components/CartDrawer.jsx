@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Minus, Trash2, Truck, AlertTriangle, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice, cleanDealInclusions, formatDealDescription, isMarketingDealDescription } from '../utils/formatters';
+import { resolveImageUrl } from '../config/api';
 
 export default function CartDrawer({ isDark: isDarkProp }) {
   const {
@@ -181,13 +182,14 @@ export default function CartDrawer({ isDark: isDarkProp }) {
                 }`}
               >
                 <img
-                  src={item.image}
+                  src={resolveImageUrl(item.image || '/assets/deal-family.png')}
                   alt={item.name}
                   className={`w-20 sm:w-24 h-16 sm:h-20 rounded-xl object-cover border flex-shrink-0 ${
                     isDark ? 'bg-zinc-900 border-white/10' : 'bg-zinc-100 border-zinc-100'
                   }`}
                   onError={(e) => {
-                    e.target.src = '/assets/deal-family.png';
+                    e.target.onerror = null;
+                    e.target.src = resolveImageUrl('/assets/deal-family.png');
                   }}
                 />
 

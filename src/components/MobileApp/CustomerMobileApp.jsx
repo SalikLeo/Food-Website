@@ -7,7 +7,7 @@ import {
   User, CheckCircle2, Send, Star, MessageSquareHeart, Truck, Bike
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
-import { apiUrl } from '../../config/api';
+import { apiUrl, resolveImageUrl } from '../../config/api';
 import WhatsAppIcon from '../WhatsAppIcon';
 import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
@@ -28,14 +28,14 @@ import { getStoredUserProfile, saveStoredUserProfile } from '../../services/user
 
 // High quality category dish image mapping
 const categoryImages = {
-  pizza: '/assets/images/cat-pizza-BmV7hCev.jpg',
-  burgers: '/assets/images/cat-burgers-CfWIZ4YN.jpg',
-  shawarma: '/assets/images/cat-shawarma-D-OpXs-U.jpg',
-  sandwiches: '/assets/images/cat-sandwiches-bOG3zufR.jpg',
-  fries: '/assets/images/cat-fries-DyVY4OBM.jpg',
-  wings: '/assets/images/cat-wings-Di7o4fqc.jpg',
-  nuggets: '/assets/images/cat-nuggets-DjOT58nG.jpg',
-  special: '/assets/images/cat-special-CdXGKIOV.jpg'
+  pizza: resolveImageUrl('/assets/images/cat-pizza-BmV7hCev.jpg'),
+  burgers: resolveImageUrl('/assets/images/cat-burgers-CfWIZ4YN.jpg'),
+  shawarma: resolveImageUrl('/assets/images/cat-shawarma-D-OpXs-U.jpg'),
+  sandwiches: resolveImageUrl('/assets/images/cat-sandwiches-bOG3zufR.jpg'),
+  fries: resolveImageUrl('/assets/images/cat-fries-DyVY4OBM.jpg'),
+  wings: resolveImageUrl('/assets/images/cat-wings-Di7o4fqc.jpg'),
+  nuggets: resolveImageUrl('/assets/images/cat-nuggets-DjOT58nG.jpg'),
+  special: resolveImageUrl('/assets/images/cat-special-CdXGKIOV.jpg')
 };
 
 const categoryEmojis = {
@@ -227,7 +227,7 @@ export default function CustomerMobileApp({
         id: itemOrDeal.id,
         name: itemOrDeal.name,
         price: itemOrDeal.price,
-        image: itemOrDeal.image || '/assets/deal-1.png',
+        image: resolveImageUrl(itemOrDeal.image || '/assets/deal-1.png'),
         category: 'deals',
         description: cleanDesc,
         includes: cleanedIncludes,
@@ -892,7 +892,7 @@ export default function CustomerMobileApp({
       id: deal.id,
       name: deal.name,
       price: deal.price,
-      image: deal.image || '/assets/images/deal-1.png',
+      image: resolveImageUrl(deal.image || '/assets/images/deal-1.png'),
       category: 'deals',
       description: cleanDesc,
       includes: cleanedIncludes
@@ -909,7 +909,7 @@ export default function CustomerMobileApp({
           id: item.id || item.cartKey || item.name,
           name: item.name,
           price: item.price,
-          image: item.image,
+          image: resolveImageUrl(item.image),
           category: item.category || 'menu',
           inStock: true
         }, item.size || null, item.quantity || 1);
@@ -935,7 +935,7 @@ export default function CustomerMobileApp({
           price: 320,
           quantity: 2,
           size: null,
-          image: '/assets/images/cat-burgers-CfWIZ4YN.jpg'
+          image: resolveImageUrl('/assets/images/cat-burgers-CfWIZ4YN.jpg')
         },
         {
           id: 'fries-regular',
@@ -943,7 +943,7 @@ export default function CustomerMobileApp({
           price: 180,
           quantity: 1,
           size: null,
-          image: '/assets/images/cat-fries-DyVY4OBM.jpg'
+          image: resolveImageUrl('/assets/images/cat-fries-DyVY4OBM.jpg')
         },
         {
           id: 'drink-500ml',
@@ -951,7 +951,7 @@ export default function CustomerMobileApp({
           price: 130,
           quantity: 1,
           size: null,
-          image: '/assets/images/coke-500ml.png'
+          image: resolveImageUrl('/assets/images/coke-500ml.png')
         }
       ]
     };
@@ -1146,7 +1146,7 @@ export default function CustomerMobileApp({
       title: 'Family Feast Combo',
       price: familyDeal?.price ? `Rs. ${formatPrice(familyDeal.price)}` : 'Rs. 1999',
       tagline: 'Pizza, Burgers & 1.5L Drink',
-      image: familyDeal?.image || '/assets/images/deal-family.png',
+      image: resolveImageUrl(familyDeal?.image || '/assets/images/deal-family.png'),
       action: () => {
         if (familyDeal) {
           handleOpenItemDetail(familyDeal, true);
@@ -1162,7 +1162,7 @@ export default function CustomerMobileApp({
       title: 'Deals From Rs. 600',
       price: '11 Great Combos',
       tagline: 'Zinger, Fries & Ice-Cold Drink',
-      image: '/assets/images/deal-1.png',
+      image: resolveImageUrl('/assets/images/deal-1.png'),
       action: () => switchView('deals'),
       actionText: 'Explore Deals'
     },
@@ -1172,7 +1172,7 @@ export default function CustomerMobileApp({
       title: 'Tower Zinger Burgers',
       price: 'From Rs. 280',
       tagline: 'Freshly fried with secret spices',
-      image: '/assets/images/cat-burgers-CfWIZ4YN.jpg',
+      image: resolveImageUrl('/assets/images/cat-burgers-CfWIZ4YN.jpg'),
       action: () => switchView('category', 'burgers'),
       actionText: 'Order Burgers'
     }
@@ -1250,11 +1250,12 @@ export default function CustomerMobileApp({
               isDark ? 'bg-black/40 border-orange-500/80' : 'bg-orange-50 border-orange-500'
             }`}>
               <img
-                src="/assets/salik-logo.png"
+                src={resolveImageUrl('/assets/salik-logo.png')}
                 alt="Salik Fast Food"
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.src = '/assets/salik-logo.svg';
+                  e.target.onerror = null;
+                  e.target.src = resolveImageUrl('/assets/salik-logo.svg');
                 }}
               />
             </div>
@@ -1416,12 +1417,13 @@ export default function CustomerMobileApp({
                     {/* Banner Thumbnail */}
                     <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 flex items-center justify-center relative pointer-events-none select-none">
                       <img
-                        src={banner.image}
+                        src={resolveImageUrl(banner.image)}
                         alt={banner.title}
                         draggable="false"
                         className="max-w-full max-h-full object-contain drop-shadow-xl"
                         onError={(e) => {
-                          e.target.src = '/assets/images/cat-burgers-CfWIZ4YN.jpg';
+                          e.target.onerror = null;
+                          e.target.src = resolveImageUrl('/assets/images/cat-burgers-CfWIZ4YN.jpg');
                         }}
                       />
                     </div>
@@ -1542,7 +1544,7 @@ export default function CustomerMobileApp({
               {/* 2-COLUMN CATEGORIES GRID (Like Reference Image media_1789982646283.png) */}
               <div className="grid grid-cols-2 gap-3.5 sm:gap-4">
                 {categories.map((cat) => {
-                  const catImg = categoryImages[cat.id] || '/assets/images/cat-pizza-BmV7hCev.jpg';
+                  const catImg = categoryImages[cat.id] || resolveImageUrl('/assets/images/cat-pizza-BmV7hCev.jpg');
                   const itemCount = (products || []).filter(p => p.category === cat.id).length;
 
                   return (
@@ -1558,11 +1560,12 @@ export default function CustomerMobileApp({
                       {/* Appetizing Centered Food Photo on Card */}
                       <div className="w-full aspect-[4/3] flex items-center justify-center p-1 mb-2 relative">
                         <img
-                          src={catImg}
+                          src={resolveImageUrl(catImg)}
                           alt={cat.label}
                           className="w-full h-full object-contain rounded-xl transform transition-transform duration-300 drop-shadow-sm"
                           onError={(e) => {
-                            e.target.src = '/assets/images/cat-burgers-CfWIZ4YN.jpg';
+                            e.target.onerror = null;
+                            e.target.src = resolveImageUrl('/assets/images/cat-burgers-CfWIZ4YN.jpg');
                           }}
                         />
                       </div>
@@ -1642,11 +1645,12 @@ export default function CustomerMobileApp({
 
                       <div className="h-24 w-full flex items-center justify-center my-1">
                         <img
-                          src={deal.image || '/assets/images/deal-1.png'}
+                          src={resolveImageUrl(deal.image || '/assets/images/deal-1.png')}
                           alt={deal.name}
                           className="h-full object-contain drop-shadow-md"
                           onError={(e) => {
-                            e.target.src = '/assets/images/deal-1.png';
+                            e.target.onerror = null;
+                            e.target.src = resolveImageUrl('/assets/images/deal-1.png');
                           }}
                         />
                       </div>
@@ -1833,11 +1837,12 @@ export default function CustomerMobileApp({
                           isDark ? 'bg-black/40 border-white/5' : 'bg-zinc-50 border-zinc-200'
                         }`}>
                           <img
-                            src={product.image || '/assets/images/cat-pizza-BmV7hCev.jpg'}
+                            src={resolveImageUrl(product.image || '/assets/images/cat-pizza-BmV7hCev.jpg')}
                             alt={product.name}
                             className={`w-full h-full object-cover rounded-xl ${isOutOfStock ? 'grayscale' : ''}`}
                             onError={(e) => {
-                              e.target.src = '/assets/images/cat-pizza-BmV7hCev.jpg';
+                              e.target.onerror = null;
+                              e.target.src = resolveImageUrl('/assets/images/cat-pizza-BmV7hCev.jpg');
                             }}
                           />
                           {isOutOfStock && (
@@ -2054,11 +2059,12 @@ export default function CustomerMobileApp({
 
                   <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 flex items-center justify-center">
                     <img
-                      src={featuredDeal.image || (featuredDeal.dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png')}
+                      src={resolveImageUrl(featuredDeal.image || (featuredDeal.dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png'))}
                       alt={featuredDeal.name}
                       className="w-full h-full object-contain drop-shadow-md"
                       onError={(e) => {
-                        e.target.src = featuredDeal.dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png';
+                        e.target.onerror = null;
+                        e.target.src = resolveImageUrl(featuredDeal.dealType === 'family' ? '/assets/deal-family.png' : '/assets/deal-1.png');
                       }}
                     />
                   </div>
@@ -2121,11 +2127,12 @@ export default function CustomerMobileApp({
 
                     <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center">
                       <img
-                        src={deal.image || '/assets/deal-1.png'}
+                        src={resolveImageUrl(deal.image || '/assets/deal-1.png')}
                         alt={deal.name}
                         className="w-full h-full object-contain drop-shadow-sm"
                         onError={(e) => {
-                          e.target.src = '/assets/deal-1.png';
+                          e.target.onerror = null;
+                          e.target.src = resolveImageUrl('/assets/deal-1.png');
                         }}
                       />
                     </div>
@@ -3169,9 +3176,13 @@ export default function CustomerMobileApp({
               }`}>
                 <div className="flex items-center gap-2.5">
                   <img
-                    src="/assets/salik-logo.png"
+                    src={resolveImageUrl('/assets/salik-logo.png')}
                     alt="Salik Fast Food"
                     className="w-10 h-10 object-contain rounded-full border border-orange-500/50"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = resolveImageUrl('/assets/salik-logo.svg');
+                    }}
                   />
                   <div>
                     <h3 className={`font-montserrat tracking-tight font-bold leading-tight ${

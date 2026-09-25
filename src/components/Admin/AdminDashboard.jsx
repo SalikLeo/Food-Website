@@ -32,7 +32,7 @@ import ItemSalesManager from './ItemSalesManager';
 import ReviewManager from './ReviewManager';
 import RidersManager from './RidersManager';
 import CustomSelect from '../Common/CustomSelect';
-import { apiUrl, APP_MODE } from '../../config/api';
+import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
 import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
 import { 
@@ -418,10 +418,10 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         fetch(apiUrl('/api/riders')).then(r => r.json()).catch(() => [])
       ]);
 
-      setProducts(prodsRes || []);
-      setCategories(catsRes || []);
-      setDeals(dealsRes?.deals || []);
-      setFamilyDeal(dealsRes?.familyDeal || null);
+      setProducts((prodsRes || []).map(p => ({ ...p, image: resolveImageUrl(p.image) })));
+      setCategories((catsRes || []).map(c => ({ ...c, image: resolveImageUrl(c.image) })));
+      setDeals((dealsRes?.deals || []).map(d => ({ ...d, image: resolveImageUrl(d.image) })));
+      setFamilyDeal(dealsRes?.familyDeal ? { ...dealsRes.familyDeal, image: resolveImageUrl(dealsRes.familyDeal.image) } : null);
       if (ordersRes) processIncomingOrders(ordersRes);
       if (reviewsRes) processIncomingReviews(reviewsRes);
 
@@ -711,11 +711,12 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-orange-500 bg-orange-50 shadow-xs shrink-0 flex items-center justify-center">
                 <img
-                  src="/assets/salik-logo.png"
+                  src={resolveImageUrl('/assets/salik-logo.png')}
                   alt="Salik Fast Food"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.src = '/assets/salik-logo.svg';
+                    e.target.onerror = null;
+                    e.target.src = resolveImageUrl('/assets/salik-logo.svg');
                   }}
                 />
               </div>

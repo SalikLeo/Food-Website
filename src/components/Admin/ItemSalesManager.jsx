@@ -14,6 +14,7 @@ import {
   X
 } from 'lucide-react';
 import { formatPrice } from '../../utils/formatters';
+import { resolveImageUrl } from '../../config/api';
 import CustomSelect from '../Common/CustomSelect';
 
 export default function ItemSalesManager({
@@ -421,11 +422,12 @@ export default function ItemSalesManager({
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
                           <img
-                            src={item.image || '/assets/images/cat-special-CdXGKIOV.jpg'}
+                            src={resolveImageUrl(item.image || '/assets/images/cat-special-CdXGKIOV.jpg')}
                             alt={item.name}
                             className="w-10 h-10 rounded-lg object-cover bg-zinc-100 border border-zinc-200 flex-shrink-0"
                             onError={(e) => {
-                              e.target.src = '/assets/deal-family.png';
+                              e.target.onerror = null;
+                              e.target.src = resolveImageUrl('/assets/deal-family.png');
                             }}
                           />
                           <div>

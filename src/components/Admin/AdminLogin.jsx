@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, ArrowLeft, ShieldAlert, Eye, EyeOff, Smartphone } from 'lucide-react';
-import { apiUrl, APP_MODE } from '../../config/api';
+import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
 
 export default function AdminLogin({ onLogin, onBackToStore }) {
   const [password, setPassword] = useState('');
@@ -57,9 +57,13 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
 
         <div className="text-center mb-8">
           <img
-            src="/assets/salik-logo.png"
+            src={resolveImageUrl('/assets/salik-logo.png')}
             alt="Salik Fast Food"
             className="h-16 w-auto mx-auto mb-4 object-contain"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = resolveImageUrl('/assets/salik-logo.svg');
+            }}
           />
           <h2 className="font-display text-3xl uppercase tracking-wide text-zinc-900">
             {APP_MODE === 'admin' ? 'Salik Admin App' : 'Admin Panel Login'}

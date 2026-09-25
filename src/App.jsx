@@ -19,7 +19,7 @@ import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
 import NoInternetScreen from './components/NoInternetScreen';
 import { Network } from '@capacitor/network';
 import { CartProvider, useCart } from './context/CartContext';
-import { apiUrl, APP_MODE, isCustomerApp } from './config/api';
+import { apiUrl, resolveImageUrl, APP_MODE, isCustomerApp } from './config/api';
 
 export default function App() {
   const [isAdminView, setIsAdminView] = useState(() => {
@@ -225,10 +225,30 @@ export default function App() {
         }
       }
 
-      if (Array.isArray(catsRes) && catsRes.length > 0) setCategories(catsRes);
-      if (Array.isArray(prodsRes) && prodsRes.length > 0) setProducts(prodsRes);
-      if (dealsRes?.deals) setDeals(dealsRes.deals);
-      if (dealsRes?.familyDeal) setFamilyDeal(dealsRes.familyDeal);
+      if (Array.isArray(catsRes) && catsRes.length > 0) {
+        setCategories(catsRes.map(c => ({
+          ...c,
+          image: resolveImageUrl(c.image)
+        })));
+      }
+      if (Array.isArray(prodsRes) && prodsRes.length > 0) {
+        setProducts(prodsRes.map(p => ({
+          ...p,
+          image: resolveImageUrl(p.image)
+        })));
+      }
+      if (dealsRes?.deals) {
+        setDeals(dealsRes.deals.map(d => ({
+          ...d,
+          image: resolveImageUrl(d.image)
+        })));
+      }
+      if (dealsRes?.familyDeal) {
+        setFamilyDeal({
+          ...dealsRes.familyDeal,
+          image: resolveImageUrl(dealsRes.familyDeal.image)
+        });
+      }
       if (Array.isArray(faqsRes) && faqsRes.length > 0) setFaqs(faqsRes);
       if (settingsRes) setSettings(settingsRes);
       setIsOnline(true);

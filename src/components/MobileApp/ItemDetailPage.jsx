@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { formatPrice, cleanDealInclusions } from '../../utils/formatters';
+import { resolveImageUrl } from '../../config/api';
 
 export default function ItemDetailPage({
   item,
@@ -56,7 +57,7 @@ export default function ItemDetailPage({
         id: item.id,
         name: item.name,
         price: item.price,
-        image: item.image || '/assets/deal-1.png',
+        image: resolveImageUrl(item.image || '/assets/deal-1.png'),
         category: 'deals',
         description: itemsSummary || item.description || '',
         includes: cleanedIncludes,
@@ -217,11 +218,12 @@ export default function ItemDetailPage({
           isDark ? 'bg-zinc-900 border-white/10' : 'bg-white border-zinc-200'
         }`}>
           <img
-            src={item.image || (isDeal ? '/assets/deal-1.png' : '/assets/images/cat-pizza-BmV7hCev.jpg')}
+            src={resolveImageUrl(item.image || (isDeal ? '/assets/deal-1.png' : '/assets/images/cat-pizza-BmV7hCev.jpg'))}
             alt={item.name}
             className={`w-full h-full object-cover transition-transform duration-500 hover:scale-105 ${isOutOfStock ? 'grayscale opacity-75' : ''}`}
             onError={(e) => {
-              e.target.src = isDeal ? '/assets/deal-1.png' : '/assets/images/cat-pizza-BmV7hCev.jpg';
+              e.target.onerror = null;
+              e.target.src = resolveImageUrl(isDeal ? '/assets/deal-1.png' : '/assets/images/cat-pizza-BmV7hCev.jpg');
             }}
           />
 
@@ -393,11 +395,12 @@ export default function ItemDetailPage({
                 >
                   <div className="w-full h-24 rounded-xl overflow-hidden mb-2 bg-zinc-100">
                     <img
-                      src={rel.image || '/assets/images/cat-pizza-BmV7hCev.jpg'}
+                      src={resolveImageUrl(rel.image || '/assets/images/cat-pizza-BmV7hCev.jpg')}
                       alt={rel.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = '/assets/images/cat-pizza-BmV7hCev.jpg';
+                        e.target.onerror = null;
+                        e.target.src = resolveImageUrl('/assets/images/cat-pizza-BmV7hCev.jpg');
                       }}
                     />
                   </div>
