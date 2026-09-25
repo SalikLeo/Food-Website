@@ -13,6 +13,7 @@ import CartDrawer from '../CartDrawer';
 import OrderSuccessModal from '../OrderSuccessModal';
 import CustomerReceiptModal from '../CustomerReceiptModal';
 import CustomerNotificationBanner from '../CustomerNotificationBanner';
+import ItemDetailPage from './ItemDetailPage';
 import { formatPrice, cleanDealInclusions, isMarketingDealDescription } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
 import { notifyCustomerReviewSubmitted } from '../../services/notificationService';
@@ -186,9 +187,51 @@ export default function CustomerMobileApp({
 
   const isDark = theme === 'dark';
 
-  // Navigation states: 'home' | 'category' | 'deals' | 'orders' | 'checkout' | 'add-review'
+  // Navigation states: 'home' | 'category' | 'deals' | 'orders' | 'checkout' | 'add-review' | 'item-detail'
   const [currentView, setCurrentView] = useState('home');
   const [previousView, setPreviousView] = useState('orders');
+
+  // Single Item / Deal Detail Page state
+  const [detailItem, setDetailItem] = useState(null);
+  const [isDetailDeal, setIsDetailDeal] = useState(false);
+
+  const handleOpenItemDetail = (item, isDeal = false) => {
+    if (!item) return;
+    setDetailItem(item);
+    setIsDetailDeal(isDeal);
+    if (currentView !== 'item-detail') {
+      setPreviousView(currentView);
+    }
+    setCurrentView('item-detail');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  const handleCloseItemDetail = () => {
+    setDetailItem(null);
+    const target = previousView && previousView !== 'item-detail' ? previousView : 'category';
+    setCurrentView(target);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  const handleDetailAddToCart = (itemOrDeal, size, qty, targetElement) => {
+    if (isDetailDeal) {
+      const cleanedIncludes = cleanDealInclusions(itemOrDeal.includes || []);
+      const itemsSummary = Array.isArray(cleanedIncludes) && cleanedIncludes.length > 0 ? cleanedIncludes.join(' + ') : '';
+      const cleanDesc = itemsSummary || (itemOrDeal.description && !isMarketingDealDescription(itemOrDeal.description) ? cleanDealInclusions(itemOrDeal.description) : '') || '';
+      addToCart({
+        id: itemOrDeal.id,
+        name: itemOrDeal.name,
+        price: itemOrDeal.price,
+        image: itemOrDeal.image || '/assets/deal-1.png',
+        category: 'deals',
+        description: cleanDesc,
+        includes: cleanedIncludes,
+        notes: itemOrDeal.notes
+      }, null, qty, targetElement);
+    } else {
+      addToCart(itemOrDeal, size, qty, targetElement);
+    }
+  };
 
   // Trigger instant live order sync whenever user visits recent orders view
   useEffect(() => {
@@ -599,6 +642,10 @@ export default function CustomerMobileApp({
           }
           if (searchQuery.trim()) {
             setSearchQuery('');
+            return;
+          }
+          if (currentView === 'item-detail') {
+            handleCloseItemDetail();
             return;
           }
           if (currentView === 'profile') {
@@ -1060,7 +1107,13 @@ export default function CustomerMobileApp({
       price: familyDeal?.price ? `Rs. ${formatPrice(familyDeal.price)}` : 'Rs. 1999',
       tagline: 'Pizza, Burgers & 1.5L Drink',
       image: familyDeal?.image || '/assets/images/deal-family.png',
-      action: () => switchView('deals'),
+      action: () => {
+        if (familyDeal) {
+          handleOpenItemDetail(familyDeal, true);
+        } else {
+          switchView('deals');
+        }
+      },
       actionText: 'View Deal'
     },
     {
@@ -1108,10 +1161,28 @@ export default function CustomerMobileApp({
         </div>
       )}
       
-      {/* ============================================================== */}
-      {/* 1. TOP APP BAR (Native Mobile App Header with Safe-Area Inset) */}
-      {/* ============================================================== */}
-      <header className={`sticky top-0 left-0 right-0 z-40 backdrop-blur-md border-b mobile-app-header px-4 ${
+      {currentView === 'item-detail' && detailItem ? (
+        <ItemDetailPage
+          item={detailItem}
+          isDeal={isDetailDeal}
+          isDark={isDark}
+          onBack={handleCloseItemDetail}
+          onAddToCart={handleDetailAddToCart}
+          onOpenCart={() => setIsCartOpen(true)}
+          cartCount={totalItems}
+          relatedItems={
+            isDetailDeal
+              ? (deals || []).filter(d => d.id !== detailItem.id)
+              : (products || []).filter(p => p.id !== detailItem.id && (!detailItem.category || p.category === detailItem.category))
+          }
+          onSelectRelated={(rel) => handleOpenItemDetail(rel, isDetailDeal)}
+        />
+      ) : (
+        <>
+          {/* ============================================================== */}
+          {/* 1. TOP APP BAR (Native Mobile App Header with Safe-Area Inset) */}
+          {/* ============================================================== */}
+          <header className={`sticky top-0 left-0 right-0 z-40 backdrop-blur-md border-b mobile-app-header px-4 ${
         isDark 
           ? 'bg-[#121216]/95 border-white/10 shadow-lg' 
           : 'bg-white/95 border-zinc-200/90 shadow-xs'
@@ -1486,7 +1557,8 @@ export default function CustomerMobileApp({
                   {deals.slice(0, 4).map((deal) => (
                     <div
                       key={deal.id}
-                      className={`min-w-[240px] max-w-[240px] rounded-2xl p-3.5 flex flex-col justify-between flex-shrink-0 ${
+                      onClick={() => handleOpenItemDetail(deal, true)}
+                      className={`min-w-[240px] max-w-[240px] rounded-2xl p-3.5 flex flex-col justify-between flex-shrink-0 cursor-pointer active:scale-[0.98] transition-transform ${
                         isDark 
                           ? 'bg-[#16161b] border border-white/10 shadow-lg' 
                           : 'bg-white border border-zinc-200 shadow-sm'
@@ -1523,7 +1595,10 @@ export default function CustomerMobileApp({
                       </p>
 
                       <button
-                        onClick={(e) => handleAddDeal(deal, e)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddDeal(deal, e);
+                        }}
                         className="w-full py-2.5 rounded-xl bg-orange-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -1677,7 +1752,8 @@ export default function CustomerMobileApp({
                   return (
                     <div
                       key={product.id}
-                      className={`rounded-2xl p-3.5 border ${
+                      onClick={() => handleOpenItemDetail(product, false)}
+                      className={`rounded-2xl p-3.5 border cursor-pointer active:scale-[0.99] transition-transform ${
                         isOutOfStock 
                           ? (isDark ? 'bg-[#15151a] border-red-900/30 opacity-75' : 'bg-zinc-50 border-zinc-200 opacity-75')
                           : isDark 
@@ -1754,7 +1830,10 @@ export default function CustomerMobileApp({
                               <button
                                 key={idx}
                                 type="button"
-                                onClick={() => handleSelectSize(product.id, s)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSelectSize(product.id, s);
+                                }}
                                 className={`flex-1 py-1.5 px-3 rounded-full text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
                                   isSelected
                                     ? 'bg-orange-500 text-white shadow-xs'
@@ -1781,7 +1860,10 @@ export default function CustomerMobileApp({
                             isDark ? 'bg-black/40 border-white/10' : 'bg-zinc-100 border-zinc-200'
                           }`}>
                             <button
-                              onClick={() => setQty(product.id, -1)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setQty(product.id, -1);
+                              }}
                               disabled={qty <= 1}
                               className={`w-7 h-7 rounded-lg flex items-center justify-center disabled:opacity-30 active:scale-90 transition-all cursor-pointer ${
                                 isDark ? 'bg-zinc-800 text-white' : 'bg-white text-zinc-800 shadow-2xs'
@@ -1795,7 +1877,10 @@ export default function CustomerMobileApp({
                               {qty}
                             </span>
                             <button
-                              onClick={() => setQty(product.id, 1)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setQty(product.id, 1);
+                              }}
                               className={`w-7 h-7 rounded-lg flex items-center justify-center active:scale-90 transition-all cursor-pointer ${
                                 isDark ? 'bg-zinc-800 text-white' : 'bg-white text-zinc-800 shadow-2xs'
                               }`}
@@ -1808,7 +1893,10 @@ export default function CustomerMobileApp({
                         {/* Add to Cart Button */}
                         <button
                           disabled={isOutOfStock}
-                          onClick={(e) => handleAddProduct(product, e)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddProduct(product, e);
+                          }}
                           className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                             isOutOfStock
                               ? (isDark ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed')
@@ -1864,11 +1952,14 @@ export default function CustomerMobileApp({
 
             {/* Top Featured Deal Highlight Card */}
             {featuredDeal && (
-              <div className={`rounded-3xl p-4 border shadow-xl space-y-3.5 ${
-                isDark 
-                  ? 'bg-gradient-to-br from-amber-950/60 via-zinc-900 to-black border-amber-500/30' 
-                  : 'bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 border-amber-400 text-white'
-              }`}>
+              <div 
+                onClick={() => handleOpenItemDetail(featuredDeal, true)}
+                className={`rounded-3xl p-4 border shadow-xl space-y-3.5 cursor-pointer active:scale-[0.99] transition-transform ${
+                  isDark 
+                    ? 'bg-gradient-to-br from-amber-950/60 via-zinc-900 to-black border-amber-500/30' 
+                    : 'bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 border-amber-400 text-white'
+                }`}
+              >
                 {/* Heading on Top */}
                 <div className="flex items-center justify-between">
                   <span className={`px-3.5 py-1.5 rounded-full text-sm sm:text-base font-extrabold uppercase tracking-wide border ${
@@ -1910,7 +2001,10 @@ export default function CustomerMobileApp({
 
                 {/* Add Button at Bottom */}
                 <button
-                  onClick={(e) => handleAddDeal(featuredDeal, e)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddDeal(featuredDeal, e);
+                  }}
                   className={`w-full py-2.5 rounded-xl font-extrabold text-sm uppercase tracking-wider shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     isDark 
                       ? 'bg-amber-500  text-black' 
@@ -1928,7 +2022,8 @@ export default function CustomerMobileApp({
               {remainingDeals.map((deal) => (
                 <div
                   key={deal.id}
-                  className={`rounded-2xl p-4 border shadow-md space-y-3 ${
+                  onClick={() => handleOpenItemDetail(deal, true)}
+                  className={`rounded-2xl p-4 border shadow-md space-y-3 cursor-pointer active:scale-[0.99] transition-transform ${
                     isDark ? 'bg-[#15151a] border-white/10' : 'bg-white border-zinc-200'
                   }`}
                 >
@@ -1971,7 +2066,10 @@ export default function CustomerMobileApp({
 
                   {/* Add Button at Bottom */}
                   <button
-                    onClick={(e) => handleAddDeal(deal, e)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddDeal(deal, e);
+                    }}
                     className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-extrabold text-sm uppercase tracking-wider shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -2926,11 +3024,13 @@ export default function CustomerMobileApp({
         )}
 
       </main>
+        </>
+      )}
 
       {/* ============================================================== */}
       {/* 4. FLOATING CART ACTION BUTTON (Bottom-Right FAB) */}
       {/* ============================================================== */}
-      {currentView !== 'checkout' && (
+      {currentView !== 'checkout' && currentView !== 'item-detail' && (
         <div className="fixed right-4 z-40 mobile-floating-cart">
           <button
             id="floating-cart-btn"

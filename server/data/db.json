@@ -134,11 +134,11 @@
       "description": "Spicy tikka chunks, onion, capsicum, mozzarella",
       "category": "pizza",
       "image": "/assets/images/p-pizza-tikka-B4zowSG0.jpg",
-      "price": 650,
+      "price": 500,
       "sizes": [
         {
           "label": "Small",
-          "price": 650
+          "price": 500
         },
         {
           "label": "Medium",
@@ -147,7 +147,7 @@
       ],
       "inStock": true,
       "tag": "",
-      "updatedAt": "2026-09-25T07:05:54.417Z"
+      "updatedAt": "2026-09-25T07:42:49.194Z"
     },
     {
       "id": "pizza-3",
