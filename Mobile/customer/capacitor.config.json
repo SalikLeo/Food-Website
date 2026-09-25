@@ -4,7 +4,8 @@
   "webDir": "www",
   "server": {
     "cleartext": true,
-    "androidScheme": "http"
+    "androidScheme": "https",
+    "hostname": "salikleo.website"
   },
   "plugins": {
     "SystemBars": {

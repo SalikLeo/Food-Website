@@ -470,15 +470,15 @@
 
 
 .mobile-floating-cart {
-  bottom: max(calc(env(safe-area-inset-bottom, 0px) + 1.25rem), 2.25rem);
+  bottom: max(calc(env(safe-area-inset-bottom, 0px) + 1.0rem), 1.0rem);
 }
 
 .mobile-side-drawer-top {
-  padding-top: max(env(safe-area-inset-top, 0px), 1rem);
+  padding-top: max(env(safe-area-inset-top, 0px), 1.25rem);
 }
 
 .mobile-side-drawer-bottom {
-  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 1.5rem), 2.75rem);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.25rem);
 }
 
 /* Sleek, theme-aware modal scrollbar */

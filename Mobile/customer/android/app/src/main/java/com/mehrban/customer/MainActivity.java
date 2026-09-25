@@ -4,6 +4,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.ViewCompat;
@@ -18,6 +20,19 @@ public class MainActivity extends BridgeActivity {
         SplashScreen.installSplashScreen(this);
         registerPlugin(ReceiptBridgePlugin.class);
         super.onCreate(savedInstanceState);
+
+        WebView webView = getBridge().getWebView();
+        if (webView != null) {
+            WebSettings settings = webView.getSettings();
+            String ua = settings.getUserAgentString();
+            String cleanUa = ua != null ? ua.replace("; wv", "").replaceAll("Version/\\d+\\.\\d+\\s?", "") : null;
+            if (cleanUa != null) {
+                settings.setUserAgentString(cleanUa);
+            }
+            settings.setJavaScriptCanOpenWindowsAutomatically(true);
+            settings.setSupportMultipleWindows(true);
+            webView.setWebChromeClient(new CustomWebChromeClient(getBridge(), this, cleanUa));
+        }
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 

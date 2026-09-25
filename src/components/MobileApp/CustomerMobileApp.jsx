@@ -1516,7 +1516,7 @@ export default function CustomerMobileApp({
                     </div>
 
                     {/* Banner Thumbnail */}
-                    <div className="w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 flex items-center justify-center relative pointer-events-none select-none">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 flex items-center justify-center relative pointer-events-none select-none">
                       <img
                         src={resolveImageUrl(banner.image)}
                         alt={banner.title}
@@ -2952,6 +2952,100 @@ export default function CustomerMobileApp({
               </button>
             </div>
 
+            {/* Google Account & Cloud Sync Section */}
+            <div className={`p-4 rounded-2xl border transition-all ${
+              isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900 shadow-2xs'
+            }`}>
+              {customerUser ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {customerUser.picture ? (
+                        <img
+                          src={customerUser.picture}
+                          alt={customerUser.name}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-orange-500 shadow-xs shrink-0"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white font-bold flex items-center justify-center text-sm shadow-xs shrink-0">
+                          {customerUser.name?.[0] || 'U'}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs sm:text-sm font-bold truncate">
+                            {customerUser.name}
+                          </span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="Connected" />
+                        </div>
+                        <div className={`text-[11px] truncate ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                          {customerUser.email || 'Google Account Linked'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleRequestLogout}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer active:scale-95 shrink-0 ${
+                        isDark 
+                          ? 'border-red-500/40 text-red-400 hover:bg-red-500/10' 
+                          : 'border-red-200 text-red-600 hover:bg-red-50'
+                      }`}
+                    >
+                      Logout
+                    </button>
+                  </div>
+
+                  <div className={`text-[11px] leading-relaxed flex items-center gap-1.5 pt-1.5 border-t ${
+                    isDark ? 'border-white/5 text-emerald-400' : 'border-zinc-100 text-emerald-700'
+                  }`}>
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                    <span>Google Cloud Sync active — Orders & profile backed up</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z" />
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z" />
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+                      </svg>
+                      <h4 className="text-xs font-bold uppercase tracking-wider">
+                        Google Account Sync
+                      </h4>
+                    </div>
+                    <p className={`text-[11px] leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                      Sign in with your Google account to back up and sync your profile and past orders across all devices.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    disabled={googleLoading}
+                    className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer border ${
+                      isDark 
+                        ? 'bg-white text-zinc-900 hover:bg-zinc-100 border-transparent' 
+                        : 'bg-white text-zinc-800 hover:bg-zinc-50 border-zinc-300'
+                    }`}
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+                      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z" />
+                      <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z" />
+                      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+                    </svg>
+                    <span>{googleLoading ? 'Connecting...' : 'Sign in with Google'}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
           </div>
         )}
 
@@ -3254,29 +3348,29 @@ export default function CustomerMobileApp({
           }`} 
         />
         
-        <div className={`relative ml-auto w-[82%] max-w-xs h-full border-l px-4 sm:px-5 flex flex-col justify-between overflow-y-auto overscroll-contain shadow-2xl z-10 transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] mobile-side-drawer-top mobile-side-drawer-bottom ${
+        <div className={`relative ml-auto w-4/5 max-w-sm h-full border-l px-6 flex flex-col justify-between shadow-2xl z-10 transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] mobile-side-drawer-top mobile-side-drawer-bottom ${
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         } ${
           isDark ? 'bg-[#121216] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
         }`}>
-            <div className="space-y-3">
+            <div className="space-y-5">
               
               {/* Drawer Top Header */}
-              <div className={`flex items-center justify-between pb-2.5 border-b ${
+              <div className={`flex items-center justify-between pb-4 border-b ${
                 isDark ? 'border-white/10' : 'border-zinc-200'
               }`}>
                 <div className="flex items-center gap-2.5">
                   <img
                     src={resolveImageUrl(activeSettings?.logoUrl || '/assets/salik-logo.png')}
                     alt="Salik Fast Food"
-                    className="w-9 h-9 object-contain rounded-full border border-orange-500/50"
+                    className="w-10 h-10 object-contain rounded-full border border-orange-500/50"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = resolveImageUrl('/assets/salik-logo.svg');
                     }}
                   />
                   <div>
-                    <h3 className={`font-montserrat tracking-tight font-bold text-xs sm:text-sm leading-tight ${
+                    <h3 className={`font-montserrat tracking-tight font-bold leading-tight ${
                       isDark ? 'text-white' : 'text-zinc-900'
                     }`}>
                       SALIK FAST FOOD
@@ -3288,32 +3382,32 @@ export default function CustomerMobileApp({
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer active:scale-90 ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer active:scale-90 ${
                     isDark ? 'bg-white/10 text-zinc-400 ' : 'bg-zinc-100 text-zinc-600 '
                   }`}
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Navigation Links: Home, Deals, Menu, RECENT ORDERS */}
-              <nav className="space-y-1.5">
+              <nav className="space-y-2.5">
                 <button
                   onClick={() => {
                     switchView('home');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'home'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5  text-white' : 'bg-zinc-100  text-zinc-900'
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <span className="text-sm shrink-0">🏠</span>
+                    <span className="text-base shrink-0">🏠</span>
                     <span className="truncate">Home & Categories</span>
                   </span>
-                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ml-1 ${currentView === 'home' ? 'text-white' : 'text-zinc-400'}`} />
+                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'home' ? 'text-white' : 'text-zinc-400'}`} />
                 </button>
 
                 <button
@@ -3321,7 +3415,7 @@ export default function CustomerMobileApp({
                     switchView('deals');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'deals'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -3333,7 +3427,7 @@ export default function CustomerMobileApp({
                     <Flame className={`w-4 h-4 shrink-0 ${currentView === 'deals' ? 'fill-white text-white' : 'fill-orange-500 text-orange-500'}`} />
                     <span className="truncate">Saver Deals</span>
                   </span>
-                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ml-1 ${currentView === 'deals' ? 'text-white' : 'text-orange-500'}`} />
+                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'deals' ? 'text-white' : 'text-orange-500'}`} />
                 </button>
 
                 <button
@@ -3341,17 +3435,17 @@ export default function CustomerMobileApp({
                     switchView('category', 'all');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'category'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5  text-white' : 'bg-zinc-100  text-zinc-900'
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <span className="text-sm shrink-0">🍽️</span>
+                    <span className="text-base shrink-0">🍽️</span>
                     <span className="truncate">Explore Menu</span>
                   </span>
-                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ml-1 ${currentView === 'category' ? 'text-white' : 'text-zinc-400'}`} />
+                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'category' ? 'text-white' : 'text-zinc-400'}`} />
                 </button>
 
                 {/* RECENT ORDERS */}
@@ -3360,7 +3454,7 @@ export default function CustomerMobileApp({
                     switchView('orders');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'orders'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -3380,7 +3474,7 @@ export default function CustomerMobileApp({
                         {recentOrders.length}
                       </span>
                     )}
-                    <ChevronRight className={`w-3.5 h-3.5 ${currentView === 'orders' ? 'text-white' : 'text-zinc-400'}`} />
+                    <ChevronRight className={`w-4 h-4 ${currentView === 'orders' ? 'text-white' : 'text-zinc-400'}`} />
                   </div>
                 </button>
 
@@ -3390,7 +3484,7 @@ export default function CustomerMobileApp({
                     switchView('add-review');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'add-review'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -3410,7 +3504,7 @@ export default function CustomerMobileApp({
                         {pendingReviewsCount}
                       </span>
                     )}
-                    <ChevronRight className={`w-3.5 h-3.5 ${currentView === 'add-review' ? 'text-white' : 'text-zinc-400'}`} />
+                    <ChevronRight className={`w-4 h-4 ${currentView === 'add-review' ? 'text-white' : 'text-zinc-400'}`} />
                   </div>
                 </button>
 
@@ -3420,7 +3514,7 @@ export default function CustomerMobileApp({
                     switchView('profile');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'profile'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -3432,14 +3526,14 @@ export default function CustomerMobileApp({
                     <User className={`w-4 h-4 shrink-0 ${currentView === 'profile' ? 'text-white' : 'text-orange-500'}`} />
                     <span className="truncate">View Profile</span>
                   </span>
-                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ml-1 ${currentView === 'profile' ? 'text-white' : 'text-zinc-400'}`} />
+                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'profile' ? 'text-white' : 'text-zinc-400'}`} />
                 </button>
               </nav>
 
             </div>
 
             {/* Bottom Quick Contact & Account Actions */}
-            <div className={`space-y-2 pt-2.5 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
+            <div className={`space-y-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
 
               {/* Google Login / Authenticated User Profile */}
               {customerUser ? (
@@ -3490,7 +3584,7 @@ export default function CustomerMobileApp({
                   type="button"
                   onClick={handleGoogleLogin}
                   disabled={googleLoading}
-                  className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer ${
+                  className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer ${
                     isDark 
                       ? 'bg-white  text-zinc-900' 
                       : 'bg-white  text-zinc-800 border border-zinc-300'
@@ -3519,13 +3613,13 @@ export default function CustomerMobileApp({
               )}
 
               {/* Neumorphic Theme Mode Toggle (below Login with Google) */}
-              <div className="pt-1.5">
+              <div className="pt-2">
                 <div 
                   onClick={toggleTheme}
                   role="button"
                   tabIndex={0}
                   aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                  className={`w-full py-2 px-3.5 rounded-2xl flex items-center justify-between cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
+                  className={`w-full py-2.5 px-4 rounded-2xl flex items-center justify-between cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
                     isDark 
                       ? 'bg-[#1e232d] border border-white/5 shadow-inner' 
                       : 'bg-[#edf0f5] border border-zinc-200/90 shadow-2xs'
@@ -3538,7 +3632,7 @@ export default function CustomerMobileApp({
                       e.stopPropagation();
                       if (isDark) toggleTheme();
                     }}
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
                       !isDark 
                         ? 'bg-amber-400/20 text-amber-500 shadow-2xs scale-105' 
                         : 'text-zinc-500/50  '
@@ -3546,12 +3640,12 @@ export default function CustomerMobileApp({
                     title="Light Mode"
                     aria-label="Light Mode"
                   >
-                    <Sun className={`w-4.5 h-4.5 transition-transform duration-300 ${!isDark ? 'text-amber-500 fill-amber-400 rotate-0' : 'text-zinc-500/60 -rotate-45'}`} />
+                    <Sun className={`w-5 h-5 transition-transform duration-300 ${!isDark ? 'text-amber-500 fill-amber-400 rotate-0' : 'text-zinc-500/60 -rotate-45'}`} />
                   </button>
 
                   {/* Inset Neumorphic Track (Center) */}
                   <div 
-                    className={`relative w-18 h-9 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
+                    className={`relative w-20 h-10 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
                       isDark 
                         ? 'bg-[#141720] shadow-[inset_3px_3px_6px_rgba(0,0,0,0.7),inset_-1px_-1px_3px_rgba(255,255,255,0.06)]' 
                         : 'bg-[#d5dae3] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.18),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]'
@@ -3560,10 +3654,10 @@ export default function CustomerMobileApp({
                     {/* Floating Sliding Knob */}
                     <div 
                       style={{
-                        transform: `translateX(${isDark ? '36px' : '0px'})`,
+                        transform: `translateX(${isDark ? '40px' : '0px'})`,
                         transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)'
                       }}
-                      className={`w-7 h-7 rounded-full ${
+                      className={`w-8 h-8 rounded-full ${
                         isDark 
                           ? 'bg-[#4f5768] shadow-[2px_3px_8px_rgba(0,0,0,0.6),-1px_-1px_3px_rgba(255,255,255,0.08)]' 
                           : 'bg-[#ffffff] shadow-[2px_3px_6px_rgba(0,0,0,0.18),-1px_-1px_2px_rgba(255,255,255,0.9)]'
@@ -3578,7 +3672,7 @@ export default function CustomerMobileApp({
                       e.stopPropagation();
                       if (!isDark) toggleTheme();
                     }}
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
                       isDark 
                         ? 'bg-amber-400/15 text-amber-300 shadow-2xs scale-105' 
                         : 'text-zinc-400/50  '
@@ -3586,7 +3680,7 @@ export default function CustomerMobileApp({
                     title="Dark Mode"
                     aria-label="Dark Mode"
                   >
-                    <svg className={`w-4.5 h-4.5 transition-transform duration-300 ${isDark ? 'text-amber-300 fill-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.4)] rotate-0' : 'text-zinc-400/60 fill-zinc-400/60 rotate-12'}`} viewBox="0 0 24 24">
+                    <svg className={`w-5 h-5 transition-transform duration-300 ${isDark ? 'text-amber-300 fill-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.4)] rotate-0' : 'text-zinc-400/60 fill-zinc-400/60 rotate-12'}`} viewBox="0 0 24 24">
                       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                     </svg>
                   </button>
@@ -3594,12 +3688,12 @@ export default function CustomerMobileApp({
               </div>
 
               {/* In-App Update Option below theme toggle */}
-              <div className="pt-1.5">
+              <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => checkForUpdates(true)}
                   disabled={isCheckingUpdate}
-                  className={`w-full py-2 px-3.5 rounded-2xl flex items-center justify-between border cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
+                  className={`w-full py-2.5 px-3.5 rounded-2xl flex items-center justify-between border cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
                     isDark 
                       ? 'bg-[#1e232d] hover:bg-[#252b37] border-white/5 text-white' 
                       : 'bg-[#edf0f5] hover:bg-[#e4e8f0] border-zinc-200/90 text-zinc-900 shadow-2xs'
