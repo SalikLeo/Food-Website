@@ -19,6 +19,7 @@ import ItemDetailPage from './ItemDetailPage';
 import AppUpdateModal from '../AppUpdateModal';
 import { formatPrice, cleanDealInclusions, isMarketingDealDescription } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { notifyCustomerReviewSubmitted } from '../../services/notificationService';
 import { 
   getStoredCustomerUser, 
@@ -604,6 +605,16 @@ export default function CustomerMobileApp({
   };
 
   const handleGoogleLogin = async () => {
+    // If running in native Android APK, use deep-link bridge to avoid WebView popup postMessage blank screen
+    if (typeof window !== 'undefined' && (window.Capacitor?.isNativePlatform?.() || Capacitor.isNativePlatform?.())) {
+      try {
+        window.open('https://salikleo.website/mobile-google-auth.html', '_system');
+      } catch {
+        window.location.href = 'https://salikleo.website/mobile-google-auth.html';
+      }
+      return;
+    }
+
     setGoogleLoading(true);
     try {
       await triggerGoogleLogin({
@@ -677,6 +688,62 @@ export default function CustomerMobileApp({
       console.error(e);
     }
   };
+
+  // Handle incoming deep link authentication from mobile-google-auth.html (salikfood://auth?...)
+  useEffect(() => {
+    let urlHandle = null;
+    const setupDeepLinks = async () => {
+      try {
+        urlHandle = await CapApp.addListener('appUrlOpen', async ({ url }) => {
+          if (!url) return;
+          if (url.startsWith('salikfood://auth') || url.startsWith('salikfood://login')) {
+            try {
+              const parsed = new URL(url.replace(/^salikfood:\/\/[^?]*\?/, 'http://localhost/?'));
+              const email = (parsed.searchParams.get('email') || '').toLowerCase().trim();
+              const name = parsed.searchParams.get('name') || '';
+              const picture = parsed.searchParams.get('picture') || '';
+              if (email) {
+                const user = {
+                  name: name || email.split('@')[0],
+                  email,
+                  picture,
+                  loginMethod: 'google'
+                };
+                setCustomerUser(user);
+                setStoredCustomerUser(user);
+                if (typeof syncCustomerOrdersCloud === 'function') {
+                  syncCustomerOrdersCloud(email, checkoutForm.phone);
+                }
+                try {
+                  const cloudProf = await fetchCustomerCloudProfile(email);
+                  if (cloudProf) {
+                    const newName = checkoutForm.name || cloudProf.name || user.name || '';
+                    const newPhone = checkoutForm.phone || cloudProf.phone || '';
+                    const newAddress = checkoutForm.address || cloudProf.address || '';
+                    setCheckoutForm(prev => ({ ...prev, name: newName, phone: newPhone, address: newAddress }));
+                    setProfileForm({ name: newName, phone: newPhone, address: newAddress });
+                    saveStoredUserProfile({ name: newName, phone: newPhone, address: newAddress });
+                  }
+                } catch {}
+                window.dispatchEvent(new Event('salik_customer_auth_changed'));
+                setReorderToast(`Signed in as ${user.name || user.email}`);
+              }
+            } catch (err) {
+              console.error('Failed to parse appUrlOpen auth params:', err);
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('Capacitor appUrlOpen listener failed to setup:', e);
+      }
+    };
+    setupDeepLinks();
+    return () => {
+      if (urlHandle?.remove) {
+        urlHandle.remove();
+      }
+    };
+  }, [checkoutForm.phone]);
 
   const handleRequestLogout = () => {
     setShowLogoutConfirm(true);
