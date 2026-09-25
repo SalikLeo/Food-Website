@@ -30,8 +30,7 @@ public class MainActivity extends BridgeActivity {
                 settings.setUserAgentString(cleanUa);
             }
             settings.setJavaScriptCanOpenWindowsAutomatically(true);
-            settings.setSupportMultipleWindows(true);
-            webView.setWebChromeClient(new CustomWebChromeClient(getBridge(), this, cleanUa));
+            settings.setDomStorageEnabled(true);
         }
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
