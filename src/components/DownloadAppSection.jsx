@@ -129,8 +129,8 @@ export default function DownloadAppSection() {
                   <div className="w-5 h-1 rounded-full bg-zinc-800" />
                 </div>
 
-                {/* Inner Screen Preview - Authentic Mobile App UI */}
-                <div className="rounded-[2.3rem] overflow-hidden bg-[#faf8f5] text-zinc-900 p-3 pt-6 pb-3 space-y-2.5 relative select-none border border-zinc-200/60 shadow-inner flex flex-col justify-between min-h-[530px] sm:min-h-[550px]">
+                {/* Inner Screen Preview - Authentic Mobile App UI with tight natural spacing */}
+                <div className="rounded-[2.3rem] overflow-hidden bg-[#faf8f5] text-zinc-900 p-3 pt-6 pb-3 space-y-2.5 relative select-none border border-zinc-200/60 shadow-inner flex flex-col min-h-[540px] sm:min-h-[570px]">
                   
                   {/* 1. Top Navbar */}
                   <div className="flex items-center justify-between border-b border-zinc-200/80 pb-2 pt-1 px-0.5">
@@ -218,7 +218,7 @@ export default function DownloadAppSection() {
                   </div>
 
                   {/* 5. EXPLORE MENU Grid (2x2) */}
-                  <div className="space-y-1.5 relative">
+                  <div className="space-y-1.5 relative flex-1">
                     <div className="flex items-center justify-between px-0.5">
                       <span className="text-[9.5px] font-black text-zinc-900 tracking-tight uppercase">
                         EXPLORE MENU
@@ -231,7 +231,7 @@ export default function DownloadAppSection() {
                     <div className="grid grid-cols-2 gap-1.5">
                       {/* Pizza */}
                       <div className="p-1.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs text-center flex flex-col items-center">
-                        <div className="w-full h-12 rounded-lg overflow-hidden bg-zinc-50 mb-1 flex items-center justify-center">
+                        <div className="w-full h-14 rounded-lg overflow-hidden bg-zinc-50 mb-1 flex items-center justify-center">
                           <img src="/assets/images/cat-pizza-BmV7hCev.jpg" alt="Pizza" className="w-full h-full object-cover" />
                         </div>
                         <div className="text-[9px] font-bold text-zinc-900 leading-tight">Pizza</div>
@@ -240,11 +240,29 @@ export default function DownloadAppSection() {
 
                       {/* Burgers */}
                       <div className="p-1.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs text-center flex flex-col items-center">
-                        <div className="w-full h-12 rounded-lg overflow-hidden bg-zinc-50 mb-1 flex items-center justify-center">
+                        <div className="w-full h-14 rounded-lg overflow-hidden bg-zinc-50 mb-1 flex items-center justify-center">
                           <img src="/assets/images/cat-burgers-CfWIZ4YN.jpg" alt="Burgers" className="w-full h-full object-cover" />
                         </div>
                         <div className="text-[9px] font-bold text-zinc-900 leading-tight">Burgers</div>
                         <div className="text-[7px] text-zinc-500 font-medium">11 Items</div>
+                      </div>
+
+                      {/* Shawarma */}
+                      <div className="p-1.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs text-center flex flex-col items-center">
+                        <div className="w-full h-14 rounded-lg overflow-hidden bg-zinc-50 mb-1 flex items-center justify-center">
+                          <img src="/assets/images/cat-shawarma-D-OpXs-U.jpg" alt="Shawarma" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="text-[9px] font-bold text-zinc-900 leading-tight">Shawarma</div>
+                        <div className="text-[7px] text-zinc-500 font-medium">8 Items</div>
+                      </div>
+
+                      {/* Sandwiches */}
+                      <div className="p-1.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs text-center flex flex-col items-center">
+                        <div className="w-full h-14 rounded-lg overflow-hidden bg-zinc-50 mb-1 flex items-center justify-center">
+                          <img src="/assets/images/cat-sandwiches-bOG3zufR.jpg" alt="Sandwiches" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="text-[9px] font-bold text-zinc-900 leading-tight">Sandwiches</div>
+                        <div className="text-[7px] text-zinc-500 font-medium">6 Items</div>
                       </div>
                     </div>
 
@@ -260,7 +278,7 @@ export default function DownloadAppSection() {
                   </div>
 
                   {/* 6. Bottom Home Bar Indicator */}
-                  <div className="flex justify-center pt-0.5">
+                  <div className="flex justify-center pt-1.5 mt-auto">
                     <div className="w-20 h-1 bg-zinc-300 rounded-full" />
                   </div>
 
