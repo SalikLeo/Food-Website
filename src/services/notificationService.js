@@ -178,7 +178,7 @@ export async function showSystemNotification({ title, body, id, extra = {} }) {
             body,
             id: numId,
             channelId: 'orders_channel',
-            schedule: { at: new Date(Date.now() + 100) },
+            schedule: { at: new Date(Date.now() + 50), allowWhileIdle: true },
             extra
           }
         ]

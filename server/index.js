@@ -210,6 +210,7 @@ app.delete('/api/deals/:id', (req, res) => {
 
 // Orders Endpoints
 app.get('/api/orders', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.json(db.getOrders());
 });
 

@@ -8,6 +8,7 @@ import {
   getStatusNotificationDetails 
 } from '../services/notificationService';
 import { getStoredUserProfile, saveStoredUserProfile } from '../services/userProfile';
+import { App as CapApp } from '@capacitor/app';
 
 const CartContext = createContext();
 
@@ -181,13 +182,38 @@ export const CartProvider = ({ children }) => {
     }
   }, [cartItems]);
 
+  const getNotifiedStatuses = () => {
+    try {
+      const saved = localStorage.getItem('salik_notified_statuses');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  };
+
+  const markStatusNotified = (orderId, status) => {
+    try {
+      const cleanId = String(orderId).replace(/^#/, '');
+      const set = getNotifiedStatuses();
+      set.add(`${cleanId}_${status}`);
+      const arr = Array.from(set).slice(-100);
+      localStorage.setItem('salik_notified_statuses', JSON.stringify(arr));
+    } catch {}
+  };
+
   const syncRecentOrders = async () => {
     try {
       const saved = localStorage.getItem('salik_recent_orders');
       const localOrders = saved ? JSON.parse(saved) : [];
       if (!localOrders || !Array.isArray(localOrders) || localOrders.length === 0) return;
 
-      const res = await fetch(apiUrl('/api/orders'));
+      const res = await fetch(apiUrl(`/api/orders?_t=${Date.now()}`), {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      });
       if (!res.ok) return;
       const serverOrders = await res.json();
       if (!Array.isArray(serverOrders) || serverOrders.length === 0) return;
@@ -201,7 +227,9 @@ export const CartProvider = ({ children }) => {
         serverMap.set(cleanId, o);
       });
 
+      const notifiedSet = getNotifiedStatuses();
       let hasChanges = false;
+
       const updated = localOrders.map(localOrder => {
         if (!localOrder || !localOrder.id) return localOrder;
         const rawId = String(localOrder.id).trim();
@@ -209,27 +237,31 @@ export const CartProvider = ({ children }) => {
         const serverOrder = serverMap.get(rawId) || serverMap.get(cleanId);
         
         if (serverOrder) {
-          const statusChanged = serverOrder.status && serverOrder.status !== localOrder.status;
+          const currentServerStatus = String(serverOrder.status || localOrder.status || '').trim();
+          const localStatus = String(localOrder.status || 'Pending').trim();
+          const statusChanged = currentServerStatus && currentServerStatus !== localStatus;
           const totalChanged = serverOrder.total !== undefined && Number(serverOrder.total) !== Number(localOrder.total);
           const feeChanged = serverOrder.deliveryFee !== undefined && Number(serverOrder.deliveryFee) !== Number(localOrder.deliveryFee);
           const subtotalChanged = serverOrder.subtotal !== undefined && Number(serverOrder.subtotal) !== Number(localOrder.subtotal);
 
-          const currentServerStatus = serverOrder.status || localOrder.status;
-          const previousKnownStatus = knownStatusesRef.current.get(cleanId);
+          const statusNotifyKey = `${cleanId}_${currentServerStatus}`;
 
-          // If the app has loaded before and the status has changed on the server
-          if (initialSyncDoneRef.current && statusChanged && previousKnownStatus && previousKnownStatus !== currentServerStatus) {
+          // Instant notification if order progressed to Preparing, Out for Delivery, Delivered, or Cancelled
+          // and hasn't notified yet on this device
+          if (currentServerStatus && currentServerStatus !== 'Pending' && !notifiedSet.has(statusNotifyKey)) {
+            markStatusNotified(cleanId, currentServerStatus);
+            notifiedSet.add(statusNotifyKey);
+
             const details = getStatusNotificationDetails(currentServerStatus, cleanId, serverOrder.riderName);
             setActiveOrderNotification({
               order: { ...localOrder, ...serverOrder },
-              oldStatus: previousKnownStatus,
+              oldStatus: localStatus,
               newStatus: currentServerStatus,
               details,
               receivedAt: new Date()
             });
-            notifyCustomerOrderStatus(serverOrder, previousKnownStatus, currentServerStatus);
+            notifyCustomerOrderStatus(serverOrder, localStatus, currentServerStatus);
           }
-          knownStatusesRef.current.set(cleanId, currentServerStatus);
 
           const riderChanged = serverOrder.riderId !== localOrder.riderId ||
             serverOrder.riderName !== localOrder.riderName ||
@@ -250,15 +282,9 @@ export const CartProvider = ({ children }) => {
               updatedAt: serverOrder.updatedAt || new Date().toISOString()
             };
           }
-        } else {
-          if (!knownStatusesRef.current.has(cleanId)) {
-            knownStatusesRef.current.set(cleanId, localOrder.status || 'Pending');
-          }
         }
         return localOrder;
       });
-
-      initialSyncDoneRef.current = true;
 
       if (hasChanges) {
         setRecentOrders(updated);
@@ -316,6 +342,18 @@ export const CartProvider = ({ children }) => {
       syncRecentOrders();
     };
 
+    // Native Capacitor App Resume listener (wakes up sync immediately when app resumes from background)
+    let appStateHandle = null;
+    try {
+      CapApp.addListener('appStateChange', ({ isActive }) => {
+        if (isActive) {
+          syncRecentOrders();
+        }
+      }).then(handle => {
+        appStateHandle = handle;
+      }).catch(() => {});
+    } catch {}
+
     window.addEventListener('focus', onFocus);
     window.addEventListener('salik_sync_orders', onFocus);
     window.addEventListener('salik_order_status_updated', onDirectStatusUpdate);
@@ -324,6 +362,9 @@ export const CartProvider = ({ children }) => {
 
     return () => {
       clearInterval(interval);
+      if (appStateHandle?.remove) {
+        appStateHandle.remove();
+      }
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('salik_sync_orders', onFocus);
       window.removeEventListener('salik_order_status_updated', onDirectStatusUpdate);
@@ -335,7 +376,8 @@ export const CartProvider = ({ children }) => {
   const saveRecentOrder = (order) => {
     if (!order || !order.items) return;
     const cleanId = String(order.id).trim().replace(/^#/, '');
-    knownStatusesRef.current.set(cleanId, order.status || 'Pending');
+    // Mark initial Pending status as known so we don't duplicate notifications
+    markStatusNotified(cleanId, order.status || 'Pending');
     setRecentOrders(prev => {
       const filtered = prev.filter(o => o.id !== order.id);
       const updated = [order, ...filtered].slice(0, 20);
