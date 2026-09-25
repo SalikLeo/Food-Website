@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Minus, Trash2, Truck, AlertTriangle, ShoppingBag } from 'lucide-react';
+import { X, Plus, Minus, Trash2, Truck, AlertTriangle, ShoppingBag, WifiOff, Phone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice, cleanDealInclusions, formatDealDescription, isMarketingDealDescription } from '../utils/formatters';
 
@@ -367,6 +367,27 @@ export default function CartDrawer({ isDark: isDarkProp }) {
               }`}>
                 <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 <span className="font-medium">Some items are sold out today. Please remove them before checkout.</span>
+              </div>
+            )}
+
+            {/* Offline notice with Call button */}
+            {typeof navigator !== 'undefined' && !navigator.onLine && (
+              <div className={`p-3 rounded-xl border text-xs flex flex-col gap-2 font-montserrat ${
+                isDark 
+                  ? 'bg-red-950/40 border-red-500/30 text-red-200' 
+                  : 'bg-red-50 border-red-200 text-red-900'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <WifiOff className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <span className="font-bold">You are offline. To place your order directly:</span>
+                </div>
+                <a
+                  href="tel:03095369472"
+                  className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                >
+                  <Phone className="w-3.5 h-3.5 fill-current" />
+                  <span>Call Shop (0309-5369472)</span>
+                </a>
               </div>
             )}
 

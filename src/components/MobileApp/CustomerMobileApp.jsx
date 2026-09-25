@@ -4,7 +4,7 @@ import {
   MessageCircle, Menu, X, ShoppingBag, 
   Clock, MapPin, ChevronRight, ChevronDown, Check, Sparkles, Phone,
   Sun, Moon, RotateCcw, PackageCheck, ReceiptText, AlertCircle, Ban,
-  User, CheckCircle2, Send, Star, MessageSquareHeart, Truck, Bike
+  User, CheckCircle2, Send, Star, MessageSquareHeart, Truck, Bike, WifiOff
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { apiUrl } from '../../config/api';
@@ -915,6 +915,13 @@ export default function CustomerMobileApp({
     setCheckoutSubmitting(true);
     setCheckoutError('');
 
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setShowConfirmModal(false);
+      setCheckoutError('No internet connection. Please call our shop directly at 0309-5369472 to place your order.');
+      setCheckoutSubmitting(false);
+      return;
+    }
+
     try {
       const payload = {
         customerName: checkoutForm.name,
@@ -957,12 +964,12 @@ export default function CustomerMobileApp({
         switchView('orders');
       } else {
         setShowConfirmModal(false);
-        setCheckoutError(data.error || 'Failed to place order. Try again or use WhatsApp.');
+        setCheckoutError(data.error || 'Failed to place order. Try again, call 0309-5369472, or use WhatsApp.');
       }
     } catch (err) {
       console.error(err);
       setShowConfirmModal(false);
-      setCheckoutError('Network error. Please try WhatsApp ordering.');
+      setCheckoutError('No internet connection. Please call our shop directly at 0309-5369472 to place your order.');
     } finally {
       setCheckoutSubmitting(false);
     }
@@ -1636,35 +1643,76 @@ export default function CustomerMobileApp({
 
             {/* Product Cards List */}
             {categoryProducts.length === 0 ? (
-              <div className={`rounded-2xl p-8 border text-center space-y-3 ${
-                isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
-              }`}>
-                <div className={`w-12 h-12 rounded-2xl mx-auto flex items-center justify-center ${
-                  isDark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-50 text-orange-600'
+              typeof navigator !== 'undefined' && !navigator.onLine && !searchQuery.trim() ? (
+                <div className={`rounded-2xl p-7 border text-center space-y-3.5 ${
+                  isDark ? 'bg-[#141418] border-red-500/20' : 'bg-white border-red-200 shadow-2xs'
                 }`}>
-                  <Search className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className={`text-base font-bold font-montserrat uppercase tracking-tight ${
-                    isDark ? 'text-white' : 'text-zinc-900'
+                  <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${
+                    isDark ? 'bg-red-500/15 text-red-400' : 'bg-red-50 text-red-600'
                   }`}>
-                    No Food Items Found
-                  </h3>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                    {searchQuery.trim()
-                      ? `No dishes found matching "${searchQuery}" across any category.`
-                      : 'No items available in this category yet.'}
-                  </p>
+                    <WifiOff className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className={`text-base font-bold font-montserrat uppercase tracking-tight ${
+                      isDark ? 'text-white' : 'text-zinc-900'
+                    }`}>
+                      No Internet Connection
+                    </h3>
+                    <p className={`text-xs mt-1 max-w-xs mx-auto leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                      You are currently offline. Connect to the internet to load the menu, or call our shop directly to place your order:
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+                    <a
+                      href="tel:03095369472"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-95 transition-all"
+                    >
+                      <Phone className="w-4 h-4 fill-current" />
+                      <span>Call Shop (0309-5369472)</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => window.dispatchEvent(new CustomEvent('salik_check_online'))}
+                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border text-xs font-semibold cursor-pointer active:scale-95 transition-all ${
+                        isDark ? 'border-white/10 hover:bg-white/5 text-zinc-300' : 'border-zinc-300 hover:bg-zinc-50 text-zinc-700'
+                      }`}
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Retry</span>
+                    </button>
+                  </div>
                 </div>
-                {searchQuery.trim() && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="px-5 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-95 transition-all"
-                  >
-                    Clear Search
-                  </button>
-                )}
-              </div>
+              ) : (
+                <div className={`rounded-2xl p-8 border text-center space-y-3 ${
+                  isDark ? 'bg-[#141418] border-white/10' : 'bg-white border-zinc-200 shadow-2xs'
+                }`}>
+                  <div className={`w-12 h-12 rounded-2xl mx-auto flex items-center justify-center ${
+                    isDark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-50 text-orange-600'
+                  }`}>
+                    <Search className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className={`text-base font-bold font-montserrat uppercase tracking-tight ${
+                      isDark ? 'text-white' : 'text-zinc-900'
+                    }`}>
+                      No Food Items Found
+                    </h3>
+                    <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                      {searchQuery.trim()
+                        ? `No dishes found matching "${searchQuery}" across any category.`
+                        : 'No items available in this category yet.'}
+                    </p>
+                  </div>
+                  {searchQuery.trim() && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="px-5 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer active:scale-95 transition-all"
+                    >
+                      Clear Search
+                    </button>
+                  )}
+                </div>
+              )
             ) : (
               <div className="space-y-3">
                 {categoryProducts.map((product) => {
@@ -2718,9 +2766,20 @@ export default function CustomerMobileApp({
 
             {/* Error Alert */}
             {checkoutError && (
-              <div className="p-3.5 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-                <span>{checkoutError}</span>
+              <div className="p-3.5 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <span className="leading-snug">{checkoutError}</span>
+                </div>
+                {((typeof navigator !== 'undefined' && !navigator.onLine) || checkoutError.toLowerCase().includes('internet') || checkoutError.toLowerCase().includes('network') || checkoutError.includes('0309-5369472')) && (
+                  <a
+                    href="tel:03095369472"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-xs shrink-0 transition-all cursor-pointer whitespace-nowrap self-end sm:self-auto"
+                  >
+                    <Phone className="w-3.5 h-3.5 fill-current" />
+                    <span>Call 0309-5369472</span>
+                  </a>
+                )}
               </div>
             )}
 

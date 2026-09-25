@@ -1100,60 +1100,19 @@
       "paymentMethod": "Cash on Delivery",
       "items": [
         {
-          "cartKey": "pizza-4-Medium",
-          "id": "pizza-4",
-          "name": "Chicken Supreme",
-          "category": "pizza",
-          "size": "Medium",
-          "price": 800,
-          "image": "/assets/images/p-pizza-supreme-CJThciNL.jpg",
+          "name": "Mexican",
+          "size": "Large",
+          "price": 1200,
           "quantity": 1,
-          "description": "Loaded chicken, veggies and extra cheese",
-          "includes": null
-        },
-        {
-          "cartKey": "pizza-3-Medium",
-          "id": "pizza-3",
-          "name": "B.B.Q",
-          "category": "pizza",
-          "size": "Medium",
-          "price": 800,
-          "image": "/assets/images/p-pizza-bbq-xSPmnR0J.jpg",
-          "quantity": 1,
-          "description": "BBQ chicken, smoky sauce, onion rings",
-          "includes": null
-        },
-        {
-          "cartKey": "pizza-special-3-Medium",
-          "id": "pizza-special-3",
-          "name": "MP Special",
-          "category": "pizza",
-          "size": "Medium",
-          "price": 950,
-          "image": "/assets/images/p-pizza-special-CuXHdKll.jpg",
-          "quantity": 1,
-          "description": "Our signature loaded special pizza",
-          "includes": null
-        },
-        {
-          "cartKey": "pizza-2-Medium",
-          "id": "pizza-2",
-          "name": "Chicken Fajita",
-          "category": "pizza",
-          "size": "Medium",
-          "price": 800,
-          "image": "/assets/images/p-pizza-fajita-BB8kQFoB.jpg",
-          "quantity": 1,
-          "description": "Fajita chicken, bell pepper, onion, herbs",
-          "includes": null
+          "image": "/assets/images/p-pizza-mexican-B0yBG8F-.jpg"
         }
       ],
-      "subtotal": 3350,
+      "subtotal": 1200,
       "deliveryFee": 200,
-      "total": 3550,
+      "total": 1400,
       "status": "Preparing",
       "createdAt": "2026-09-23T19:31:37.399Z",
-      "updatedAt": "2026-09-24T16:38:02.381Z",
+      "updatedAt": "2026-09-24T16:39:06.807Z",
       "riderId": null,
       "riderName": null,
       "riderPhone": null

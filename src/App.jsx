@@ -15,6 +15,7 @@ import UserProfileModal from './components/UserProfileModal';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
+import OfflineNotice from './components/OfflineNotice';
 import { CartProvider, useCart } from './context/CartContext';
 import { apiUrl, APP_MODE, isCustomerApp } from './config/api';
 
@@ -29,12 +30,42 @@ export default function App() {
     return Boolean(localStorage.getItem('salik_admin_token') || localStorage.getItem('mehrban_admin_token'));
   });
 
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [deals, setDeals] = useState([]);
-  const [familyDeal, setFamilyDeal] = useState(null);
-  const [faqs, setFaqs] = useState([]);
-  const [settings, setSettings] = useState(null);
+  const [categories, setCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salik_cached_categories');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [products, setProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salik_cached_products');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [deals, setDeals] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salik_cached_deals');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [familyDeal, setFamilyDeal] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salik_cached_family_deal');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+  const [faqs, setFaqs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salik_cached_faqs');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('salik_cached_settings');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
   const [loading, setLoading] = useState(true);
 
   // Sync hash/path for admin
@@ -57,12 +88,30 @@ export default function App() {
         fetch(apiUrl('/api/settings')).then(r => r.json()).catch(() => null)
       ]);
 
-      if (Array.isArray(catsRes) && catsRes.length > 0) setCategories(catsRes);
-      if (Array.isArray(prodsRes) && prodsRes.length > 0) setProducts(prodsRes);
-      if (dealsRes?.deals) setDeals(dealsRes.deals);
-      if (dealsRes?.familyDeal) setFamilyDeal(dealsRes.familyDeal);
-      if (Array.isArray(faqsRes) && faqsRes.length > 0) setFaqs(faqsRes);
-      if (settingsRes) setSettings(settingsRes);
+      if (Array.isArray(catsRes) && catsRes.length > 0) {
+        setCategories(catsRes);
+        try { localStorage.setItem('salik_cached_categories', JSON.stringify(catsRes)); } catch {}
+      }
+      if (Array.isArray(prodsRes) && prodsRes.length > 0) {
+        setProducts(prodsRes);
+        try { localStorage.setItem('salik_cached_products', JSON.stringify(prodsRes)); } catch {}
+      }
+      if (dealsRes?.deals) {
+        setDeals(dealsRes.deals);
+        try { localStorage.setItem('salik_cached_deals', JSON.stringify(dealsRes.deals)); } catch {}
+      }
+      if (dealsRes?.familyDeal) {
+        setFamilyDeal(dealsRes.familyDeal);
+        try { localStorage.setItem('salik_cached_family_deal', JSON.stringify(dealsRes.familyDeal)); } catch {}
+      }
+      if (Array.isArray(faqsRes) && faqsRes.length > 0) {
+        setFaqs(faqsRes);
+        try { localStorage.setItem('salik_cached_faqs', JSON.stringify(faqsRes)); } catch {}
+      }
+      if (settingsRes) {
+        setSettings(settingsRes);
+        try { localStorage.setItem('salik_cached_settings', JSON.stringify(settingsRes)); } catch {}
+      }
     } catch (e) {
       console.error('Error fetching storefront data:', e);
     } finally {
@@ -72,6 +121,15 @@ export default function App() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Listen to reconnection events from OfflineNotice
+  useEffect(() => {
+    const handleRetry = () => {
+      loadData();
+    };
+    window.addEventListener('salik_retry_connection', handleRetry);
+    return () => window.removeEventListener('salik_retry_connection', handleRetry);
   }, []);
 
   const handleOpenAdmin = () => {
@@ -93,6 +151,7 @@ export default function App() {
 
   return (
     <CartProvider>
+      <OfflineNotice />
       {isAdminView ? (
         isAdminAuthenticated ? (
           <AdminDashboard
