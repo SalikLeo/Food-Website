@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  Download, Zap, Bike, Bell, CheckCircle2, Search, User, Menu as MenuIcon, ShoppingBag
+  Download, Zap, Bike, Bell, CheckCircle2, Search, User, Menu as MenuIcon, ShoppingBag, Clock
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
@@ -12,17 +12,22 @@ export default function DownloadAppSection() {
     {
       icon: Zap,
       title: 'Fast 1-Tap Ordering',
-      desc: 'Browse full menu, customize deals, and checkout in seconds.'
+      desc: 'Browse complete menu, customize deals, and checkout in seconds.'
     },
     {
       icon: Bell,
+      title: 'Instant Order Alerts',
+      desc: 'Sound alerts and live kitchen notifications when your food is ready.'
+    },
+    {
+      icon: Clock,
       title: 'Live Order Tracking',
-      desc: 'Real-time kitchen status updates and order alerts.'
+      desc: 'Track order progress from preparation straight to your doorstep.'
     },
     {
       icon: Bike,
       title: 'Direct Rider Connect',
-      desc: 'Quick WhatsApp & phone contact with your assigned rider.'
+      desc: 'Direct WhatsApp & phone contact with your assigned delivery rider.'
     }
   ];
 
@@ -40,10 +45,10 @@ export default function DownloadAppSection() {
             ? 'bg-gradient-to-br from-[#141418] via-[#101014] to-[#0c0c0f] border-white/10' 
             : 'bg-gradient-to-br from-white via-orange-50/30 to-amber-50/40 border-zinc-200'
         }`}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
-            {/* Left Column: Heading, 3 Highlights, Download CTA */}
-            <div className="lg:col-span-7 space-y-6">
+            {/* Left Column: Heading, 4 Highlights (2x2 Grid), Download CTA */}
+            <div className="lg:col-span-7 flex flex-col justify-center py-2 sm:py-4 space-y-6 sm:space-y-7">
               
               <div className="space-y-2">
                 <span className="text-xs font-bold tracking-[0.2em] text-orange-500 sm:text-orange-600 uppercase block">
@@ -56,36 +61,36 @@ export default function DownloadAppSection() {
                   GET THE SALIK <span className="text-orange-500">MOBILE APP</span>
                 </h2>
                 
-                <p className={`text-xs sm:text-sm leading-relaxed max-w-lg ${
+                <p className={`text-xs sm:text-sm leading-relaxed max-w-xl ${
                   isDark ? 'text-zinc-400' : 'text-zinc-600'
                 }`}>
-                  Enjoy the fastest food ordering experience in Wah Cantt with live tracking and instant notifications.
+                  Enjoy the fastest food ordering experience in Wah Cantt with live tracking, sound alerts, and instant kitchen notifications.
                 </p>
               </div>
 
-              {/* 3 Streamlined Highlights */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* 4 Highlights Arranged in 2x2 Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
                 {appHighlights.map((item, idx) => {
                   const Icon = item.icon;
                   return (
                     <div 
                       key={idx} 
-                      className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all ${
+                      className={`p-4 rounded-2xl border flex items-start gap-3.5 transition-all ${
                         isDark 
-                          ? 'bg-zinc-900/50 border-white/5' 
-                          : 'bg-white border-zinc-200/80 shadow-2xs'
+                          ? 'bg-zinc-900/60 border-white/5 hover:border-orange-500/30' 
+                          : 'bg-white border-zinc-200/90 shadow-2xs hover:border-orange-500/40'
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center shrink-0 text-orange-500">
-                        <Icon className="w-4 h-4" />
+                      <div className="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center shrink-0 text-orange-500">
+                        <Icon className="w-4.5 h-4.5" />
                       </div>
-                      <div>
+                      <div className="space-y-0.5 min-w-0">
                         <h3 className={`text-xs font-bold uppercase tracking-wide ${
                           isDark ? 'text-white' : 'text-zinc-900'
                         }`}>
                           {item.title}
                         </h3>
-                        <p className={`text-[11px] leading-tight mt-0.5 ${
+                        <p className={`text-[11px] leading-relaxed ${
                           isDark ? 'text-zinc-400' : 'text-zinc-600'
                         }`}>
                           {item.desc}
@@ -101,7 +106,7 @@ export default function DownloadAppSection() {
                 <a
                   href="/downloads/Salik-Fast-Food-Customer.apk"
                   download="Salik-Fast-Food-Customer.apk"
-                  className="inline-flex items-center justify-center gap-3 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-orange-500/20 active:scale-98 transition-all group cursor-pointer"
+                  className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-orange-500/20 active:scale-98 transition-all group cursor-pointer"
                 >
                   <Download className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-y-0.5 transition-transform" />
                   <span>Download Customer App (.APK)</span>
