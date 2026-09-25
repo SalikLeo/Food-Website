@@ -37,6 +37,15 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
 
   useEffect(() => {
     setMounted(true);
+    const handleAuthChange = () => {
+      setCustomerUser(getStoredCustomerUser());
+    };
+    window.addEventListener('salik_customer_auth_changed', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      window.removeEventListener('salik_customer_auth_changed', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
   }, []);
 
   const handleGoogleLogin = async () => {
@@ -46,6 +55,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
         onSuccess: (user) => {
           setCustomerUser(user);
           setGoogleLoading(false);
+          window.dispatchEvent(new Event('salik_customer_auth_changed'));
         },
         onError: (err) => {
           setGoogleLoading(false);
@@ -65,6 +75,7 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
   const handleCustomerLogout = () => {
     clearStoredCustomerUser();
     setCustomerUser(null);
+    window.dispatchEvent(new Event('salik_customer_auth_changed'));
   };
 
 
@@ -257,15 +268,26 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               <button
                 id="header-profile-btn"
                 onClick={() => openProfileModal('profile')}
-                className={`relative p-2.5 rounded-full ${
+                className={`relative rounded-full transition-all focus:outline-none cursor-pointer flex items-center justify-center ${
+                  customerUser?.picture ? 'p-0.5 border-2 border-orange-500' : 'p-2.5 border'
+                } ${
                   isDark
                     ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:text-white hover:border-primary/50'
                     : 'bg-white border-zinc-200/90 text-zinc-700 hover:text-orange-600 hover:border-primary/50 shadow-2xs'
-                } border transition-all focus:outline-none cursor-pointer`}
+                }`}
                 aria-label="View Profile & Orders"
-                title="View Profile & Orders"
+                title={customerUser ? `Logged in as ${customerUser.name}` : "View Profile & Orders"}
               >
-                <User className={`w-5 h-5 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
+                {customerUser?.picture ? (
+                  <img
+                    src={customerUser.picture}
+                    alt={customerUser.name}
+                    className="w-8 h-8 rounded-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <User className={`w-5 h-5 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
+                )}
               </button>
             )}
 

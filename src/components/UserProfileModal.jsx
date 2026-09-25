@@ -136,6 +136,19 @@ export default function UserProfileModal() {
     }, 3000);
   };
 
+  // Sync auth state across components
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setCustomerUser(getStoredCustomerUser());
+    };
+    window.addEventListener('salik_customer_auth_changed', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      window.removeEventListener('salik_customer_auth_changed', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
+
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     try {
@@ -143,6 +156,7 @@ export default function UserProfileModal() {
         onSuccess: (user) => {
           setCustomerUser(user);
           setGoogleLoading(false);
+          window.dispatchEvent(new Event('salik_customer_auth_changed'));
           // If profile name is empty, auto-fill with Google name
           if (!name && user?.name) {
             setName(user.name);
@@ -171,6 +185,7 @@ export default function UserProfileModal() {
   const handleCustomerLogout = () => {
     clearStoredCustomerUser();
     setCustomerUser(null);
+    window.dispatchEvent(new Event('salik_customer_auth_changed'));
   };
 
   const handleSubmitOrderReview = async (order) => {
@@ -495,6 +510,93 @@ export default function UserProfileModal() {
                   Auto-fill Checkout
                 </span>
               </div>
+
+              {/* Google Sign-in / Connected Account Card */}
+              {customerUser ? (
+                <div className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 ${
+                  isDark ? 'bg-white/5 border-white/10' : 'bg-orange-50/60 border-orange-200/80'
+                }`}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    {customerUser.picture ? (
+                      <img
+                        src={customerUser.picture}
+                        alt={customerUser.name}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-orange-500/60 shrink-0"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white font-bold flex items-center justify-center text-sm shrink-0">
+                        {customerUser.name?.[0] || 'U'}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs sm:text-sm font-bold truncate ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                          {customerUser.name}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                          Google Verified
+                        </span>
+                      </div>
+                      <div className={`text-xs truncate ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                        {customerUser.email || 'Logged in with Google'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCustomerLogout}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer active:scale-95 shrink-0 ${
+                      isDark 
+                        ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' 
+                        : 'border-red-200 text-red-600 hover:bg-red-50'
+                    }`}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                  isDark ? 'bg-white/5 border-white/10' : 'bg-zinc-50 border-zinc-200'
+                }`}>
+                  <div className="space-y-0.5">
+                    <h4 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                      Sign in with Google
+                    </h4>
+                    <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                      Quickly connect your Google account to auto-fill details on checkout.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    disabled={googleLoading}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-800 border border-zinc-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer shrink-0"
+                  >
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                      />
+                    </svg>
+                    <span>{googleLoading ? 'Connecting...' : 'Login with Google'}</span>
+                  </button>
+                </div>
+              )}
 
               {/* Profile Details Form */}
               <form onSubmit={handleSaveProfile} className="space-y-4">
