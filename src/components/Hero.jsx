@@ -128,8 +128,8 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
               </div>
 
               <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 text-amber-400 font-bold text-sm">
-                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                <div className="flex items-center gap-1.5 text-orange-400 font-bold text-sm">
+                  <Star className="w-4 h-4 fill-orange-400 text-orange-400" />
                   <span>4.8 / 5</span>
                 </div>
                 <span className={`text-xs ${isDark ? 'text-zinc-300' : 'text-zinc-600'} font-semibold uppercase tracking-wider mt-1`}>

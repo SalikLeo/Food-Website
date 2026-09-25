@@ -26,8 +26,8 @@ export default function ContactSection() {
           </h2>
         </div>
 
-        {/* 6 Information Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        {/* 3 Information Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           
           {/* 1. Location */}
           <div className={`${isDark ? 'bg-[#141419] border-white/10 hover:border-orange-500/50 shadow-card-dark' : 'bg-white border-zinc-200 hover:border-orange-500/50 shadow-sm'} rounded-2xl p-6 border flex flex-col justify-between transition-colors`}>
@@ -61,62 +61,17 @@ export default function ContactSection() {
             </div>
           </div>
 
-          {/* 3. Timings */}
-          <div className={`${isDark ? 'bg-[#141419] border-white/10 hover:border-orange-500/50 shadow-card-dark' : 'bg-white border-zinc-200 hover:border-orange-500/50 shadow-sm'} rounded-2xl p-6 border flex flex-col justify-between transition-colors`}>
-            <div className="space-y-3">
-              <div className={`w-10 h-10 rounded-xl ${isDark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-50 text-orange-600'} flex items-center justify-center`}>
-                <Clock className="w-5 h-5" />
-              </div>
-              <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-zinc-900'} uppercase tracking-wide`}>
-                Timings
-              </h3>
-              <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-xs leading-relaxed`}>
-                Please call to confirm today's timings
-              </p>
-            </div>
-          </div>
-
-          {/* 4. Home Delivery */}
+          {/* 3. Delivery Fee */}
           <div className={`${isDark ? 'bg-[#141419] border-white/10 hover:border-orange-500/50 shadow-card-dark' : 'bg-white border-zinc-200 hover:border-orange-500/50 shadow-sm'} rounded-2xl p-6 border flex flex-col justify-between transition-colors`}>
             <div className="space-y-3">
               <div className={`w-10 h-10 rounded-xl ${isDark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-50 text-orange-600'} flex items-center justify-center`}>
                 <Truck className="w-5 h-5" />
               </div>
               <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-zinc-900'} uppercase tracking-wide`}>
-                Home Delivery
+                Delivery Fee
               </h3>
               <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-xs leading-relaxed`}>
                 <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>Delivery fee {fee === 0 ? 'Free' : `Rs. ${fee}`}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* 5. Minimum Order */}
-          <div className={`${isDark ? 'bg-[#141419] border-white/10 hover:border-orange-500/50 shadow-card-dark' : 'bg-white border-zinc-200 hover:border-orange-500/50 shadow-sm'} rounded-2xl p-6 border flex flex-col justify-between transition-colors`}>
-            <div className="space-y-3">
-              <div className={`w-10 h-10 rounded-xl ${isDark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-50 text-orange-600'} flex items-center justify-center`}>
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-              <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-zinc-900'} uppercase tracking-wide`}>
-                Minimum Order
-              </h3>
-              <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-xs leading-relaxed`}>
-                Rs. {min} for home delivery
-              </p>
-            </div>
-          </div>
-
-          {/* 6. WhatsApp Support */}
-          <div className={`${isDark ? 'bg-[#141419] border-white/10 hover:border-orange-500/50 shadow-card-dark' : 'bg-white border-zinc-200 hover:border-orange-500/50 shadow-sm'} rounded-2xl p-6 border flex flex-col justify-between transition-colors`}>
-            <div className="space-y-3">
-              <div className={`w-10 h-10 rounded-xl ${isDark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-50 text-orange-600'} flex items-center justify-center`}>
-                <WhatsAppIcon className="w-5 h-5" />
-              </div>
-              <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-zinc-900'} uppercase tracking-wide`}>
-                WhatsApp Support
-              </h3>
-              <p className={`${isDark ? 'text-zinc-400' : 'text-zinc-600'} text-xs leading-relaxed`}>
-                Chat with us anytime on WhatsApp
               </p>
             </div>
           </div>
