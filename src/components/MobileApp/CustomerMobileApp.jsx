@@ -3545,22 +3545,13 @@ export default function CustomerMobileApp({
                       <span className="text-xs font-bold block leading-tight">
                         {isCheckingUpdate ? 'Checking for updates...' : 'Check for Updates'}
                       </span>
-                      <span className={`text-[10px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                        Version {APP_VERSION}
-                      </span>
                     </div>
                   </div>
 
-                  {hasUpdate ? (
+                  {hasUpdate && (
                     <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold shadow-xs animate-pulse flex items-center gap-1">
                       <Sparkles className="w-3 h-3" />
                       Update
-                    </span>
-                  ) : (
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                      isDark ? 'bg-white/5 text-zinc-400' : 'bg-white text-zinc-500 border border-zinc-200'
-                    }`}>
-                      v{APP_VERSION}
                     </span>
                   )}
                 </button>

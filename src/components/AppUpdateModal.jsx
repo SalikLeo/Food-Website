@@ -5,10 +5,7 @@ import {
   DownloadCloud, 
   X, 
   ExternalLink, 
-  RefreshCw, 
-  ShieldCheck, 
-  Smartphone,
-  ArrowRight
+  RefreshCw 
 } from 'lucide-react';
 
 export default function AppUpdateModal({
@@ -109,18 +106,6 @@ export default function AppUpdateModal({
               </p>
             </div>
 
-            <div className={`p-3 rounded-2xl border flex items-center justify-between text-xs font-semibold ${
-              isDark ? 'bg-white/5 border-white/5 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-700'
-            }`}>
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                Current Version
-              </span>
-              <span className="font-mono px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-500 text-[11px] font-bold">
-                v{currentVersion}
-              </span>
-            </div>
-
             <div className="pt-2 flex flex-col gap-2">
               <button
                 type="button"
@@ -163,29 +148,12 @@ export default function AppUpdateModal({
               </div>
             </div>
 
-            {/* Version Diff Pill */}
-            <div className={`p-3 rounded-2xl border flex items-center justify-between text-xs font-semibold ${
-              isDark ? 'bg-white/5 border-white/5' : 'bg-zinc-50 border-zinc-200'
-            }`}>
-              <div className="flex items-center gap-1.5">
-                <Smartphone className="w-4 h-4 text-zinc-400" />
-                <span className={isDark ? 'text-zinc-400' : 'text-zinc-500'}>Your Version:</span>
-                <span className="font-mono text-zinc-400 line-through">v{currentVersion}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <ArrowRight className="w-3.5 h-3.5 text-orange-500" />
-                <span className="font-mono px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-500 text-[11px] font-bold">
-                  v{remoteVersion}
-                </span>
-              </div>
-            </div>
-
             {/* Release Notes */}
             <div>
               <span className={`text-[11px] font-bold uppercase tracking-wider block mb-2 ${
                 isDark ? 'text-zinc-400' : 'text-zinc-500'
               }`}>
-                What's New in This Version:
+                What's New:
               </span>
               <ul className={`space-y-1.5 text-xs rounded-2xl p-3 border ${
                 isDark ? 'bg-black/20 border-white/5 text-zinc-300' : 'bg-zinc-50/80 border-zinc-200 text-zinc-700'
