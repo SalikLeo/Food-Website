@@ -11,6 +11,7 @@
     "start": "node server/index.js",
     "server": "node server/index.js",
     "build": "vite build",
+    "postinstall": "vite build",
     "build:customer": "cross-env VITE_APP_MODE=customer vite build --outDir Mobile/customer/www && cd Mobile/customer && npx cap copy android",
     "build:admin": "cross-env VITE_APP_MODE=admin vite build --outDir Mobile/admin/www && cd Mobile/admin && npx cap copy android",
     "preview": "vite preview",
