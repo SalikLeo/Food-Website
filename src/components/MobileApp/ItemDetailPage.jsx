@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ArrowLeft, ShoppingBag, Plus, Minus, Check, Flame, 
   Share2, AlertCircle, Utensils
@@ -86,8 +86,28 @@ export default function ItemDetailPage({
     }
   };
 
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleSmoothBack = () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      onBack();
+    }, 180);
+  };
+
+  useEffect(() => {
+    const handleEventBack = () => {
+      handleSmoothBack();
+    };
+    window.addEventListener('salik_trigger_item_detail_back', handleEventBack);
+    return () => window.removeEventListener('salik_trigger_item_detail_back', handleEventBack);
+  }, [isClosing]);
+
   return (
     <div className={`min-h-screen pb-32 font-sans transition-colors duration-200 select-none ${
+      isClosing ? 'animate-page-exit' : 'animate-page-enter'
+    } ${
       isDark ? 'bg-[#0f0f13] text-white' : 'bg-[#faf8f5] text-zinc-900'
     }`}>
       
@@ -97,7 +117,7 @@ export default function ItemDetailPage({
       }`}>
         <button
           type="button"
-          onClick={onBack}
+          onClick={handleSmoothBack}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer ${
             isDark ? 'bg-white/10 hover:bg-white/15 text-white' : 'bg-white hover:bg-zinc-100 text-zinc-800 shadow-xs border border-zinc-200'
           }`}

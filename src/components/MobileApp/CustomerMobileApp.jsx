@@ -645,7 +645,7 @@ export default function CustomerMobileApp({
             return;
           }
           if (currentView === 'item-detail') {
-            handleCloseItemDetail();
+            window.dispatchEvent(new CustomEvent('salik_trigger_item_detail_back'));
             return;
           }
           if (currentView === 'profile') {
@@ -1163,6 +1163,7 @@ export default function CustomerMobileApp({
       
       {currentView === 'item-detail' && detailItem ? (
         <ItemDetailPage
+          key={detailItem.id || 'item-detail'}
           item={detailItem}
           isDeal={isDetailDeal}
           isDark={isDark}
@@ -1741,7 +1742,7 @@ export default function CustomerMobileApp({
                 )}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div key={selectedCatId + (searchQuery ? `_${searchQuery}` : '')} className="space-y-3 animate-tab-fade">
                 {categoryProducts.map((product) => {
                   const size = getSelectedSize(product);
                   const displayPrice = size?.price !== undefined ? size.price : product.price;
