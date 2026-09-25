@@ -194,16 +194,21 @@ export default function CustomerMobileApp({
   // Single Item / Deal Detail Page state
   const [detailItem, setDetailItem] = useState(null);
   const [isDetailDeal, setIsDetailDeal] = useState(false);
+  const [openingItemId, setOpeningItemId] = useState(null);
 
   const handleOpenItemDetail = (item, isDeal = false) => {
     if (!item) return;
-    setDetailItem(item);
-    setIsDetailDeal(isDeal);
-    if (currentView !== 'item-detail') {
-      setPreviousView(currentView);
-    }
-    setCurrentView('item-detail');
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    setOpeningItemId(item.id);
+    setTimeout(() => {
+      setDetailItem(item);
+      setIsDetailDeal(isDeal);
+      if (currentView !== 'item-detail') {
+        setPreviousView(currentView);
+      }
+      setCurrentView('item-detail');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      setOpeningItemId(null);
+    }, 130);
   };
 
   const handleCloseItemDetail = () => {
@@ -1559,7 +1564,9 @@ export default function CustomerMobileApp({
                     <div
                       key={deal.id}
                       onClick={() => handleOpenItemDetail(deal, true)}
-                      className={`min-w-[240px] max-w-[240px] rounded-2xl p-3.5 flex flex-col justify-between flex-shrink-0 cursor-pointer active:scale-[0.98] transition-transform ${
+                      className={`min-w-[240px] max-w-[240px] rounded-2xl p-3.5 flex flex-col justify-between flex-shrink-0 cursor-pointer transition-all duration-150 ${
+                        openingItemId === deal.id ? 'scale-[0.97] opacity-80' : 'active:scale-[0.98]'
+                      } ${
                         isDark 
                           ? 'bg-[#16161b] border border-white/10 shadow-lg' 
                           : 'bg-white border border-zinc-200 shadow-sm'
@@ -1754,7 +1761,9 @@ export default function CustomerMobileApp({
                     <div
                       key={product.id}
                       onClick={() => handleOpenItemDetail(product, false)}
-                      className={`rounded-2xl p-3.5 border cursor-pointer active:scale-[0.99] transition-transform ${
+                      className={`rounded-2xl p-3.5 border cursor-pointer transition-all duration-150 ${
+                        openingItemId === product.id ? 'scale-[0.97] opacity-80' : 'active:scale-[0.99]'
+                      } ${
                         isOutOfStock 
                           ? (isDark ? 'bg-[#15151a] border-red-900/30 opacity-75' : 'bg-zinc-50 border-zinc-200 opacity-75')
                           : isDark 
@@ -1955,7 +1964,9 @@ export default function CustomerMobileApp({
             {featuredDeal && (
               <div 
                 onClick={() => handleOpenItemDetail(featuredDeal, true)}
-                className={`rounded-3xl p-4 border shadow-xl space-y-3.5 cursor-pointer active:scale-[0.99] transition-transform ${
+                className={`rounded-3xl p-4 border shadow-xl space-y-3.5 cursor-pointer transition-all duration-150 ${
+                  openingItemId === featuredDeal.id ? 'scale-[0.97] opacity-80' : 'active:scale-[0.99]'
+                } ${
                   isDark 
                     ? 'bg-gradient-to-br from-amber-950/60 via-zinc-900 to-black border-amber-500/30' 
                     : 'bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 border-amber-400 text-white'
@@ -2024,7 +2035,9 @@ export default function CustomerMobileApp({
                 <div
                   key={deal.id}
                   onClick={() => handleOpenItemDetail(deal, true)}
-                  className={`rounded-2xl p-4 border shadow-md space-y-3 cursor-pointer active:scale-[0.99] transition-transform ${
+                  className={`rounded-2xl p-4 border shadow-md space-y-3 cursor-pointer transition-all duration-150 ${
+                    openingItemId === deal.id ? 'scale-[0.97] opacity-80' : 'active:scale-[0.99]'
+                  } ${
                     isDark ? 'bg-[#15151a] border-white/10' : 'bg-white border-zinc-200'
                   }`}
                 >

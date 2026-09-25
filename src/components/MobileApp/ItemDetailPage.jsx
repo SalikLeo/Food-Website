@@ -93,7 +93,7 @@ export default function ItemDetailPage({
     setIsClosing(true);
     setTimeout(() => {
       onBack();
-    }, 250);
+    }, 190);
   };
 
   useEffect(() => {
