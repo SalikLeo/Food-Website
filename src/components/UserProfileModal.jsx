@@ -13,7 +13,9 @@ import {
   ArrowRight,
   Loader2,
   FileText,
-  Bike
+  Bike,
+  Flame,
+  Utensils
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/formatters';
@@ -596,17 +598,40 @@ export default function UserProfileModal() {
                   <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'} max-w-sm mx-auto`}>
                     You haven't placed any orders from this device yet. Explore our mouth-watering menu and place your order!
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      closeProfileModal();
-                      const menuSec = document.getElementById('menu');
-                      if (menuSec) menuSec.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
-                  >
-                    Browse Menu
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeProfileModal();
+                        const dealsSec = document.getElementById('deals');
+                        if (dealsSec) {
+                          dealsSec.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          window.location.hash = 'deals';
+                        }
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+                    >
+                      <Flame className="w-3.5 h-3.5 fill-white text-white" />
+                      <span>View Deals</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeProfileModal();
+                        const menuSec = document.getElementById('menu');
+                        if (menuSec) {
+                          menuSec.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          window.location.hash = 'menu';
+                        }
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+                    >
+                      <Utensils className="w-3.5 h-3.5" />
+                      <span>Browse Menu</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">

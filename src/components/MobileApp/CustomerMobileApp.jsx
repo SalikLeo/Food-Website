@@ -2205,14 +2205,21 @@ export default function CustomerMobileApp({
 
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
                   <button
-                    onClick={() => switchView('home')}
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
+                    onClick={() => switchView('deals')}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    Browse Menu
+                    <Flame className="w-3.5 h-3.5 fill-white text-white" />
+                    <span>View Deals</span>
+                  </button>
+                  <button
+                    onClick={() => switchView('home')}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <span>Browse Menu</span>
                   </button>
                   <button
                     onClick={handleLoadSampleOrder}
-                    className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
+                    className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
                       isDark 
                         ? 'bg-zinc-800 border-white/10 text-zinc-300 ' 
                         : 'bg-zinc-100 border-zinc-200 text-zinc-700 '
