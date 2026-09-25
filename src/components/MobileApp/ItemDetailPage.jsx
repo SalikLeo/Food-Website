@@ -105,11 +105,12 @@ export default function ItemDetailPage({
   }, [isClosing]);
 
   return (
-    <div className={`min-h-screen pb-32 font-sans transition-colors duration-200 select-none ${
-      isClosing ? 'animate-page-exit' : 'animate-page-enter'
-    } ${
-      isDark ? 'bg-[#0f0f13] text-white' : 'bg-[#faf8f5] text-zinc-900'
-    }`}>
+    <>
+      <div className={`min-h-screen pb-32 font-sans transition-colors duration-200 select-none ${
+        isClosing ? 'animate-page-exit' : 'animate-page-enter'
+      } ${
+        isDark ? 'bg-[#0f0f13] text-white' : 'bg-[#faf8f5] text-zinc-900'
+      }`}>
       
       {/* Sticky Top Navigation Bar */}
       <div className={`sticky top-0 z-40 backdrop-blur-md border-b px-4 py-3 flex items-center justify-between transition-colors ${
@@ -271,20 +272,15 @@ export default function ItemDetailPage({
               </span>
             </div>
 
-            <div className="flex items-stretch gap-2.5 pt-1 overflow-x-auto no-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
               {item.sizes.map((sz, idx) => {
                 const isSelected = selectedSize?.label === sz.label;
-                const isTwoSizes = item.sizes.length <= 2;
                 return (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setSelectedSize(sz)}
-                    className={`flex-1 ${
-                      isTwoSizes 
-                        ? 'min-w-0 p-3 sm:p-3.5 flex items-center justify-between gap-2' 
-                        : 'min-w-[95px] p-2.5 sm:p-3 flex flex-col items-center justify-center text-center gap-1'
-                    } rounded-2xl border transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between sm:flex-col sm:items-start gap-1.5 ${
                       isSelected
                         ? 'bg-orange-500 border-orange-600 text-white shadow-md shadow-orange-500/25 scale-[1.01]'
                         : isDark
@@ -292,17 +288,17 @@ export default function ItemDetailPage({
                           : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200 text-zinc-800'
                     }`}
                   >
-                    <div className={isTwoSizes ? 'text-left min-w-0' : 'text-center'}>
-                      <span className={`block font-bold text-xs sm:text-sm truncate ${isSelected ? 'text-white' : isDark ? 'text-white' : 'text-zinc-900'}`}>
+                    <div>
+                      <span className={`block font-bold text-sm ${isSelected ? 'text-white' : isDark ? 'text-white' : 'text-zinc-900'}`}>
                         {sz.label}
                       </span>
                       {sz.description && (
-                        <span className={`block text-[10px] mt-0.5 truncate ${isSelected ? 'text-white/80' : isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                        <span className={`block text-[11px] mt-0.5 ${isSelected ? 'text-white/80' : isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                           {sz.description}
                         </span>
                       )}
                     </div>
-                    <span className={`font-black text-xs sm:text-sm whitespace-nowrap shrink-0 ${isSelected ? 'text-white' : 'text-orange-500'}`}>
+                    <span className={`font-black text-sm sm:text-base ${isSelected ? 'text-white' : 'text-orange-500'}`}>
                       Rs. {formatPrice(sz.price)}
                     </span>
                   </button>
@@ -374,85 +370,92 @@ export default function ItemDetailPage({
         )}
 
       </div>
+    </div>
 
-      {/* Floating Added Notification Toast */}
-      {addedToast && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-emerald-600 text-white font-bold text-xs shadow-xl flex items-center gap-2 animate-bounce">
-          <Check className="w-4 h-4 stroke-[3]" />
-          <span>Added to your cart!</span>
-        </div>
-      )}
+    {/* Floating Added Notification Toast */}
+    {addedToast && (
+      <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[70] px-5 py-2.5 rounded-full bg-emerald-600 text-white font-bold text-xs shadow-xl flex items-center gap-2 animate-bounce">
+        <Check className="w-4 h-4 stroke-[3]" />
+        <span>Added to your cart!</span>
+      </div>
+    )}
 
-      {/* Sticky Bottom Action Bar with Quantity & Add Button */}
-      <div className={`fixed bottom-0 left-0 right-0 z-40 border-t p-4 backdrop-blur-xl transition-colors ${
-        isDark ? 'bg-[#0f0f13]/95 border-white/10' : 'bg-white/95 border-zinc-200'
-      }`}>
-        <div className="max-w-2xl mx-auto flex items-center gap-3.5">
-          
-          {/* Stepper Quantity Counter */}
-          <div className={`flex items-center gap-1.5 p-1 rounded-2xl border ${
-            isDark ? 'bg-zinc-800/80 border-white/10' : 'bg-zinc-100 border-zinc-200'
-          }`}>
-            <button
-              type="button"
-              onClick={handleDecrement}
-              disabled={quantity <= 1 || isOutOfStock}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                quantity <= 1 || isOutOfStock
-                  ? 'opacity-40 cursor-not-allowed text-zinc-400'
-                  : isDark 
-                    ? 'bg-zinc-700 hover:bg-zinc-600 text-white active:scale-90' 
-                    : 'bg-white hover:bg-zinc-200 text-zinc-800 shadow-2xs active:scale-90'
-              }`}
-              aria-label="Decrease Quantity"
-            >
-              <Minus className="w-4 h-4 stroke-[2.5]" />
-            </button>
-
-            <span className={`w-8 text-center font-black text-base ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-              {quantity}
-            </span>
-
-            <button
-              type="button"
-              onClick={handleIncrement}
-              disabled={isOutOfStock}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                isOutOfStock
-                  ? 'opacity-40 cursor-not-allowed text-zinc-400'
-                  : 'bg-orange-500 hover:bg-orange-600 text-white shadow-2xs active:scale-90'
-              }`}
-              aria-label="Increase Quantity"
-            >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-            </button>
-          </div>
-
-          {/* Add to Cart Primary Button */}
+    {/* Fixed Bottom Footer Action Bar */}
+    <div 
+      className={`fixed bottom-0 inset-x-0 z-[60] border-t px-4 py-3 backdrop-blur-xl transition-all duration-150 ${
+        isClosing ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'
+      } ${
+        isDark 
+          ? 'bg-[#121216]/95 border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.6)]' 
+          : 'bg-white/95 border-zinc-200 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]'
+      }`}
+      style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+    >
+      <div className="max-w-2xl mx-auto flex items-center gap-3.5">
+        
+        {/* Stepper Quantity Counter */}
+        <div className={`flex items-center gap-1.5 p-1 rounded-2xl border ${
+          isDark ? 'bg-zinc-800/80 border-white/10' : 'bg-zinc-100 border-zinc-200'
+        }`}>
           <button
             type="button"
-            onClick={handleAdd}
-            disabled={isOutOfStock}
-            className={`flex-1 py-3.5 px-5 rounded-2xl font-black text-sm sm:text-base tracking-wide uppercase transition-all shadow-lg flex items-center justify-between cursor-pointer ${
-              isOutOfStock
-                ? 'bg-zinc-400 text-white cursor-not-allowed opacity-60'
-                : 'bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white active:scale-[0.98] shadow-orange-500/25'
+            onClick={handleDecrement}
+            disabled={quantity <= 1 || isOutOfStock}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+              quantity <= 1 || isOutOfStock
+                ? 'opacity-40 cursor-not-allowed text-zinc-400'
+                : isDark 
+                  ? 'bg-zinc-700 hover:bg-zinc-600 text-white active:scale-90' 
+                  : 'bg-white hover:bg-zinc-200 text-zinc-800 shadow-2xs active:scale-90'
             }`}
+            aria-label="Decrease Quantity"
           >
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5" />
-              <span>{isOutOfStock ? 'Sold Out' : 'Add'}</span>
-            </div>
-            {!isOutOfStock && (
-              <span className="font-sans font-black text-white text-base">
-                Rs. {formatPrice(totalPrice)}
-              </span>
-            )}
+            <Minus className="w-4 h-4 stroke-[2.5]" />
           </button>
 
-        </div>
-      </div>
+          <span className={`w-8 text-center font-black text-base ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+            {quantity}
+          </span>
 
+          <button
+            type="button"
+            onClick={handleIncrement}
+            disabled={isOutOfStock}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+              isOutOfStock
+                ? 'opacity-40 cursor-not-allowed text-zinc-400'
+                : 'bg-orange-500 hover:bg-orange-600 text-white shadow-2xs active:scale-90'
+            }`}
+            aria-label="Increase Quantity"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        </div>
+
+        {/* Add to Cart Primary Button */}
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={isOutOfStock}
+          className={`flex-1 py-3.5 px-5 rounded-2xl font-black text-sm sm:text-base tracking-wide uppercase transition-all shadow-lg flex items-center justify-between cursor-pointer ${
+            isOutOfStock
+              ? 'bg-zinc-400 text-white cursor-not-allowed opacity-60'
+              : 'bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white active:scale-[0.98] shadow-orange-500/25'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5" />
+            <span>{isOutOfStock ? 'Sold Out' : 'Add'}</span>
+          </div>
+          {!isOutOfStock && (
+            <span className="font-sans font-black text-white text-base">
+              Rs. {formatPrice(totalPrice)}
+            </span>
+          )}
+        </button>
+
+      </div>
     </div>
-  );
+  </>
+);
 }
