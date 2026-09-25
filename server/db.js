@@ -406,7 +406,25 @@ export const db = {
   // Orders
   getOrders() {
     const data = readDb();
-    return data.orders || [];
+    const orders = data.orders || [];
+    const profiles = data.customerProfiles || {};
+
+    const phoneToEmail = {};
+    Object.values(profiles).forEach(p => {
+      if (p && p.phone && p.email) {
+        const cleanP = String(p.phone).replace(/\D/g, '').slice(-10);
+        if (cleanP) phoneToEmail[cleanP] = (p.email || '').toLowerCase().trim();
+      }
+    });
+
+    return orders.map(o => {
+      if (o.customerEmail) return o;
+      const cleanOrderPhone = String(o.phone || '').replace(/\D/g, '').slice(-10);
+      if (cleanOrderPhone && phoneToEmail[cleanOrderPhone]) {
+        return { ...o, customerEmail: phoneToEmail[cleanOrderPhone] };
+      }
+      return o;
+    });
   },
 
   createOrder(orderData) {

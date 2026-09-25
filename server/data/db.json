@@ -983,7 +983,8 @@
       "deliveryFee": 200,
       "total": 1900,
       "status": "Pending",
-      "createdAt": "2026-09-25T17:32:35.831Z"
+      "createdAt": "2026-09-25T17:32:35.831Z",
+      "customerEmail": "muhammadsalikleo321@gmail.com"
     },
     {
       "id": "ORD-362033-62",
@@ -2741,5 +2742,14 @@
       "phone": "03213415645",
       "createdAt": "2026-09-24T07:31:22.079Z"
     }
-  ]
+  ],
+  "customerProfiles": {
+    "muhammadsalikleo321@gmail.com": {
+      "name": "Salikleo",
+      "email": "muhammadsalikleo321@gmail.com",
+      "phone": "90325823905",
+      "address": "lane 17",
+      "updatedAt": "2026-09-25T19:33:21.611Z"
+    }
+  }
 }

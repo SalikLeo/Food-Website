@@ -105,6 +105,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
     <div class="meta-row"><span class="bold">Date & Time:</span><span>${orderDate}</span></div>
     <div class="meta-row"><span class="bold">Customer:</span><span>${order.customerName || 'Customer'}</span></div>
     <div class="meta-row"><span class="bold">Phone:</span><span>${order.phone || '-'}</span></div>
+    ${(order.customerEmail || order.email) ? `<div class="meta-row"><span class="bold">Email:</span><span>${order.customerEmail || order.email}</span></div>` : ''}
     ${order.address ? `<div class="meta-row"><span class="bold">Address:</span><span>${order.address}</span></div>` : ''}
   </div>
   <table>
@@ -231,6 +232,12 @@ export default function CustomerReceiptModal({ order, onClose }) {
               <span className="font-bold">Phone:</span>
               <span className="font-bold">{order.phone || '-'}</span>
             </div>
+            {(order.customerEmail || order.email) && (
+              <div className="flex justify-between">
+                <span className="font-bold">Email:</span>
+                <span className="font-bold text-zinc-700 text-[11px] break-all">{order.customerEmail || order.email}</span>
+              </div>
+            )}
             {order.address && (
               <div className="pt-0.5">
                 <span className="font-bold block">Delivery Address:</span>

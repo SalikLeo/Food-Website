@@ -1083,6 +1083,12 @@ export default function OrdersManager({
       <span class="meta-label">Phone:</span>
       <span class="meta-value">${order.phone || '-'}</span>
     </div>
+    ${(order.customerEmail || order.email) ? `
+    <div class="meta-row">
+      <span class="meta-label">Email:</span>
+      <span class="meta-value">${order.customerEmail || order.email}</span>
+    </div>
+    ` : ''}
 
     ${order.address ? `
       <div class="address-block">
@@ -1205,7 +1211,9 @@ export default function OrdersManager({
       const matchSearch = !q || 
         o.id.toLowerCase().includes(q) ||
         o.customerName?.toLowerCase().includes(q) ||
-        o.phone?.includes(q);
+        o.phone?.includes(q) ||
+        (o.customerEmail && o.customerEmail.toLowerCase().includes(q)) ||
+        (o.email && o.email.toLowerCase().includes(q));
       return matchStatus && matchSearch;
     });
   }, [orders, statusFilter, search]);
@@ -1292,7 +1300,7 @@ export default function OrdersManager({
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search by order ID, name or phone..."
+            placeholder="Search by order ID, name, phone or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-9 py-2 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-2xs transition-all"
@@ -1475,6 +1483,23 @@ export default function OrdersManager({
                                 <Phone className="w-3 h-3" />
                                 <span>{order.phone}</span>
                               </a>
+                              {(order.customerEmail || order.email) && (
+                                <div className="flex items-center gap-1.5 mt-1 text-[11px] font-medium text-zinc-600 break-all">
+                                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.4 7.33 24 12 24z"/>
+                                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.97 0 12s.45 3.84 1.24 5.42l4.04-3.15z"/>
+                                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.6 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                                  </svg>
+                                  <a
+                                    href={`mailto:${order.customerEmail || order.email}`}
+                                    className="hover:underline text-zinc-600 hover:text-zinc-900"
+                                    title="Google Account Email"
+                                  >
+                                    {order.customerEmail || order.email}
+                                  </a>
+                                </div>
+                              )}
                             </div>
 
                             <div>
@@ -1731,6 +1756,23 @@ export default function OrdersManager({
                           <Phone className="w-3 h-3" />
                           <span>{order.phone}</span>
                         </a>
+                        {(order.customerEmail || order.email) && (
+                          <div className="flex items-center gap-1.5 mt-1 text-[11px] font-medium text-zinc-600 break-all">
+                            <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.4 7.33 24 12 24z"/>
+                              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.97 0 12s.45 3.84 1.24 5.42l4.04-3.15z"/>
+                              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.6 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                            </svg>
+                            <a
+                              href={`mailto:${order.customerEmail || order.email}`}
+                              className="hover:underline text-zinc-600 hover:text-zinc-900"
+                              title="Google Account Email"
+                            >
+                              {order.customerEmail || order.email}
+                            </a>
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -1928,7 +1970,7 @@ export default function OrdersManager({
                   </span>
                 </div>
                 <p className="text-xs text-zinc-600 mt-0.5">
-                  Customer: <strong className="text-zinc-900">{modifyingOrder.customerName}</strong> • {modifyingOrder.phone}
+                  Customer: <strong className="text-zinc-900">{modifyingOrder.customerName}</strong> • {modifyingOrder.phone}{(modifyingOrder.customerEmail || modifyingOrder.email) ? ` • ${modifyingOrder.customerEmail || modifyingOrder.email}` : ''}
                 </p>
               </div>
               <button

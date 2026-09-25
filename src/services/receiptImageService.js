@@ -177,6 +177,9 @@ export function drawReceiptCanvas(order, scale = 2) {
   drawMetaLine('Date & Time:', formatOrderDateTime(order.createdAt));
   drawMetaLine('Customer:', order.customerName || 'Walk-in Customer');
   drawMetaLine('Phone:', order.phone || '-');
+  if (order.customerEmail || order.email) {
+    drawMetaLine('Email:', order.customerEmail || order.email);
+  }
 
   if (order.address) {
     ctx.textAlign = 'left';
