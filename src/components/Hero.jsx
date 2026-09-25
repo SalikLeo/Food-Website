@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Flame, Clock, Star, Utensils } from 'lucide-react';
+import { Flame, Clock, Star, Utensils, Smartphone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { apiUrl, isCustomerApp } from '../config/api';
 import { formatPrice } from '../utils/formatters';
@@ -96,10 +96,12 @@ export default function Hero({ products: propProducts = [], deals: propDeals = [
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <a
-                href="#order"
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-sm uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all"
+                href="/downloads/Salik-Fast-Food-Customer.apk"
+                download="Salik-Fast-Food-Customer.apk"
+                className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-sm uppercase tracking-wider shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
               >
-                Order Now
+                <Smartphone className="w-5 h-5 stroke-[2.5]" />
+                <span>Download Mobile App</span>
               </a>
               <a
                 href="#menu"

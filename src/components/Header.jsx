@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Star,
   User,
-  RotateCcw
+  RotateCcw,
+  Smartphone
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import ThemeToggle from './ThemeToggle';
@@ -303,13 +304,15 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               </button>
             )}
 
-            {/* Desktop ORDER NOW Orange CTA (Web only) */}
+            {/* Desktop Download Mobile App CTA (Web only) */}
             {!isCustomerApp && (
               <a
-                href="#order"
-                className="hidden md:inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-95"
+                href="/downloads/Salik-Fast-Food-Customer.apk"
+                download="Salik-Fast-Food-Customer.apk"
+                className="hidden md:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-95"
               >
-                Order Now
+                <Smartphone className="w-4 h-4 stroke-[2.5]" />
+                <span>Download Mobile App</span>
               </a>
             )}
 
