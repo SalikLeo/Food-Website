@@ -75,7 +75,7 @@ export default function ItemDetailPage({
 
   const handleShare = async () => {
     const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    const shareUrl = isLocal ? 'https://food-website-8epf.onrender.com' : window.location.href;
+    const shareUrl = isLocal ? 'https://salikleo.website' : window.location.href;
     const shareTitle = `${item.name} | Salik Fast Food`;
     const shareText = `Check out *${item.name}* at Salik Fast Food!\nPrice: Rs. ${formatPrice(unitPrice)}\n📞 Order on WhatsApp: 0309-5369472\n${shareUrl}`;
 

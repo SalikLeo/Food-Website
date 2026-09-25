@@ -1,8 +1,8 @@
 // Centralized API configuration and App Mode helper
 // Works across Web, Local Android (Wi-Fi), and Cloud (Hostinger/VPS)
 
-// Live Render Cloud Backend
-const DEFAULT_MOBILE_API = 'https://food-website-8epf.onrender.com';
+// Live Hostinger Cloud Backend
+const DEFAULT_MOBILE_API = 'https://salikleo.website';
 
 export const APP_MODE = import.meta.env.VITE_APP_MODE || 'web'; // 'web' | 'customer' | 'admin'
 
