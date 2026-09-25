@@ -1435,7 +1435,7 @@ export default function CustomerMobileApp({
                     </div>
 
                     {/* Banner Thumbnail */}
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 flex items-center justify-center relative pointer-events-none select-none">
+                    <div className="w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 flex items-center justify-center relative pointer-events-none select-none">
                       <img
                         src={resolveImageUrl(banner.image)}
                         alt={banner.title}
@@ -3173,29 +3173,29 @@ export default function CustomerMobileApp({
           }`} 
         />
         
-        <div className={`relative ml-auto w-4/5 max-w-sm h-full border-l px-6 flex flex-col justify-between shadow-2xl z-10 transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] mobile-side-drawer-top mobile-side-drawer-bottom ${
+        <div className={`relative ml-auto w-[82%] max-w-xs h-full border-l px-4 sm:px-5 flex flex-col justify-between overflow-y-auto overscroll-contain shadow-2xl z-10 transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] mobile-side-drawer-top mobile-side-drawer-bottom ${
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         } ${
           isDark ? 'bg-[#121216] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
         }`}>
-            <div className="space-y-5">
+            <div className="space-y-3">
               
               {/* Drawer Top Header */}
-              <div className={`flex items-center justify-between pb-4 border-b ${
+              <div className={`flex items-center justify-between pb-2.5 border-b ${
                 isDark ? 'border-white/10' : 'border-zinc-200'
               }`}>
                 <div className="flex items-center gap-2.5">
                   <img
                     src={resolveImageUrl('/assets/salik-logo.png')}
                     alt="Salik Fast Food"
-                    className="w-10 h-10 object-contain rounded-full border border-orange-500/50"
+                    className="w-9 h-9 object-contain rounded-full border border-orange-500/50"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = resolveImageUrl('/assets/salik-logo.svg');
                     }}
                   />
                   <div>
-                    <h3 className={`font-montserrat tracking-tight font-bold leading-tight ${
+                    <h3 className={`font-montserrat tracking-tight font-bold text-xs sm:text-sm leading-tight ${
                       isDark ? 'text-white' : 'text-zinc-900'
                     }`}>
                       SALIK FAST FOOD
@@ -3207,32 +3207,32 @@ export default function CustomerMobileApp({
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer active:scale-90 ${
+                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer active:scale-90 ${
                     isDark ? 'bg-white/10 text-zinc-400 ' : 'bg-zinc-100 text-zinc-600 '
                   }`}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Navigation Links: Home, Deals, Menu, RECENT ORDERS */}
-              <nav className="space-y-2.5">
+              <nav className="space-y-1.5">
                 <button
                   onClick={() => {
                     switchView('home');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'home'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5  text-white' : 'bg-zinc-100  text-zinc-900'
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <span className="text-base shrink-0">🏠</span>
+                    <span className="text-sm shrink-0">🏠</span>
                     <span className="truncate">Home & Categories</span>
                   </span>
-                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'home' ? 'text-white' : 'text-zinc-400'}`} />
+                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ml-1 ${currentView === 'home' ? 'text-white' : 'text-zinc-400'}`} />
                 </button>
 
                 <button
@@ -3240,7 +3240,7 @@ export default function CustomerMobileApp({
                     switchView('deals');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'deals'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -3249,10 +3249,10 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <Flame className={`w-4.5 h-4.5 shrink-0 ${currentView === 'deals' ? 'fill-white text-white' : 'fill-orange-500 text-orange-500'}`} />
+                    <Flame className={`w-4 h-4 shrink-0 ${currentView === 'deals' ? 'fill-white text-white' : 'fill-orange-500 text-orange-500'}`} />
                     <span className="truncate">Saver Deals</span>
                   </span>
-                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'deals' ? 'text-white' : 'text-orange-500'}`} />
+                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ml-1 ${currentView === 'deals' ? 'text-white' : 'text-orange-500'}`} />
                 </button>
 
                 <button
@@ -3260,17 +3260,17 @@ export default function CustomerMobileApp({
                     switchView('category', 'all');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'category'
                       ? 'bg-orange-600 text-white shadow-sm'
                       : isDark ? 'bg-white/5  text-white' : 'bg-zinc-100  text-zinc-900'
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <span className="text-base shrink-0">🍽️</span>
+                    <span className="text-sm shrink-0">🍽️</span>
                     <span className="truncate">Explore Menu</span>
                   </span>
-                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'category' ? 'text-white' : 'text-zinc-400'}`} />
+                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ml-1 ${currentView === 'category' ? 'text-white' : 'text-zinc-400'}`} />
                 </button>
 
                 {/* RECENT ORDERS */}
@@ -3279,7 +3279,7 @@ export default function CustomerMobileApp({
                     switchView('orders');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'orders'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -3288,18 +3288,18 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <RotateCcw className={`w-4.5 h-4.5 shrink-0 ${currentView === 'orders' ? 'text-white' : 'text-orange-500'}`} />
+                    <RotateCcw className={`w-4 h-4 shrink-0 ${currentView === 'orders' ? 'text-white' : 'text-orange-500'}`} />
                     <span className="truncate">Recent Orders</span>
                   </span>
-                  <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                  <div className="flex items-center gap-1 shrink-0 ml-1">
                     {recentOrders.length > 0 && (
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                         currentView === 'orders' ? 'bg-white/25 text-white' : 'bg-orange-600 text-white'
                       }`}>
                         {recentOrders.length}
                       </span>
                     )}
-                    <ChevronRight className={`w-4 h-4 ${currentView === 'orders' ? 'text-white' : 'text-zinc-400'}`} />
+                    <ChevronRight className={`w-3.5 h-3.5 ${currentView === 'orders' ? 'text-white' : 'text-zinc-400'}`} />
                   </div>
                 </button>
 
@@ -3309,7 +3309,7 @@ export default function CustomerMobileApp({
                     switchView('add-review');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'add-review'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -3318,18 +3318,18 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <Star className={`w-4.5 h-4.5 shrink-0 ${currentView === 'add-review' ? 'text-white fill-white' : 'text-amber-400 fill-amber-400'}`} />
+                    <Star className={`w-4 h-4 shrink-0 ${currentView === 'add-review' ? 'text-white fill-white' : 'text-amber-400 fill-amber-400'}`} />
                     <span className="truncate">Add Review</span>
                   </span>
-                  <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                  <div className="flex items-center gap-1 shrink-0 ml-1">
                     {pendingReviewsCount > 0 && (
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                         currentView === 'add-review' ? 'bg-white/25 text-white' : 'bg-orange-600 text-white'
                       }`}>
                         {pendingReviewsCount}
                       </span>
                     )}
-                    <ChevronRight className={`w-4 h-4 ${currentView === 'add-review' ? 'text-white' : 'text-zinc-400'}`} />
+                    <ChevronRight className={`w-3.5 h-3.5 ${currentView === 'add-review' ? 'text-white' : 'text-zinc-400'}`} />
                   </div>
                 </button>
 
@@ -3339,7 +3339,7 @@ export default function CustomerMobileApp({
                     switchView('profile');
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-3 rounded-2xl font-bold text-[13px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
+                  className={`w-full text-left px-3 py-2 rounded-xl font-bold text-[12px] uppercase tracking-wide flex items-center justify-between border active:scale-[0.98] transition-transform cursor-pointer ${
                     currentView === 'profile'
                       ? 'bg-orange-600 text-white shadow-sm border-orange-500'
                       : isDark 
@@ -3348,28 +3348,17 @@ export default function CustomerMobileApp({
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
-                    <User className={`w-4.5 h-4.5 shrink-0 ${currentView === 'profile' ? 'text-white' : 'text-orange-500'}`} />
+                    <User className={`w-4 h-4 shrink-0 ${currentView === 'profile' ? 'text-white' : 'text-orange-500'}`} />
                     <span className="truncate">View Profile</span>
                   </span>
-                  <ChevronRight className={`w-4 h-4 shrink-0 ml-1 ${currentView === 'profile' ? 'text-white' : 'text-zinc-400'}`} />
+                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ml-1 ${currentView === 'profile' ? 'text-white' : 'text-zinc-400'}`} />
                 </button>
               </nav>
 
             </div>
 
             {/* Bottom Quick Contact & Account Actions */}
-            <div className={`space-y-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
-              <a
-                href="tel:03095369472"
-                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all border shadow-xs ${
-                  isDark
-                    ? 'bg-zinc-800/90  text-white border-zinc-700/80 shadow-black/40'
-                    : 'bg-white  text-zinc-900 border-zinc-300/90 shadow-zinc-200'
-                }`}
-              >
-                <Phone className="w-4 h-4 text-orange-600 stroke-[2.2]" />
-                <span>Call: 0309-5369472</span>
-              </a>
+            <div className={`space-y-2 pt-2.5 border-t ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
 
               {/* Google Login / Authenticated User Profile */}
               {customerUser ? (
@@ -3420,7 +3409,7 @@ export default function CustomerMobileApp({
                   type="button"
                   onClick={handleGoogleLogin}
                   disabled={googleLoading}
-                  className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer ${
+                  className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer ${
                     isDark 
                       ? 'bg-white  text-zinc-900' 
                       : 'bg-white  text-zinc-800 border border-zinc-300'
@@ -3449,13 +3438,13 @@ export default function CustomerMobileApp({
               )}
 
               {/* Neumorphic Theme Mode Toggle (below Login with Google) */}
-              <div className="pt-2">
+              <div className="pt-1.5">
                 <div 
                   onClick={toggleTheme}
                   role="button"
                   tabIndex={0}
                   aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                  className={`w-full py-2.5 px-4 rounded-2xl flex items-center justify-between cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
+                  className={`w-full py-2 px-3.5 rounded-2xl flex items-center justify-between cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
                     isDark 
                       ? 'bg-[#1e232d] border border-white/5 shadow-inner' 
                       : 'bg-[#edf0f5] border border-zinc-200/90 shadow-2xs'
@@ -3468,7 +3457,7 @@ export default function CustomerMobileApp({
                       e.stopPropagation();
                       if (isDark) toggleTheme();
                     }}
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
                       !isDark 
                         ? 'bg-amber-400/20 text-amber-500 shadow-2xs scale-105' 
                         : 'text-zinc-500/50  '
@@ -3476,12 +3465,12 @@ export default function CustomerMobileApp({
                     title="Light Mode"
                     aria-label="Light Mode"
                   >
-                    <Sun className={`w-5 h-5 transition-transform duration-300 ${!isDark ? 'text-amber-500 fill-amber-400 rotate-0' : 'text-zinc-500/60 -rotate-45'}`} />
+                    <Sun className={`w-4.5 h-4.5 transition-transform duration-300 ${!isDark ? 'text-amber-500 fill-amber-400 rotate-0' : 'text-zinc-500/60 -rotate-45'}`} />
                   </button>
 
                   {/* Inset Neumorphic Track (Center) */}
                   <div 
-                    className={`relative w-20 h-10 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
+                    className={`relative w-18 h-9 rounded-full p-1 transition-all duration-300 flex items-center shrink-0 ${
                       isDark 
                         ? 'bg-[#141720] shadow-[inset_3px_3px_6px_rgba(0,0,0,0.7),inset_-1px_-1px_3px_rgba(255,255,255,0.06)]' 
                         : 'bg-[#d5dae3] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.18),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]'
@@ -3490,10 +3479,10 @@ export default function CustomerMobileApp({
                     {/* Floating Sliding Knob */}
                     <div 
                       style={{
-                        transform: `translateX(${isDark ? '40px' : '0px'})`,
+                        transform: `translateX(${isDark ? '36px' : '0px'})`,
                         transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)'
                       }}
-                      className={`w-8 h-8 rounded-full ${
+                      className={`w-7 h-7 rounded-full ${
                         isDark 
                           ? 'bg-[#4f5768] shadow-[2px_3px_8px_rgba(0,0,0,0.6),-1px_-1px_3px_rgba(255,255,255,0.08)]' 
                           : 'bg-[#ffffff] shadow-[2px_3px_6px_rgba(0,0,0,0.18),-1px_-1px_2px_rgba(255,255,255,0.9)]'
@@ -3508,7 +3497,7 @@ export default function CustomerMobileApp({
                       e.stopPropagation();
                       if (!isDark) toggleTheme();
                     }}
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer ${
                       isDark 
                         ? 'bg-amber-400/15 text-amber-300 shadow-2xs scale-105' 
                         : 'text-zinc-400/50  '
@@ -3516,7 +3505,7 @@ export default function CustomerMobileApp({
                     title="Dark Mode"
                     aria-label="Dark Mode"
                   >
-                    <svg className={`w-5 h-5 transition-transform duration-300 ${isDark ? 'text-amber-300 fill-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.4)] rotate-0' : 'text-zinc-400/60 fill-zinc-400/60 rotate-12'}`} viewBox="0 0 24 24">
+                    <svg className={`w-4.5 h-4.5 transition-transform duration-300 ${isDark ? 'text-amber-300 fill-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.4)] rotate-0' : 'text-zinc-400/60 fill-zinc-400/60 rotate-12'}`} viewBox="0 0 24 24">
                       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                     </svg>
                   </button>
@@ -3524,12 +3513,12 @@ export default function CustomerMobileApp({
               </div>
 
               {/* In-App Update Option below theme toggle */}
-              <div className="pt-2">
+              <div className="pt-1.5">
                 <button
                   type="button"
                   onClick={() => checkForUpdates(true)}
                   disabled={isCheckingUpdate}
-                  className={`w-full py-2.5 px-3.5 rounded-2xl flex items-center justify-between border cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
+                  className={`w-full py-2 px-3.5 rounded-2xl flex items-center justify-between border cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
                     isDark 
                       ? 'bg-[#1e232d] hover:bg-[#252b37] border-white/5 text-white' 
                       : 'bg-[#edf0f5] hover:bg-[#e4e8f0] border-zinc-200/90 text-zinc-900 shadow-2xs'
