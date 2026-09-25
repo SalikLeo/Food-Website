@@ -288,6 +288,16 @@ app.put('/api/orders/:id/items', (req, res) => {
   }
 });
 
+app.delete('/api/orders/:id', (req, res) => {
+  try {
+    const deleted = db.deleteOrder(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Order not found' });
+    res.json({ success: true, message: 'Order deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Settings Endpoints (Delivery Fee, Min Order, etc.)
 app.get('/api/settings', (req, res) => {
   res.json(db.getSettings());

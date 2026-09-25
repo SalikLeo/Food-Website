@@ -307,6 +307,32 @@ export default function OrdersManager({
   // In-App Rider Assignment Modal State (replaces native select dialog)
   const [assigningRiderOrder, setAssigningRiderOrder] = useState(null);
 
+  // Delete Order Confirmation Modal State
+  const [deleteConfirmOrder, setDeleteConfirmOrder] = useState(null);
+  const [isDeletingOrder, setIsDeletingOrder] = useState(false);
+
+  const handleDeleteOrder = async () => {
+    if (!deleteConfirmOrder || isDeletingOrder) return;
+    try {
+      setIsDeletingOrder(true);
+      const res = await fetch(apiUrl(`/api/orders/${deleteConfirmOrder.id}`), {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setDeleteConfirmOrder(null);
+        if (typeof onRefresh === 'function') onRefresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'Failed to delete order');
+      }
+    } catch (e) {
+      console.error('Delete order error:', e);
+      alert('Network error while deleting order');
+    } finally {
+      setIsDeletingOrder(false);
+    }
+  };
+
   // Sync receipt state with AdminDashboard header visibility and modal stack
   useEffect(() => {
     if (typeof onReceiptOpenChange === 'function') {
@@ -357,19 +383,33 @@ export default function OrdersManager({
     }
   }, [assigningRiderOrder]);
 
+  // Sync delete order modal with modal stack
+  useEffect(() => {
+    if (deleteConfirmOrder) {
+      const closer = () => setDeleteConfirmOrder(null);
+      window.__salikModalStack = window.__salikModalStack || [];
+      window.__salikModalStack.push(closer);
+      return () => {
+        window.__salikModalStack = (window.__salikModalStack || []).filter(fn => fn !== closer);
+      };
+    }
+  }, [deleteConfirmOrder]);
+
   // Sync modal state with AdminDashboard back handler
   useEffect(() => {
-    window.__salikAdminModalOpen = Boolean(viewingReceiptOrder || modifyingOrder || statusChangeConfirmModal || assigningRiderOrder);
+    window.__salikAdminModalOpen = Boolean(viewingReceiptOrder || modifyingOrder || statusChangeConfirmModal || assigningRiderOrder || deleteConfirmOrder);
     return () => {
       window.__salikAdminModalOpen = false;
     };
-  }, [viewingReceiptOrder, modifyingOrder, statusChangeConfirmModal, assigningRiderOrder]);
+  }, [viewingReceiptOrder, modifyingOrder, statusChangeConfirmModal, assigningRiderOrder, deleteConfirmOrder]);
 
   // Handle desktop ESC key to dismiss topmost modal
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        if (assigningRiderOrder) {
+        if (deleteConfirmOrder) {
+          setDeleteConfirmOrder(null);
+        } else if (assigningRiderOrder) {
           setAssigningRiderOrder(null);
         } else if (statusChangeConfirmModal) {
           setStatusChangeConfirmModal(null);
@@ -380,11 +420,11 @@ export default function OrdersManager({
         }
       }
     };
-    if (assigningRiderOrder || statusChangeConfirmModal || viewingReceiptOrder || modifyingOrder) {
+    if (assigningRiderOrder || statusChangeConfirmModal || viewingReceiptOrder || modifyingOrder || deleteConfirmOrder) {
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [assigningRiderOrder, statusChangeConfirmModal, viewingReceiptOrder, modifyingOrder]);
+  }, [assigningRiderOrder, statusChangeConfirmModal, viewingReceiptOrder, modifyingOrder, deleteConfirmOrder]);
 
   // Native Android hardware/gesture back button listener (Capacitor)
   useEffect(() => {
@@ -1666,6 +1706,16 @@ export default function OrdersManager({
                         >
                           <ReceiptText className="w-4 h-4" />
                         </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirmOrder(order)}
+                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 hover:text-red-700 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                          title="Delete Order Permanently"
+                          aria-label="Delete Order Permanently"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
 
@@ -2699,6 +2749,76 @@ export default function OrdersManager({
                 className="px-4 py-2 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-800 font-bold transition-colors cursor-pointer"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Order Confirmation Modal */}
+      {deleteConfirmOrder && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => !isDeletingOrder && setDeleteConfirmOrder(null)}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-red-100 overflow-hidden animate-in zoom-in-95 duration-200 p-6 space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center shrink-0 shadow-xs">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="space-y-1 min-w-0 flex-1">
+                <h3 className="font-extrabold text-base sm:text-lg text-zinc-900 leading-tight">
+                  Delete Order Permanently?
+                </h3>
+                <p className="text-xs text-zinc-500 leading-relaxed">
+                  Are you sure you want to permanently delete order <span className="font-bold text-zinc-900">#{deleteConfirmOrder.id}</span> for <span className="font-bold text-zinc-900">{deleteConfirmOrder.customerName}</span>?
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-700 space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Total Amount:</span>
+                <span className="font-bold text-zinc-900">Rs. {formatPrice(deleteConfirmOrder.total || 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Current Status:</span>
+                <span className="font-bold text-zinc-900">{deleteConfirmOrder.status}</span>
+              </div>
+              <div className="text-[11px] text-red-600 font-semibold pt-1 border-t border-zinc-200">
+                ⚠️ This action cannot be undone and will erase this order from history.
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-1">
+              <button
+                type="button"
+                disabled={isDeletingOrder}
+                onClick={() => setDeleteConfirmOrder(null)}
+                className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingOrder}
+                onClick={handleDeleteOrder}
+                className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5"
+              >
+                {isDeletingOrder ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Yes, Delete Order</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

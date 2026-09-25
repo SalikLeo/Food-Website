@@ -468,6 +468,17 @@ export const db = {
     return order;
   },
 
+  deleteOrder(id) {
+    const data = readDb();
+    const initialLen = (data.orders || []).length;
+    data.orders = (data.orders || []).filter(o => o.id !== id);
+    if (data.orders.length !== initialLen) {
+      writeDb(data);
+      return true;
+    }
+    return false;
+  },
+
   // FAQs
   getFaqs() {
     const data = readDb();
