@@ -32,6 +32,8 @@ import ItemSalesManager from './ItemSalesManager';
 import ReviewManager from './ReviewManager';
 import RidersManager from './RidersManager';
 import CustomSelect from '../Common/CustomSelect';
+import AppUpdateModal from '../AppUpdateModal';
+import { ADMIN_APP_VERSION, ADMIN_APP_BUILD_NUMBER } from '../../config/version';
 import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
 import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
@@ -73,6 +75,62 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     setActiveTab(tab);
     setTabHistory(prev => (prev[prev.length - 1] === tab ? prev : [...prev, tab]));
   };
+
+  // In-App Update State & Logic (for Admin Mobile App)
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState(null);
+  const [hasUpdate, setHasUpdate] = useState(false);
+  const [isLatestVersion, setIsLatestVersion] = useState(false);
+
+  const checkForUpdates = async (isManual = false) => {
+    if (isCheckingUpdate) return;
+    setIsCheckingUpdate(true);
+    try {
+      const res = await fetch(apiUrl('/api/app-version'), {
+        cache: 'no-store'
+      }).then(r => r.json()).catch(() => null);
+
+      const adminData = res?.admin;
+      if (adminData) {
+        setUpdateInfo(adminData);
+        const remoteBuild = Number(adminData.build) || 0;
+        const isNewer = remoteBuild > ADMIN_APP_BUILD_NUMBER || adminData.version !== ADMIN_APP_VERSION;
+
+        if (isNewer) {
+          setHasUpdate(true);
+          setIsLatestVersion(false);
+          setUpdateModalOpen(true);
+        } else {
+          setHasUpdate(false);
+          setIsLatestVersion(true);
+          if (isManual) {
+            setUpdateModalOpen(true);
+          }
+        }
+      } else if (isManual) {
+        setIsLatestVersion(true);
+        setUpdateModalOpen(true);
+      }
+    } catch (err) {
+      console.error('Admin update check failed:', err);
+      if (isManual) {
+        setIsLatestVersion(true);
+        setUpdateModalOpen(true);
+      }
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
+
+  useEffect(() => {
+    if (APP_MODE === 'admin') {
+      const timer = setTimeout(() => {
+        checkForUpdates(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
 
   const [products, setProducts] = useState([]);
@@ -759,7 +817,22 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-600' : ''}`} />
               </button>
 
-              {APP_MODE !== 'admin' && (
+              {APP_MODE === 'admin' ? (
+                <button
+                  type="button"
+                  onClick={() => checkForUpdates(true)}
+                  disabled={isCheckingUpdate}
+                  className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-xs font-bold text-orange-700 flex items-center gap-1.5 active:scale-95 transition-all shadow-2xs cursor-pointer relative"
+                  title="Check for Admin App Updates"
+                  aria-label="Check for Updates"
+                >
+                  <RefreshCw className={`w-4 h-4 text-orange-600 shrink-0 ${isCheckingUpdate ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">Updates</span>
+                  {hasUpdate && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white animate-pulse" />
+                  )}
+                </button>
+              ) : (
                 <a
                   href="/downloads/Salik-Fast-Food-Admin.apk"
                   download="Salik-Fast-Food-Admin.apk"
@@ -1357,6 +1430,17 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           </div>
         </div>
       )}
+
+      {/* In-App App Update Modal */}
+      <AppUpdateModal
+        isOpen={updateModalOpen}
+        onClose={() => setUpdateModalOpen(false)}
+        updateInfo={updateInfo}
+        hasUpdate={hasUpdate}
+        isLatestVersion={isLatestVersion}
+        currentVersion={ADMIN_APP_VERSION}
+        appName="Salik Admin"
+      />
 
     </div>
   );

@@ -22,6 +22,40 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: Date.now() });
 });
 
+// App Version Endpoint (For in-app update checks on Customer & Admin Mobile Apps)
+app.get('/api/app-version', (req, res) => {
+  res.json({
+    customer: {
+      version: '1.0.1',
+      build: 101,
+      releaseDate: '2026-09-25',
+      releaseNotes: [
+        'Instant order status notifications with auto-dismiss',
+        'Live streaming food images from server (~15MB APK)',
+        'In-app direct 1-tap update check & download',
+        'Full UI polish and performance improvements'
+      ],
+      apkUrl: 'https://salikleo.website/downloads/Salik-Fast-Food-Customer.apk',
+      apkName: 'Salik-Fast-Food-Customer.apk',
+      sizeMB: '15.28 MB'
+    },
+    admin: {
+      version: '1.0.1',
+      build: 101,
+      releaseDate: '2026-09-25',
+      releaseNotes: [
+        'Passcode protection before starting Admin App',
+        'Direct in-app updates for latest builds',
+        'Live image streaming from server (~15MB APK)',
+        'Full desktop & mobile layout optimizations'
+      ],
+      apkUrl: 'https://salikleo.website/downloads/Salik-Fast-Food-Admin.apk',
+      apkName: 'Salik-Fast-Food-Admin.apk',
+      sizeMB: '15.29 MB'
+    }
+  });
+});
+
 // Public static assets
 const publicDir = path.join(__dirname, '..', 'public');
 const uploadsDir = path.join(publicDir, 'assets', 'uploads');
