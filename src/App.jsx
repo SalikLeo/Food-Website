@@ -16,6 +16,7 @@ import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
 import NoInternetScreen from './components/NoInternetScreen';
+import { Network } from '@capacitor/network';
 import { CartProvider, useCart } from './context/CartContext';
 import { apiUrl, APP_MODE, isCustomerApp } from './config/api';
 
@@ -52,8 +53,11 @@ export default function App() {
       return false;
     }
     try {
+      const status = await Network.getStatus().catch(() => ({ connected: true }));
+      if (!status.connected) return false;
+
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 4000);
+      const timer = setTimeout(() => controller.abort(), 3500);
 
       const res = await fetch(apiUrl('/api/health'), {
         method: 'GET',
@@ -83,8 +87,37 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Listen for online / offline events
+  // Multi-layer instant online / offline detection while using the app
   useEffect(() => {
+    // 1. Initial native check
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setIsOnline(false);
+      setLoading(false);
+    } else {
+      Network.getStatus().then((status) => {
+        if (!status.connected) {
+          setIsOnline(false);
+          setLoading(false);
+        }
+      }).catch(() => {});
+    }
+
+    // 2. Native Capacitor Network Listener (instant OS event when Wi-Fi/Data drops)
+    let netListener = null;
+    try {
+      netListener = Network.addListener('networkStatusChange', (status) => {
+        if (!status.connected) {
+          setIsOnline(false);
+        } else {
+          setIsOnline(true);
+          loadData();
+        }
+      });
+    } catch (e) {
+      console.warn('Network plugin listener error:', e);
+    }
+
+    // 3. Browser offline / online window events
     const handleOffline = () => {
       setIsOnline(false);
     };
@@ -102,14 +135,65 @@ export default function App() {
     window.addEventListener('offline', handleOffline);
     window.addEventListener('online', handleOnline);
 
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      setIsOnline(false);
-      setLoading(false);
-    }
+    // 4. Check on app focus / visibility change (e.g. quick settings swipe)
+    const handleVisibilityChange = () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setIsOnline(false);
+      } else {
+        Network.getStatus().then((s) => {
+          if (!s.connected) setIsOnline(false);
+        }).catch(() => {});
+      }
+    };
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+
+    // 5. Active fast heartbeat interval (1.5 seconds) while app is active
+    const intervalId = setInterval(async () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setIsOnline(false);
+        return;
+      }
+      try {
+        const s = await Network.getStatus();
+        if (!s.connected) {
+          setIsOnline(false);
+        }
+      } catch {}
+    }, 1500);
 
     return () => {
+      if (netListener && typeof netListener.remove === 'function') {
+        netListener.remove();
+      }
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('online', handleOnline);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  // 6. Global fetch interceptor: detect network drop on failed requests
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      try {
+        return await originalFetch(...args);
+      } catch (err) {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          setIsOnline(false);
+        } else {
+          Network.getStatus().then((s) => {
+            if (!s.connected) setIsOnline(false);
+          }).catch(() => {});
+        }
+        throw err;
+      }
+    };
+    return () => {
+      window.fetch = originalFetch;
     };
   }, []);
 
@@ -191,19 +275,14 @@ export default function App() {
     setIsAdminAuthenticated(false);
   };
 
-  // If user is not connected to internet, do not load app; show error and call button
-  if (!isOnline && !isAdminView) {
-    return (
-      <NoInternetScreen 
-        onRetry={handleRetryConnection} 
-        isChecking={isCheckingConnection} 
-      />
-    );
-  }
-
   return (
     <CartProvider>
-      {isAdminView ? (
+      {!isOnline && !isAdminView ? (
+        <NoInternetScreen 
+          onRetry={handleRetryConnection} 
+          isChecking={isCheckingConnection} 
+        />
+      ) : isAdminView ? (
         isAdminAuthenticated ? (
           <AdminDashboard
             onLogout={handleAdminLogout}

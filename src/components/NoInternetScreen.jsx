@@ -65,9 +65,9 @@ export default function NoInternetScreen({ onRetry, isChecking = false }) {
             <span>CALL SALIK FAST FOOD</span>
           </a>
 
-          {/* Shop Phone Subtext */}
+          {/* WhatsApp Phone Subtext */}
           <div className="mt-3 text-xs font-semibold text-zinc-500">
-            Helpline: <span className="text-zinc-800 font-bold">{SHOP_PHONE}</span>
+            WhatsApp: <a href="https://wa.me/923095369472" target="_blank" rel="noopener noreferrer" className="text-zinc-800 font-bold hover:text-emerald-600 transition-colors underline-offset-2 hover:underline">{SHOP_PHONE}</a>
           </div>
 
           {/* Try Again / Retry Action */}
