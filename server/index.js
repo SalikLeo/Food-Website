@@ -17,6 +17,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint for fast internet/connectivity verification
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', time: Date.now() });
+});
+
 // Public static assets
 const publicDir = path.join(__dirname, '..', 'public');
 const uploadsDir = path.join(publicDir, 'assets', 'uploads');

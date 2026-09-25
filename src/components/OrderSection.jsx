@@ -154,15 +154,6 @@ export default function OrderSection() {
   // Final confirmed execution for Web Order
   const executePlaceOrder = async () => {
     setLoading(true);
-    setErrorMsg('');
-
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      setShowConfirmModal(false);
-      setErrorMsg('No internet connection. Please call our shop directly at 0309-5369472 to place your order.');
-      setLoading(false);
-      return;
-    }
-
     try {
       const payload = {
         customerName: formData.name,
@@ -205,12 +196,12 @@ export default function OrderSection() {
         });
       } else {
         setShowConfirmModal(false);
-        setErrorMsg(data.error || 'Failed to place order. Please try again, call 0309-5369472, or use WhatsApp.');
+        setErrorMsg(data.error || 'Failed to place order. Please try again or use WhatsApp.');
       }
     } catch (err) {
       console.error(err);
       setShowConfirmModal(false);
-      setErrorMsg('No internet connection. Please call our shop directly at 0309-5369472 or order via WhatsApp.');
+      setErrorMsg('Network error. Please check connection or order directly via WhatsApp.');
     } finally {
       setLoading(false);
     }
@@ -285,20 +276,9 @@ export default function OrderSection() {
             </div>
 
             {errorMsg && (
-              <div className={`mb-6 p-4 rounded-xl ${isDark ? 'bg-red-950/40 border-red-800/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700'} border text-xs font-semibold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3`}>
-                <div className="flex items-center gap-2 min-w-0">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-500" />
-                  <span>{errorMsg}</span>
-                </div>
-                {((typeof navigator !== 'undefined' && !navigator.onLine) || errorMsg.toLowerCase().includes('internet') || errorMsg.toLowerCase().includes('connection') || errorMsg.toLowerCase().includes('network') || errorMsg.includes('0309-5369472')) && (
-                  <a
-                    href="tel:03095369472"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-xs shrink-0 transition-all cursor-pointer whitespace-nowrap self-end sm:self-auto"
-                  >
-                    <Phone className="w-3.5 h-3.5 fill-current" />
-                    <span>Call 0309-5369472</span>
-                  </a>
-                )}
+              <div className={`mb-6 p-4 rounded-xl ${isDark ? 'bg-red-950/40 border-red-800/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700'} border text-xs font-semibold flex items-center gap-2`}>
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-500" />
+                <span>{errorMsg}</span>
               </div>
             )}
 

@@ -15,7 +15,7 @@ import UserProfileModal from './components/UserProfileModal';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
-import OfflineNotice from './components/OfflineNotice';
+import NoInternetScreen from './components/NoInternetScreen';
 import { CartProvider, useCart } from './context/CartContext';
 import { apiUrl, APP_MODE, isCustomerApp } from './config/api';
 
@@ -30,43 +30,49 @@ export default function App() {
     return Boolean(localStorage.getItem('salik_admin_token') || localStorage.getItem('mehrban_admin_token'));
   });
 
-  const [categories, setCategories] = useState(() => {
-    try {
-      const saved = localStorage.getItem('salik_cached_categories');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+  const [isOnline, setIsOnline] = useState(() => {
+    if (typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean') {
+      return navigator.onLine;
+    }
+    return true;
   });
-  const [products, setProducts] = useState(() => {
-    try {
-      const saved = localStorage.getItem('salik_cached_products');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  const [deals, setDeals] = useState(() => {
-    try {
-      const saved = localStorage.getItem('salik_cached_deals');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  const [familyDeal, setFamilyDeal] = useState(() => {
-    try {
-      const saved = localStorage.getItem('salik_cached_family_deal');
-      return saved ? JSON.parse(saved) : null;
-    } catch { return null; }
-  });
-  const [faqs, setFaqs] = useState(() => {
-    try {
-      const saved = localStorage.getItem('salik_cached_faqs');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  const [settings, setSettings] = useState(() => {
-    try {
-      const saved = localStorage.getItem('salik_cached_settings');
-      return saved ? JSON.parse(saved) : null;
-    } catch { return null; }
-  });
+  const [isCheckingConnection, setIsCheckingConnection] = useState(false);
+
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [deals, setDeals] = useState([]);
+  const [familyDeal, setFamilyDeal] = useState(null);
+  const [faqs, setFaqs] = useState([]);
+  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Connectivity check helper
+  const checkConnection = async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return false;
+    }
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4000);
+
+      const res = await fetch(apiUrl('/api/health'), {
+        method: 'GET',
+        cache: 'no-store',
+        signal: controller.signal
+      }).catch(async () => {
+        return fetch('https://www.google.com/generate_204', {
+          mode: 'no-cors',
+          cache: 'no-store',
+          signal: controller.signal
+        });
+      });
+
+      clearTimeout(timer);
+      return Boolean(res);
+    } catch {
+      return false;
+    }
+  };
 
   // Sync hash/path for admin
   useEffect(() => {
@@ -77,59 +83,95 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Listen for online / offline events
+  useEffect(() => {
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    const handleOnline = async () => {
+      setIsCheckingConnection(true);
+      const online = await checkConnection();
+      setIsOnline(online);
+      setIsCheckingConnection(false);
+      if (online) {
+        loadData();
+      }
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setIsOnline(false);
+      setLoading(false);
+    }
+
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+
   // Fetch initial public data
   const loadData = async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setIsOnline(false);
+      setLoading(false);
+      return;
+    }
+
     try {
       const [catsRes, prodsRes, dealsRes, faqsRes, settingsRes] = await Promise.all([
-        fetch(apiUrl('/api/categories')).then(r => r.json()).catch(() => []),
-        fetch(apiUrl('/api/products')).then(r => r.json()).catch(() => []),
-        fetch(apiUrl('/api/deals')).then(r => r.json()).catch(() => ({ deals: [], familyDeal: null })),
-        fetch(apiUrl('/api/faqs')).then(r => r.json()).catch(() => []),
+        fetch(apiUrl('/api/categories')).then(r => r.json()).catch(() => null),
+        fetch(apiUrl('/api/products')).then(r => r.json()).catch(() => null),
+        fetch(apiUrl('/api/deals')).then(r => r.json()).catch(() => null),
+        fetch(apiUrl('/api/faqs')).then(r => r.json()).catch(() => null),
         fetch(apiUrl('/api/settings')).then(r => r.json()).catch(() => null)
       ]);
 
-      if (Array.isArray(catsRes) && catsRes.length > 0) {
-        setCategories(catsRes);
-        try { localStorage.setItem('salik_cached_categories', JSON.stringify(catsRes)); } catch {}
+      // If both categories and products failed, verify whether device is actually online
+      if (!catsRes && !prodsRes) {
+        const online = await checkConnection();
+        if (!online) {
+          setIsOnline(false);
+          setLoading(false);
+          return;
+        }
       }
-      if (Array.isArray(prodsRes) && prodsRes.length > 0) {
-        setProducts(prodsRes);
-        try { localStorage.setItem('salik_cached_products', JSON.stringify(prodsRes)); } catch {}
-      }
-      if (dealsRes?.deals) {
-        setDeals(dealsRes.deals);
-        try { localStorage.setItem('salik_cached_deals', JSON.stringify(dealsRes.deals)); } catch {}
-      }
-      if (dealsRes?.familyDeal) {
-        setFamilyDeal(dealsRes.familyDeal);
-        try { localStorage.setItem('salik_cached_family_deal', JSON.stringify(dealsRes.familyDeal)); } catch {}
-      }
-      if (Array.isArray(faqsRes) && faqsRes.length > 0) {
-        setFaqs(faqsRes);
-        try { localStorage.setItem('salik_cached_faqs', JSON.stringify(faqsRes)); } catch {}
-      }
-      if (settingsRes) {
-        setSettings(settingsRes);
-        try { localStorage.setItem('salik_cached_settings', JSON.stringify(settingsRes)); } catch {}
-      }
+
+      if (Array.isArray(catsRes) && catsRes.length > 0) setCategories(catsRes);
+      if (Array.isArray(prodsRes) && prodsRes.length > 0) setProducts(prodsRes);
+      if (dealsRes?.deals) setDeals(dealsRes.deals);
+      if (dealsRes?.familyDeal) setFamilyDeal(dealsRes.familyDeal);
+      if (Array.isArray(faqsRes) && faqsRes.length > 0) setFaqs(faqsRes);
+      if (settingsRes) setSettings(settingsRes);
+      setIsOnline(true);
     } catch (e) {
       console.error('Error fetching storefront data:', e);
+      const online = await checkConnection();
+      if (!online) {
+        setIsOnline(false);
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRetryConnection = async () => {
+    setIsCheckingConnection(true);
+    const online = await checkConnection();
+    if (online) {
+      setIsOnline(true);
+      await loadData();
+    } else {
+      setIsOnline(false);
+    }
+    setIsCheckingConnection(false);
+  };
+
   useEffect(() => {
     loadData();
-  }, []);
-
-  // Listen to reconnection events from OfflineNotice
-  useEffect(() => {
-    const handleRetry = () => {
-      loadData();
-    };
-    window.addEventListener('salik_retry_connection', handleRetry);
-    return () => window.removeEventListener('salik_retry_connection', handleRetry);
   }, []);
 
   const handleOpenAdmin = () => {
@@ -149,9 +191,18 @@ export default function App() {
     setIsAdminAuthenticated(false);
   };
 
+  // If user is not connected to internet, do not load app; show error and call button
+  if (!isOnline && !isAdminView) {
+    return (
+      <NoInternetScreen 
+        onRetry={handleRetryConnection} 
+        isChecking={isCheckingConnection} 
+      />
+    );
+  }
+
   return (
     <CartProvider>
-      <OfflineNotice />
       {isAdminView ? (
         isAdminAuthenticated ? (
           <AdminDashboard
