@@ -19,7 +19,6 @@ import { formatPrice, cleanDealInclusions, formatDealDescription, isMarketingDea
 import { apiUrl } from '../config/api';
 import { getStoredUserProfile, saveStoredUserProfile } from '../services/userProfile';
 import { getStoredCustomerUser } from '../services/googleAuth';
-import CustomSelect from './Common/CustomSelect';
 
 export default function OrderSection() {
   const {
@@ -383,23 +382,49 @@ export default function OrderSection() {
                 <label className={`block text-xs font-bold ${isDark ? 'text-zinc-300' : 'text-zinc-700'} uppercase tracking-wider mb-2`}>
                   Payment Method
                 </label>
-                <CustomSelect
-                  name="paymentMethod"
-                  value={formData.paymentMethod}
-                  onChange={handleChange}
-                  options={[
-                    { value: 'Cash on Delivery', label: 'Cash on Delivery' },
-                    { value: 'Easypaisa', label: 'Easypaisa' }
-                  ]}
-                  isDark={isDark}
-                  className="w-full"
-                  buttonClassName={`w-full px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
-                    isDark
-                      ? 'bg-[#18181f] border-zinc-700 text-white hover:border-zinc-600'
-                      : 'bg-white border-zinc-200 text-zinc-900 hover:border-zinc-300'
-                  }`}
-                  menuClassName="w-full"
-                />
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'Cash on Delivery' }))}
+                    className={`py-3 px-3.5 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all cursor-pointer ${
+                      formData.paymentMethod === 'Cash on Delivery'
+                        ? 'bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/20'
+                        : isDark
+                          ? 'bg-black/40 border-zinc-700 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-800/40'
+                          : 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'
+                    }`}
+                  >
+                    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                      formData.paymentMethod === 'Cash on Delivery' ? 'border-white bg-white' : (isDark ? 'border-zinc-500' : 'border-zinc-400')
+                    }`}>
+                      {formData.paymentMethod === 'Cash on Delivery' && (
+                        <span className="w-2 h-2 rounded-full bg-orange-500" />
+                      )}
+                    </span>
+                    <span>Cash on Delivery</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'Easypaisa' }))}
+                    className={`py-3 px-3.5 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all cursor-pointer ${
+                      formData.paymentMethod === 'Easypaisa'
+                        ? 'bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/20'
+                        : isDark
+                          ? 'bg-black/40 border-zinc-700 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-800/40'
+                          : 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'
+                    }`}
+                  >
+                    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                      formData.paymentMethod === 'Easypaisa' ? 'border-white bg-white' : (isDark ? 'border-zinc-500' : 'border-zinc-400')
+                    }`}>
+                      {formData.paymentMethod === 'Easypaisa' && (
+                        <span className="w-2 h-2 rounded-full bg-orange-500" />
+                      )}
+                    </span>
+                    <span>Easypaisa</span>
+                  </button>
+                </div>
               </div>
 
               {/* Action Buttons Row */}
