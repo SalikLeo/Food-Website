@@ -29,6 +29,7 @@ export default function ItemDetailPage({
   const [quantity, setQuantity] = useState(1);
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [addedToast, setAddedToast] = useState(false);
+  const [shareToast, setShareToast] = useState(false);
 
   const unitPrice = useMemo(() => {
     if (selectedSize && selectedSize.price !== undefined) {
@@ -72,17 +73,40 @@ export default function ItemDetailPage({
   };
 
   const handleShare = async () => {
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const shareUrl = isLocal ? 'https://food-website-8epf.onrender.com' : window.location.href;
+    const shareText = `Check out *${item.name}* at Salik Fast Food!\nPrice: Rs. ${formatPrice(unitPrice)}\n📞 Order on WhatsApp: 0309-5369472\n${shareUrl}`;
+
     if (navigator.share) {
       try {
         await navigator.share({
           title: item.name,
           text: `Check out ${item.name} at Salik Fast Food! Only Rs. ${formatPrice(unitPrice)}`,
-          url: window.location.href
+          url: shareUrl
         });
-      } catch (err) {}
-    } else {
-      navigator.clipboard?.writeText?.(window.location.href);
-      alert('Link copied to clipboard!');
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+
+    // Modern in-app toast fallback instead of disruptive system alert()
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setShareToast(true);
+      setTimeout(() => setShareToast(false), 2400);
+    } catch (e) {
+      setShareToast(true);
+      setTimeout(() => setShareToast(false), 2400);
     }
   };
 
@@ -377,6 +401,14 @@ export default function ItemDetailPage({
       <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[70] px-5 py-2.5 rounded-full bg-emerald-600 text-white font-bold text-xs shadow-xl flex items-center gap-2 animate-bounce">
         <Check className="w-4 h-4 stroke-[3]" />
         <span>Added to your cart!</span>
+      </div>
+    )}
+
+    {/* Floating Share Copied Notification Toast */}
+    {shareToast && (
+      <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[70] px-5 py-2.5 rounded-full bg-zinc-900/95 dark:bg-white text-white dark:text-zinc-900 font-bold text-xs shadow-2xl border border-white/10 dark:border-zinc-200 flex items-center gap-2 animate-bounce">
+        <Check className="w-4 h-4 text-emerald-400 dark:text-emerald-600 stroke-[3]" />
+        <span>Item details copied to clipboard!</span>
       </div>
     )}
 
