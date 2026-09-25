@@ -919,47 +919,6 @@ export default function CustomerMobileApp({
     setReorderToast(`Items from Order #${order.id || 'recent'} added to cart!`);
   };
 
-  // Create sample order if none exists so user can test immediately
-  const handleLoadSampleOrder = () => {
-    const sample = {
-      id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-      createdAt: new Date().toISOString(),
-      status: 'Delivered',
-      total: 1050,
-      deliveryFee: 100,
-      subtotal: 950,
-      items: [
-        {
-          id: 'burger-zinger',
-          name: 'Zinger Burger',
-          price: 320,
-          quantity: 2,
-          size: null,
-          image: resolveImageUrl('/assets/images/cat-burgers-CfWIZ4YN.jpg')
-        },
-        {
-          id: 'fries-regular',
-          name: 'Crispy Fries',
-          price: 180,
-          quantity: 1,
-          size: null,
-          image: resolveImageUrl('/assets/images/cat-fries-DyVY4OBM.jpg')
-        },
-        {
-          id: 'drink-500ml',
-          name: 'Coke 500ml',
-          price: 130,
-          quantity: 1,
-          size: null,
-          image: resolveImageUrl('/assets/images/coke-500ml.png')
-        }
-      ]
-    };
-    if (typeof saveRecentOrder === 'function') {
-      saveRecentOrder(sample);
-    }
-  };
-
   // Mobile Checkout - Validate & Open Confirmation Modal
   const handleMobileOnlineOrder = (e) => {
     if (e) e.preventDefault();
@@ -2223,16 +2182,6 @@ export default function CustomerMobileApp({
                     className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <span>Browse Menu</span>
-                  </button>
-                  <button
-                    onClick={handleLoadSampleOrder}
-                    className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border active:scale-95 transition-all cursor-pointer ${
-                      isDark 
-                        ? 'bg-zinc-800 border-white/10 text-zinc-300 ' 
-                        : 'bg-zinc-100 border-zinc-200 text-zinc-700 '
-                    }`}
-                  >
-                    Load Sample Order
                   </button>
                 </div>
               </div>
