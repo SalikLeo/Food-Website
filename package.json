@@ -18,7 +18,10 @@
     "preview:customer": "vite preview --outDir Mobile/customer/www",
     "preview:admin": "vite preview --outDir Mobile/admin/www",
     "open:customer": "cd Mobile/customer && npx cap open android",
-    "open:admin": "cd Mobile/admin && npx cap open android"
+    "open:admin": "cd Mobile/admin && npx cap open android",
+    "apks": "powershell -ExecutionPolicy Bypass -File scripts/build-apks.ps1 -Target all",
+    "apks:customer": "powershell -ExecutionPolicy Bypass -File scripts/build-apks.ps1 -Target customer",
+    "apks:admin": "powershell -ExecutionPolicy Bypass -File scripts/build-apks.ps1 -Target admin"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
