@@ -29,7 +29,7 @@ export default function App() {
   });
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
-    return Boolean(localStorage.getItem('salik_admin_token') || localStorage.getItem('mehrban_admin_token'));
+    return Boolean(localStorage.getItem('salik_admin_token'));
   });
 
   const [isOnline, setIsOnline] = useState(() => {
@@ -265,6 +265,7 @@ export default function App() {
   };
 
   const handleExitAdmin = () => {
+    if (APP_MODE === 'admin') return;
     window.location.hash = '';
     setIsAdminView(false);
     loadData(); // refresh storefront in case products were edited

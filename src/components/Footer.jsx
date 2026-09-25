@@ -150,6 +150,12 @@ export default function Footer({ categories = [], settings = null }) {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-zinc-900 text-center text-xs text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© 2026 Salik Fast Food. All rights reserved.</p>
+          <a
+            href="/admin"
+            className="text-zinc-600 hover:text-zinc-400 text-[11px] transition-colors"
+          >
+            Staff / Admin Panel
+          </a>
           <p className="flex items-center gap-1">
             <span>Made with</span>
             <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 inline" />

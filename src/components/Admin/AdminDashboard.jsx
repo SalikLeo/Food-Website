@@ -21,7 +21,8 @@ import {
   Bell,
   Volume2,
   VolumeX,
-  Bike
+  Bike,
+  Smartphone
 } from 'lucide-react';
 import ProductManager from './ProductManager';
 import OrdersManager from './OrdersManager';
@@ -756,6 +757,19 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-orange-600' : ''}`} />
               </button>
+
+              {APP_MODE !== 'admin' && (
+                <a
+                  href="/downloads/Salik-Fast-Food-Admin.apk"
+                  download="Salik-Fast-Food-Admin.apk"
+                  className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-xs font-bold text-orange-700 flex items-center gap-1.5 active:scale-95 transition-all shadow-2xs"
+                  title="Download Admin Mobile App (.APK)"
+                  aria-label="Download Admin App"
+                >
+                  <Smartphone className="w-4 h-4 text-orange-600 shrink-0" />
+                  <span className="hidden md:inline">Download App</span>
+                </a>
+              )}
 
               {APP_MODE !== 'admin' && (
                 <button
