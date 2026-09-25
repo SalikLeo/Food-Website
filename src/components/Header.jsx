@@ -241,20 +241,6 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               >
                 Review
               </button>
-              {!hideAdmin && (
-                <button
-                  onClick={onAdminClick}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full ${
-                    isDark
-                      ? 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border-zinc-700/50'
-                      : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-900 border-zinc-300/80'
-                  } transition-all border ml-2 cursor-pointer`}
-                  title="Admin Dashboard"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Admin</span>
-                </button>
-              )}
             </nav>
           )}
 
@@ -609,22 +595,6 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                     </svg>
                     <span>{googleLoading ? 'Connecting...' : 'Login with Google'}</span>
                   </button>
-                )}
-
-                {/* Admin Management Link */}
-                {!hideAdmin && (
-                  <div className="pt-1.5 flex justify-center">
-                    <button
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        onAdminClick();
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-orange-400 transition-colors cursor-pointer"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
-                      <span>Admin Management</span>
-                    </button>
-                  </div>
                 )}
               </div>
             </div>

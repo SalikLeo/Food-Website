@@ -124,7 +124,7 @@ export default function DownloadAppSection() {
                 <a
                   href="/downloads/Salik-Fast-Food-Customer.apk"
                   download="Salik-Fast-Food-Customer.apk"
-                  className="flex-1 inline-flex items-center justify-center gap-3 px-7 py-4 rounded-2xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-extrabold text-sm uppercase tracking-wider shadow-xl shadow-orange-500/25 active:scale-98 transition-all group cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-extrabold text-sm uppercase tracking-wider shadow-xl shadow-orange-500/25 active:scale-98 transition-all group cursor-pointer"
                 >
                   <Download className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
                   <div className="text-left">
@@ -135,21 +135,6 @@ export default function DownloadAppSection() {
                       Download Customer App
                     </div>
                   </div>
-                </a>
-
-                {/* Secondary Admin App Download Link */}
-                <a
-                  href="/downloads/Salik-Fast-Food-Admin.apk"
-                  download="Salik-Fast-Food-Admin.apk"
-                  className={`inline-flex items-center justify-center gap-2 px-5 py-4 rounded-2xl border text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                    isDark 
-                      ? 'bg-zinc-900/80 hover:bg-zinc-800 border-white/10 text-zinc-300 hover:text-white' 
-                      : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700 hover:text-orange-600 shadow-2xs'
-                  }`}
-                  title="Download Store Manager & Rider Management APK"
-                >
-                  <Smartphone className="w-4 h-4" />
-                  <span>Admin APK</span>
                 </a>
 
               </div>
