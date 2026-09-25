@@ -441,6 +441,18 @@ app.post('/api/admin/login', (req, res) => {
   return res.status(401).json({ error: 'Invalid admin credentials' });
 });
 
+// Production Frontend Static Serving (Hostinger / Cloud / VPS)
+const distDir = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/assets') || req.path.startsWith('/uploads')) {
+      return next();
+    }
+    res.sendFile(path.join(distDir, 'index.html'));
+  });
+}
+
 function getLocalNetworkIp() {
   const nets = os.networkInterfaces();
   for (const name of Object.keys(nets)) {
