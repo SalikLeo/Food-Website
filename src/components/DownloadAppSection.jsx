@@ -114,33 +114,33 @@ export default function DownloadAppSection() {
 
             </div>
 
-            {/* Right Column: Sleek Phone Mockup Visual */}
+            {/* Right Column: Sleek Phone Mockup Visual (Light Mode App Interface) */}
             <div className="lg:col-span-5 flex justify-center">
-              <div className={`relative w-full max-w-[240px] sm:max-w-[270px] rounded-[2rem] p-2.5 border-3 shadow-xl ${
+              <div className={`relative w-full max-w-[240px] sm:max-w-[270px] rounded-[2.2rem] p-2.5 border-4 shadow-2xl ${
                 isDark 
-                  ? 'bg-zinc-950 border-zinc-800 shadow-[0_20px_50px_rgba(0,0,0,0.8)]' 
-                  : 'bg-zinc-900 border-zinc-700 shadow-xl text-white'
+                  ? 'bg-[#18181c] border-zinc-700 shadow-[0_20px_50px_rgba(0,0,0,0.8)]' 
+                  : 'bg-zinc-900 border-zinc-800 shadow-2xl text-zinc-900'
               }`}>
                 
                 {/* Phone Speaker & Camera Notch */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-3.5 bg-black rounded-full z-30 flex items-center justify-center">
+                <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-20 h-3.5 bg-black rounded-full z-30 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-zinc-800 mr-1.5" />
                   <div className="w-6 h-1 rounded-full bg-zinc-800" />
                 </div>
 
-                {/* Inner Screen Preview */}
-                <div className="rounded-[1.6rem] overflow-hidden bg-[#0f0f13] text-white p-3.5 pt-7 space-y-3 relative select-none">
+                {/* Inner Screen Preview - Light Theme App UI */}
+                <div className="rounded-[1.7rem] overflow-hidden bg-[#faf8f5] text-zinc-900 p-3.5 pt-7 space-y-3 relative select-none border border-zinc-200/60 shadow-inner">
                   
                   {/* Top Bar Preview */}
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <div className="flex items-center justify-between border-b border-zinc-200/80 pb-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full overflow-hidden border border-orange-500/60 bg-black">
+                      <div className="w-7 h-7 rounded-full overflow-hidden border border-orange-400/50 bg-white shadow-2xs">
                         <img src="/assets/salik-logo.png" alt="Salik" className="w-full h-full object-cover" />
                       </div>
                       <div>
-                        <div className="text-[11px] font-black tracking-tight leading-none">SALIK FAST FOOD</div>
-                        <div className="text-[8px] text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <div className="text-[11px] font-black tracking-tight leading-none text-zinc-900">SALIK FAST FOOD</div>
+                        <div className="text-[8px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           Wah Cantt • Open
                         </div>
                       </div>
@@ -148,30 +148,30 @@ export default function DownloadAppSection() {
                   </div>
 
                   {/* Promo Banner Preview */}
-                  <div className="rounded-xl p-2.5 bg-gradient-to-r from-orange-600 to-amber-600 shadow-md flex items-center justify-between gap-1.5">
+                  <div className="rounded-xl p-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm flex items-center justify-between gap-1.5">
                     <div className="space-y-0.5">
-                      <span className="text-[7px] font-extrabold uppercase px-1 py-0.5 rounded-full bg-white/20">Special Offer</span>
-                      <div className="text-[11px] font-black font-montserrat">FAMILY FEAST</div>
-                      <div className="text-[8px] text-white/90">Rs. 2580 • Pizza & Burgers</div>
+                      <span className="text-[7px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-white/25">Special Offer</span>
+                      <div className="text-[11px] font-black font-montserrat tracking-tight leading-tight">FAMILY FEAST</div>
+                      <div className="text-[8px] text-white/95">Rs. 2580 • Pizza & Burgers</div>
                     </div>
-                    <img src="/assets/deal-family.png" alt="Deal" className="w-11 h-11 object-contain drop-shadow-md" />
+                    <img src="/assets/deal-family.png" alt="Deal" className="w-11 h-11 object-contain drop-shadow" />
                   </div>
 
                   {/* Mini Product Card Preview */}
-                  <div className="rounded-lg p-2 bg-zinc-900 border border-white/10 flex items-center justify-between gap-2">
+                  <div className="rounded-xl p-2 bg-white border border-zinc-200/80 shadow-2xs flex items-center justify-between gap-2">
                     <div className="space-y-0.5 min-w-0">
-                      <div className="text-[10px] font-bold truncate">Tower Zinger Burger</div>
-                      <div className="text-[8px] text-orange-400 font-extrabold">Rs. 280</div>
+                      <div className="text-[10px] font-bold text-zinc-800 truncate">Tower Zinger Burger</div>
+                      <div className="text-[8px] text-orange-600 font-extrabold">Rs. 280</div>
                     </div>
-                    <span className="px-2 py-0.5 rounded-md bg-orange-600 text-white text-[8px] font-extrabold shrink-0">
+                    <span className="px-2 py-0.5 rounded-md bg-orange-500 text-white text-[8px] font-extrabold shrink-0 shadow-2xs">
                       + ADD
                     </span>
                   </div>
 
                   {/* Bottom Active Status Floating Bar */}
-                  <div className="p-1.5 rounded-lg bg-purple-950/80 border border-purple-500/40 flex items-center justify-between text-[9px]">
-                    <div className="flex items-center gap-1 text-purple-200 font-bold">
-                      <Bike className="w-3 h-3 text-purple-400" />
+                  <div className="p-1.5 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-between text-[9px] shadow-2xs">
+                    <div className="flex items-center gap-1.5 text-emerald-800 font-bold">
+                      <Bike className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Order #104 Out for Delivery</span>
                     </div>
                   </div>
