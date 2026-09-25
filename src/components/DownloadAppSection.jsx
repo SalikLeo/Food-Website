@@ -48,20 +48,20 @@ export default function DownloadAppSection() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Left Column: Heading, 4 Highlights (2x2 Grid), Download CTA */}
-            <div className="lg:col-span-7 flex flex-col justify-center py-2 sm:py-4 space-y-6 sm:space-y-7">
+            <div className="lg:col-span-7 flex flex-col justify-center py-2 sm:py-6 space-y-7 sm:space-y-8">
               
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <span className="text-xs font-bold tracking-[0.2em] text-orange-500 sm:text-orange-600 uppercase block">
                   OFFICIAL ANDROID APP
                 </span>
                 
-                <h2 className={`text-3xl sm:text-4xl md:text-5xl font-display uppercase tracking-tight ${
+                <h2 className={`mt-1 text-4xl sm:text-5xl lg:text-6xl font-display uppercase tracking-tight ${
                   isDark ? 'text-white' : 'text-zinc-900'
                 } leading-none`}>
-                  GET THE SALIK <span className="text-orange-500">MOBILE APP</span>
+                  GET THE SALIK <span className="text-orange-500 sm:text-orange-600">MOBILE APP</span>
                 </h2>
                 
-                <p className={`text-xs sm:text-sm leading-relaxed max-w-xl ${
+                <p className={`text-sm sm:text-base leading-relaxed max-w-xl ${
                   isDark ? 'text-zinc-400' : 'text-zinc-600'
                 }`}>
                   Enjoy the fastest food ordering experience in Wah Cantt with live tracking, sound alerts, and instant kitchen notifications.
