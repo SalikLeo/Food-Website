@@ -5,7 +5,7 @@ import {
   Clock, MapPin, ChevronRight, ChevronDown, Check, Sparkles, Phone,
   Sun, Moon, RotateCcw, PackageCheck, ReceiptText, AlertCircle, Ban,
   User, CheckCircle2, Send, Star, MessageSquareHeart, Truck, Bike,
-  RefreshCw, DownloadCloud
+  RefreshCw, DownloadCloud, LogOut
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { apiUrl, resolveImageUrl } from '../../config/api';
@@ -411,6 +411,7 @@ export default function CustomerMobileApp({
   // Google Customer User authentication state
   const [customerUser, setCustomerUser] = useState(() => getStoredCustomerUser());
   const [showGoogleSetupModal, setShowGoogleSetupModal] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [viewingReceiptOrder, setViewingReceiptOrder] = useState(null);
 
@@ -629,9 +630,14 @@ export default function CustomerMobileApp({
     }
   };
 
-  const handleCustomerLogout = () => {
+  const handleRequestLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleConfirmLogout = () => {
     clearStoredCustomerUser();
     setCustomerUser(null);
+    setShowLogoutConfirm(false);
     setReorderToast('Logged out of Google');
     window.dispatchEvent(new Event('salik_customer_auth_changed'));
   };
@@ -668,14 +674,18 @@ export default function CustomerMobileApp({
 
   // Lock background scroll and handle ESC key when mobile menu or confirmation modal is open
   useEffect(() => {
-    if (mobileMenuOpen || showConfirmModal || viewingReceiptOrder || reviewToConfirm || reviewSuccessData) {
+    if (mobileMenuOpen || showConfirmModal || viewingReceiptOrder || reviewToConfirm || reviewSuccessData || showGoogleSetupModal || showLogoutConfirm) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        if (reviewSuccessData) {
+        if (showLogoutConfirm) {
+          setShowLogoutConfirm(false);
+        } else if (showGoogleSetupModal) {
+          setShowGoogleSetupModal(false);
+        } else if (reviewSuccessData) {
           setReviewSuccessData(null);
         } else if (reviewToConfirm) {
           setReviewToConfirm(null);
@@ -693,7 +703,7 @@ export default function CustomerMobileApp({
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mobileMenuOpen, showConfirmModal, viewingReceiptOrder, reviewToConfirm, reviewSuccessData]);
+  }, [mobileMenuOpen, showConfirmModal, viewingReceiptOrder, reviewToConfirm, reviewSuccessData, showGoogleSetupModal, showLogoutConfirm]);
 
   // Group and resolve featured deal for Deals tab
   const allDealsList = useMemo(() => {
@@ -737,6 +747,10 @@ export default function CustomerMobileApp({
           }
           if (viewingReceiptOrder) {
             setViewingReceiptOrder(null);
+            return;
+          }
+          if (showLogoutConfirm) {
+            setShowLogoutConfirm(false);
             return;
           }
           if (showGoogleSetupModal) {
@@ -3457,7 +3471,7 @@ export default function CustomerMobileApp({
 
                   <button
                     type="button"
-                    onClick={handleCustomerLogout}
+                    onClick={handleRequestLogout}
                     className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold border transition-colors cursor-pointer active:scale-95 flex-shrink-0 ${
                       isDark 
                         ? 'border-red-500/30 text-red-400 ' 
@@ -3702,6 +3716,62 @@ export default function CustomerMobileApp({
                 }`}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* 6.1 GOOGLE LOGOUT CONFIRMATION MODAL */}
+      {/* ============================================================== */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity"
+            onClick={() => setShowLogoutConfirm(false)}
+          />
+
+          <div className={`relative w-full max-w-sm rounded-3xl p-5 sm:p-6 border shadow-2xl z-10 space-y-4 text-center animate-scale-in ${
+            isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900'
+          }`}>
+            <div className="w-12 h-12 rounded-full bg-red-500/15 text-red-500 flex items-center justify-center mx-auto">
+              <LogOut className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-montserrat font-bold text-base">Log out of Google?</h3>
+              <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Are you sure you want to log out of <strong>{customerUser?.name || 'your Google account'}</strong>? Cross-device order and address synchronization will be paused on this device.
+              </p>
+            </div>
+
+            {customerUser?.email && (
+              <div className={`py-1.5 px-3 rounded-lg text-[11px] font-medium inline-block max-w-full truncate ${
+                isDark ? 'bg-white/5 text-zinc-300 border border-white/10' : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
+              }`}>
+                {customerUser.email}
+              </div>
+            )}
+
+            <div className="flex gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs border active:scale-95 transition-all cursor-pointer ${
+                  isDark
+                    ? 'bg-zinc-800 hover:bg-zinc-700 border-white/10 text-zinc-300'
+                    : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-200 text-zinc-700'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLogout}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold text-xs shadow-md shadow-red-600/20 active:scale-95 transition-all cursor-pointer"
+              >
+                Yes, Logout
               </button>
             </div>
           </div>
