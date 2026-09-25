@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ArrowLeft, ShoppingBag, Plus, Minus, Check, Flame, 
-  Sparkles, Clock, Star, Share2, AlertCircle, Utensils
+  Share2, AlertCircle, Utensils
 } from 'lucide-react';
 import { formatPrice, cleanDealInclusions } from '../../utils/formatters';
 
@@ -189,44 +189,20 @@ export default function ItemDetailPage({
           </div>
         </div>
 
-        {/* Title, Category & Quality Highlights */}
-        <div className={`p-5 rounded-3xl border shadow-xs space-y-3.5 ${
+        {/* Title & Description */}
+        <div className={`p-4 sm:p-5 rounded-3xl border shadow-xs space-y-2 ${
           isDark ? 'bg-[#15151a] border-white/10' : 'bg-white border-zinc-200'
         }`}>
-          <div>
-            <h1 className={`text-2xl sm:text-3xl font-black tracking-tight leading-tight ${
-              isDark ? 'text-white' : 'text-zinc-900'
-            }`}>
-              {item.name}
-            </h1>
+          <h1 className={`text-2xl sm:text-3xl font-black tracking-tight leading-tight ${
+            isDark ? 'text-white' : 'text-zinc-900'
+          }`}>
+            {item.name}
+          </h1>
 
-            {/* Quality Badges */}
-            <div className="flex flex-wrap items-center gap-3 mt-2.5 text-xs font-semibold">
-              <span className="inline-flex items-center gap-1 text-amber-500 font-bold">
-                <Star className="w-4 h-4 fill-amber-500" />
-                <span>4.9 (Customer Favorite)</span>
-              </span>
-              <span className={`inline-flex items-center gap-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                <Clock className="w-3.5 h-3.5" />
-                <span>15 - 25 mins</span>
-              </span>
-              <span className={`inline-flex items-center gap-1 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Freshly Prepared</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Description */}
           {item.description && (
-            <div className={`pt-2 border-t ${isDark ? 'border-white/5' : 'border-zinc-100'}`}>
-              <h3 className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                Description
-              </h3>
-              <p className={`text-sm leading-relaxed ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
-                {item.description}
-              </p>
-            </div>
+            <p className={`text-sm leading-relaxed ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
+              {item.description}
+            </p>
           )}
         </div>
 
