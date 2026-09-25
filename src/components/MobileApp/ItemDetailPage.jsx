@@ -271,15 +271,20 @@ export default function ItemDetailPage({
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            <div className="flex items-stretch gap-2.5 pt-1 overflow-x-auto no-scrollbar">
               {item.sizes.map((sz, idx) => {
                 const isSelected = selectedSize?.label === sz.label;
+                const isTwoSizes = item.sizes.length <= 2;
                 return (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setSelectedSize(sz)}
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between sm:flex-col sm:items-start gap-1.5 ${
+                    className={`flex-1 ${
+                      isTwoSizes 
+                        ? 'min-w-0 p-3 sm:p-3.5 flex items-center justify-between gap-2' 
+                        : 'min-w-[95px] p-2.5 sm:p-3 flex flex-col items-center justify-center text-center gap-1'
+                    } rounded-2xl border transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-orange-500 border-orange-600 text-white shadow-md shadow-orange-500/25 scale-[1.01]'
                         : isDark
@@ -287,17 +292,17 @@ export default function ItemDetailPage({
                           : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200 text-zinc-800'
                     }`}
                   >
-                    <div>
-                      <span className={`block font-bold text-sm ${isSelected ? 'text-white' : isDark ? 'text-white' : 'text-zinc-900'}`}>
+                    <div className={isTwoSizes ? 'text-left min-w-0' : 'text-center'}>
+                      <span className={`block font-bold text-xs sm:text-sm truncate ${isSelected ? 'text-white' : isDark ? 'text-white' : 'text-zinc-900'}`}>
                         {sz.label}
                       </span>
                       {sz.description && (
-                        <span className={`block text-[11px] mt-0.5 ${isSelected ? 'text-white/80' : isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                        <span className={`block text-[10px] mt-0.5 truncate ${isSelected ? 'text-white/80' : isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                           {sz.description}
                         </span>
                       )}
                     </div>
-                    <span className={`font-black text-sm sm:text-base ${isSelected ? 'text-white' : 'text-orange-500'}`}>
+                    <span className={`font-black text-xs sm:text-sm whitespace-nowrap shrink-0 ${isSelected ? 'text-white' : 'text-orange-500'}`}>
                       Rs. {formatPrice(sz.price)}
                     </span>
                   </button>
