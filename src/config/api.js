@@ -10,8 +10,9 @@ export const isCustomerApp =
   APP_MODE === 'customer' ||
   (typeof window !== 'undefined' && (
     (window.Capacitor !== undefined && APP_MODE !== 'admin') ||
-    window.location.search.includes('app=customer') ||
-    window.location.hash.includes('app=customer')
+    window.location.pathname.startsWith('/app') ||
+    window.location.search.includes('app') ||
+    window.location.hash.includes('app')
   ));
 
 export const isMobileApp =
@@ -19,8 +20,9 @@ export const isMobileApp =
   APP_MODE === 'admin' ||
   (typeof window !== 'undefined' && (
     window.Capacitor !== undefined ||
-    window.location.search.includes('app=') ||
-    window.location.hash.includes('app=')
+    window.location.pathname.startsWith('/app') ||
+    window.location.search.includes('app') ||
+    window.location.hash.includes('app')
   ));
 
 const getApiBaseUrl = () => {
