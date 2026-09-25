@@ -3,6 +3,7 @@ import {
   ArrowLeft, ShoppingBag, Plus, Minus, Check, Flame, 
   Share2, AlertCircle, Utensils
 } from 'lucide-react';
+import { Share } from '@capacitor/share';
 import { formatPrice, cleanDealInclusions } from '../../utils/formatters';
 
 export default function ItemDetailPage({
@@ -75,12 +76,34 @@ export default function ItemDetailPage({
   const handleShare = async () => {
     const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     const shareUrl = isLocal ? 'https://food-website-8epf.onrender.com' : window.location.href;
+    const shareTitle = `${item.name} | Salik Fast Food`;
     const shareText = `Check out *${item.name}* at Salik Fast Food!\nPrice: Rs. ${formatPrice(unitPrice)}\n📞 Order on WhatsApp: 0309-5369472\n${shareUrl}`;
 
-    if (navigator.share) {
+    // 1. Native Capacitor Share (opens real native Android ShareSheet with WhatsApp, Messages, etc.)
+    try {
+      const canShareRes = await Share.canShare();
+      if (canShareRes.value) {
+        await Share.share({
+          title: shareTitle,
+          text: `Check out *${item.name}* at Salik Fast Food!\nPrice: Rs. ${formatPrice(unitPrice)}\n📞 Order on WhatsApp: 0309-5369472`,
+          url: shareUrl,
+          dialogTitle: `Share ${item.name}`
+        });
+        return;
+      }
+    } catch (err) {
+      // User dismissed native share sheet
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('canceled') || msg.includes('cancelled') || err?.name === 'AbortError') {
+        return;
+      }
+    }
+
+    // 2. Web Share API fallback
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
-          title: item.name,
+          title: shareTitle,
           text: `Check out ${item.name} at Salik Fast Food! Only Rs. ${formatPrice(unitPrice)}`,
           url: shareUrl
         });
@@ -90,7 +113,7 @@ export default function ItemDetailPage({
       }
     }
 
-    // Modern in-app toast fallback instead of disruptive system alert()
+    // 3. Fallback: Copy to clipboard and show toast
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareText);
@@ -414,14 +437,13 @@ export default function ItemDetailPage({
 
     {/* Fixed Bottom Footer Action Bar */}
     <div 
-      className={`fixed bottom-0 inset-x-0 z-[60] border-t px-4 py-3 backdrop-blur-xl transition-all duration-150 ${
+      className={`fixed bottom-0 left-0 right-0 z-[60] border-t px-4 py-2.5 sm:py-3 shadow-2xl transition-all duration-150 ${
         isClosing ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'
       } ${
         isDark 
-          ? 'bg-[#121216]/95 border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.6)]' 
-          : 'bg-white/95 border-zinc-200 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]'
+          ? 'bg-[#121216] border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.6)]' 
+          : 'bg-white border-zinc-200 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]'
       }`}
-      style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <div className="max-w-2xl mx-auto flex items-center gap-3.5">
         

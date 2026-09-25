@@ -12,6 +12,7 @@
     "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.2",
     "@capacitor/local-notifications": "^8.3.1",
-    "@capacitor/network": "^8.0.1"
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/share": "^8.0.2"
   }
 }

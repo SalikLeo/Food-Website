@@ -1190,7 +1190,7 @@ export default function CustomerMobileApp({
   }, [promoBanners]);
 
   return (
-    <div className={`min-h-screen mobile-app-container is-mobile-app ${
+    <div className={`min-h-screen ${currentView === 'item-detail' ? '' : 'mobile-app-container'} is-mobile-app ${
       isDark 
         ? 'dark bg-[#0e0e11] text-white selection:bg-orange-500/35 selection:text-white' 
         : 'bg-[#f4f5f8] text-zinc-900 selection:bg-orange-500/25 selection:text-inherit'
