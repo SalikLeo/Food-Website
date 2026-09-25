@@ -663,6 +663,7 @@ export const db = {
       deliveryFee: updates.deliveryFee !== undefined ? Number(updates.deliveryFee) : (current.deliveryFee ?? 100),
       minOrder: updates.minOrder !== undefined ? Number(updates.minOrder) : (current.minOrder ?? 500),
       freeDeliveryThreshold: updates.freeDeliveryThreshold !== undefined ? Number(updates.freeDeliveryThreshold) : (current.freeDeliveryThreshold ?? 0),
+      logoUrl: updates.logoUrl !== undefined ? String(updates.logoUrl || '').trim() : (current.logoUrl || ''),
       floatingButtons: newButtons,
       bestSellerCategories: newCategories,
       updatedAt: new Date().toISOString()

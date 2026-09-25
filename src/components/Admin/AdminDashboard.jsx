@@ -500,7 +500,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       setRiders(finalRiders);
 
       setStats(statsRes || {});
-      if (settingsRes && typeof settingsRes.deliveryFee === 'number') {
+      if (settingsRes && typeof settingsRes === 'object') {
         setSettings(settingsRes);
       }
     } catch (e) {
@@ -512,6 +512,13 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
   useEffect(() => {
     fetchData();
+
+    const handleSettingsUpdated = (e) => {
+      if (e && e.detail) {
+        setSettings(prev => ({ ...prev, ...e.detail }));
+      }
+    };
+    window.addEventListener('salik_settings_updated', handleSettingsUpdated);
 
     const handleSyncRiders = () => {
       try {
@@ -568,6 +575,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
     return () => {
       clearInterval(interval);
+      window.removeEventListener('salik_settings_updated', handleSettingsUpdated);
       window.removeEventListener('salik_sync_riders', handleSyncRiders);
       window.removeEventListener('salik_sync_reviews', handleSyncReviews);
       window.removeEventListener('focus', onFocusOrVisible);
@@ -769,7 +777,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-orange-500 bg-orange-50 shadow-xs shrink-0 flex items-center justify-center">
                 <img
-                  src={resolveImageUrl('/assets/salik-logo.png')}
+                  src={resolveImageUrl(settings?.logoUrl || '/assets/salik-logo.png')}
                   alt="Salik Fast Food"
                   className="w-full h-full object-cover"
                   onError={(e) => {

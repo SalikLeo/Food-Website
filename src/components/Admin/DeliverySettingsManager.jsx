@@ -10,10 +10,13 @@ import {
   Flame,
   Check,
   Package,
-  ShoppingBag
+  ShoppingBag,
+  UploadCloud,
+  Image as ImageIcon,
+  RotateCcw
 } from 'lucide-react';
 import WhatsAppIcon from '../WhatsAppIcon';
-import { apiUrl } from '../../config/api';
+import { apiUrl, resolveImageUrl } from '../../config/api';
 import { formatPrice } from '../../utils/formatters';
 
 export default function DeliverySettingsManager({ onRefresh }) {
@@ -31,9 +34,11 @@ export default function DeliverySettingsManager({ onRefresh }) {
   const [freeDeliveryEnabled, setFreeDeliveryEnabled] = useState(false);
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(0);
 
-  const [deliveryNotice, setDeliveryNotice] = useState(
-    'Delivery available in nearby areas (Shaikh Chowk, Itfaq Town, Mansoora, Multan Road)'
-  );
+  const [logoUrl, setLogoUrl] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoError, setLogoError] = useState('');
+
+  const [deliveryNotice, setDeliveryNotice] = useState('');
 
   const [floatingButtons, setFloatingButtons] = useState({
     whatsappWeb: true,
@@ -81,6 +86,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
           setFreeDeliveryEnabled(Number(settingsRes.freeDeliveryThreshold || 0) > 0);
         }
         if (settingsRes.deliveryNotice) setDeliveryNotice(settingsRes.deliveryNotice);
+        if (settingsRes.logoUrl) setLogoUrl(settingsRes.logoUrl);
         if (settingsRes.floatingButtons) {
           setFloatingButtons({
             whatsappWeb: settingsRes.floatingButtons.whatsappWeb !== false,
@@ -161,6 +167,38 @@ export default function DeliverySettingsManager({ onRefresh }) {
     });
   };
 
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    setLogoError('');
+    const data = new FormData();
+    data.append('image', file);
+
+    try {
+      const res = await fetch(apiUrl('/api/upload'), {
+        method: 'POST',
+        body: data
+      });
+      const result = await res.json();
+      if (res.ok && result.url) {
+        setLogoUrl(result.url);
+      } else {
+        setLogoError(result.error || 'Failed to upload logo image');
+      }
+    } catch {
+      setLogoError('Network error uploading logo image');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleResetLogo = () => {
+    setLogoUrl('');
+    setLogoError('');
+  };
+
   const handleSave = async (e) => {
     if (e) e.preventDefault();
     setSaving(true);
@@ -175,7 +213,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
         minOrder: Math.max(0, Number(minOrder) || 0),
         freeDeliveryEnabled: Boolean(freeDeliveryEnabled),
         freeDeliveryThreshold: Math.max(0, Number(freeDeliveryThreshold) || 0),
-        deliveryNotice: deliveryNotice.trim(),
+        logoUrl: logoUrl.trim(),
         floatingButtons: {
           whatsappWeb: Boolean(floatingButtons.whatsappWeb),
           whatsappMobile: Boolean(floatingButtons.whatsappMobile),
@@ -619,25 +657,74 @@ export default function DeliverySettingsManager({ onRefresh }) {
             </div>
           </div>
 
-          {/* Section 4: Delivery Notice */}
+          {/* Section 4: Store & App Logo */}
           <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
-            <div>
-              <label className="text-sm font-bold text-zinc-900 block mb-1">
-                Delivery Policy & Area Notice
-              </label>
-              <p className="text-xs text-zinc-500">
-                This note is shown on checkout and store contact info to inform customers about delivery areas and variable charges.
-              </p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <label className="text-sm font-bold text-zinc-900 block mb-1">
+                  Store & App Logo
+                </label>
+                <p className="text-xs text-zinc-500">
+                  Update the official Salik Fast Food brand logo displayed across website & mobile apps.
+                </p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center shrink-0">
+                <ImageIcon className="w-5 h-5" />
+              </div>
             </div>
-            <textarea
-              rows="4"
-              value={deliveryNotice}
-              onChange={(e) => setDeliveryNotice(e.target.value)}
-              className="w-full p-3.5 rounded-xl bg-white border border-zinc-300 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-2xs resize-none"
-              placeholder="e.g. Delivery available in nearby areas (Wah Model Town, Wah Cantt). Rates may vary for distant areas."
-            />
+
+            <div className="flex items-center gap-4 p-3.5 rounded-xl bg-zinc-50 border border-zinc-200">
+              <div className="w-16 h-16 rounded-xl bg-zinc-900 p-2 border border-zinc-300 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                <img
+                  src={resolveImageUrl(logoUrl || '/assets/salik-logo.png')}
+                  alt="App Logo"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.target.src = resolveImageUrl('/assets/salik-logo.svg');
+                  }}
+                />
+              </div>
+              <div className="space-y-1 min-w-0 flex-1">
+                <div className="text-xs font-bold text-zinc-800 truncate">
+                  {logoUrl ? 'Custom App Logo Active' : 'Default Brand Logo Active'}
+                </div>
+                <div className="text-[11px] text-zinc-500 truncate">
+                  {logoUrl || '/assets/salik-logo.png'}
+                </div>
+                <div className="flex items-center gap-2 pt-1.5 flex-wrap">
+                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer">
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>{uploadingLogo ? 'Uploading...' : 'Upload New Logo'}</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo}
+                    />
+                  </label>
+                  {logoUrl && (
+                    <button
+                      type="button"
+                      onClick={handleResetLogo}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-300 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition-all cursor-pointer active:scale-95"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Reset Default</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {logoError && (
+              <div className="text-xs text-red-600 font-medium">
+                {logoError}
+              </div>
+            )}
+
             <div className="text-[11px] text-zinc-400">
-              Customers can view this notice during online ordering.
+              Recommended: Transparent PNG or SVG (Square or Circular 512x512). Automatically updates across website and customer app.
             </div>
           </div>
 

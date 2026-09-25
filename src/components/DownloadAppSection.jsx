@@ -4,9 +4,10 @@ import {
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
+import { resolveImageUrl } from '../config/api';
 
 export default function DownloadAppSection() {
-  const { isDark } = useCart();
+  const { isDark, settings } = useCart();
 
   const appHighlights = [
     {
@@ -141,7 +142,14 @@ export default function DownloadAppSection() {
                   <div className="flex items-center justify-between border-b border-zinc-200/80 pb-2 pt-1 px-0.5">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <div className="w-7 h-7 rounded-full overflow-hidden border border-orange-400/50 bg-white shadow-2xs shrink-0">
-                        <img src="/assets/salik-logo.png" alt="Salik" className="w-full h-full object-cover" />
+                        <img
+                          src={resolveImageUrl(settings?.logoUrl || '/assets/salik-logo.png')}
+                          alt="Salik"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = resolveImageUrl('/assets/salik-logo.svg');
+                          }}
+                        />
                       </div>
                       <div className="min-w-0">
                         <div className="text-[10.5px] font-black tracking-tight leading-none text-zinc-900 truncate">

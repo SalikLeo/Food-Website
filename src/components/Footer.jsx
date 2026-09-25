@@ -2,10 +2,11 @@ import React from 'react';
 import { Phone, MapPin, Clock, Heart, ShoppingBag } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
-import { isCustomerApp } from '../config/api';
+import { isCustomerApp, resolveImageUrl } from '../config/api';
 
 export default function Footer({ categories = [], settings = null }) {
-  const { itemCount, setIsCartOpen } = useCart();
+  const { itemCount, setIsCartOpen, settings: contextSettings } = useCart();
+  const activeSettings = settings || contextSettings;
 
   const cartWeb = settings?.floatingButtons?.cartWeb !== false;
   const cartMobile = settings?.floatingButtons?.cartMobile !== false;
@@ -43,9 +44,12 @@ export default function Footer({ categories = [], settings = null }) {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src="/assets/salik-logo.png"
+                src={resolveImageUrl(activeSettings?.logoUrl || '/assets/salik-logo.png')}
                 alt="Salik Fast Food"
                 className="h-10 w-auto object-contain"
+                onError={(e) => {
+                  e.target.src = resolveImageUrl('/assets/salik-logo.svg');
+                }}
               />
               <span className="font-display tracking-wider text-xl text-white">
                 SALIK FAST FOOD

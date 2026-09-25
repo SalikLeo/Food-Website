@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, ArrowLeft, ShieldAlert, Eye, EyeOff, Smartphone } from 'lucide-react';
 import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
 
@@ -7,6 +7,25 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(() => {
+    try {
+      const cached = localStorage.getItem('salik_settings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        return parsed.logoUrl || '';
+      }
+    } catch {}
+    return '';
+  });
+
+  useEffect(() => {
+    fetch(apiUrl('/api/settings'))
+      .then(r => r.json())
+      .then(data => {
+        if (data?.logoUrl) setLogoUrl(data.logoUrl);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,7 +76,7 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
 
         <div className="text-center mb-8">
           <img
-            src={resolveImageUrl('/assets/salik-logo.png')}
+            src={resolveImageUrl(logoUrl || '/assets/salik-logo.png')}
             alt="Salik Fast Food"
             className="h-16 w-auto mx-auto mb-4 object-contain"
             onError={(e) => {

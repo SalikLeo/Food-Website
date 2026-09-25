@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import ThemeToggle from './ThemeToggle';
-import { isCustomerApp } from '../config/api';
+import { isCustomerApp, resolveImageUrl } from '../config/api';
 import { 
   getStoredCustomerUser, 
   setStoredCustomerUser, 
@@ -28,7 +28,7 @@ import {
 } from '../services/googleAuth';
 
 export default function Header({ onAdminClick, hideAdmin = false }) {
-  const { itemCount, setIsCartOpen, openProfileModal, isDark } = useCart();
+  const { itemCount, setIsCartOpen, openProfileModal, isDark, settings } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
@@ -171,9 +171,12 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
           {/* Logo & Store Info */}
           <a href="#" className="flex items-center gap-2.5 sm:gap-3 group">
             <img
-              src="/assets/salik-logo.png"
+              src={resolveImageUrl(settings?.logoUrl || '/assets/salik-logo.png')}
               alt="Salik Fast Food"
               className={`${isCustomerApp ? 'h-9 w-auto' : 'h-12 w-auto'} object-contain transition-transform duration-200 group-hover:scale-105`}
+              onError={(e) => {
+                e.target.src = resolveImageUrl('/assets/salik-logo.svg');
+              }}
             />
             <div className="flex flex-col">
               <span className={`font-display tracking-wider ${isCustomerApp ? 'text-lg' : 'text-xl'} leading-none ${isDark ? 'text-white' : 'text-zinc-900'} group-hover:text-primary transition-colors`}>
@@ -409,9 +412,12 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               } flex items-center justify-between`}>
                 <div className="flex items-center gap-3">
                   <img
-                    src="/assets/salik-logo.png"
+                    src={resolveImageUrl(settings?.logoUrl || '/assets/salik-logo.png')}
                     alt="Salik Fast Food"
                     className="h-10 w-auto object-contain"
+                    onError={(e) => {
+                      e.target.src = resolveImageUrl('/assets/salik-logo.svg');
+                    }}
                   />
                   <div className="flex flex-col">
                     <span className={`font-display tracking-wider text-xl leading-none ${isDark ? 'text-white' : 'text-zinc-900'}`}>

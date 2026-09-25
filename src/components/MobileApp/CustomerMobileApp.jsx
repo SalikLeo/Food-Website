@@ -103,8 +103,11 @@ export default function CustomerMobileApp({
     clearCart,
     setLastOrder,
     orderModalOpen = false,
-    setOrderModalOpen
+    setOrderModalOpen,
+    settings: contextSettings
   } = useCart();
+
+  const activeSettings = settings || contextSettings;
 
   const totalItems = rawTotalItems || itemCount || (cartItems || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
   const totalPrice = rawTotalPrice || total || subtotal;
@@ -1348,7 +1351,7 @@ export default function CustomerMobileApp({
               isDark ? 'bg-black/40 border-orange-500/80' : 'bg-orange-50 border-orange-500'
             }`}>
               <img
-                src={resolveImageUrl('/assets/salik-logo.png')}
+                src={resolveImageUrl(activeSettings?.logoUrl || '/assets/salik-logo.png')}
                 alt="Salik Fast Food"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -3264,7 +3267,7 @@ export default function CustomerMobileApp({
               }`}>
                 <div className="flex items-center gap-2.5">
                   <img
-                    src={resolveImageUrl('/assets/salik-logo.png')}
+                    src={resolveImageUrl(activeSettings?.logoUrl || '/assets/salik-logo.png')}
                     alt="Salik Fast Food"
                     className="w-9 h-9 object-contain rounded-full border border-orange-500/50"
                     onError={(e) => {
