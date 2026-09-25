@@ -596,6 +596,16 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
                     <span>{googleLoading ? 'Connecting...' : 'Login with Google'}</span>
                   </button>
                 )}
+
+                {/* Download Mobile App Button */}
+                <a
+                  href="/downloads/Salik-Fast-Food-Customer.apk"
+                  download="Salik-Fast-Food-Customer.apk"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-98 transition-all"
+                >
+                  <Smartphone className="w-4 h-4 stroke-[2.5]" />
+                  <span>Download Mobile App</span>
+                </a>
               </div>
             </div>
           </div>,
