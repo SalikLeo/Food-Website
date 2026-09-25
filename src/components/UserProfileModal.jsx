@@ -27,6 +27,7 @@ import {
   triggerGoogleLogin
 } from '../services/googleAuth';
 import { saveStoredUserProfile } from '../services/userProfile';
+import { fetchCustomerCloudProfile, saveCustomerCloudProfile } from '../services/customerSync';
 
 export default function UserProfileModal() {
   const {
@@ -37,6 +38,7 @@ export default function UserProfileModal() {
     userProfile,
     recentOrders,
     syncRecentOrders,
+    syncCustomerOrdersCloud,
     reorder,
     setIsCartOpen,
     isDark
@@ -130,6 +132,14 @@ export default function UserProfileModal() {
       phone: cleanPhone,
       address
     });
+    if (customerUser?.email) {
+      saveCustomerCloudProfile({
+        email: customerUser.email,
+        name,
+        phone: cleanPhone,
+        address
+      });
+    }
     setSaveSuccess(true);
     setTimeout(() => {
       setSaveSuccess(false);
@@ -153,18 +163,37 @@ export default function UserProfileModal() {
     setGoogleLoading(true);
     try {
       await triggerGoogleLogin({
-        onSuccess: (user) => {
+        onSuccess: async (user) => {
           setCustomerUser(user);
           setGoogleLoading(false);
           window.dispatchEvent(new Event('salik_customer_auth_changed'));
-          // If profile name is empty, auto-fill with Google name
-          if (!name && user?.name) {
-            setName(user.name);
-            saveStoredUserProfile({
-              name: user.name,
-              phone,
-              address
-            });
+          
+          // Trigger cross-device cloud order sync immediately
+          if (typeof syncCustomerOrdersCloud === 'function' && user?.email) {
+            syncCustomerOrdersCloud(user.email, phone);
+          }
+
+          // Auto-discover profile and address from cloud if local info is missing
+          if (user?.email) {
+            try {
+              const cloudProf = await fetchCustomerCloudProfile(user.email);
+              const newName = name || cloudProf?.name || user?.name || '';
+              const newPhone = phone || cloudProf?.phone || '';
+              const newAddress = address || cloudProf?.address || '';
+
+              if (newName !== name || newPhone !== phone || newAddress !== address) {
+                if (newName) setName(newName);
+                if (newPhone) setPhone(newPhone);
+                if (newAddress) setAddress(newAddress);
+                saveStoredUserProfile({
+                  name: newName,
+                  phone: newPhone,
+                  address: newAddress
+                });
+              }
+            } catch (err) {
+              console.warn('Could not sync cloud profile on Google login:', err);
+            }
           }
         },
         onError: (err) => {

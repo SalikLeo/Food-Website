@@ -242,6 +242,44 @@ app.delete('/api/deals/:id', (req, res) => {
   }
 });
 
+// Customer Cloud Order Sync & Profile Endpoints
+app.get('/api/customer/orders', (req, res) => {
+  try {
+    const { email, phone } = req.query;
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    const orders = db.getCustomerOrders({ email, phone });
+    res.json({ success: true, orders });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/customer/profile', (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    const profile = db.getCustomerProfile(email);
+    res.json({ success: true, profile });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/customer/profile', (req, res) => {
+  try {
+    const { email, name, phone, address } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    const profile = db.saveCustomerProfile({ email, name, phone, address });
+    res.json({ success: true, profile });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Orders Endpoints
 app.get('/api/orders', (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -250,7 +288,7 @@ app.get('/api/orders', (req, res) => {
 
 app.post('/api/orders', (req, res) => {
   try {
-    const { customerName, phone, address, notes, paymentMethod, items, subtotal, deliveryFee, total } = req.body;
+    const { customerName, phone, address, notes, paymentMethod, items, subtotal, deliveryFee, total, customerEmail, customerGoogleId } = req.body;
     if (!customerName || !phone || !items || items.length === 0) {
       return res.status(400).json({ error: 'Customer name, phone, and items are required' });
     }
@@ -262,11 +300,28 @@ app.post('/api/orders', (req, res) => {
       address: address || '',
       notes: notes || '',
       paymentMethod: paymentMethod || 'Cash on Delivery',
+      customerEmail: (customerEmail || '').toLowerCase().trim(),
+      customerGoogleId: customerGoogleId || '',
       items,
       subtotal: Number(subtotal) || 0,
       deliveryFee: effectiveFee,
       total: Number(total) || (Number(subtotal) + effectiveFee)
     });
+
+    // Auto-save customer profile if customerEmail is attached
+    if (customerEmail && customerEmail.trim()) {
+      try {
+        db.saveCustomerProfile({
+          email: customerEmail.trim(),
+          name: customerName,
+          phone,
+          address
+        });
+      } catch (e) {
+        console.warn('Could not auto-save customer profile on order creation:', e);
+      }
+    }
+
     res.status(201).json({ success: true, order });
   } catch (err) {
     res.status(500).json({ error: err.message });

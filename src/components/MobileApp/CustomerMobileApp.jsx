@@ -28,6 +28,7 @@ import {
   getGoogleClientId 
 } from '../../services/googleAuth';
 import { getStoredUserProfile, saveStoredUserProfile } from '../../services/userProfile';
+import { fetchCustomerCloudProfile, saveCustomerCloudProfile } from '../../services/customerSync';
 
 // High quality category dish image mapping
 const categoryImages = {
@@ -89,6 +90,7 @@ export default function CustomerMobileApp({
     recentOrders = [],
     saveRecentOrder,
     syncRecentOrders,
+    syncCustomerOrdersCloud,
     reorder,
     cartItems = [],
     subtotal = 0,
@@ -376,6 +378,14 @@ export default function CustomerMobileApp({
       phone: cleanPhone,
       address: profileForm.address
     });
+    if (customerUser?.email) {
+      saveCustomerCloudProfile({
+        email: customerUser.email,
+        name: profileForm.name,
+        phone: cleanPhone,
+        address: profileForm.address
+      });
+    }
     setProfileForm(updated);
     setProfileSaveSuccess(true);
     setReorderToast('Profile saved successfully!');
@@ -548,7 +558,7 @@ export default function CustomerMobileApp({
     setGoogleLoading(true);
     try {
       await triggerGoogleLogin({
-        onSuccess: (user) => {
+        onSuccess: async (user) => {
           setCustomerUser(user);
           setGoogleLoading(false);
           setReorderToast(`Signed in as ${user.name}`);
@@ -556,6 +566,42 @@ export default function CustomerMobileApp({
             ...prev,
             name: prev.name || user.name
           }));
+          window.dispatchEvent(new Event('salik_customer_auth_changed'));
+
+          // Trigger cross-device cloud order sync immediately
+          if (typeof syncCustomerOrdersCloud === 'function' && user?.email) {
+            syncCustomerOrdersCloud(user.email, checkoutForm.phone);
+          }
+
+          // Auto-discover profile info from cloud if available
+          if (user?.email) {
+            try {
+              const cloudProf = await fetchCustomerCloudProfile(user.email);
+              if (cloudProf) {
+                const newName = checkoutForm.name || cloudProf.name || user.name || '';
+                const newPhone = checkoutForm.phone || cloudProf.phone || '';
+                const newAddress = checkoutForm.address || cloudProf.address || '';
+                setCheckoutForm(prev => ({
+                  ...prev,
+                  name: newName,
+                  phone: newPhone,
+                  address: newAddress
+                }));
+                setProfileForm({
+                  name: newName,
+                  phone: newPhone,
+                  address: newAddress
+                });
+                saveStoredUserProfile({
+                  name: newName,
+                  phone: newPhone,
+                  address: newAddress
+                });
+              }
+            } catch (err) {
+              console.warn('Could not sync cloud profile on Google login:', err);
+            }
+          }
         },
         onError: (err) => {
           setGoogleLoading(false);
@@ -587,6 +633,7 @@ export default function CustomerMobileApp({
     clearStoredCustomerUser();
     setCustomerUser(null);
     setReorderToast('Logged out of Google');
+    window.dispatchEvent(new Event('salik_customer_auth_changed'));
   };
 
   const handleSetDemoUser = () => {
@@ -604,6 +651,10 @@ export default function CustomerMobileApp({
       ...prev,
       name: prev.name || demoUser.name
     }));
+    window.dispatchEvent(new Event('salik_customer_auth_changed'));
+    if (typeof syncCustomerOrdersCloud === 'function') {
+      syncCustomerOrdersCloud(demoUser.email, checkoutForm.phone);
+    }
   };
 
   // Listen for checkout click from CartDrawer
@@ -1029,6 +1080,8 @@ export default function CustomerMobileApp({
         address: checkoutForm.address,
         notes: checkoutForm.notes,
         paymentMethod: checkoutForm.paymentMethod,
+        customerEmail: customerUser?.email || '',
+        customerGoogleId: customerUser?.sub || '',
         items: cartItems,
         subtotal,
         deliveryFee,
@@ -1061,6 +1114,9 @@ export default function CustomerMobileApp({
           notes: '',
           paymentMethod: 'Cash on Delivery'
         });
+        if (typeof syncCustomerOrdersCloud === 'function') {
+          syncCustomerOrdersCloud(customerUser?.email, checkoutForm.phone);
+        }
         switchView('orders');
       } else {
         setShowConfirmModal(false);
@@ -1089,6 +1145,8 @@ export default function CustomerMobileApp({
       address: checkoutForm.address || 'Wah Cantt',
       notes: checkoutForm.notes || '',
       paymentMethod: `${checkoutForm.paymentMethod} (WhatsApp)`,
+      customerEmail: customerUser?.email || '',
+      customerGoogleId: customerUser?.sub || '',
       items: [...cartItems],
       subtotal,
       deliveryFee,
@@ -1111,6 +1169,8 @@ export default function CustomerMobileApp({
           address: checkoutForm.address || 'Wah Cantt',
           notes: checkoutForm.notes,
           paymentMethod: `${checkoutForm.paymentMethod} (WhatsApp)`,
+          customerEmail: customerUser?.email || '',
+          customerGoogleId: customerUser?.sub || '',
           items: cartItems,
           subtotal,
           deliveryFee,
@@ -1118,6 +1178,10 @@ export default function CustomerMobileApp({
         })
       });
     } catch {}
+
+    if (typeof syncCustomerOrdersCloud === 'function') {
+      syncCustomerOrdersCloud(customerUser?.email, checkoutForm.phone);
+    }
 
     setShowConfirmModal(false);
     const msg = getWhatsAppMessage ? getWhatsAppMessage(checkoutForm) : `Order from ${checkoutForm.name}`;

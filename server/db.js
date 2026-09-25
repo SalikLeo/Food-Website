@@ -479,6 +479,87 @@ export const db = {
     return false;
   },
 
+  // Customer Orders Query (Cross-Device Cloud Sync via Google Email / Phone)
+  getCustomerOrders({ email, phone } = {}) {
+    const data = readDb();
+    const cleanEmail = (email || '').toLowerCase().trim();
+    const cleanPhone = (phone || '').replace(/\D/g, '');
+
+    if (!cleanEmail && !cleanPhone) {
+      return [];
+    }
+
+    const normalizePhone = (p) => {
+      if (!p) return '';
+      const digits = String(p).replace(/\D/g, '');
+      if (digits.startsWith('92') && digits.length === 12) {
+        return '0' + digits.slice(2);
+      }
+      return digits;
+    };
+
+    const targetPhoneNormalized = cleanPhone ? normalizePhone(cleanPhone) : '';
+
+    return (data.orders || []).filter(o => {
+      const orderEmail = (o.customerEmail || '').toLowerCase().trim();
+      const orderPhoneNormalized = normalizePhone(o.phone);
+
+      const emailMatch = cleanEmail && orderEmail && orderEmail === cleanEmail;
+      const phoneMatch = targetPhoneNormalized && orderPhoneNormalized && (orderPhoneNormalized === targetPhoneNormalized || orderPhoneNormalized.endsWith(targetPhoneNormalized.slice(-10)));
+
+      return emailMatch || phoneMatch;
+    });
+  },
+
+  // Customer Profile Cross-Device Cloud Sync
+  getCustomerProfile(email) {
+    const data = readDb();
+    const cleanEmail = (email || '').toLowerCase().trim();
+    if (!cleanEmail) return null;
+
+    data.customerProfiles = data.customerProfiles || {};
+    if (data.customerProfiles[cleanEmail]) {
+      return data.customerProfiles[cleanEmail];
+    }
+
+    // Auto-discover previous profile info from their latest order if profile not yet explicitly saved
+    const userOrders = (data.orders || []).filter(o => (o.customerEmail || '').toLowerCase().trim() === cleanEmail);
+    if (userOrders.length > 0) {
+      const latest = userOrders[0];
+      return {
+        name: latest.customerName || '',
+        phone: latest.phone || '',
+        address: latest.address || '',
+        email: cleanEmail,
+        updatedAt: latest.createdAt || new Date().toISOString()
+      };
+    }
+
+    return null;
+  },
+
+  saveCustomerProfile({ email, name, phone, address }) {
+    const data = readDb();
+    const cleanEmail = (email || '').toLowerCase().trim();
+    if (!cleanEmail) return null;
+
+    data.customerProfiles = data.customerProfiles || {};
+    const existing = data.customerProfiles[cleanEmail] || {};
+
+    const updated = {
+      ...existing,
+      email: cleanEmail,
+      name: (name !== undefined ? name : existing.name) || '',
+      phone: (phone !== undefined ? phone : existing.phone) || '',
+      address: (address !== undefined ? address : existing.address) || '',
+      updatedAt: new Date().toISOString()
+    };
+
+    data.customerProfiles[cleanEmail] = updated;
+    writeDb(data);
+    return updated;
+  },
+
   // FAQs
   getFaqs() {
     const data = readDb();

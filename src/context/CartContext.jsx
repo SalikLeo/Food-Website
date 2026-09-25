@@ -8,6 +8,8 @@ import {
   getStatusNotificationDetails 
 } from '../services/notificationService';
 import { getStoredUserProfile, saveStoredUserProfile } from '../services/userProfile';
+import { getStoredCustomerUser } from '../services/googleAuth';
+import { fetchCustomerCloudOrders, fetchCustomerCloudProfile } from '../services/customerSync';
 import { App as CapApp } from '@capacitor/app';
 
 const CartContext = createContext();
@@ -299,18 +301,85 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Cross-device cloud sync: retrieves past orders linked to customer Google Email or phone from server
+   */
+  const syncCustomerOrdersCloud = async (overrideEmail, overridePhone) => {
+    try {
+      const customer = getStoredCustomerUser();
+      const email = (overrideEmail || customer?.email || '').trim();
+      const prof = getStoredUserProfile();
+      const phone = (overridePhone || prof?.phone || '').trim();
+
+      if (!email && !phone) return;
+
+      const cloudOrders = await fetchCustomerCloudOrders(email, phone);
+      if (!Array.isArray(cloudOrders) || cloudOrders.length === 0) return;
+
+      setRecentOrders(prev => {
+        const orderMap = new Map();
+        // Add existing local orders first
+        (prev || []).forEach(o => {
+          if (o && o.id) orderMap.set(String(o.id).trim().replace(/^#/, ''), o);
+        });
+        // Merge cloud orders (cloud orders take precedence for complete past history)
+        cloudOrders.forEach(o => {
+          if (o && o.id) {
+            const key = String(o.id).trim().replace(/^#/, '');
+            const existing = orderMap.get(key);
+            orderMap.set(key, existing ? { ...existing, ...o } : o);
+          }
+        });
+
+        const merged = Array.from(orderMap.values()).sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA;
+        });
+
+        try {
+          localStorage.setItem('salik_recent_orders', JSON.stringify(merged));
+        } catch (e) {
+          console.error(e);
+        }
+        return merged;
+      });
+
+      // Auto-restore profile address/phone if local profile is incomplete
+      if (email && (!prof.name || !prof.address || !prof.phone)) {
+        const cloudProfile = await fetchCustomerCloudProfile(email);
+        if (cloudProfile) {
+          const updatedProf = {
+            name: prof.name || cloudProfile.name || customer?.name || '',
+            phone: prof.phone || cloudProfile.phone || '',
+            address: prof.address || cloudProfile.address || ''
+          };
+          saveStoredUserProfile(updatedProf);
+          setUserProfile(updatedProf);
+        }
+      }
+    } catch (err) {
+      console.warn('Error syncing customer cloud orders:', err);
+    }
+  };
+
   // Sync recent orders periodically & on window focus/visibility/status events
   useEffect(() => {
     // Request notification permissions for Android Native & Web
     requestNotificationPermission().catch(() => {});
 
     syncRecentOrders();
+    syncCustomerOrdersCloud();
     const interval = setInterval(syncRecentOrders, 1000);
 
-    const onFocus = () => syncRecentOrders();
+    const onFocus = () => {
+      syncRecentOrders();
+      syncCustomerOrdersCloud();
+    };
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         syncRecentOrders();
+        syncCustomerOrdersCloud();
       }
     };
 
@@ -340,6 +409,11 @@ export const CartProvider = ({ children }) => {
         console.error(err);
       }
       syncRecentOrders();
+      syncCustomerOrdersCloud();
+    };
+
+    const onCustomerAuthChange = () => {
+      syncCustomerOrdersCloud();
     };
 
     // Native Capacitor App Resume listener (wakes up sync immediately when app resumes from background)
@@ -348,6 +422,7 @@ export const CartProvider = ({ children }) => {
       CapApp.addListener('appStateChange', ({ isActive }) => {
         if (isActive) {
           syncRecentOrders();
+          syncCustomerOrdersCloud();
         }
       }).then(handle => {
         appStateHandle = handle;
@@ -356,6 +431,7 @@ export const CartProvider = ({ children }) => {
 
     window.addEventListener('focus', onFocus);
     window.addEventListener('salik_sync_orders', onFocus);
+    window.addEventListener('salik_customer_auth_changed', onCustomerAuthChange);
     window.addEventListener('salik_order_status_updated', onDirectStatusUpdate);
     window.addEventListener('storage', onStorageSync);
     document.addEventListener('visibilitychange', onVisibilityChange);
@@ -367,6 +443,7 @@ export const CartProvider = ({ children }) => {
       }
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('salik_sync_orders', onFocus);
+      window.removeEventListener('salik_customer_auth_changed', onCustomerAuthChange);
       window.removeEventListener('salik_order_status_updated', onDirectStatusUpdate);
       window.removeEventListener('storage', onStorageSync);
       document.removeEventListener('visibilitychange', onVisibilityChange);
@@ -689,6 +766,7 @@ Notes: ${customerInfo.notes || 'None'}`
         recentOrders,
         saveRecentOrder,
         syncRecentOrders,
+        syncCustomerOrdersCloud,
         activeOrderNotification,
         dismissOrderNotification,
         reorder,

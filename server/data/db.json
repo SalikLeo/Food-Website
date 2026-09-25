@@ -944,6 +944,48 @@
   },
   "orders": [
     {
+      "id": "ORD-555831-85",
+      "customerName": "Salikleo",
+      "phone": "90325823905",
+      "address": "lane 17",
+      "notes": "",
+      "paymentMethod": "Cash on Delivery",
+      "items": [
+        {
+          "cartKey": "pizza-1-Small",
+          "id": "pizza-1",
+          "name": "Chicken Tikka",
+          "category": "pizza",
+          "size": "Small",
+          "price": 450,
+          "image": "/assets/images/p-pizza-tikka-B4zowSG0.jpg",
+          "quantity": 2,
+          "description": "Spicy tikka chunks, onion, capsicum, mozzarella",
+          "includes": null
+        },
+        {
+          "cartKey": "deal-1789746368640-default",
+          "id": "deal-1789746368640",
+          "name": "Deal 12",
+          "category": "deals",
+          "size": null,
+          "price": 800,
+          "image": "/assets/deal-1.png",
+          "quantity": 1,
+          "description": "2 Zinger Burger + 2 Coke 500ml",
+          "includes": [
+            "2 Zinger Burger",
+            "2 Coke 500ml"
+          ]
+        }
+      ],
+      "subtotal": 1700,
+      "deliveryFee": 200,
+      "total": 1900,
+      "status": "Pending",
+      "createdAt": "2026-09-25T17:32:35.831Z"
+    },
+    {
       "id": "ORD-362033-62",
       "customerName": "Salikleo",
       "phone": "90325823905",

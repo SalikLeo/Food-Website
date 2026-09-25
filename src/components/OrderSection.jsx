@@ -18,6 +18,7 @@ import { useCart } from '../context/CartContext';
 import { formatPrice, cleanDealInclusions, formatDealDescription, isMarketingDealDescription } from '../utils/formatters';
 import { apiUrl } from '../config/api';
 import { getStoredUserProfile, saveStoredUserProfile } from '../services/userProfile';
+import { getStoredCustomerUser } from '../services/googleAuth';
 import CustomSelect from './Common/CustomSelect';
 
 export default function OrderSection() {
@@ -34,6 +35,7 @@ export default function OrderSection() {
     clearCart,
     setLastOrder,
     saveRecentOrder,
+    syncCustomerOrdersCloud,
     setOrderModalOpen,
     isFreeDelivery,
     removeFromCart,
@@ -155,12 +157,15 @@ export default function OrderSection() {
   const executePlaceOrder = async () => {
     setLoading(true);
     try {
+      const customerUser = getStoredCustomerUser();
       const payload = {
         customerName: formData.name,
         phone: formData.phone,
         address: formData.address,
         notes: formData.notes,
         paymentMethod: formData.paymentMethod,
+        customerEmail: customerUser?.email || '',
+        customerGoogleId: customerUser?.sub || '',
         items: cartItems,
         subtotal,
         deliveryFee,
@@ -194,6 +199,9 @@ export default function OrderSection() {
           notes: '',
           paymentMethod: 'Cash on Delivery'
         });
+        if (typeof syncCustomerOrdersCloud === 'function') {
+          syncCustomerOrdersCloud(customerUser?.email, formData.phone);
+        }
       } else {
         setShowConfirmModal(false);
         setErrorMsg(data.error || 'Failed to place order. Please try again or use WhatsApp.');
@@ -210,6 +218,7 @@ export default function OrderSection() {
   // Final confirmed execution for WhatsApp Order
   const executeWhatsAppOrder = () => {
     setShowConfirmModal(false);
+    const customerUser = getStoredCustomerUser();
     const waOrder = {
       id: `WA-${Date.now().toString().slice(-4)}`,
       customerName: formData.name,
@@ -217,6 +226,8 @@ export default function OrderSection() {
       address: formData.address,
       notes: formData.notes,
       paymentMethod: `${formData.paymentMethod} (WhatsApp Order)`,
+      customerEmail: customerUser?.email || '',
+      customerGoogleId: customerUser?.sub || '',
       items: [...cartItems],
       subtotal,
       deliveryFee,
@@ -237,6 +248,8 @@ export default function OrderSection() {
           address: formData.address,
           notes: formData.notes,
           paymentMethod: `${formData.paymentMethod} (WhatsApp Order)`,
+          customerEmail: customerUser?.email || '',
+          customerGoogleId: customerUser?.sub || '',
           items: cartItems,
           subtotal,
           deliveryFee,
@@ -252,6 +265,9 @@ export default function OrderSection() {
       phone: formData.phone,
       address: formData.address
     });
+    if (typeof syncCustomerOrdersCloud === 'function') {
+      syncCustomerOrdersCloud(customerUser?.email, formData.phone);
+    }
     const message = getWhatsAppMessage(formData);
     window.open(`https://wa.me/923095369472?text=${message}`, '_blank');
     if (typeof setIsCartOpen === 'function') setIsCartOpen(false);
