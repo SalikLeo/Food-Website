@@ -558,6 +558,51 @@ export default function CustomerMobileApp({
     }
   }, [customerUser]);
 
+  const [showEmailSync, setShowEmailSync] = useState(false);
+  const [manualSyncEmail, setManualSyncEmail] = useState('');
+  const [syncingEmail, setSyncingEmail] = useState(false);
+
+  const handleManualEmailSync = async (e) => {
+    e?.preventDefault?.();
+    const clean = (manualSyncEmail || '').trim().toLowerCase();
+    if (!clean || !clean.includes('@')) {
+      setReorderToast('Please enter a valid Google email address');
+      return;
+    }
+    setSyncingEmail(true);
+    try {
+      const user = {
+        name: clean.split('@')[0],
+        email: clean,
+        picture: '',
+        loginMethod: 'google'
+      };
+      setCustomerUser(user);
+      setStoredCustomerUser(user);
+      if (typeof syncCustomerOrdersCloud === 'function') {
+        syncCustomerOrdersCloud(clean, checkoutForm.phone);
+      }
+      try {
+        const cloudProf = await fetchCustomerCloudProfile(clean);
+        if (cloudProf) {
+          const newName = checkoutForm.name || cloudProf.name || user.name || '';
+          const newPhone = checkoutForm.phone || cloudProf.phone || '';
+          const newAddress = checkoutForm.address || cloudProf.address || '';
+          setCheckoutForm(prev => ({ ...prev, name: newName, phone: newPhone, address: newAddress }));
+          setProfileForm({ name: newName, phone: newPhone, address: newAddress });
+          saveStoredUserProfile({ name: newName, phone: newPhone, address: newAddress });
+        }
+      } catch {}
+      window.dispatchEvent(new Event('salik_customer_auth_changed'));
+      setReorderToast(`Synced orders for ${clean}`);
+      setShowEmailSync(false);
+    } catch {
+      setReorderToast('Failed to sync. Please check internet connection.');
+    } finally {
+      setSyncingEmail(false);
+    }
+  };
+
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     try {
@@ -3042,6 +3087,48 @@ export default function CustomerMobileApp({
                     </svg>
                     <span>{googleLoading ? 'Connecting...' : 'Sign in with Google'}</span>
                   </button>
+
+                  {/* Manual Email Sync Option */}
+                  <div className="pt-1">
+                    {!showEmailSync ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowEmailSync(true)}
+                        className={`w-full text-center text-[11px] font-semibold py-1 transition-colors cursor-pointer ${
+                          isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'
+                        }`}
+                      >
+                        Or sync orders using Google Email address →
+                      </button>
+                    ) : (
+                      <form onSubmit={handleManualEmailSync} className="space-y-2 pt-2 border-t border-dashed border-zinc-200 dark:border-zinc-800">
+                        <label className={`text-[10.5px] font-bold block uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                          Google Account Email
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="email"
+                            required
+                            placeholder="your.email@gmail.com"
+                            value={manualSyncEmail}
+                            onChange={(e) => setManualSyncEmail(e.target.value)}
+                            className={`flex-1 px-3 py-2 rounded-xl text-xs border outline-none ${
+                              isDark 
+                                ? 'bg-zinc-800/90 border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500' 
+                                : 'bg-white border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:border-orange-500'
+                            }`}
+                          />
+                          <button
+                            type="submit"
+                            disabled={syncingEmail}
+                            className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition-transform active:scale-95 cursor-pointer shrink-0"
+                          >
+                            {syncingEmail ? 'Syncing...' : 'Sync'}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
