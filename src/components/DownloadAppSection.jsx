@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
-  Download, Zap, Bike, Bell, CheckCircle2
+  Download, Zap, Bike, Bell, CheckCircle2, Search, User, Menu as MenuIcon, ShoppingBag
 } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
 
 export default function DownloadAppSection() {
@@ -114,9 +115,9 @@ export default function DownloadAppSection() {
 
             </div>
 
-            {/* Right Column: Sleek Phone Mockup Visual (Slim Bezels & Modern Phone Aspect Ratio) */}
+            {/* Right Column: Sleek Phone Mockup Visual matching Real App UI */}
             <div className="lg:col-span-5 flex justify-center">
-              <div className={`relative w-[260px] sm:w-[280px] rounded-[2.8rem] p-2 border-2 shadow-2xl transition-all ${
+              <div className={`relative w-[280px] sm:w-[300px] rounded-[2.8rem] p-2 border-2 shadow-2xl transition-all ${
                 isDark 
                   ? 'bg-zinc-950 border-zinc-700/80 shadow-[0_25px_60px_rgba(0,0,0,0.85)] ring-1 ring-white/10' 
                   : 'bg-zinc-900 border-zinc-700 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/10'
@@ -128,76 +129,139 @@ export default function DownloadAppSection() {
                   <div className="w-5 h-1 rounded-full bg-zinc-800" />
                 </div>
 
-                {/* Inner Screen Preview - Light Theme App UI with proper height */}
-                <div className="rounded-[2.3rem] overflow-hidden bg-[#faf8f5] text-zinc-900 p-3.5 pt-7 pb-4 space-y-2.5 relative select-none border border-zinc-200/60 shadow-inner flex flex-col justify-between min-h-[500px] sm:min-h-[520px]">
+                {/* Inner Screen Preview - Authentic Mobile App UI */}
+                <div className="rounded-[2.3rem] overflow-hidden bg-[#faf8f5] text-zinc-900 p-3 pt-6 pb-3 space-y-2.5 relative select-none border border-zinc-200/60 shadow-inner flex flex-col justify-between min-h-[530px] sm:min-h-[550px]">
                   
-                  {/* Top Bar Preview */}
-                  <div className="flex items-center justify-between border-b border-zinc-200/80 pb-2.5 pt-1">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full overflow-hidden border border-orange-400/50 bg-white shadow-2xs">
+                  {/* 1. Top Navbar */}
+                  <div className="flex items-center justify-between border-b border-zinc-200/80 pb-2 pt-1 px-0.5">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="w-7 h-7 rounded-full overflow-hidden border border-orange-400/50 bg-white shadow-2xs shrink-0">
                         <img src="/assets/salik-logo.png" alt="Salik" className="w-full h-full object-cover" />
                       </div>
-                      <div>
-                        <div className="text-[11px] font-black tracking-tight leading-none text-zinc-900">SALIK FAST FOOD</div>
-                        <div className="text-[8px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                      <div className="min-w-0">
+                        <div className="text-[10.5px] font-black tracking-tight leading-none text-zinc-900 truncate">
+                          SALIK <span className="text-orange-500">FAST FOOD</span>
+                        </div>
+                        <div className="text-[7.5px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Wah Cantt • Open Now
+                          Wah Model Town • Open Now
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Categories Row */}
-                  <div className="flex items-center gap-1.5 overflow-hidden text-[9px] font-bold">
-                    <span className="px-2.5 py-1 rounded-full bg-orange-500 text-white shadow-2xs">🍕 Pizza</span>
-                    <span className="px-2.5 py-1 rounded-full bg-zinc-200/70 text-zinc-700">🍔 Burgers</span>
-                    <span className="px-2.5 py-1 rounded-full bg-zinc-200/70 text-zinc-700">🌯 Shawarma</span>
-                  </div>
-
-                  {/* Promo Banner Preview */}
-                  <div className="rounded-2xl p-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm flex items-center justify-between gap-1.5">
-                    <div className="space-y-0.5">
-                      <span className="text-[7px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-white/25">Special Offer</span>
-                      <div className="text-[11px] font-black font-montserrat tracking-tight leading-tight">FAMILY FEAST</div>
-                      <div className="text-[8px] text-white/95">Rs. 2580 • Pizza & Burgers</div>
+                    
+                    {/* Action buttons (WhatsApp, Profile, Menu) */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <div className="w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center shadow-2xs">
+                        <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <div className="w-6 h-6 rounded-lg bg-white border border-zinc-200/80 text-zinc-700 flex items-center justify-center shadow-2xs">
+                        <User className="w-3.5 h-3.5 text-zinc-600" />
+                      </div>
+                      <div className="w-6 h-6 rounded-lg bg-white border border-zinc-200/80 text-zinc-700 flex items-center justify-center shadow-2xs">
+                        <MenuIcon className="w-3.5 h-3.5 text-zinc-600" />
+                      </div>
                     </div>
-                    <img src="/assets/deal-family.png" alt="Deal" className="w-12 h-12 object-contain drop-shadow" />
                   </div>
 
-                  {/* Mini Product Card 1 */}
-                  <div className="rounded-xl p-2.5 bg-white border border-zinc-200/80 shadow-2xs flex items-center justify-between gap-2">
-                    <div className="space-y-0.5 min-w-0">
-                      <div className="text-[10px] font-bold text-zinc-800 truncate">Tower Zinger Burger</div>
-                      <div className="text-[8px] text-orange-600 font-extrabold">Rs. 280</div>
+                  {/* 2. Hero Combo Promo Banner */}
+                  <div className="rounded-2xl p-2.5 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-white shadow-sm relative overflow-hidden">
+                    <div className="flex justify-between items-center gap-1">
+                      <div className="space-y-1 z-10 min-w-0 flex-1">
+                        <span className="inline-flex items-center gap-0.5 text-[6.5px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-white/25 backdrop-blur-xs">
+                          ✨ COMBO OFFERS
+                        </span>
+                        <div className="text-[11px] font-black font-montserrat tracking-tight leading-tight uppercase">
+                          DEALS FROM RS. 600
+                        </div>
+                        <div className="text-[7.5px] text-white/95 leading-tight truncate">
+                          Zinger, Fries & Ice-Cold Drink
+                        </div>
+                        <div className="pt-0.5 flex items-center gap-1.5">
+                          <span className="text-[7px] font-bold text-amber-200 whitespace-nowrap">11 Great Combos</span>
+                          <span className="px-2 py-0.5 rounded-full bg-white text-orange-600 font-extrabold text-[7px] shadow-2xs whitespace-nowrap">
+                            EXPLORE DEALS
+                          </span>
+                        </div>
+                      </div>
+                      <div className="shrink-0 w-14 h-14 flex items-center justify-center">
+                        <img src="/assets/deal-family.png" alt="Deal" className="w-full h-full object-contain drop-shadow" />
+                      </div>
                     </div>
-                    <span className="px-2.5 py-1 rounded-md bg-orange-500 text-white text-[8px] font-extrabold shrink-0 shadow-2xs">
-                      + ADD
-                    </span>
-                  </div>
-
-                  {/* Mini Product Card 2 */}
-                  <div className="rounded-xl p-2.5 bg-white border border-zinc-200/80 shadow-2xs flex items-center justify-between gap-2">
-                    <div className="space-y-0.5 min-w-0">
-                      <div className="text-[10px] font-bold text-zinc-800 truncate">Chicken Tikka Pizza</div>
-                      <div className="text-[8px] text-orange-600 font-extrabold">Rs. 750</div>
+                    {/* Carousel dots */}
+                    <div className="flex justify-center items-center gap-1 pt-1">
+                      <div className="w-1 h-1 rounded-full bg-white/50" />
+                      <div className="w-3 h-1 rounded-full bg-white" />
+                      <div className="w-1 h-1 rounded-full bg-white/50" />
                     </div>
-                    <span className="px-2.5 py-1 rounded-md bg-orange-500 text-white text-[8px] font-extrabold shrink-0 shadow-2xs">
-                      + ADD
-                    </span>
                   </div>
 
-                  {/* Bottom Active Status Floating Bar */}
-                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-between text-[9px] shadow-2xs">
-                    <div className="flex items-center gap-1.5 text-emerald-800 font-bold">
-                      <Bike className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Order #104 Out for Delivery</span>
+                  {/* 3. Quick Action Navigation Tabs */}
+                  <div className="grid grid-cols-3 gap-1.5 text-center text-[8.5px] font-extrabold">
+                    <div className="py-1.5 px-1 rounded-xl bg-white border border-zinc-200/90 text-zinc-800 shadow-2xs flex items-center justify-center gap-1">
+                      <span>🍕</span>
+                      <span>MENU</span>
                     </div>
-                    <span className="text-[8px] text-emerald-600 font-bold">8 min</span>
+                    <div className="py-1.5 px-1 rounded-xl bg-orange-50 border border-orange-200/90 text-orange-600 shadow-2xs flex items-center justify-center gap-1">
+                      <span>🔥</span>
+                      <span>DEALS</span>
+                    </div>
+                    <div className="py-1.5 px-1 rounded-xl bg-white border border-zinc-200/90 text-zinc-800 shadow-2xs flex items-center justify-center gap-1">
+                      <span>🕒</span>
+                      <span>ORDERS</span>
+                    </div>
                   </div>
 
-                  {/* Bottom Home Bar Indicator */}
-                  <div className="flex justify-center pt-1">
-                    <div className="w-24 h-1 bg-zinc-300 rounded-full" />
+                  {/* 4. Search Bar */}
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white border border-zinc-200/90 text-zinc-400 text-[8.5px] shadow-2xs">
+                    <Search className="w-3 h-3 text-zinc-400 shrink-0" />
+                    <span className="truncate">Search food across all categories...</span>
+                  </div>
+
+                  {/* 5. EXPLORE MENU Grid (2x2) */}
+                  <div className="space-y-1.5 relative">
+                    <div className="flex items-center justify-between px-0.5">
+                      <span className="text-[9.5px] font-black text-zinc-900 tracking-tight uppercase">
+                        EXPLORE MENU
+                      </span>
+                      <span className="text-[8px] font-bold text-orange-500 uppercase flex items-center gap-0.5">
+                        VIEW ALL &gt;
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {/* Pizza */}
+                      <div className="p-1.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs text-center flex flex-col items-center">
+                        <div className="w-full h-12 rounded-lg overflow-hidden bg-zinc-50 mb-1 flex items-center justify-center">
+                          <img src="/assets/images/cat-pizza-BmV7hCev.jpg" alt="Pizza" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="text-[9px] font-bold text-zinc-900 leading-tight">Pizza</div>
+                        <div className="text-[7px] text-zinc-500 font-medium">17 Items</div>
+                      </div>
+
+                      {/* Burgers */}
+                      <div className="p-1.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs text-center flex flex-col items-center">
+                        <div className="w-full h-12 rounded-lg overflow-hidden bg-zinc-50 mb-1 flex items-center justify-center">
+                          <img src="/assets/images/cat-burgers-CfWIZ4YN.jpg" alt="Burgers" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="text-[9px] font-bold text-zinc-900 leading-tight">Burgers</div>
+                        <div className="text-[7px] text-zinc-500 font-medium">11 Items</div>
+                      </div>
+                    </div>
+
+                    {/* Floating Cart Button (bottom-right of app mockup) */}
+                    <div className="absolute -bottom-1 right-0.5 z-20">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg flex items-center justify-center relative shadow-orange-500/40">
+                        <ShoppingBag className="w-4 h-4" />
+                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-black text-white text-[7px] font-black flex items-center justify-center border border-white">
+                          5
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 6. Bottom Home Bar Indicator */}
+                  <div className="flex justify-center pt-0.5">
+                    <div className="w-20 h-1 bg-zinc-300 rounded-full" />
                   </div>
 
                 </div>
