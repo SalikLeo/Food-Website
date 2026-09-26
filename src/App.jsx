@@ -17,6 +17,7 @@ import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
 import NoInternetScreen from './components/NoInternetScreen';
+import GoogleLoginPromptModal from './components/GoogleLoginPromptModal';
 import { Network } from '@capacitor/network';
 import { CartProvider, useCart } from './context/CartContext';
 import { apiUrl, resolveImageUrl, APP_MODE, isCustomerApp } from './config/api';
@@ -335,6 +336,7 @@ export default function App() {
           handleOpenAdmin={handleOpenAdmin}
         />
       )}
+      {!isAdminView && <GoogleLoginPromptModal />}
     </CartProvider>
   );
 }
