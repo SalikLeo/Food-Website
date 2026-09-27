@@ -3454,7 +3454,7 @@ export default function CustomerMobileApp({
                             value={mobileCouponInput}
                             onChange={(e) => setMobileCouponInput(e.target.value.toUpperCase())}
                             placeholder="NEW123"
-                            className={`w-full pl-8 pr-3 py-2 rounded-xl border text-xs font-bold uppercase focus:outline-none transition-all ${
+                            className={`w-full pl-8 pr-3 py-2 rounded-xl border text-xs font-montserrat font-medium placeholder:font-montserrat placeholder:font-medium uppercase tracking-wider focus:outline-none transition-all ${
                               isDark
                                 ? 'bg-zinc-900/80 border-white/10 text-white placeholder-zinc-500 focus:border-orange-500'
                                 : 'bg-white border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:border-orange-500'
