@@ -853,44 +853,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
               </div>
             </div>
 
-            {/* Quick Presets */}
-            <div>
-              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-2">
-                Quick Discount Presets:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { label: '10% OFF', type: 'percentage', val: 10 },
-                  { label: '15% OFF', type: 'percentage', val: 15 },
-                  { label: '20% OFF', type: 'percentage', val: 20 },
-                  { label: 'Rs. 100 OFF', type: 'flat', val: 100 },
-                  { label: 'Rs. 200 OFF', type: 'flat', val: 200 },
-                  { label: 'Rs. 300 OFF', type: 'flat', val: 300 }
-                ].map((preset) => {
-                  const isSelected = couponEnabled &&
-                    couponDiscountType === preset.type &&
-                    Number(couponDiscountValue) === preset.val;
-                  return (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={() => {
-                        setCouponEnabled(true);
-                        setCouponDiscountType(preset.type);
-                        setCouponDiscountValue(preset.val);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-purple-600 text-white border border-purple-600 shadow-xs'
-                          : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+
 
             {/* Live Preview Summary Box */}
             <div className={`p-3.5 rounded-xl border flex items-center justify-between text-xs ${
