@@ -22,7 +22,8 @@ import {
   Volume2,
   VolumeX,
   Bike,
-  Smartphone
+  Smartphone,
+  FileText
 } from 'lucide-react';
 import ProductManager from './ProductManager';
 import OrdersManager from './OrdersManager';
@@ -31,6 +32,7 @@ import DeliverySettingsManager from './DeliverySettingsManager';
 import ItemSalesManager from './ItemSalesManager';
 import ReviewManager from './ReviewManager';
 import RidersManager from './RidersManager';
+import ReportsManager from './ReportsManager';
 import CustomSelect from '../Common/CustomSelect';
 import AppUpdateModal from '../AppUpdateModal';
 import { ADMIN_APP_VERSION, ADMIN_APP_BUILD_NUMBER } from '../../config/version';
@@ -1269,6 +1271,18 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             <Settings className="w-4 h-4 flex-shrink-0" />
             <span>Settings</span>
           </button>
+
+          <button
+            onClick={() => switchTab('reports')}
+            className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'reports'
+                ? 'bg-orange-600 text-white shadow-sm'
+                : 'bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 shadow-2xs'
+            }`}
+          >
+            <FileText className="w-4 h-4 flex-shrink-0" />
+            <span>Reports</span>
+          </button>
         </div>
 
 
@@ -1333,6 +1347,16 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             <ReviewManager
               reviews={reviews}
               onRefresh={fetchData}
+            />
+          )}
+
+          {activeTab === 'reports' && (
+            <ReportsManager
+              orders={orders}
+              products={products}
+              deals={deals}
+              familyDeal={familyDeal}
+              settings={settings}
             />
           )}
 
