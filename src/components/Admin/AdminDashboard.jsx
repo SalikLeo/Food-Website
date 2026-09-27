@@ -35,6 +35,7 @@ import RidersManager from './RidersManager';
 import ReportsManager from './ReportsManager';
 import CustomSelect from '../Common/CustomSelect';
 import AppUpdateModal from '../AppUpdateModal';
+import { getSocket } from '../../services/socketService';
 import { ADMIN_APP_VERSION, ADMIN_APP_BUILD_NUMBER } from '../../config/version';
 import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
 import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
@@ -541,7 +542,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     };
     window.addEventListener('salik_sync_reviews', handleSyncReviews);
 
-    // Fast 3-second live polling for immediate new orders and reviews
+    // Fast live polling heartbeat fallback
     const pollUpdates = () => {
       fetch(apiUrl('/api/orders'))
         .then(r => r.json())
@@ -562,7 +563,56 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         .catch(() => {});
     };
 
-    const interval = setInterval(pollUpdates, 3000);
+    // ⚡ Real-Time WebSocket (Socket.io) Instant Synchronization
+    const socket = getSocket();
+
+    const handleInstantNewOrder = (order) => {
+      if (!order) return;
+      console.log('⚡ [Admin] Instant order received via WebSocket:', order.id);
+      pollUpdates();
+    };
+
+    const handleInstantOrderUpdate = (order) => {
+      if (!order) return;
+      console.log('⚡ [Admin] Instant order update via WebSocket:', order.id);
+      pollUpdates();
+    };
+
+    const handleInstantOrderDelete = ({ id }) => {
+      console.log('⚡ [Admin] Order deleted via WebSocket:', id);
+      setOrders(prev => prev.filter(o => o.id !== id));
+      pollUpdates();
+    };
+
+    const handleInstantSettingsUpdate = (updatedSettings) => {
+      if (updatedSettings) {
+        setSettings(prev => ({ ...prev, ...updatedSettings }));
+      }
+    };
+
+    const handleInstantRidersUpdate = (newRiders) => {
+      if (Array.isArray(newRiders)) {
+        setRiders(newRiders);
+      }
+    };
+
+    const handleInstantReviewsUpdate = (newReviews) => {
+      if (Array.isArray(newReviews)) {
+        processIncomingReviews(newReviews);
+      }
+    };
+
+    socket.on('order:new', handleInstantNewOrder);
+    socket.on('order:status_updated', handleInstantOrderUpdate);
+    socket.on('order:rider_assigned', handleInstantOrderUpdate);
+    socket.on('order:updated', handleInstantOrderUpdate);
+    socket.on('order:deleted', handleInstantOrderDelete);
+    socket.on('settings:updated', handleInstantSettingsUpdate);
+    socket.on('riders:updated', handleInstantRidersUpdate);
+    socket.on('reviews:updated', handleInstantReviewsUpdate);
+
+    // Heartbeat fallback polling (15s instead of rapid 3s to save battery/bandwidth while socket provides 0ms alerts)
+    const interval = setInterval(pollUpdates, 15000);
 
     const onFocusOrVisible = () => {
       pollUpdates();
@@ -577,6 +627,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
     return () => {
       clearInterval(interval);
+      socket.off('order:new', handleInstantNewOrder);
+      socket.off('order:status_updated', handleInstantOrderUpdate);
+      socket.off('order:rider_assigned', handleInstantOrderUpdate);
+      socket.off('order:updated', handleInstantOrderUpdate);
+      socket.off('order:deleted', handleInstantOrderDelete);
+      socket.off('settings:updated', handleInstantSettingsUpdate);
+      socket.off('riders:updated', handleInstantRidersUpdate);
+      socket.off('reviews:updated', handleInstantReviewsUpdate);
       window.removeEventListener('salik_settings_updated', handleSettingsUpdated);
       window.removeEventListener('salik_sync_riders', handleSyncRiders);
       window.removeEventListener('salik_sync_reviews', handleSyncReviews);

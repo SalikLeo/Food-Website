@@ -1,4 +1,7 @@
 import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
@@ -12,10 +15,57 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+  }
+});
+
+// Trust proxy for proper IP resolution behind Hostinger / Cloudflare / Nginx reverse proxies
+app.set('trust proxy', 1);
 
 // Enable CORS and JSON
 app.use(cors());
 app.use(express.json());
+
+// 1. General API Rate Limiting (DDoS & Brute Force protection: 300 req/min per IP)
+const generalApiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please slow down.' },
+  skip: (req) => req.path === '/api/health' || req.path === '/api/app-version'
+});
+app.use('/api/', generalApiLimiter);
+
+// 2. Strict Order Creation Limiter (Anti-Spam / Bot Protection: max 10 orders per 5 min per IP)
+const orderCreationLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Order limit exceeded. Please wait a few minutes before submitting another order, or contact us directly on WhatsApp or Phone.'
+  }
+});
+
+// 3. Admin Login Brute Force Protection (max 15 attempts per 15 min per IP)
+const adminLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many failed login attempts. Please wait 15 minutes before trying again.' }
+});
+
+// Real-time WebSocket connection handling
+io.on('connection', (socket) => {
+  // Client connected
+});
 
 // Health check endpoint for fast internet/connectivity verification
 app.get('/api/health', (req, res) => {
@@ -286,7 +336,7 @@ app.get('/api/orders', (req, res) => {
   res.json(db.getOrders());
 });
 
-app.post('/api/orders', (req, res) => {
+app.post('/api/orders', orderCreationLimiter, (req, res) => {
   try {
     const { customerName, phone, address, notes, paymentMethod, items, subtotal, deliveryFee, total, customerEmail, customerGoogleId, couponCode, couponDiscount } = req.body;
     if (!customerName || !phone || !items || items.length === 0) {
@@ -324,6 +374,9 @@ app.post('/api/orders', (req, res) => {
       }
     }
 
+    // Real-time broadcast: notify admin & kitchen instantly
+    io.emit('order:new', order);
+
     res.status(201).json({ success: true, order });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -338,6 +391,11 @@ app.patch('/api/orders/:id/status', (req, res) => {
       : null;
     const updated = db.updateOrderStatus(req.params.id, status, riderData);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
+
+    // Real-time broadcast: status updated
+    io.emit('order:status_updated', updated);
+    io.emit('order:updated', updated);
+
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -349,6 +407,11 @@ app.patch('/api/orders/:id/rider', (req, res) => {
     const { riderId, riderName, riderPhone } = req.body;
     const updated = db.assignOrderRider(req.params.id, { riderId, riderName, riderPhone });
     if (!updated) return res.status(404).json({ error: 'Order not found' });
+
+    // Real-time broadcast: rider assigned
+    io.emit('order:rider_assigned', updated);
+    io.emit('order:updated', updated);
+
     res.json({ success: true, order: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -360,6 +423,10 @@ app.patch('/api/orders/:id/delivery-fee', (req, res) => {
     const { deliveryFee } = req.body;
     const updated = db.updateOrderDeliveryFee(req.params.id, deliveryFee);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
+
+    // Real-time broadcast: order fee updated
+    io.emit('order:updated', updated);
+
     res.json({ success: true, order: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -374,6 +441,10 @@ app.put('/api/orders/:id/items', (req, res) => {
     }
     const updated = db.updateOrderItems(req.params.id, { items, subtotal, deliveryFee, total, notes });
     if (!updated) return res.status(404).json({ error: 'Order not found' });
+
+    // Real-time broadcast: order items updated
+    io.emit('order:updated', updated);
+
     res.json({ success: true, order: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -384,6 +455,10 @@ app.delete('/api/orders/:id', (req, res) => {
   try {
     const deleted = db.deleteOrder(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Order not found' });
+
+    // Real-time broadcast: order deleted
+    io.emit('order:deleted', { id: req.params.id });
+
     res.json({ success: true, message: 'Order deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -398,6 +473,7 @@ app.get('/api/settings', (req, res) => {
 app.put('/api/settings', (req, res) => {
   try {
     const updated = db.updateSettings(req.body);
+    io.emit('settings:updated', updated);
     res.json({ success: true, settings: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -407,6 +483,7 @@ app.put('/api/settings', (req, res) => {
 app.post('/api/settings', (req, res) => {
   try {
     const updated = db.updateSettings(req.body);
+    io.emit('settings:updated', updated);
     res.json({ success: true, settings: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -441,6 +518,7 @@ app.post('/api/reviews', (req, res) => {
     }
     const comment = (req.body.comment || '').trim() || '-';
     const newReview = db.createReview({ ...req.body, comment });
+    io.emit('reviews:updated', db.getReviews());
     res.status(201).json({ success: true, review: newReview });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -451,6 +529,7 @@ app.delete('/api/reviews/:id', (req, res) => {
   try {
     const deleted = db.deleteReview(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Review not found' });
+    io.emit('reviews:updated', db.getReviews());
     res.json({ success: true, message: 'Review deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -487,6 +566,7 @@ app.post('/api/riders', (req, res) => {
       return res.status(400).json({ error: 'Rider phone number must be 11 digits (e.g. 03001234567)' });
     }
     const newRider = db.createRider({ name: name.trim(), phone: cleanPhone });
+    io.emit('riders:updated', db.getRiders());
     res.status(201).json({ success: true, rider: newRider });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -504,6 +584,7 @@ app.put('/api/riders/:id', (req, res) => {
     }
     const updated = db.updateRider(req.params.id, req.body);
     if (!updated) return res.status(404).json({ error: 'Rider not found' });
+    io.emit('riders:updated', db.getRiders());
     res.json({ success: true, rider: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -522,6 +603,7 @@ app.delete('/api/riders/:id', (req, res) => {
     }
     const deleted = db.deleteRider(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Rider not found' });
+    io.emit('riders:updated', db.getRiders());
     res.json({ success: true, message: 'Rider deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -533,8 +615,8 @@ app.get('/api/stats', (req, res) => {
   res.json(db.getStats());
 });
 
-// Admin Auth
-app.post('/api/admin/login', (req, res) => {
+// Admin Auth (Protected with rate limiting against brute-force attacks)
+app.post('/api/admin/login', adminLoginLimiter, (req, res) => {
   const { password } = req.body;
   const validPass = process.env.ADMIN_PASSWORD || 'Salik.leo1212';
   if (password === validPass || password === 'Salik.leo1212') {
@@ -567,8 +649,9 @@ function getLocalNetworkIp() {
   return 'localhost';
 }
 
-app.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Salik Fast Food Server running on:`);
   console.log(`- Local:   http://localhost:${PORT}`);
   console.log(`- Network: http://${getLocalNetworkIp()}:${PORT}`);
+  console.log(`⚡ WebSocket (Socket.io) active for instant real-time events.`);
 });

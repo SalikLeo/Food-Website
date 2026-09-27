@@ -1033,18 +1033,20 @@ export default function OrdersManager({
 
     @media print {
       @page {
-        size: 80mm auto;
+        size: auto;
         margin: 0mm;
       }
       html, body {
-        width: 72mm !important;
-        max-width: 72mm !important;
+        width: 100% !important;
+        max-width: 78mm !important;
         margin: 0 auto !important;
-        padding: 2mm 1mm 6mm 1mm !important;
+        padding: 1mm 1mm 4mm 1mm !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
       .receipt-container {
-        width: 72mm !important;
-        max-width: 72mm !important;
+        width: 100% !important;
+        max-width: 78mm !important;
         margin: 0 auto !important;
       }
     }

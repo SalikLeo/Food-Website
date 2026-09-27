@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Download, MessageCircle, Loader2, Check } from 'lucide-react';
+import { X, Download, MessageCircle, Loader2, Check, Printer } from 'lucide-react';
 import { formatPrice, formatReceiptPaymentBadge } from '../utils/formatters';
-import { downloadReceiptImage, shareReceiptImageWhatsApp } from '../services/receiptImageService';
+import { downloadReceiptImage, shareReceiptImageWhatsApp, printReceiptDocument } from '../services/receiptImageService';
 
 export default function CustomerReceiptModal({ order, onClose }) {
   const receiptCardRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -50,17 +51,17 @@ export default function CustomerReceiptModal({ order, onClose }) {
   <meta charset="utf-8">
   <title>Receipt #${order.id} - Salik Fast Food</title>
   <style>
-    @page { size: 80mm auto; margin: 0mm; }
+    @page { size: auto; margin: 0mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      width: 72mm; max-width: 72mm; margin: 0 auto;
-      padding: 2mm 1.5mm 10mm 1.5mm; color: #000; background: #fff;
+      width: 100% !important; max-width: 78mm !important; margin: 0 auto !important;
+      padding: 2mm 1.5mm 6mm 1.5mm !important; color: #000 !important; background: #fff !important;
       font-size: 10px; line-height: 1.35;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-    .receipt-container { width: 72mm; max-width: 72mm; margin: 0 auto; }
+    .receipt-container { width: 100% !important; max-width: 78mm !important; margin: 0 auto !important; }
     .bold { font-weight: 700; }
     .header { text-align: center; padding-bottom: 8px; border-bottom: 1px dashed #000; }
     .header h1 { font-size: 14px; font-weight: 800; text-transform: uppercase; color: #000; }
@@ -85,12 +86,12 @@ export default function CustomerReceiptModal({ order, onClose }) {
     }
     .footer { text-align: center; padding-top: 8px; font-size: 9.5px; }
     @media print {
-      @page { size: 80mm auto; margin: 0mm; }
+      @page { size: auto; margin: 0; }
       html, body {
-        width: 72mm !important; max-width: 72mm !important; margin: 0 auto !important;
-        padding: 2mm 1mm 6mm 1mm !important;
+        width: 100% !important; max-width: 78mm !important; margin: 0 auto !important;
+        padding: 1mm 1mm 4mm 1mm !important;
       }
-      .receipt-container { width: 72mm !important; max-width: 72mm !important; margin: 0 auto !important; }
+      .receipt-container { width: 100% !important; max-width: 78mm !important; margin: 0 auto !important; }
     }
   </style>
 </head>
@@ -173,6 +174,20 @@ export default function CustomerReceiptModal({ order, onClose }) {
       alert('Could not share receipt to WhatsApp: ' + (e?.message || e));
     } finally {
       setIsSharing(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (!order || isPrinting) return;
+    try {
+      setIsPrinting(true);
+      const html = generateReceiptHtml();
+      await printReceiptDocument(html, `Receipt-ORD-${order.id}`);
+    } catch (e) {
+      console.error('Print receipt failed:', e);
+      alert('Could not start printing: ' + (e?.message || e));
+    } finally {
+      setIsPrinting(false);
     }
   };
 
@@ -327,18 +342,19 @@ export default function CustomerReceiptModal({ order, onClose }) {
           </div>
         </div>
 
-        {/* Action Buttons: Download Image, WhatsApp Share Image */}
-        <div className="flex-shrink-0 px-4 py-3 sm:px-5 sm:py-3.5 border-t border-dashed border-zinc-300 bg-zinc-50 flex items-center justify-between gap-2 z-10">
+        {/* Action Buttons: Download Image, WhatsApp Share Image, Print */}
+        <div className="flex-shrink-0 px-3 sm:px-5 py-3 sm:py-3.5 border-t border-dashed border-zinc-300 bg-zinc-50 flex items-center justify-between gap-1.5 sm:gap-2 z-10">
           <button
             type="button"
             onClick={handleDownload}
             disabled={isDownloading}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+            title="Download Receipt Image"
           >
             {isDownloading ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 text-orange-400 animate-spin" />
-                <span>Saving...</span>
+                <span className="hidden sm:inline">Saving...</span>
               </>
             ) : downloadSuccess ? (
               <>
@@ -357,17 +373,38 @@ export default function CustomerReceiptModal({ order, onClose }) {
             type="button"
             onClick={handleWhatsApp}
             disabled={isSharing}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+            title="Share Receipt on WhatsApp"
           >
             {isSharing ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
-                <span>Opening...</span>
+                <span className="hidden sm:inline">Opening...</span>
               </>
             ) : (
               <>
                 <MessageCircle className="w-3.5 h-3.5 text-white" />
                 <span>WhatsApp</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handlePrint}
+            disabled={isPrinting}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs disabled:opacity-60"
+            title="Print Thermal POS Receipt (58mm / 80mm)"
+          >
+            {isPrinting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+                <span className="hidden sm:inline">Printing...</span>
+              </>
+            ) : (
+              <>
+                <Printer className="w-3.5 h-3.5 text-white" />
+                <span>Print</span>
               </>
             )}
           </button>

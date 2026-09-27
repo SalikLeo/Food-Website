@@ -10,6 +10,7 @@ import {
 import { getStoredUserProfile, saveStoredUserProfile } from '../services/userProfile';
 import { getStoredCustomerUser } from '../services/googleAuth';
 import { fetchCustomerCloudOrders, fetchCustomerCloudProfile } from '../services/customerSync';
+import { getSocket } from '../services/socketService';
 import { App as CapApp } from '@capacitor/app';
 
 const CartContext = createContext();
@@ -370,7 +371,21 @@ export const CartProvider = ({ children }) => {
 
     syncRecentOrders();
     syncCustomerOrdersCloud();
-    const interval = setInterval(syncRecentOrders, 1000);
+
+    // ⚡ Real-Time WebSocket for instant 0ms order status notifications
+    const socket = getSocket();
+    const onSocketOrderUpdate = (order) => {
+      if (order && order.id) {
+        syncRecentOrders();
+      }
+    };
+
+    socket.on('order:status_updated', onSocketOrderUpdate);
+    socket.on('order:rider_assigned', onSocketOrderUpdate);
+    socket.on('order:updated', onSocketOrderUpdate);
+
+    // Heartbeat fallback polling
+    const interval = setInterval(syncRecentOrders, 15000);
 
     const onFocus = () => {
       syncRecentOrders();
@@ -438,6 +453,9 @@ export const CartProvider = ({ children }) => {
 
     return () => {
       clearInterval(interval);
+      socket.off('order:status_updated', onSocketOrderUpdate);
+      socket.off('order:rider_assigned', onSocketOrderUpdate);
+      socket.off('order:updated', onSocketOrderUpdate);
       if (appStateHandle?.remove) {
         appStateHandle.remove();
       }
