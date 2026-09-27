@@ -359,7 +359,7 @@ export default function ReportsManager({
       border-bottom: 1px solid #000;
     }
     table { width: 100%; border-collapse: collapse; margin: 4px 0; border: 1px solid #000; font-size: 9px; }
-    th { background: #eee; padding: 2.5px 2px; border: 1px solid #000; font-weight: 700; text-transform: uppercase; }
+    th { background: #fff; padding: 2.5px 2px; border: 1px solid #000; font-weight: 700; text-transform: uppercase; }
     td { padding: 2.5px 2px; border: 1px solid #000; }
     .text-center { text-align: center; }
     .text-right { text-align: right; }
@@ -402,6 +402,10 @@ export default function ReportsManager({
       <div class="meta-row">
         <span>Delivered (Completed):</span>
         <span style="font-weight:700;">${reportStats.deliveredOrders}</span>
+      </div>
+      <div class="meta-row">
+        <span>Total Items Sold:</span>
+        <span style="font-weight:700;">${reportStats.totalItemsSold}</span>
       </div>
     </div>
 
@@ -453,7 +457,7 @@ export default function ReportsManager({
           <tr>
             <td class="text-center" style="font-weight:700;">${idx + 1}</td>
             <td style="font-weight:600;">
-              ${item.name}${item.category ? ` <span style="font-weight:normal; font-size:8.5px; color:#444;">(${item.category})</span>` : ''}
+              ${item.name}${item.category ? ` <span style="font-weight:700; font-size:8.5px; color:#000;">(${item.category})</span>` : ''}
             </td>
             <td class="text-center" style="font-weight:700;">${item.qty}</td>
             <td class="text-right" style="font-weight:700;">Rs. ${item.revenue.toLocaleString()}</td>
@@ -811,6 +815,10 @@ export default function ReportsManager({
               <span className="font-bold">Delivered (Completed):</span>
               <span className="font-bold">{reportStats.deliveredOrders}</span>
             </div>
+            <div className="flex justify-between">
+              <span className="font-bold">Total Items Sold:</span>
+              <span className="font-bold">{reportStats.totalItemsSold}</span>
+            </div>
           </div>
 
           {/* Financial Totals Breakdown */}
@@ -865,7 +873,7 @@ export default function ReportsManager({
 
             <table className="w-full text-left border-collapse border border-black text-xs mt-2">
               <thead>
-                <tr className="bg-zinc-100 font-sans font-bold text-[10.5px] uppercase tracking-wide border-b border-black text-black">
+                <tr className="bg-white font-sans font-bold text-[10.5px] uppercase tracking-wide border-b border-black text-black">
                   <th className="py-1 px-1.5 border-r border-black w-6 text-center">#</th>
                   <th className="py-1 px-2 border-r border-black">Item</th>
                   <th className="py-1 px-1.5 border-r border-black text-center w-10">Qty</th>
@@ -882,7 +890,7 @@ export default function ReportsManager({
                       <td className="py-1 px-2 border-r border-black font-semibold text-xs text-black">
                         <span>{item.name}</span>
                         {item.category && (
-                          <span className="font-normal text-zinc-600 text-[11px] ml-1">
+                          <span className="font-semibold text-zinc-900 text-[11px] ml-1">
                             ({item.category})
                           </span>
                         )}
