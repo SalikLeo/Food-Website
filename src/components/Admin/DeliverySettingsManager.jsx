@@ -852,38 +852,6 @@ export default function DeliverySettingsManager({ onRefresh }) {
                 </div>
               </div>
             </div>
-
-
-
-            {/* Live Preview Summary Box */}
-            <div className={`p-3.5 rounded-xl border flex items-center justify-between text-xs ${
-              couponEnabled 
-                ? 'bg-purple-50/60 border-purple-200 text-purple-950' 
-                : 'bg-zinc-50 border-zinc-200 text-zinc-400'
-            }`}>
-              <div className="flex items-center gap-2.5">
-                <Tag className={`w-4 h-4 shrink-0 ${couponEnabled ? 'text-purple-600' : 'text-zinc-400'}`} />
-                <div>
-                  <span className="font-semibold block">
-                    {couponEnabled ? (
-                      <>
-                        Coupon <span className="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-purple-300 text-purple-700">{couponCode || 'PROMO'}</span> gives{' '}
-                        <strong className="font-bold text-purple-800">
-                          {couponDiscountType === 'percentage' ? `${couponDiscountValue}% OFF` : `Rs. ${formatPrice(couponDiscountValue)} OFF`}
-                        </strong>
-                      </>
-                    ) : (
-                      'No discount coupon is active right now.'
-                    )}
-                  </span>
-                  <span className="text-[11px] text-zinc-500 block mt-0.5">
-                    {couponEnabled 
-                      ? (Number(couponMinOrder) > 0 ? `Requires minimum order of Rs. ${formatPrice(couponMinOrder)}` : 'Applies to orders of any amount')
-                      : 'Switch toggle ON to allow customer promo codes at checkout'}
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
 
         </div>
