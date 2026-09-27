@@ -1356,6 +1356,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               products={products}
               deals={deals}
               familyDeal={familyDeal}
+              categories={categories}
               settings={settings}
             />
           )}

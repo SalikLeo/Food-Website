@@ -29,6 +29,7 @@ export default function ReportsManager({
   products = [],
   deals = [],
   familyDeal = null,
+  categories = [],
   settings = { deliveryFee: 100 }
 }) {
   const [reportType, setReportType] = useState('daily'); // 'daily' | 'monthly' | 'annual'
@@ -201,8 +202,41 @@ export default function ReportsManager({
           const price = Number(it.price) || 0;
 
           if (!itemSalesMap[name]) {
+            // Determine category
+            let catName = it.category || '';
+            const lowerName = name.toLowerCase();
+
+            if (!catName || catName === 'menu') {
+              const matchedProd = products.find(p => (p.name || '').trim().toLowerCase() === lowerName);
+              if (matchedProd && matchedProd.category) {
+                catName = matchedProd.category;
+              }
+            }
+
+            if (!catName || catName === 'menu') {
+              const isDeal = (deals || []).some(d => (d.name || '').trim().toLowerCase() === lowerName) ||
+                             lowerName.includes('deal') ||
+                             lowerName.includes('family');
+              if (isDeal) catName = 'Deal';
+            }
+
+            // Resolve to proper formatted category title
+            let prettyCategory = '';
+            if (catName) {
+              const matchedCat = (categories || []).find(c => 
+                String(c.id).toLowerCase() === String(catName).toLowerCase() ||
+                String(c.name).toLowerCase() === String(catName).toLowerCase()
+              );
+              if (matchedCat && matchedCat.name) {
+                prettyCategory = matchedCat.name;
+              } else {
+                prettyCategory = catName.charAt(0).toUpperCase() + catName.slice(1);
+              }
+            }
+
             itemSalesMap[name] = {
               name,
+              category: prettyCategory,
               qty: 0,
               revenue: 0,
               ordersCount: 0
@@ -418,7 +452,9 @@ export default function ReportsManager({
         ${reportStats.top5Items.length > 0 ? reportStats.top5Items.map((item, idx) => `
           <tr>
             <td class="text-center" style="font-weight:700;">${idx + 1}</td>
-            <td style="font-weight:600;">${item.name}</td>
+            <td style="font-weight:600;">
+              ${item.name}${item.category ? ` <span style="font-weight:normal; font-size:8.5px; color:#444;">(${item.category})</span>` : ''}
+            </td>
             <td class="text-center" style="font-weight:700;">${item.qty}</td>
             <td class="text-right" style="font-weight:700;">Rs. ${item.revenue.toLocaleString()}</td>
           </tr>
@@ -429,26 +465,6 @@ export default function ReportsManager({
         `}
       </tbody>
     </table>
-
-    <div class="section-title">Order Status Summary</div>
-    <div class="meta" style="border-bottom: 1px dashed #000;">
-      <div class="meta-row">
-        <span>Delivered (Completed):</span>
-        <span style="font-weight:700;">${reportStats.deliveredOrders}</span>
-      </div>
-      <div class="meta-row">
-        <span>Pending / In Progress:</span>
-        <span style="font-weight:700;">${reportStats.inProgressOrders}</span>
-      </div>
-      <div class="meta-row">
-        <span>Cancelled / Rejected:</span>
-        <span style="font-weight:700;">${reportStats.cancelledOrders}</span>
-      </div>
-      <div class="meta-row">
-        <span>Total Items Sold:</span>
-        <span style="font-weight:700;">${reportStats.totalItemsSold}</span>
-      </div>
-    </div>
 
     <div class="footer">
       <p style="font-weight:700;">*** END OF REPORT ***</p>
@@ -864,7 +880,12 @@ export default function ReportsManager({
                         {idx + 1}
                       </td>
                       <td className="py-1 px-2 border-r border-black font-semibold text-xs text-black">
-                        {item.name}
+                        <span>{item.name}</span>
+                        {item.category && (
+                          <span className="font-normal text-zinc-600 text-[11px] ml-1">
+                            ({item.category})
+                          </span>
+                        )}
                       </td>
                       <td className="py-1 px-1.5 border-r border-black text-center font-bold text-xs text-black">
                         {item.qty}
@@ -885,42 +906,10 @@ export default function ReportsManager({
             </table>
           </div>
 
-          {/* Order Status Breakdown */}
-          <div className="py-3 border-b border-dashed border-zinc-400 space-y-1 font-sans text-xs">
-            <div className="font-extrabold uppercase tracking-wide text-[11px] pb-1 border-b border-black">
-              Orders Status Breakdown
-            </div>
-            <div className="flex justify-between pt-1">
-              <span>Delivered (Completed):</span>
-              <span className="font-bold">{reportStats.deliveredOrders}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Pending Confirmation:</span>
-              <span className="font-bold">{reportStats.pendingOrders}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>In Kitchen / Preparing:</span>
-              <span className="font-bold">{reportStats.preparingOrders}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Out For Delivery:</span>
-              <span className="font-bold">{reportStats.outForDeliveryOrders}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Cancelled / Rejected:</span>
-              <span className="font-bold">{reportStats.cancelledOrders}</span>
-            </div>
-            <div className="flex justify-between pt-1 border-t border-dotted border-zinc-400 font-bold">
-              <span>Total Items Sold:</span>
-              <span>{reportStats.totalItemsSold}</span>
-            </div>
-          </div>
-
           {/* Receipt Footer */}
           <div className="text-center pt-3 text-[10.5px] font-sans space-y-0.5">
             <p className="font-extrabold uppercase tracking-wide">*** END OF REPORT ***</p>
             <p className="font-semibold text-zinc-700">Salik Fast Food Business Management System</p>
-            <p className="text-[9.5px] text-zinc-500">Thank you for your hard work!</p>
           </div>
         </div>
       </div>
