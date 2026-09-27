@@ -788,8 +788,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             {/* Review Details Preview */}
             <div className="py-2.5 flex items-center justify-between gap-3 text-xs">
               <div className="space-y-0.5 min-w-0">
-                <div className="font-bold text-zinc-900 truncate">
-                  👤 {newReviewAlert.review.author || newReviewAlert.review.name || 'Customer'}
+                <div className="font-bold text-zinc-900 truncate flex items-center gap-1.5 flex-wrap">
+                  <span>👤 {newReviewAlert.review.author || newReviewAlert.review.name || 'Customer'}</span>
+                  {(newReviewAlert.review.customerEmail || newReviewAlert.review.email) && (
+                    <span className="text-[10px] font-semibold text-red-600 bg-red-50 border border-red-200/80 px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5">
+                      <span>✉️</span>
+                      <span className="truncate max-w-[150px]">{newReviewAlert.review.customerEmail || newReviewAlert.review.email}</span>
+                    </span>
+                  )}
                 </div>
                 <div className="text-zinc-600 text-[11px] truncate italic">
                   {(newReviewAlert.review.comment || newReviewAlert.review.text) && (newReviewAlert.review.comment || newReviewAlert.review.text).trim() !== '-'

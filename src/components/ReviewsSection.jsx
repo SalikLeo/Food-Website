@@ -16,6 +16,7 @@ import {
 import { createPortal } from 'react-dom';
 import { apiUrl } from '../config/api';
 import { notifyCustomerReviewSubmitted } from '../services/notificationService';
+import { getStoredCustomerUser } from '../services/googleAuth';
 
 const REVIEWS_DATA = [
   {
@@ -359,8 +360,12 @@ export default function ReviewsSection() {
     setReviewSubmitError('');
 
     try {
+      const loggedUser = getStoredCustomerUser();
       const payload = {
         name: newReview.name.trim(),
+        customerEmail: loggedUser?.email || '',
+        email: loggedUser?.email || '',
+        customerAvatar: loggedUser?.picture || '',
         rating: Number(newReview.rating) || 5,
         comment: newReview.comment.trim()
       };
@@ -531,9 +536,17 @@ export default function ReviewsSection() {
                       >
                         {review.avatar || (review.name ? review.name.slice(0, 2).toUpperCase() : 'MP')}
                       </div>
-                      <span className="font-bold text-sm text-white leading-tight group-hover:text-orange-400 transition-colors">
-                        {review.name}
-                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-bold text-sm text-white leading-tight group-hover:text-orange-400 transition-colors truncate">
+                          {review.name}
+                        </span>
+                        {(review.customerEmail || review.email) && (
+                          <span className="text-[11px] text-zinc-400 font-medium truncate flex items-center gap-1 mt-0.5" title={`Verified Google Account: ${review.customerEmail || review.email}`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                            <span className="truncate">{review.customerEmail || review.email}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -677,10 +690,16 @@ export default function ReviewsSection() {
                         >
                           {review.avatar || (review.name ? review.name.slice(0, 2).toUpperCase() : 'MP')}
                         </div>
-                        <div>
+                        <div className="flex flex-col min-w-0">
                           <span className="font-bold text-sm text-white block">
                             {review.name}
                           </span>
+                          {(review.customerEmail || review.email) && (
+                            <span className="text-[11px] text-zinc-400 font-medium truncate flex items-center gap-1 mt-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                              <span className="truncate">{review.customerEmail || review.email}</span>
+                            </span>
+                          )}
                         </div>
                       </div>
 

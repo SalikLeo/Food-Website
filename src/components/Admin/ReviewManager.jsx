@@ -11,7 +11,8 @@ import {
   Sparkles,
   Send,
   Filter,
-  Check
+  Check,
+  Mail
 } from 'lucide-react';
 import CustomSelect from '../Common/CustomSelect';
 // Format review date & time: DD/MM/YY, hh:mm am/pm
@@ -97,12 +98,14 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
       const name = (r.name || '').toLowerCase();
       const location = (r.location || '').toLowerCase();
       const item = (r.itemOrdered || '').toLowerCase();
+      const email = (r.customerEmail || r.email || '').toLowerCase();
       const comment = (r.comment || '').toLowerCase();
       const query = searchTerm.toLowerCase().trim();
 
       const matchesSearch =
         !query ||
         name.includes(query) ||
+        email.includes(query) ||
         location.includes(query) ||
         item.includes(query) ||
         comment.includes(query) ||
@@ -337,12 +340,24 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
               >
                 {/* Header: Customer Name, Order ID, and Stars */}
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h4 className="font-bold text-sm text-zinc-900 leading-tight">
-                      {review.name}
-                    </h4>
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-bold text-sm text-zinc-900 leading-tight">
+                        {review.name}
+                      </h4>
+                      {(review.customerEmail || review.email) && (
+                        <a
+                          href={`mailto:${review.customerEmail || review.email}`}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 transition-colors shadow-2xs"
+                          title={`Google Account: ${review.customerEmail || review.email}`}
+                        >
+                          <Mail className="w-3 h-3 text-red-500 shrink-0" />
+                          <span className="truncate max-w-[200px]">{review.customerEmail || review.email}</span>
+                        </a>
+                      )}
+                    </div>
                     {review.orderId && (
-                      <span className="font-sans font-bold text-xs text-orange-600 block mt-0.5">
+                      <span className="font-sans font-bold text-xs text-orange-600 block">
                         #{review.orderId}
                       </span>
                     )}
@@ -412,7 +427,14 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
 
             <div className="bg-zinc-50 p-3.5 rounded-xl border border-zinc-200 text-xs space-y-1.5">
               <div className="flex items-center justify-between font-bold text-zinc-800">
-                <span>{deleteTarget.name}</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span>{deleteTarget.name}</span>
+                  {(deleteTarget.customerEmail || deleteTarget.email) && (
+                    <span className="text-[11px] font-normal text-zinc-500">
+                      ({deleteTarget.customerEmail || deleteTarget.email})
+                    </span>
+                  )}
+                </div>
                 <span className="text-amber-500">{'⭐'.repeat(deleteTarget.rating || 5)}</span>
               </div>
               <p className="text-zinc-600">

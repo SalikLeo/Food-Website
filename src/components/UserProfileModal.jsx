@@ -234,6 +234,9 @@ export default function UserProfileModal() {
 
     const payload = {
       name: customerName,
+      customerEmail: customerUser?.email || '',
+      email: customerUser?.email || '',
+      customerAvatar: customerUser?.picture || '',
       location: order.address || address || 'Wah Cantt',
       rating: Number(rating) || 5,
       platform: 'Website Order Review',
@@ -281,6 +284,7 @@ export default function UserProfileModal() {
     const payload = {
       name: (customerUser?.name || name || 'Customer').trim(),
       customerEmail: customerUser.email,
+      email: customerUser.email,
       customerAvatar: customerUser.picture || '',
       location: address || 'Wah Cantt',
       rating: Number(generalRating) || 5,

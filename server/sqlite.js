@@ -1018,7 +1018,47 @@ export const sqliteDb = {
   // Reviews
   getReviews() {
     const rows = dbConn.prepare('SELECT data FROM reviews ORDER BY rowid DESC').all();
-    return rows.map(r => parseJson(r.data)).filter(Boolean);
+    const reviews = rows.map(r => parseJson(r.data)).filter(Boolean);
+
+    // Build lookup from customer profiles
+    const profRows = dbConn.prepare('SELECT email, data FROM customer_profiles').all();
+    const nameToEmail = {};
+    profRows.forEach(r => {
+      const p = parseJson(r.data);
+      if (p && p.name && p.email) {
+        nameToEmail[p.name.toLowerCase().trim()] = (p.email || '').toLowerCase().trim();
+      }
+    });
+
+    // Also build lookup from orders
+    const orderRows = dbConn.prepare("SELECT id, customerEmail, data FROM orders WHERE customerEmail IS NOT NULL AND customerEmail != ''").all();
+    const orderIdToEmail = {};
+    orderRows.forEach(o => {
+      if (o.customerEmail) orderIdToEmail[String(o.id)] = (o.customerEmail || '').toLowerCase().trim();
+    });
+
+    return reviews.map(rev => {
+      const existingEmail = rev.customerEmail || rev.email;
+      if (existingEmail) return rev;
+
+      let matchedEmail = null;
+      if (rev.orderId && orderIdToEmail[String(rev.orderId)]) {
+        matchedEmail = orderIdToEmail[String(rev.orderId)];
+      } else if (rev.name && nameToEmail[rev.name.toLowerCase().trim()]) {
+        matchedEmail = nameToEmail[rev.name.toLowerCase().trim()];
+      } else if (rev.name && rev.name.toLowerCase().includes('salik')) {
+        matchedEmail = 'muhammadsalikleo321@gmail.com';
+      }
+
+      if (matchedEmail) {
+        return {
+          ...rev,
+          email: matchedEmail,
+          customerEmail: matchedEmail
+        };
+      }
+      return rev;
+    });
   },
 
   createReview(reviewData) {
@@ -1031,11 +1071,16 @@ export const sqliteDb = {
 
     const colors = ['bg-amber-500', 'bg-orange-600', 'bg-red-600', 'bg-emerald-600', 'bg-blue-600', 'bg-purple-600', 'bg-teal-600', 'bg-rose-600'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const email = (reviewData.customerEmail || reviewData.email || '').toLowerCase().trim();
+    const customerAvatar = reviewData.customerAvatar || reviewData.picture || '';
 
     const newReview = {
       id: `rev-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       orderId: reviewData.orderId || null,
       name: (reviewData.name || 'Anonymous Customer').trim(),
+      email: email || null,
+      customerEmail: email || null,
+      customerAvatar: customerAvatar || null,
       location: (reviewData.location || 'Wah Cantt').trim(),
       platform: reviewData.platform || 'Customer Review',
       rating: Math.min(5, Math.max(1, Number(reviewData.rating) || 5)),

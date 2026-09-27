@@ -519,6 +519,9 @@ export default function CustomerMobileApp({
 
     const payload = {
       name: customerName,
+      customerEmail: customerUser?.email || customerInfo?.email || '',
+      email: customerUser?.email || customerInfo?.email || '',
+      customerAvatar: customerUser?.picture || '',
       location: order.address || checkoutForm.address || 'Wah Cantt',
       rating: Number(rating) || 5,
       platform: 'In-App Order Review',
@@ -590,6 +593,7 @@ export default function CustomerMobileApp({
     const payload = {
       name: authorName,
       customerEmail: customerUser.email,
+      email: customerUser.email,
       customerAvatar: customerUser.picture || '',
       location: (checkoutForm.address || 'Wah Cantt').trim(),
       rating: Number(generalRating) || 5,
