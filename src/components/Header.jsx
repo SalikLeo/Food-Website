@@ -160,11 +160,11 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
             ? 'bg-[#101013]/95 backdrop-blur-md border-b border-white/10 pt-[max(env(safe-area-inset-top,0px),0.65rem)] pb-3 px-4 shadow-lg'
             : isScrolled
               ? isDark
-                ? 'glass-nav py-3 shadow-[0_2px_8px_rgba(0,0,0,0.12)]'
-                : 'bg-white/95 backdrop-blur-md py-3 border-b border-zinc-200/90 shadow-sm text-zinc-900'
+                ? 'glass-nav pt-[max(env(safe-area-inset-top,0px),0.75rem)] pb-3 shadow-[0_2px_8px_rgba(0,0,0,0.12)]'
+                : 'bg-white/95 backdrop-blur-md pt-[max(env(safe-area-inset-top,0px),0.75rem)] pb-3 border-b border-zinc-200/90 shadow-sm text-zinc-900'
               : isDark
-                ? 'bg-black/30 backdrop-blur-md py-4 border-b border-white/5'
-                : 'bg-white/70 backdrop-blur-md py-4 border-b border-zinc-200/40 text-zinc-900'
+                ? 'bg-black/30 backdrop-blur-md pt-[max(env(safe-area-inset-top,0px),1rem)] pb-4 border-b border-white/5'
+                : 'bg-white/70 backdrop-blur-md pt-[max(env(safe-area-inset-top,0px),1rem)] pb-4 border-b border-zinc-200/40 text-zinc-900'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">

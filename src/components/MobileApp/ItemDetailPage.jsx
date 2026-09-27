@@ -161,7 +161,7 @@ export default function ItemDetailPage({
       }`}>
       
       {/* Sticky Top Navigation Bar */}
-      <div className={`sticky top-0 z-40 backdrop-blur-md border-b px-4 py-3 flex items-center justify-between transition-colors ${
+      <div className={`sticky top-0 z-40 backdrop-blur-md border-b px-4 safe-top-padded pb-3 flex items-center justify-between transition-colors ${
         isDark ? 'bg-[#0f0f13]/90 border-white/10' : 'bg-[#faf8f5]/90 border-zinc-200'
       }`}>
         <button
@@ -440,7 +440,7 @@ export default function ItemDetailPage({
 
     {/* Fixed Bottom Footer Action Bar */}
     <div 
-      className={`fixed bottom-0 left-0 right-0 z-[60] border-t px-4 py-2.5 sm:py-3 shadow-2xl transition-all duration-150 ${
+      className={`fixed bottom-0 left-0 right-0 z-[60] border-t px-4 pt-2.5 sm:pt-3 safe-bottom-padded shadow-2xl transition-all duration-150 ${
         isClosing ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'
       } ${
         isDark 

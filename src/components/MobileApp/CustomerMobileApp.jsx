@@ -2150,8 +2150,8 @@ export default function CustomerMobileApp({
                     >
                       <div className="flex gap-3 sm:gap-3.5">
                         
-                        {/* Food Image (10% bigger overall & 10% wider for enhanced visuals) */}
-                        <div className={`w-[138px] sm:w-[150px] h-[106px] sm:h-[116px] rounded-2xl overflow-hidden border flex-shrink-0 relative ${
+                        {/* Food Image (Responsive fluid scaling across small, medium, and tablet screens) */}
+                        <div className={`w-[110px] xs:w-[124px] sm:w-[140px] h-[92px] xs:h-[102px] sm:h-[114px] rounded-2xl overflow-hidden border flex-shrink-0 relative ${
                           isDark ? 'bg-black/40 border-white/5' : 'bg-zinc-50 border-zinc-200'
                         }`}>
                           <img
@@ -2178,13 +2178,13 @@ export default function CustomerMobileApp({
                         {/* Product Details */}
                         <div className="flex-1 flex flex-col justify-between min-w-0">
                           <div>
-                            <h4 className={`font-bold text-base leading-tight break-words mb-1 ${
+                            <h4 className={`font-bold text-[14px] xs:text-[15px] sm:text-base leading-tight break-words mb-1 ${
                               isDark ? 'text-white' : 'text-zinc-900'
                             }`}>
                               {product.name}
                             </h4>
                             {product.description && (
-                              <p className={`text-[11px] line-clamp-2 leading-snug ${
+                              <p className={`text-[10.5px] xs:text-[11px] line-clamp-2 leading-snug ${
                                 isDark ? 'text-zinc-400' : 'text-zinc-600'
                               }`}>
                                 {product.description}
@@ -2193,8 +2193,8 @@ export default function CustomerMobileApp({
                           </div>
 
                           {/* Price */}
-                          <div className="mt-2 flex items-baseline gap-1.5">
-                            <span className="text-orange-500 font-sans font-extrabold text-base leading-none">
+                          <div className="mt-1.5 xs:mt-2 flex items-baseline gap-1.5">
+                            <span className="text-orange-500 font-sans font-extrabold text-[15px] xs:text-base leading-none">
                               Rs. {formatPrice(displayPrice)}
                             </span>
                             {hasSizes && (
@@ -2209,7 +2209,7 @@ export default function CustomerMobileApp({
 
                       {/* Sizes Selector Capsule Track (Website Design) */}
                       {hasSizes && !isOutOfStock && (
-                        <div className={`mt-3 p-1 rounded-full flex items-center justify-between gap-1 border ${
+                        <div className={`mt-2.5 xs:mt-3 p-1 rounded-full flex items-center justify-between gap-1 border ${
                           isDark ? 'bg-zinc-800/80 border-white/10' : 'bg-[#f5f1eb] border-[#eee8df]/80'
                         }`}>
                           {product.sizes.map((s, idx) => {
@@ -2222,12 +2222,12 @@ export default function CustomerMobileApp({
                                   e.stopPropagation();
                                   handleSelectSize(product.id, s);
                                 }}
-                                className={`flex-1 py-1.5 px-3 rounded-full text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
+                                className={`flex-1 py-1 xs:py-1.5 px-2 xs:px-2.5 sm:px-3 rounded-full text-[10px] xs:text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 cursor-pointer ${
                                   isSelected
                                     ? 'bg-orange-500 text-white shadow-xs'
                                     : isDark
-                                      ? 'text-zinc-400  bg-transparent'
-                                      : 'text-[#635d56]  bg-transparent'
+                                      ? 'text-zinc-400 bg-transparent'
+                                      : 'text-[#635d56] bg-transparent'
                                 }`}
                               >
                                 {s.label}
@@ -2238,13 +2238,13 @@ export default function CustomerMobileApp({
                       )}
 
                       {/* Bottom Add Actions */}
-                      <div className={`mt-3 pt-2.5 border-t flex items-center justify-between gap-3 ${
+                      <div className={`mt-2.5 xs:mt-3 pt-2 xs:pt-2.5 border-t flex items-center justify-between gap-2 xs:gap-3 ${
                         isDark ? 'border-white/5' : 'border-zinc-100'
                       }`}>
                         
                         {/* Quantity Counter */}
                         {!isOutOfStock && (
-                          <div className={`flex items-center gap-1.5 border rounded-xl p-0.5 ${
+                          <div className={`flex items-center gap-1 border rounded-xl p-0.5 ${
                             isDark ? 'bg-black/40 border-white/10' : 'bg-zinc-100 border-zinc-200'
                           }`}>
                             <button
@@ -2253,13 +2253,13 @@ export default function CustomerMobileApp({
                                 setQty(product.id, -1);
                               }}
                               disabled={qty <= 1}
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center disabled:opacity-30 active:scale-90 transition-all cursor-pointer ${
+                              className={`w-6 xs:w-7 h-6 xs:h-7 rounded-lg flex items-center justify-center disabled:opacity-30 active:scale-90 transition-all cursor-pointer ${
                                 isDark ? 'bg-zinc-800 text-white' : 'bg-white text-zinc-800 shadow-2xs'
                               }`}
                             >
-                              <Minus className="w-3.5 h-3.5" />
+                              <Minus className="w-3 h-3 xs:w-3.5 xs:h-3.5" />
                             </button>
-                            <span className={`w-6 text-center text-xs font-bold ${
+                            <span className={`w-5 xs:w-6 text-center text-xs font-bold ${
                               isDark ? 'text-white' : 'text-zinc-900'
                             }`}>
                               {qty}
@@ -2269,11 +2269,11 @@ export default function CustomerMobileApp({
                                 e.stopPropagation();
                                 setQty(product.id, 1);
                               }}
-                              className={`w-7 h-7 rounded-lg flex items-center justify-center active:scale-90 transition-all cursor-pointer ${
+                              className={`w-6 xs:w-7 h-6 xs:h-7 rounded-lg flex items-center justify-center active:scale-90 transition-all cursor-pointer ${
                                 isDark ? 'bg-zinc-800 text-white' : 'bg-white text-zinc-800 shadow-2xs'
                               }`}
                             >
-                              <Plus className="w-3.5 h-3.5" />
+                              <Plus className="w-3 h-3 xs:w-3.5 xs:h-3.5" />
                             </button>
                           </div>
                         )}
@@ -2285,18 +2285,18 @@ export default function CustomerMobileApp({
                             e.stopPropagation();
                             handleAddProduct(product, e);
                           }}
-                          className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                          className={`flex-1 min-w-0 py-2 xs:py-2.5 px-3 xs:px-4 rounded-xl font-bold text-[11px] xs:text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                             isOutOfStock
                               ? (isDark ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed')
                               : 'bg-orange-500 text-white shadow-md active:scale-95'
                           }`}
                         >
                           {isOutOfStock ? (
-                            <Ban className="w-3.5 h-3.5" />
+                            <Ban className="w-3.5 h-3.5 shrink-0" />
                           ) : (
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0" />
                           )}
-                          <span>{isOutOfStock ? 'Sold Out' : `Add to Cart ${qty > 1 ? `(${qty})` : ''}`}</span>
+                          <span className="truncate">{isOutOfStock ? 'Sold Out' : `Add to Cart ${qty > 1 ? `(${qty})` : ''}`}</span>
                         </button>
 
                       </div>

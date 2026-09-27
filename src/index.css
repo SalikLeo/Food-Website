@@ -8,6 +8,8 @@
   html {
     scroll-behavior: smooth;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -449,25 +451,28 @@
   animation: reminderBounce 2.8s ease-in-out infinite;
 }
 
-/* Mobile Header & Bottom Navigation Adjustments */
+/* Mobile Header & Bottom Navigation Adjustments (Dynamic Safe Area) */
 .mobile-app-header {
-  padding-top: 0.28rem;
+  padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
   padding-bottom: 0.65rem;
 }
 
 .admin-app-header {
-  padding-top: 0px;
-  padding-bottom: 0px;
+  padding-top: max(env(safe-area-inset-top, 0px), 0.65rem);
+  padding-bottom: 0.65rem;
 }
 
 .mobile-app-container {
-  padding-bottom: 8rem;
+  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 7.5rem), 8rem);
+  padding-left: max(env(safe-area-inset-left, 0px), 0px);
+  padding-right: max(env(safe-area-inset-right, 0px), 0px);
 }
 
 .admin-app-container {
-  padding-bottom: 8rem;
+  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 7.5rem), 8rem);
+  padding-left: max(env(safe-area-inset-left, 0px), 0px);
+  padding-right: max(env(safe-area-inset-right, 0px), 0px);
 }
-
 
 .mobile-floating-cart {
   bottom: max(calc(env(safe-area-inset-bottom, 0px) + 1.0rem), 1.0rem);
@@ -479,6 +484,14 @@
 
 .mobile-side-drawer-bottom {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.25rem);
+}
+
+.safe-top-padded {
+  padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
+}
+
+.safe-bottom-padded {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
 }
 
 /* Sleek, theme-aware modal scrollbar */
