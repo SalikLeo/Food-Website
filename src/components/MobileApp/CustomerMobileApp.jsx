@@ -366,11 +366,18 @@ export default function CustomerMobileApp({
         }));
       }
     };
+    const handleAuthSync = () => {
+      setCustomerUser(getStoredCustomerUser());
+    };
     window.addEventListener('salik_profile_updated', handleProfileSync);
+    window.addEventListener('salik_customer_auth_changed', handleAuthSync);
     window.addEventListener('storage', handleProfileSync);
+    window.addEventListener('storage', handleAuthSync);
     return () => {
       window.removeEventListener('salik_profile_updated', handleProfileSync);
+      window.removeEventListener('salik_customer_auth_changed', handleAuthSync);
       window.removeEventListener('storage', handleProfileSync);
+      window.removeEventListener('storage', handleAuthSync);
     };
   }, []);
 
@@ -1509,17 +1516,32 @@ export default function CustomerMobileApp({
             <button
               id="mobile-header-profile-btn"
               onClick={() => switchView(currentView === 'profile' ? 'home' : 'profile')}
-              className={`w-10 h-10 rounded-xl border flex items-center justify-center active:scale-95 cursor-pointer transition-transform ${
+              className={`w-10 h-10 rounded-xl border flex items-center justify-center active:scale-95 cursor-pointer transition-all overflow-hidden ${
                 currentView === 'profile'
-                  ? 'bg-orange-600 border-orange-500 text-white shadow-xs'
+                  ? 'bg-orange-600 border-orange-500 text-white shadow-xs ring-2 ring-orange-500/40'
                   : isDark 
-                    ? 'bg-zinc-800/80 border-white/10 text-zinc-200' 
-                    : 'bg-zinc-100 border-zinc-200 text-zinc-700 shadow-2xs'
+                    ? 'bg-zinc-800/80 border-white/10 text-zinc-200 hover:border-white/20' 
+                    : 'bg-zinc-100 border-zinc-200 text-zinc-700 shadow-2xs hover:border-zinc-300'
               }`}
               aria-label="View Profile"
-              title="View Profile"
+              title={customerUser ? `Logged in as ${customerUser.name}` : "View Profile"}
             >
-              <User className={`w-5 h-5 ${currentView === 'profile' ? 'text-white' : isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
+              {customerUser?.picture ? (
+                <img
+                  src={customerUser.picture}
+                  alt={customerUser.name || 'User Profile'}
+                  className="w-full h-full object-cover rounded-xl"
+                  referrerPolicy="no-referrer"
+                />
+              ) : customerUser?.name ? (
+                <div className={`w-full h-full flex items-center justify-center font-bold text-sm ${
+                  currentView === 'profile' ? 'bg-orange-600 text-white' : 'bg-gradient-to-tr from-orange-600 to-amber-500 text-white'
+                }`}>
+                  {customerUser.name[0].toUpperCase()}
+                </div>
+              ) : (
+                <User className={`w-5 h-5 ${currentView === 'profile' ? 'text-white' : isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
+              )}
             </button>
 
             {/* Side Drawer Menu Trigger Button */}

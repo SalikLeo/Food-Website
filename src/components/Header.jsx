@@ -352,15 +352,28 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
               <button
                 id="header-profile-btn-app"
                 onClick={() => openProfileModal('profile')}
-                className={`p-2 rounded-xl border transition-all focus:outline-none cursor-pointer active:scale-95 ${
+                className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all focus:outline-none cursor-pointer active:scale-95 overflow-hidden ${
                   isDark
                     ? 'bg-zinc-900 border-zinc-800 text-zinc-200 hover:text-white'
                     : 'bg-white border-zinc-200/90 text-zinc-700 hover:text-orange-600 shadow-2xs'
                 }`}
                 aria-label="View Profile & Orders"
-                title="View Profile & Orders"
+                title={customerUser ? `Logged in as ${customerUser.name}` : "View Profile & Orders"}
               >
-                <User className={`w-5 h-5 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
+                {customerUser?.picture ? (
+                  <img
+                    src={customerUser.picture}
+                    alt={customerUser.name || 'User Profile'}
+                    className="w-full h-full object-cover rounded-xl"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : customerUser?.name ? (
+                  <div className="w-full h-full flex items-center justify-center font-bold text-sm bg-gradient-to-tr from-orange-600 to-amber-500 text-white">
+                    {customerUser.name[0].toUpperCase()}
+                  </div>
+                ) : (
+                  <User className={`w-5 h-5 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`} />
+                )}
               </button>
             )}
 
