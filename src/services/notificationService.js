@@ -305,7 +305,8 @@ export async function notifyAdminNewReview(review, count = 1) {
   const author = review.author || review.name || 'Customer';
   const rating = review.rating || 5;
   const starsStr = '★'.repeat(rating) + '☆'.repeat(Math.max(0, 5 - rating));
-  const reviewText = review.text && review.text !== '-' ? ` "${review.text.slice(0, 50)}${review.text.length > 50 ? '...' : ''}"` : '';
+  const commentStr = (review.comment || review.text || '').trim();
+  const reviewText = commentStr && commentStr !== '-' ? ` "${commentStr.slice(0, 50)}${commentStr.length > 50 ? '...' : ''}"` : '';
   const orderInfo = review.orderId ? ` (Order #${review.orderId})` : '';
   
   const title = count > 1 ? `⭐ ${count} New Reviews Received!` : '⭐ New Customer Review!';

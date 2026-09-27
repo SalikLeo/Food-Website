@@ -792,7 +792,9 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                   👤 {newReviewAlert.review.author || newReviewAlert.review.name || 'Customer'}
                 </div>
                 <div className="text-zinc-600 text-[11px] truncate italic">
-                  {newReviewAlert.review.text && newReviewAlert.review.text !== '-' ? `"${newReviewAlert.review.text}"` : 'No written comment'}
+                  {(newReviewAlert.review.comment || newReviewAlert.review.text) && (newReviewAlert.review.comment || newReviewAlert.review.text).trim() !== '-'
+                    ? `"${(newReviewAlert.review.comment || newReviewAlert.review.text).trim()}"`
+                    : 'No written comment'}
                 </div>
               </div>
 
