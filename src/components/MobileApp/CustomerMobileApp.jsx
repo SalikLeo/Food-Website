@@ -514,12 +514,12 @@ export default function CustomerMobileApp({
     setSubmittingReview(true);
     const { order, rating, comment } = reviewToConfirm;
     const finalComment = (comment || '').trim() || '-';
-    const customerName = (order.customerName || customerUser?.name || 'Customer').trim();
+    const customerName = (order.customerName || checkoutForm.name || customerUser?.name || 'Guest Customer').trim();
     const itemOrdered = (order.items || []).map(i => `${i.quantity || 1}x ${i.name}`).join(', ') || `Order #${order.id}`;
 
     const payload = {
       name: customerName,
-      location: order.address || 'Wah Cantt',
+      location: order.address || checkoutForm.address || 'Wah Cantt',
       rating: Number(rating) || 5,
       platform: 'In-App Order Review',
       itemOrdered: itemOrdered,
@@ -2808,15 +2808,20 @@ export default function CustomerMobileApp({
                   <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className={`text-base font-extrabold uppercase tracking-tight ${
-                    isDark ? 'text-white' : 'text-zinc-900'
-                  }`}>
-                    Pending Order Feedback & Reviews
-                  </h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className={`text-base font-extrabold uppercase tracking-tight ${
+                      isDark ? 'text-white' : 'text-zinc-900'
+                    }`}>
+                      Pending Order Feedback & Reviews
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/15 text-orange-500 border border-orange-500/25">
+                      Guest Friendly • No Sign-in Needed
+                    </span>
+                  </div>
                   <p className={`text-xs leading-relaxed ${
                     isDark ? 'text-zinc-400' : 'text-zinc-600'
                   }`}>
-                    Share your experience for your recent orders. Each order can be reviewed once and helps us serve you better!
+                    Share your experience for your recent orders. Past orders can be reviewed directly as a guest!
                   </p>
                 </div>
               </div>
@@ -3011,16 +3016,21 @@ export default function CustomerMobileApp({
                 : 'bg-white border-zinc-300 shadow-sm'
             }`}>
               <div className="flex items-center justify-between gap-2">
-                <h4 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                  Write General Store Review / Feedback
-                </h4>
+                <div>
+                  <h4 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                    Write General Store Review / Feedback
+                  </h4>
+                  <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'} mt-0.5`}>
+                    General reviews require Google Sign-in to prevent spam. (Order reviews above can be submitted as a guest).
+                  </p>
+                </div>
                 {customerUser ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shrink-0">
                     <CheckCircle2 className="w-3 h-3" />
                     <span>Google Verified</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25 shrink-0">
                     <Lock className="w-3 h-3" />
                     <span>Google Required</span>
                   </span>
