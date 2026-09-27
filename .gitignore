@@ -27,3 +27,8 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# SQLite database and runtime files
+server/data/*.db
+*.db-wal
+*.db-shm
