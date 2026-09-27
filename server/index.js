@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import multer from 'multer';
+import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
@@ -118,25 +119,14 @@ app.use(express.static(publicDir));
 app.use('/assets', express.static(path.join(publicDir, 'assets')));
 app.use('/uploads', express.static(uploadsDir));
 
-// Multer setup for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const cleanName = path.basename(file.originalname, ext).replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    cb(null, `${cleanName}-${Date.now()}${ext}`);
-  }
-});
-
+// Multer setup with memory storage for sharp WebP processing
 const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }, // Allow up to 15MB from phone cameras
   fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp|svg/;
+    const allowed = /jpeg|jpg|png|webp|svg|heic|heif/;
     const ext = path.extname(file.originalname).toLowerCase().slice(1);
-    if (allowed.test(ext)) {
+    if (allowed.test(ext) || file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
       cb(new Error('Only image files (JPG, PNG, WebP, SVG) are allowed'));
@@ -144,13 +134,42 @@ const upload = multer({
   }
 });
 
-// Image Upload Endpoint
-app.post('/api/upload', upload.single('image'), (req, res) => {
+// Image Upload Endpoint with Automatic Sharp WebP Compression
+app.post('/api/upload', upload.single('image'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No image file uploaded' });
   }
-  const fileUrl = `/assets/uploads/${req.file.filename}`;
-  res.json({ success: true, url: fileUrl, filename: req.file.filename });
+
+  try {
+    const originalExt = path.extname(req.file.originalname).toLowerCase();
+    const cleanName = path.basename(req.file.originalname, originalExt).replace(/[^a-z0-9]/gi, '-').toLowerCase() || 'food';
+
+    // If SVG, save directly
+    if (originalExt === '.svg') {
+      const svgFilename = `${cleanName}-${Date.now()}.svg`;
+      fs.writeFileSync(path.join(uploadsDir, svgFilename), req.file.buffer);
+      const fileUrl = `/assets/uploads/${svgFilename}`;
+      return res.json({ success: true, url: fileUrl, filename: svgFilename });
+    }
+
+    // Auto-compress and convert to high-efficiency WebP format
+    // Auto-rotates orientation based on EXIF, resizes to max 1200px (crystal sharp for Retina/mobile)
+    const webpFilename = `${cleanName}-${Date.now()}.webp`;
+    const outputPath = path.join(uploadsDir, webpFilename);
+
+    await sharp(req.file.buffer)
+      .rotate() // Auto-rotates phone camera orientation
+      .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 82, effort: 4 })
+      .toFile(outputPath);
+
+    const fileUrl = `/assets/uploads/${webpFilename}`;
+    console.log(`📸 [Sharp] Compressed uploaded image -> ${webpFilename}`);
+    res.json({ success: true, url: fileUrl, filename: webpFilename });
+  } catch (err) {
+    console.error('Sharp image processing error:', err);
+    res.status(500).json({ error: 'Failed to process and compress image: ' + err.message });
+  }
 });
 
 // Products Endpoints

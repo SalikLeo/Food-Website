@@ -12,6 +12,7 @@ import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import OrderSuccessModal from './components/OrderSuccessModal';
 import CustomerNotificationBanner from './components/CustomerNotificationBanner';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 import UserProfileModal from './components/UserProfileModal';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
@@ -375,6 +376,7 @@ function WebsiteStorefront({
       <OrderSuccessModal />
       <UserProfileModal />
       <CustomerNotificationBanner />
+      <PWAInstallPrompt />
     </div>
   );
 }
