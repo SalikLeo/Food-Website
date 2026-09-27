@@ -212,7 +212,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             } active:scale-[0.98] font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer`}
                           >
                             <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 shrink-0" />
-                            <span className="truncate">Add to Cart</span>
+                            <span className="truncate">Add</span>
                           </button>
                         </div>
                       </div>
@@ -310,7 +310,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             } font-bold text-xs uppercase tracking-wider transition-colors shadow cursor-pointer`}
                           >
                             <ShoppingBag className="w-4 h-4 text-orange-500" />
-                            <span>Add to Cart</span>
+                            <span>Add</span>
                           </button>
                         </div>
                       </div>
@@ -401,7 +401,7 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                             } active:scale-[0.98] font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer`}
                           >
                             <ShoppingBag className="w-4 h-4 text-orange-500" />
-                            <span>Add to Cart</span>
+                            <span>Add</span>
                           </button>
                         </div>
                       </div>

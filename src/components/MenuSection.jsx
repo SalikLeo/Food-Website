@@ -402,7 +402,7 @@ export default function MenuSection({ categories = [], products = [] }) {
                               }`}
                             >
                               <ShoppingBag className={`w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 ${isAdded ? 'text-white' : 'text-orange-500'} shrink-0`} />
-                              <span className="truncate">{isAdded ? 'Added!' : 'Add to Cart'}</span>
+                              <span className="truncate">{isAdded ? 'Added!' : 'Add'}</span>
                             </button>
                           </div>
                         </>

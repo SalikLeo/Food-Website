@@ -2296,7 +2296,7 @@ export default function CustomerMobileApp({
                           ) : (
                             <Plus className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0" />
                           )}
-                          <span className="truncate">{isOutOfStock ? 'Sold Out' : `Add to Cart ${qty > 1 ? `(${qty})` : ''}`}</span>
+                          <span className="truncate">{isOutOfStock ? 'Sold Out' : `Add ${qty > 1 ? `(${qty})` : ''}`}</span>
                         </button>
 
                       </div>
