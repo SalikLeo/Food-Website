@@ -37,7 +37,7 @@ export default function DeliverySettingsManager({ onRefresh }) {
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(0);
 
   const [couponEnabled, setCouponEnabled] = useState(false);
-  const [couponCode, setCouponCode] = useState('SALIK10');
+  const [couponCode, setCouponCode] = useState('');
   const [couponDiscountType, setCouponDiscountType] = useState('percentage'); // 'percentage' | 'flat'
   const [couponDiscountValue, setCouponDiscountValue] = useState(10);
   const [couponMinOrder, setCouponMinOrder] = useState(0);
@@ -752,8 +752,8 @@ export default function DeliverySettingsManager({ onRefresh }) {
                     disabled={!couponEnabled}
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="SALIK10"
-                    className={`w-full pl-10 pr-3 py-2.5 rounded-xl border font-mono font-bold text-sm tracking-wider uppercase focus:outline-none transition-all ${
+                    placeholder="NEW123"
+                    className={`w-full pl-10 pr-3 py-2.5 rounded-xl border font-bold text-sm uppercase placeholder:font-bold placeholder:text-zinc-400 focus:outline-none transition-all ${
                       couponEnabled
                         ? 'bg-white border-zinc-300 text-zinc-900 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 shadow-2xs'
                         : 'bg-zinc-50 border-zinc-200 text-zinc-400 cursor-not-allowed'
