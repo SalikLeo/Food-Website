@@ -177,27 +177,27 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
 
                       {/* Quantity Stepper and Action Buttons */}
                       <div className={`space-y-2 pt-2 border-t ${isDark ? 'border-zinc-800' : 'border-zinc-100'}`}>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
                           {/* Sleek, Modern Stepper */}
-                          <div className={`flex items-center h-10 rounded-xl ${isDark ? 'bg-zinc-800/90 border-zinc-700/80' : 'bg-zinc-100/90 border-zinc-200/80'} border p-0.5 shadow-2xs`}>
+                          <div className={`shrink-0 flex items-center h-9 sm:h-10 rounded-lg sm:rounded-xl ${isDark ? 'bg-zinc-800/90 border-zinc-700/80' : 'bg-zinc-100/90 border-zinc-200/80'} border p-0.5 shadow-2xs`}>
                             <button
                               type="button"
                               onClick={() => setQty(deal.id, -1)}
-                              className={`w-8 h-full rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
+                              className={`w-6 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Decrease quantity"
                             >
-                              <Minus className="w-3.5 h-3.5" />
+                              <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                             </button>
-                            <span className={`w-7 text-center font-bold text-xs sm:text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                            <span className={`w-5 sm:w-7 text-center font-bold text-xs sm:text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                               {qty}
                             </span>
                             <button
                               type="button"
                               onClick={() => setQty(deal.id, 1)}
-                              className={`w-8 h-full rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
+                              className={`w-6 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Increase quantity"
                             >
-                              <Plus className="w-3.5 h-3.5" />
+                              <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                             </button>
                           </div>
 
@@ -205,14 +205,14 @@ export default function DealsSection({ deals = [], familyDeal = null }) {
                           <button
                             type="button"
                             onClick={(e) => handleAddToCart(deal, e)}
-                            className={`flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl ${
+                            className={`flex-1 min-w-0 h-9 sm:h-10 px-2 sm:px-3 flex items-center justify-center gap-1.5 rounded-lg sm:rounded-xl ${
                               isDark
                                 ? 'bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white'
                                 : 'bg-zinc-100 hover:bg-zinc-200/90 border border-zinc-300 text-zinc-900'
                             } active:scale-[0.98] font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer`}
                           >
-                            <ShoppingBag className="w-3.5 h-3.5 text-orange-500" />
-                            <span>Add to Cart</span>
+                            <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 shrink-0" />
+                            <span className="truncate">Add to Cart</span>
                           </button>
                         </div>
                       </div>

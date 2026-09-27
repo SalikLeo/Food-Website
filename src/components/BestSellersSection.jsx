@@ -263,27 +263,27 @@ export default function BestSellersSection({ products = [], categories = [], set
                       </div>
                     ) : (
                       <>
-                        <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                           {/* Sleek Stepper */}
-                          <div className={`flex items-center h-9 sm:h-10 rounded-lg sm:rounded-xl ${isDark ? 'bg-zinc-800/90 border-zinc-700/80' : 'bg-zinc-100/90 border-zinc-200/80'} border p-0.5 shadow-2xs`}>
+                          <div className={`shrink-0 flex items-center h-8 sm:h-10 rounded-lg sm:rounded-xl ${isDark ? 'bg-zinc-800/90 border-zinc-700/80' : 'bg-zinc-100/90 border-zinc-200/80'} border p-0.5 shadow-2xs`}>
                             <button
                               type="button"
                               onClick={() => setQty(product.id, -1)}
-                              className={`w-6 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
+                              className={`w-[19px] sm:w-8 h-full rounded sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Decrease quantity"
                             >
-                              <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                              <Minus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
                             </button>
-                            <span className={`w-5 sm:w-7 text-center font-bold text-xs sm:text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                            <span className={`w-3.5 sm:w-7 text-center font-bold text-[11px] sm:text-sm ${isDark ? 'text-white' : 'text-zinc-900'}`}>
                               {qty}
                             </span>
                             <button
                               type="button"
                               onClick={() => setQty(product.id, 1)}
-                              className={`w-6 sm:w-8 h-full rounded-md sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
+                              className={`w-[19px] sm:w-8 h-full rounded sm:rounded-lg flex items-center justify-center ${isDark ? 'text-zinc-400 hover:text-white hover:bg-zinc-700' : 'text-zinc-600 hover:text-zinc-950 hover:bg-white'} active:scale-90 transition-all cursor-pointer`}
                               aria-label="Increase quantity"
                             >
-                              <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                              <Plus className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
                             </button>
                           </div>
 
@@ -291,7 +291,7 @@ export default function BestSellersSection({ products = [], categories = [], set
                           <button
                             type="button"
                             onClick={(e) => handleAddToCart(product, e)}
-                            className={`flex-1 h-9 sm:h-10 px-2 sm:px-3 flex items-center justify-center gap-1.5 rounded-lg sm:rounded-xl active:scale-[0.98] font-bold text-xs sm:text-sm transition-all shadow-xs cursor-pointer ${
+                            className={`flex-1 min-w-0 h-8 sm:h-10 px-1 sm:px-3 flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl active:scale-[0.98] font-bold text-[10.5px] sm:text-xs md:text-sm transition-all shadow-xs cursor-pointer ${
                               isAdded
                                 ? 'bg-emerald-600 text-white'
                                 : isDark
@@ -299,7 +299,7 @@ export default function BestSellersSection({ products = [], categories = [], set
                                   : 'bg-zinc-100 hover:bg-zinc-200/90 border border-zinc-300 text-zinc-900'
                             }`}
                           >
-                            <ShoppingBag className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isAdded ? 'text-white' : 'text-orange-500'} shrink-0`} />
+                            <ShoppingBag className={`w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 ${isAdded ? 'text-white' : 'text-orange-500'} shrink-0`} />
                             <span className="truncate">{isAdded ? 'Added!' : 'Add to Cart'}</span>
                           </button>
                         </div>
