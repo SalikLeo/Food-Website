@@ -609,7 +609,12 @@ export const db = {
         freeDeliveryThreshold: 0,
         deliveryNotice: 'Delivery available in nearby areas (Wah Model Town, Aslam Market, Officers Colony, Lalarukh)',
         floatingButtons: defaultButtons,
-        bestSellerCategories: defaultCategories
+        bestSellerCategories: defaultCategories,
+        couponEnabled: false,
+        couponCode: 'SALIK10',
+        couponDiscountType: 'percentage',
+        couponDiscountValue: 10,
+        couponMinOrder: 0
       };
       writeDb(data);
     } else {
@@ -632,6 +637,26 @@ export const db = {
       }
       if (data.settings.freeDeliveryEnabled === undefined) {
         data.settings.freeDeliveryEnabled = Number(data.settings.freeDeliveryThreshold || 0) > 0;
+        changed = true;
+      }
+      if (data.settings.couponEnabled === undefined) {
+        data.settings.couponEnabled = false;
+        changed = true;
+      }
+      if (data.settings.couponCode === undefined) {
+        data.settings.couponCode = 'SALIK10';
+        changed = true;
+      }
+      if (data.settings.couponDiscountType === undefined) {
+        data.settings.couponDiscountType = 'percentage';
+        changed = true;
+      }
+      if (data.settings.couponDiscountValue === undefined) {
+        data.settings.couponDiscountValue = 10;
+        changed = true;
+      }
+      if (data.settings.couponMinOrder === undefined) {
+        data.settings.couponMinOrder = 0;
         changed = true;
       }
       if (changed) writeDb(data);
@@ -681,6 +706,21 @@ export const db = {
       deliveryFee: updates.deliveryFee !== undefined ? Number(updates.deliveryFee) : (current.deliveryFee ?? 100),
       minOrder: updates.minOrder !== undefined ? Number(updates.minOrder) : (current.minOrder ?? 500),
       freeDeliveryThreshold: updates.freeDeliveryThreshold !== undefined ? Number(updates.freeDeliveryThreshold) : (current.freeDeliveryThreshold ?? 0),
+      couponEnabled: updates.couponEnabled !== undefined
+        ? Boolean(updates.couponEnabled)
+        : (current.couponEnabled ?? false),
+      couponCode: updates.couponCode !== undefined
+        ? String(updates.couponCode).trim().toUpperCase()
+        : (current.couponCode || 'SALIK10'),
+      couponDiscountType: updates.couponDiscountType !== undefined
+        ? (updates.couponDiscountType === 'flat' ? 'flat' : 'percentage')
+        : (current.couponDiscountType || 'percentage'),
+      couponDiscountValue: updates.couponDiscountValue !== undefined
+        ? Math.max(0, Number(updates.couponDiscountValue) || 0)
+        : (current.couponDiscountValue ?? 10),
+      couponMinOrder: updates.couponMinOrder !== undefined
+        ? Math.max(0, Number(updates.couponMinOrder) || 0)
+        : (current.couponMinOrder ?? 0),
       logoUrl: updates.logoUrl !== undefined ? String(updates.logoUrl || '').trim() : (current.logoUrl || ''),
       floatingButtons: newButtons,
       bestSellerCategories: newCategories,

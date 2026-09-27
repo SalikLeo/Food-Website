@@ -1137,6 +1137,11 @@ export default function OrdersManager({
       <span>Subtotal</span>
       <span class="bold">Rs. ${formatPrice(order.subtotal || 0)}</span>
     </div>
+    ${Number(order.couponDiscount) > 0 ? `
+    <div class="totals-row">
+      <span>Discount (${order.couponCode || 'Coupon'})</span>
+      <span class="bold">- Rs. ${formatPrice(order.couponDiscount)}</span>
+    </div>` : ''}
     <div class="totals-row">
       <span>Delivery Charges</span>
       <span class="bold">
@@ -1521,13 +1526,24 @@ export default function OrdersManager({
                                 <span className="font-semibold text-zinc-800">{formatPaymentMethod(order.paymentMethod)}</span>
                               </div>
 
-                              <div className="flex items-center justify-start md:justify-end gap-2 text-xs text-zinc-500">
+                              <div className="flex flex-wrap items-center justify-start md:justify-end gap-x-2 gap-y-1 text-xs text-zinc-500">
                                 <span>
                                   Subtotal:{' '}
                                   <strong className="text-zinc-800 font-semibold">
                                     Rs. {formatPrice(order.subtotal || 0)}
                                   </strong>
                                 </span>
+                                {Number(order.couponDiscount) > 0 && (
+                                  <>
+                                    <span>•</span>
+                                    <span>
+                                      Discount ({order.couponCode || 'Coupon'}):{' '}
+                                      <strong className="text-emerald-600 font-semibold">
+                                        - Rs. {formatPrice(order.couponDiscount)}
+                                      </strong>
+                                    </span>
+                                  </>
+                                )}
                                 <span>•</span>
                                 <span>
                                   Delivery:{' '}
@@ -1794,13 +1810,24 @@ export default function OrdersManager({
                           <span className="font-semibold text-zinc-800">{formatPaymentMethod(order.paymentMethod)}</span>
                         </div>
 
-                        <div className="flex items-center justify-start md:justify-end gap-2 text-xs text-zinc-500">
+                        <div className="flex flex-wrap items-center justify-start md:justify-end gap-x-2 gap-y-1 text-xs text-zinc-500">
                           <span>
                             Subtotal:{' '}
                             <strong className="text-zinc-800 font-semibold">
                               Rs. {formatPrice(order.subtotal || 0)}
                             </strong>
                           </span>
+                          {Number(order.couponDiscount) > 0 && (
+                            <>
+                              <span>•</span>
+                              <span>
+                                Discount ({order.couponCode || 'Coupon'}):{' '}
+                                <strong className="text-emerald-600 font-semibold">
+                                  - Rs. {formatPrice(order.couponDiscount)}
+                                </strong>
+                              </span>
+                            </>
+                          )}
                           <span>•</span>
                           <span>
                             Delivery:{' '}
@@ -2414,6 +2441,12 @@ export default function OrdersManager({
                   <span className="font-medium">Subtotal</span>
                   <span className="font-bold">Rs. {formatPrice(viewingReceiptOrder.subtotal || 0)}</span>
                 </div>
+                {Number(viewingReceiptOrder.couponDiscount) > 0 && (
+                  <div className="flex justify-between text-zinc-800">
+                    <span className="font-medium">Discount ({viewingReceiptOrder.couponCode || 'Coupon'})</span>
+                    <span className="font-bold text-black">- Rs. {formatPrice(viewingReceiptOrder.couponDiscount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-zinc-700">
                   <span className="font-medium">Delivery Charges</span>
                   <span className="font-bold">{Number(viewingReceiptOrder.deliveryFee) === 0 ? 'FREE' : `Rs. ${formatPrice(viewingReceiptOrder.deliveryFee)}`}</span>

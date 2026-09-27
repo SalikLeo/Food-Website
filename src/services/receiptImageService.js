@@ -325,7 +325,8 @@ export function drawReceiptCanvas(order, scale = 2) {
     ? Number(order.subtotal) 
     : items.reduce((acc, it) => acc + (Number(it.price) * Number(it.quantity)), 0);
   const deliveryFee = Number(order.deliveryFee || 0);
-  const total = order.total !== undefined ? Number(order.total) : (subtotal + deliveryFee);
+  const couponDiscount = Number(order.couponDiscount || 0);
+  const total = order.total !== undefined ? Number(order.total) : (subtotal + deliveryFee - couponDiscount);
 
   ctx.textBaseline = 'alphabetic';
   const drawTotalLine = (label, val, isBold = true) => {
@@ -342,6 +343,9 @@ export function drawReceiptCanvas(order, scale = 2) {
   };
 
   drawTotalLine('Subtotal', `Rs. ${formatPrice(subtotal)}`, true);
+  if (couponDiscount > 0) {
+    drawTotalLine(`Discount (${order.couponCode || 'Coupon'})`, `- Rs. ${formatPrice(couponDiscount)}`, true);
+  }
   drawTotalLine('Delivery Charges', deliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(deliveryFee)}`, true);
 
   // Clear 6px margin before solid divider line so it never touches Delivery Charges text

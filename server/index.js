@@ -288,7 +288,7 @@ app.get('/api/orders', (req, res) => {
 
 app.post('/api/orders', (req, res) => {
   try {
-    const { customerName, phone, address, notes, paymentMethod, items, subtotal, deliveryFee, total, customerEmail, customerGoogleId } = req.body;
+    const { customerName, phone, address, notes, paymentMethod, items, subtotal, deliveryFee, total, customerEmail, customerGoogleId, couponCode, couponDiscount } = req.body;
     if (!customerName || !phone || !items || items.length === 0) {
       return res.status(400).json({ error: 'Customer name, phone, and items are required' });
     }
@@ -305,7 +305,9 @@ app.post('/api/orders', (req, res) => {
       items,
       subtotal: Number(subtotal) || 0,
       deliveryFee: effectiveFee,
-      total: Number(total) || (Number(subtotal) + effectiveFee)
+      couponCode: couponCode ? String(couponCode).trim().toUpperCase() : null,
+      couponDiscount: Math.max(0, Number(couponDiscount) || 0),
+      total: Number(total) || (Number(subtotal) + effectiveFee - (Number(couponDiscount) || 0))
     });
 
     // Auto-save customer profile if customerEmail is attached

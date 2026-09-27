@@ -11,7 +11,8 @@ import {
   User,
   Clock,
   Utensils,
-  Flame
+  Flame,
+  Tag
 } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
@@ -38,9 +39,29 @@ export default function OrderSection() {
     setOrderModalOpen,
     isFreeDelivery,
     removeFromCart,
+    appliedCoupon,
+    couponDiscount,
+    applyCoupon,
+    removeCoupon,
+    isCouponActive,
     userProfile,
     isDark
   } = useCart();
+
+  const [couponInput, setCouponInput] = useState('');
+  const [couponMsg, setCouponMsg] = useState({ error: '', success: '' });
+
+  const handleApplyCoupon = (e) => {
+    if (e) e.preventDefault();
+    setCouponMsg({ error: '', success: '' });
+    const res = applyCoupon(couponInput);
+    if (!res.success) {
+      setCouponMsg({ error: res.error, success: '' });
+    } else {
+      setCouponMsg({ error: '', success: res.message });
+      setCouponInput('');
+    }
+  };
 
   const [formData, setFormData] = useState(() => {
     const prof = userProfile || getStoredUserProfile();
@@ -168,6 +189,8 @@ export default function OrderSection() {
         items: cartItems,
         subtotal,
         deliveryFee,
+        couponCode: appliedCoupon || null,
+        couponDiscount: couponDiscount || 0,
         total
       };
 
@@ -230,6 +253,8 @@ export default function OrderSection() {
       items: [...cartItems],
       subtotal,
       deliveryFee,
+      couponCode: appliedCoupon || null,
+      couponDiscount: couponDiscount || 0,
       total,
       createdAt: new Date().toISOString(),
       status: 'WhatsApp'
@@ -252,6 +277,8 @@ export default function OrderSection() {
           items: cartItems,
           subtotal,
           deliveryFee,
+          couponCode: appliedCoupon || null,
+          couponDiscount: couponDiscount || 0,
           total
         })
       });
@@ -531,6 +558,71 @@ export default function OrderSection() {
               </div>
             )}
 
+            {/* Promo Code / Coupon Section */}
+            {isCouponActive && (
+              <div className="pt-3 border-t space-y-1.5 font-montserrat">
+                {appliedCoupon && couponDiscount > 0 ? (
+                  <div className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-all ${
+                    isDark
+                      ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
+                      : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                  }`}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                        <Tag className="w-3.5 h-3.5 text-emerald-500" />
+                      </div>
+                      <div className="min-w-0 truncate">
+                        <span className="font-bold uppercase tracking-wider">{appliedCoupon}</span>
+                        <span className="text-[11px] opacity-80 ml-1.5">applied (-Rs. {formatPrice(couponDiscount)})</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className={`text-[11px] font-bold px-2 py-1 rounded-md transition-colors cursor-pointer ${
+                        isDark ? 'hover:bg-white/10 text-zinc-400 hover:text-white' : 'hover:bg-zinc-200 text-zinc-500 hover:text-zinc-800'
+                      }`}
+                      title="Remove Coupon"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <form onSubmit={handleApplyCoupon} className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Tag className={`w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 ${
+                          isDark ? 'text-zinc-500' : 'text-zinc-400'
+                        }`} />
+                        <input
+                          type="text"
+                          value={couponInput}
+                          onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                          placeholder="PROMO CODE"
+                          className={`w-full pl-8 pr-3 py-2 rounded-xl border text-xs font-mono font-bold uppercase tracking-wider focus:outline-none transition-all ${
+                            isDark
+                              ? 'bg-zinc-800/80 border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500'
+                              : 'bg-white border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:border-orange-500'
+                          }`}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer active:scale-95 shadow-2xs"
+                      >
+                        Apply
+                      </button>
+                    </form>
+                    {couponMsg.error && (
+                      <p className="text-[11px] text-red-500 font-medium mt-1 pl-1">
+                        {couponMsg.error}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className={`pt-4 border-t ${isDark ? 'border-zinc-800 text-zinc-400' : 'border-zinc-200 text-zinc-500'} space-y-2 text-xs`}>
               <div className="flex justify-between">
                 <span>Subtotal</span>
@@ -538,6 +630,15 @@ export default function OrderSection() {
                   Rs. {formatPrice(subtotal)}
                 </span>
               </div>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-emerald-500 font-semibold">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-3 h-3" />
+                    <span>Coupon ({appliedCoupon})</span>
+                  </span>
+                  <span>- Rs. {formatPrice(couponDiscount)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Delivery fee</span>
                 <span className={`font-semibold ${isFreeDelivery ? 'text-emerald-400 font-bold' : isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
@@ -685,6 +786,12 @@ export default function OrderSection() {
                     <span>Subtotal</span>
                     <span className={`font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>Rs. {formatPrice(subtotal)}</span>
                   </div>
+                  {couponDiscount > 0 && (
+                    <div className="flex justify-between text-emerald-500 font-semibold">
+                      <span>Coupon Discount ({appliedCoupon})</span>
+                      <span>- Rs. {formatPrice(couponDiscount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span>Delivery Fee</span>
                     <span className={isFreeDelivery ? 'text-emerald-500 font-bold' : isDark ? 'text-zinc-200 font-semibold' : 'text-zinc-800 font-semibold'}>

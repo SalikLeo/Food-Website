@@ -671,7 +671,84 @@ export const CartProvider = ({ children }) => {
     }
   }, [isCartOpen]);
 
+  const [appliedCoupon, setAppliedCoupon] = useState(() => {
+    try {
+      return localStorage.getItem('salik_applied_coupon') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
+
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  // Coupon calculation
+  const isCouponActive = Boolean(settings.couponEnabled) && Boolean(settings.couponCode);
+  const activeCouponCode = (settings.couponCode || '').trim().toUpperCase();
+  const couponMinOrder = Number(settings.couponMinOrder) || 0;
+  const isCouponCodeMatched = Boolean(appliedCoupon && appliedCoupon.trim().toUpperCase() === activeCouponCode);
+  const isCouponMinOrderMet = subtotal >= couponMinOrder;
+
+  let couponDiscount = 0;
+  if (isCouponActive && isCouponCodeMatched && isCouponMinOrderMet && subtotal > 0) {
+    if (settings.couponDiscountType === 'flat') {
+      couponDiscount = Math.min(subtotal, Math.max(0, Number(settings.couponDiscountValue) || 0));
+    } else {
+      const pct = Math.min(100, Math.max(0, Number(settings.couponDiscountValue) || 0));
+      couponDiscount = Math.round((subtotal * pct) / 100);
+    }
+  }
+
+  const applyCoupon = (rawCode) => {
+    setCouponError('');
+    setCouponSuccess('');
+    const code = (rawCode || '').trim().toUpperCase();
+
+    if (!code) {
+      const err = 'Please enter a coupon code.';
+      setCouponError(err);
+      return { success: false, error: err };
+    }
+
+    if (!settings.couponEnabled) {
+      const err = 'Coupons are currently disabled.';
+      setCouponError(err);
+      return { success: false, error: err };
+    }
+
+    const validCode = (settings.couponCode || '').trim().toUpperCase();
+    if (code !== validCode) {
+      const err = 'Invalid coupon code.';
+      setCouponError(err);
+      return { success: false, error: err };
+    }
+
+    const minOrd = Number(settings.couponMinOrder) || 0;
+    if (subtotal < minOrd) {
+      const err = `This coupon requires a minimum order of Rs. ${formatPrice(minOrd)}.`;
+      setCouponError(err);
+      return { success: false, error: err };
+    }
+
+    setAppliedCoupon(code);
+    try {
+      localStorage.setItem('salik_applied_coupon', code);
+    } catch {}
+
+    const succ = `Coupon "${code}" applied successfully!`;
+    setCouponSuccess(succ);
+    return { success: true, message: succ };
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon('');
+    setCouponError('');
+    setCouponSuccess('');
+    try {
+      localStorage.removeItem('salik_applied_coupon');
+    } catch {}
+  };
 
   // 1. Standard Base Delivery Fee Toggle & Amount
   const baseDeliveryEnabled = settings.baseDeliveryEnabled !== false;
@@ -685,7 +762,7 @@ export const CartProvider = ({ children }) => {
   // Delivery is free if base fee is disabled (free for everyone) OR free delivery threshold is reached
   const isFreeDelivery = (!baseDeliveryEnabled) || (freeDeliveryEnabled && subtotal >= freeDeliveryThreshold);
   const deliveryFee = subtotal > 0 ? (isFreeDelivery ? 0 : baseDeliveryFee) : 0;
-  const total = subtotal + deliveryFee;
+  const total = Math.max(0, subtotal - couponDiscount) + deliveryFee;
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   // 3. Minimum Order Toggle & Amount
@@ -712,6 +789,8 @@ export const CartProvider = ({ children }) => {
       `• ${item.quantity}x ${item.name}${item.size ? ` (${item.size})` : ''} — Rs. ${item.price * item.quantity}`
     ).join('\n');
 
+    const couponLine = couponDiscount > 0 ? `\nCoupon Discount (${appliedCoupon}): - Rs. ${formatPrice(couponDiscount)}` : '';
+
     return encodeURIComponent(
 `*New Order — Salik Fast Food Wah Cantt*
 Order time: ${dateStr}
@@ -719,7 +798,7 @@ Order time: ${dateStr}
 ${itemsList || '(No items selected)'}
 
 -------------------------
-Subtotal: Rs. ${formatPrice(subtotal)}
+Subtotal: Rs. ${formatPrice(subtotal)}${couponLine}
 Delivery Fee: ${isFreeDelivery ? 'FREE (Special Promo)' : `Rs. ${formatPrice(deliveryFee)}`}
 *Total: Rs. ${formatPrice(total)}*
 Payment Method: ${customerInfo.paymentMethod || 'Cash on Delivery'}
@@ -746,6 +825,13 @@ Notes: ${customerInfo.notes || 'None'}`
         baseDeliveryFee,
         baseDeliveryEnabled,
         total,
+        appliedCoupon,
+        couponDiscount,
+        applyCoupon,
+        removeCoupon,
+        couponError,
+        couponSuccess,
+        isCouponActive,
         itemCount,
         totalItems: itemCount,
         totalPrice: total,

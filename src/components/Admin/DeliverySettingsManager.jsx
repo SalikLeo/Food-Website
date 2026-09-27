@@ -13,7 +13,9 @@ import {
   ShoppingBag,
   UploadCloud,
   Image as ImageIcon,
-  RotateCcw
+  RotateCcw,
+  Tag,
+  Percent
 } from 'lucide-react';
 import WhatsAppIcon from '../WhatsAppIcon';
 import { apiUrl, resolveImageUrl } from '../../config/api';
@@ -33,6 +35,12 @@ export default function DeliverySettingsManager({ onRefresh }) {
 
   const [freeDeliveryEnabled, setFreeDeliveryEnabled] = useState(false);
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(0);
+
+  const [couponEnabled, setCouponEnabled] = useState(false);
+  const [couponCode, setCouponCode] = useState('SALIK10');
+  const [couponDiscountType, setCouponDiscountType] = useState('percentage'); // 'percentage' | 'flat'
+  const [couponDiscountValue, setCouponDiscountValue] = useState(10);
+  const [couponMinOrder, setCouponMinOrder] = useState(0);
 
   const [logoUrl, setLogoUrl] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -84,6 +92,19 @@ export default function DeliverySettingsManager({ onRefresh }) {
           setFreeDeliveryEnabled(Boolean(settingsRes.freeDeliveryEnabled));
         } else {
           setFreeDeliveryEnabled(Number(settingsRes.freeDeliveryThreshold || 0) > 0);
+        }
+        if (settingsRes.couponEnabled !== undefined) {
+          setCouponEnabled(Boolean(settingsRes.couponEnabled));
+        } else {
+          setCouponEnabled(false);
+        }
+        if (settingsRes.couponCode) setCouponCode(settingsRes.couponCode);
+        if (settingsRes.couponDiscountType) setCouponDiscountType(settingsRes.couponDiscountType);
+        if (typeof settingsRes.couponDiscountValue === 'number') {
+          setCouponDiscountValue(settingsRes.couponDiscountValue);
+        }
+        if (typeof settingsRes.couponMinOrder === 'number') {
+          setCouponMinOrder(settingsRes.couponMinOrder);
         }
         if (settingsRes.deliveryNotice) setDeliveryNotice(settingsRes.deliveryNotice);
         if (settingsRes.logoUrl) setLogoUrl(settingsRes.logoUrl);
@@ -213,6 +234,11 @@ export default function DeliverySettingsManager({ onRefresh }) {
         minOrder: Math.max(0, Number(minOrder) || 0),
         freeDeliveryEnabled: Boolean(freeDeliveryEnabled),
         freeDeliveryThreshold: Math.max(0, Number(freeDeliveryThreshold) || 0),
+        couponEnabled: Boolean(couponEnabled),
+        couponCode: (couponCode || '').trim().toUpperCase(),
+        couponDiscountType: couponDiscountType === 'flat' ? 'flat' : 'percentage',
+        couponDiscountValue: Math.max(0, Number(couponDiscountValue) || 0),
+        couponMinOrder: Math.max(0, Number(couponMinOrder) || 0),
         logoUrl: logoUrl.trim(),
         floatingButtons: {
           whatsappWeb: Boolean(floatingButtons.whatsappWeb),
@@ -669,69 +695,230 @@ export default function DeliverySettingsManager({ onRefresh }) {
             </div>
           </div>
 
-          {/* Section 4: Current Delivery Fee & Status Overview */}
-          <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
+          {/* Section 4: Discount Coupon / Promo Code */}
+          <div className={`bg-white rounded-2xl p-6 border shadow-2xs space-y-4 flex flex-col justify-between transition-all ${
+            couponEnabled ? 'border-purple-200 ring-1 ring-purple-500/10' : 'border-zinc-200 opacity-90'
+          }`}>
             <div className="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
               <div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-bold text-zinc-900 block">
-                    4. Current Delivery Status
+                    4. Coupon / Promo Code
                   </label>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold uppercase tracking-wider">
-                    Live on Storefront
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                    couponEnabled
+                      ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                      : 'bg-zinc-100 text-zinc-600 border border-zinc-200'
+                  }`}>
+                    {couponEnabled ? 'Active' : 'OFF (Disabled)'}
                   </span>
                 </div>
                 <p className="text-xs text-zinc-500 mt-1">
-                  Summary of your active delivery fees, minimum requirements, and free delivery thresholds.
+                  {couponEnabled
+                    ? 'Customers can enter this coupon code at checkout to get a discount.'
+                    : 'Turned OFF: Customers cannot apply discount coupons at checkout.'}
                 </p>
               </div>
 
-              <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center shrink-0">
-                <Truck className="w-5 h-5" />
-              </div>
+              {/* ON/OFF TOGGLE SWITCH */}
+              <button
+                type="button"
+                onClick={() => setCouponEnabled(!couponEnabled)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  couponEnabled ? 'bg-purple-600' : 'bg-zinc-300'
+                }`}
+                title={couponEnabled ? 'Click to disable coupon' : 'Click to enable coupon'}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    couponEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
 
-            {/* Current Active Status Box */}
-            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 flex items-center justify-between">
+            {/* Inputs: Coupon Code & Discount Type Switch */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-bold block">
-                  Active Delivery Rate
-                </span>
-                <span className="text-xs text-zinc-500 block mt-0.5">
-                  {!baseDeliveryEnabled 
-                    ? 'Base fee is OFF (Free delivery for all orders)' 
-                    : freeDeliveryEnabled 
-                      ? `Free on orders above Rs. ${formatPrice(freeDeliveryThreshold)}` 
-                      : 'Standard delivery fee always applies'}
-                </span>
+                <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                  Coupon Code
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400">
+                    <Tag className="w-4 h-4 text-purple-600" />
+                  </span>
+                  <input
+                    type="text"
+                    disabled={!couponEnabled}
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="SALIK10"
+                    className={`w-full pl-10 pr-3 py-2.5 rounded-xl border font-mono font-bold text-sm tracking-wider uppercase focus:outline-none transition-all ${
+                      couponEnabled
+                        ? 'bg-white border-zinc-300 text-zinc-900 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 shadow-2xs'
+                        : 'bg-zinc-50 border-zinc-200 text-zinc-400 cursor-not-allowed'
+                    }`}
+                  />
+                </div>
               </div>
-              <div className="text-right">
-                <span className="font-display text-2xl text-orange-600 font-bold">
-                  {!baseDeliveryEnabled || Number(deliveryFee) === 0 ? (
-                    <span className="text-emerald-600">FREE</span>
-                  ) : (
-                    <>
-                      <span className="font-sans font-bold text-base mr-1">Rs.</span>
-                      <span>{formatPrice(deliveryFee)}</span>
-                    </>
-                  )}
-                </span>
+
+              <div>
+                <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                  Discount Type
+                </label>
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-zinc-100 rounded-xl border border-zinc-200">
+                  <button
+                    type="button"
+                    disabled={!couponEnabled}
+                    onClick={() => setCouponDiscountType('percentage')}
+                    className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      couponDiscountType === 'percentage'
+                        ? 'bg-purple-600 text-white shadow-xs'
+                        : 'text-zinc-600 hover:text-zinc-900'
+                    } ${!couponEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    % Percent
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!couponEnabled}
+                    onClick={() => setCouponDiscountType('flat')}
+                    className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      couponDiscountType === 'flat'
+                        ? 'bg-purple-600 text-white shadow-xs'
+                        : 'text-zinc-600 hover:text-zinc-900'
+                    } ${!couponEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    Rs. Flat Off
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Rates Quick Summary Badges */}
-            <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-              <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
-                <span className="text-[10px] text-zinc-400 uppercase font-bold block">Min Order Limit</span>
-                <span className="font-bold text-zinc-800">
-                  {minOrderEnabled ? `Rs. ${formatPrice(minOrder)}` : 'No Minimum'}
-                </span>
+            {/* Discount Value and Min Order Inputs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                  {couponDiscountType === 'percentage' ? 'Discount Percentage (%)' : 'Discount Amount (Rs.)'}
+                </label>
+                <div className="relative">
+                  <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold ${
+                    couponEnabled ? 'text-purple-600' : 'text-zinc-400'
+                  }`}>
+                    {couponDiscountType === 'percentage' ? '%' : 'Rs.'}
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={couponDiscountType === 'percentage' ? '100' : '5000'}
+                    step={couponDiscountType === 'percentage' ? '1' : '10'}
+                    disabled={!couponEnabled}
+                    value={couponDiscountValue}
+                    onChange={(e) => setCouponDiscountValue(e.target.value)}
+                    placeholder={couponDiscountType === 'percentage' ? '10' : '100'}
+                    className={`w-full pl-10 pr-3 py-2.5 rounded-xl border font-bold text-sm focus:outline-none transition-all ${
+                      couponEnabled
+                        ? 'bg-white border-zinc-300 text-zinc-900 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 shadow-2xs'
+                        : 'bg-zinc-50 border-zinc-200 text-zinc-400 cursor-not-allowed'
+                    }`}
+                  />
+                </div>
               </div>
-              <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
-                <span className="text-[10px] text-zinc-400 uppercase font-bold block">Free Delivery</span>
-                <span className="font-bold text-zinc-800">
-                  {freeDeliveryEnabled ? `Above Rs. ${formatPrice(freeDeliveryThreshold)}` : 'Disabled'}
-                </span>
+
+              <div>
+                <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-1.5">
+                  Min Order (Optional)
+                </label>
+                <div className="relative">
+                  <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold ${
+                    couponEnabled ? 'text-purple-600' : 'text-zinc-400'
+                  }`}>
+                    Rs.
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    disabled={!couponEnabled}
+                    value={couponMinOrder}
+                    onChange={(e) => setCouponMinOrder(e.target.value)}
+                    placeholder="0 (No Minimum)"
+                    className={`w-full pl-10 pr-3 py-2.5 rounded-xl border font-bold text-sm focus:outline-none transition-all ${
+                      couponEnabled
+                        ? 'bg-white border-zinc-300 text-zinc-900 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 shadow-2xs'
+                        : 'bg-zinc-50 border-zinc-200 text-zinc-400 cursor-not-allowed'
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Presets */}
+            <div>
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-2">
+                Quick Discount Presets:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: '10% OFF', type: 'percentage', val: 10 },
+                  { label: '15% OFF', type: 'percentage', val: 15 },
+                  { label: '20% OFF', type: 'percentage', val: 20 },
+                  { label: 'Rs. 100 OFF', type: 'flat', val: 100 },
+                  { label: 'Rs. 200 OFF', type: 'flat', val: 200 },
+                  { label: 'Rs. 300 OFF', type: 'flat', val: 300 }
+                ].map((preset) => {
+                  const isSelected = couponEnabled &&
+                    couponDiscountType === preset.type &&
+                    Number(couponDiscountValue) === preset.val;
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        setCouponEnabled(true);
+                        setCouponDiscountType(preset.type);
+                        setCouponDiscountValue(preset.val);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-purple-600 text-white border border-purple-600 shadow-xs'
+                          : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Live Preview Summary Box */}
+            <div className={`p-3.5 rounded-xl border flex items-center justify-between text-xs ${
+              couponEnabled 
+                ? 'bg-purple-50/60 border-purple-200 text-purple-950' 
+                : 'bg-zinc-50 border-zinc-200 text-zinc-400'
+            }`}>
+              <div className="flex items-center gap-2.5">
+                <Tag className={`w-4 h-4 shrink-0 ${couponEnabled ? 'text-purple-600' : 'text-zinc-400'}`} />
+                <div>
+                  <span className="font-semibold block">
+                    {couponEnabled ? (
+                      <>
+                        Coupon <span className="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-purple-300 text-purple-700">{couponCode || 'PROMO'}</span> gives{' '}
+                        <strong className="font-bold text-purple-800">
+                          {couponDiscountType === 'percentage' ? `${couponDiscountValue}% OFF` : `Rs. ${formatPrice(couponDiscountValue)} OFF`}
+                        </strong>
+                      </>
+                    ) : (
+                      'No discount coupon is active right now.'
+                    )}
+                  </span>
+                  <span className="text-[11px] text-zinc-500 block mt-0.5">
+                    {couponEnabled 
+                      ? (Number(couponMinOrder) > 0 ? `Requires minimum order of Rs. ${formatPrice(couponMinOrder)}` : 'Applies to orders of any amount')
+                      : 'Switch toggle ON to allow customer promo codes at checkout'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

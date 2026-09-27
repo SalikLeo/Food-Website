@@ -39,7 +39,9 @@ export default function CustomerReceiptModal({ order, onClose }) {
     ? Number(order.deliveryFee)
     : Math.max(0, (Number(order.total) || 0) - orderItemsSubtotal);
 
-  const orderTotal = order.total !== undefined ? Number(order.total) : (orderItemsSubtotal + orderDeliveryFee);
+  const orderCouponDiscount = Number(order.couponDiscount || 0);
+  const orderCouponCode = order.couponCode || '';
+  const orderTotal = order.total !== undefined ? Number(order.total) : (orderItemsSubtotal + orderDeliveryFee - orderCouponDiscount);
 
   const generateReceiptHtml = () => {
     return `<!DOCTYPE html>
@@ -132,6 +134,7 @@ export default function CustomerReceiptModal({ order, onClose }) {
   </table>
   <div class="totals">
     <div class="totals-row"><span>Subtotal</span><span class="bold">Rs. ${formatPrice(orderItemsSubtotal)}</span></div>
+    ${orderCouponDiscount > 0 ? `<div class="totals-row"><span>Discount (${orderCouponCode || 'Coupon'})</span><span class="bold">- Rs. ${formatPrice(orderCouponDiscount)}</span></div>` : ''}
     <div class="totals-row"><span>Delivery Charges</span><span class="bold">${orderDeliveryFee === 0 ? 'FREE' : `Rs. ${formatPrice(orderDeliveryFee)}`}</span></div>
     <div class="totals-divider"></div>
     <div class="grand-total"><span>TOTAL AMOUNT</span><span>Rs. ${formatPrice(orderTotal)}</span></div>
@@ -298,6 +301,12 @@ export default function CustomerReceiptModal({ order, onClose }) {
               <span className="font-medium">Subtotal</span>
               <span className="font-bold">Rs. {formatPrice(orderItemsSubtotal)}</span>
             </div>
+            {orderCouponDiscount > 0 && (
+              <div className="flex justify-between text-zinc-800">
+                <span className="font-medium">Discount ({orderCouponCode || 'Coupon'})</span>
+                <span className="font-bold text-black">- Rs. {formatPrice(orderCouponDiscount)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-zinc-700">
               <span className="font-medium">Delivery Charges</span>
               <span className="font-bold">
