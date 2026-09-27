@@ -267,47 +267,59 @@ export default function DeliverySettingsManager({ onRefresh }) {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Top Banner: Store & App Logo */}
+      <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center flex-shrink-0">
-            <Truck className="w-6 h-6" />
+          <div className="w-16 h-16 rounded-2xl bg-zinc-900 p-2 border border-zinc-300 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+            <img
+              src={resolveImageUrl(logoUrl || '/assets/salik-logo.png')}
+              alt="App Logo"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                e.target.src = resolveImageUrl('/assets/salik-logo.svg');
+              }}
+            />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
-              <span>Delivery Fee & Distance Rates</span>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                Live on Storefront
-              </span>
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
+                <span>Store & App Logo</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 text-xs font-semibold">
+                  {logoUrl ? 'Custom Logo Active' : 'Default Logo Active'}
+                </span>
+              </h2>
+            </div>
             <p className="text-zinc-500 text-xs mt-1 leading-relaxed">
-              Adjust your base delivery charges and minimum order values. Changes update the cart total, customer checkout, and WhatsApp order messages instantly.
+              Update the official Salik Fast Food brand logo displayed across website, customer app, and receipts.
             </p>
+            <div className="text-[11px] text-zinc-400 mt-1">
+              Recommended: Transparent PNG or SVG (Square 512×512). Automatically updates across website and customer app.
+            </div>
           </div>
         </div>
 
-        {/* Current Active Badge */}
-        <div className="bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-right w-full md:w-auto flex-shrink-0">
-          <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-bold block">
-            Current Delivery Status
-          </span>
-          <span className="font-display text-2xl text-orange-600 font-bold flex items-baseline md:justify-end">
-            {!baseDeliveryEnabled || Number(deliveryFee) === 0 ? (
-              <span className="text-emerald-600">FREE</span>
-            ) : (
-              <>
-                <span className="font-sans font-bold text-base mr-1">Rs.</span>
-                <span>{formatPrice(deliveryFee)}</span>
-              </>
-            )}
-          </span>
-          <span className="text-[10px] text-zinc-500 block mt-0.5 font-medium">
-            {!baseDeliveryEnabled 
-              ? 'Base fee is OFF (Free delivery for all orders)' 
-              : freeDeliveryEnabled 
-                ? `Free delivery on orders above Rs. ${formatPrice(freeDeliveryThreshold)}` 
-                : 'No free delivery threshold (standard fee always applies)'}
-          </span>
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap shrink-0">
+          <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer">
+            <UploadCloud className="w-4 h-4" />
+            <span>{uploadingLogo ? 'Uploading...' : 'Upload New Logo'}</span>
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              className="hidden"
+              onChange={handleLogoUpload}
+              disabled={uploadingLogo}
+            />
+          </label>
+          {logoUrl && (
+            <button
+              type="button"
+              onClick={handleResetLogo}
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-zinc-300 hover:bg-zinc-100 text-zinc-700 text-xs font-semibold transition-all cursor-pointer active:scale-95"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Default</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -657,74 +669,70 @@ export default function DeliverySettingsManager({ onRefresh }) {
             </div>
           </div>
 
-          {/* Section 4: Store & App Logo */}
+          {/* Section 4: Current Delivery Fee & Status Overview */}
           <div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-2xs space-y-4 flex flex-col justify-between">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
               <div>
-                <label className="text-sm font-bold text-zinc-900 block mb-1">
-                  Store & App Logo
-                </label>
-                <p className="text-xs text-zinc-500">
-                  Update the official Salik Fast Food brand logo displayed across website & mobile apps.
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-bold text-zinc-900 block">
+                    4. Current Delivery Status
+                  </label>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold uppercase tracking-wider">
+                    Live on Storefront
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Summary of your active delivery fees, minimum requirements, and free delivery thresholds.
                 </p>
               </div>
+
               <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center shrink-0">
-                <ImageIcon className="w-5 h-5" />
+                <Truck className="w-5 h-5" />
               </div>
             </div>
 
-            <div className="flex items-center gap-4 p-3.5 rounded-xl bg-zinc-50 border border-zinc-200">
-              <div className="w-16 h-16 rounded-xl bg-zinc-900 p-2 border border-zinc-300 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
-                <img
-                  src={resolveImageUrl(logoUrl || '/assets/salik-logo.png')}
-                  alt="App Logo"
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    e.target.src = resolveImageUrl('/assets/salik-logo.svg');
-                  }}
-                />
+            {/* Current Active Status Box */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-bold block">
+                  Active Delivery Rate
+                </span>
+                <span className="text-xs text-zinc-500 block mt-0.5">
+                  {!baseDeliveryEnabled 
+                    ? 'Base fee is OFF (Free delivery for all orders)' 
+                    : freeDeliveryEnabled 
+                      ? `Free on orders above Rs. ${formatPrice(freeDeliveryThreshold)}` 
+                      : 'Standard delivery fee always applies'}
+                </span>
               </div>
-              <div className="space-y-1 min-w-0 flex-1">
-                <div className="text-xs font-bold text-zinc-800 truncate">
-                  {logoUrl ? 'Custom App Logo Active' : 'Default Brand Logo Active'}
-                </div>
-                <div className="text-[11px] text-zinc-500 truncate">
-                  {logoUrl || '/assets/salik-logo.png'}
-                </div>
-                <div className="flex items-center gap-2 pt-1.5 flex-wrap">
-                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer">
-                    <UploadCloud className="w-3.5 h-3.5" />
-                    <span>{uploadingLogo ? 'Uploading...' : 'Upload New Logo'}</span>
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                      className="hidden"
-                      onChange={handleLogoUpload}
-                      disabled={uploadingLogo}
-                    />
-                  </label>
-                  {logoUrl && (
-                    <button
-                      type="button"
-                      onClick={handleResetLogo}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-300 hover:bg-zinc-200 text-zinc-700 text-xs font-semibold transition-all cursor-pointer active:scale-95"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      <span>Reset Default</span>
-                    </button>
+              <div className="text-right">
+                <span className="font-display text-2xl text-orange-600 font-bold">
+                  {!baseDeliveryEnabled || Number(deliveryFee) === 0 ? (
+                    <span className="text-emerald-600">FREE</span>
+                  ) : (
+                    <>
+                      <span className="font-sans font-bold text-base mr-1">Rs.</span>
+                      <span>{formatPrice(deliveryFee)}</span>
+                    </>
                   )}
-                </div>
+                </span>
               </div>
             </div>
 
-            {logoError && (
-              <div className="text-xs text-red-600 font-medium">
-                {logoError}
+            {/* Rates Quick Summary Badges */}
+            <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="text-[10px] text-zinc-400 uppercase font-bold block">Min Order Limit</span>
+                <span className="font-bold text-zinc-800">
+                  {minOrderEnabled ? `Rs. ${formatPrice(minOrder)}` : 'No Minimum'}
+                </span>
               </div>
-            )}
-
-            <div className="text-[11px] text-zinc-400">
-              Recommended: Transparent PNG or SVG (Square or Circular 512x512). Automatically updates across website and customer app.
+              <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200">
+                <span className="text-[10px] text-zinc-400 uppercase font-bold block">Free Delivery</span>
+                <span className="font-bold text-zinc-800">
+                  {freeDeliveryEnabled ? `Above Rs. ${formatPrice(freeDeliveryThreshold)}` : 'Disabled'}
+                </span>
+              </div>
             </div>
           </div>
 
