@@ -199,7 +199,7 @@ export const CartProvider = ({ children }) => {
       const cleanId = String(orderId).replace(/^#/, '');
       const set = getNotifiedStatuses();
       set.add(`${cleanId}_${status}`);
-      const arr = Array.from(set).slice(-100);
+      const arr = Array.from(set).slice(-300);
       localStorage.setItem('salik_notified_statuses', JSON.stringify(arr));
     } catch {}
   };
@@ -249,12 +249,32 @@ export const CartProvider = ({ children }) => {
 
           const statusNotifyKey = `${cleanId}_${currentServerStatus}`;
 
-          // Instant notification if order progressed to Preparing, Out for Delivery, Delivered, or Cancelled
-          // and hasn't notified yet on this device
-          if (currentServerStatus && currentServerStatus !== 'Pending' && !notifiedSet.has(statusNotifyKey)) {
+          // Calculate age of the order event (when it was updated/created)
+          const orderTimestamp = new Date(serverOrder.updatedAt || serverOrder.createdAt || 0).getTime();
+          const isFreshEvent = orderTimestamp > 0 && (Date.now() - orderTimestamp) < (7 * 60 * 1000); // within 7 minutes
+
+          // An alert popup/sound must ONLY trigger if:
+          // 1. Initial page boot sync is complete (prevents blast of old delivered alerts on opening Chrome/reloading)
+          // 2. The order status has actually changed (e.g. Preparing -> Out for Delivery -> Delivered)
+          // 3. The status is not initial 'Pending'
+          // 4. This exact status transition has NOT been notified on this device yet
+          // 5. For terminal states (Delivered / Cancelled), the event must be fresh (< 7 min), never hours old
+          const shouldNotify =
+            initialSyncDoneRef.current === true &&
+            statusChanged &&
+            currentServerStatus &&
+            currentServerStatus !== 'Pending' &&
+            !notifiedSet.has(statusNotifyKey) &&
+            (currentServerStatus !== 'Delivered' || isFreshEvent) &&
+            (currentServerStatus !== 'Cancelled' || isFreshEvent);
+
+          // Always ensure notified set tracks this status so it is never checked again
+          if (!notifiedSet.has(statusNotifyKey)) {
             markStatusNotified(cleanId, currentServerStatus);
             notifiedSet.add(statusNotifyKey);
+          }
 
+          if (shouldNotify) {
             const details = getStatusNotificationDetails(currentServerStatus, cleanId, serverOrder.riderName);
             setActiveOrderNotification({
               order: { ...localOrder, ...serverOrder },
@@ -299,6 +319,8 @@ export const CartProvider = ({ children }) => {
       }
     } catch (err) {
       // Offline/network failure ignored
+    } finally {
+      initialSyncDoneRef.current = true;
     }
   };
 
@@ -329,6 +351,10 @@ export const CartProvider = ({ children }) => {
             const key = String(o.id).trim().replace(/^#/, '');
             const existing = orderMap.get(key);
             orderMap.set(key, existing ? { ...existing, ...o } : o);
+            // Mark cloud historical orders as already notified so they never pop up as alerts on login/sync
+            if (o.status) {
+              markStatusNotified(key, o.status);
+            }
           }
         });
 
