@@ -102,6 +102,7 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
       const comment = (r.comment || '').toLowerCase();
       const query = searchTerm.toLowerCase().trim();
 
+      const isGeneral = !r.orderId || item.includes('general') || item.includes('experience') || (r.platform || '').toLowerCase().includes('feedback');
       const matchesSearch =
         !query ||
         name.includes(query) ||
@@ -109,7 +110,8 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
         location.includes(query) ||
         item.includes(query) ||
         comment.includes(query) ||
-        (r.orderId && String(r.orderId).toLowerCase().includes(query));
+        (r.orderId && (String(r.orderId).toLowerCase().includes(query) || `order #${String(r.orderId).toLowerCase()}`.includes(query))) ||
+        (query.includes('general') && isGeneral);
 
       const matchesRating =
         ratingFilter === 'all' ||
@@ -173,7 +175,7 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
         location: newReview.location.trim() || 'Wah Cantt',
         rating: Number(newReview.rating) || 5,
         platform: newReview.platform || 'Customer Review',
-        itemOrdered: newReview.itemOrdered.trim() || 'Special Meal',
+        itemOrdered: newReview.itemOrdered.trim() || 'General Review',
         comment: newReview.comment.trim()
       };
 
@@ -356,11 +358,6 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
                         </a>
                       )}
                     </div>
-                    {review.orderId && (
-                      <span className="font-sans font-bold text-xs text-orange-600 block">
-                        #{review.orderId}
-                      </span>
-                    )}
                   </div>
 
                   {/* Rating */}
@@ -371,12 +368,45 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
                   </div>
                 </div>
 
-                {/* Ordered Items (Full Width) */}
-                {review.itemOrdered && (
-                  <p className="w-full text-xs text-zinc-600 font-medium leading-relaxed">
-                    {review.itemOrdered}
-                  </p>
-                )}
+                {/* Review Context: General Review or Order # */}
+                {(() => {
+                  const cleanOrderId = review.orderId ? String(review.orderId).replace(/^#/, '').trim() : '';
+                  const item = (review.itemOrdered || '').trim();
+                  const isGeneric = !item || 
+                    item === 'General Store & Food Experience' || 
+                    item === 'Fast Food Experience' || 
+                    item === 'MP Special Meal' || 
+                    item === 'Special Meal' ||
+                    item.toLowerCase() === 'general review' ||
+                    item.toLowerCase().includes('feedback');
+
+                  if (cleanOrderId) {
+                    const hasDistinctItems = item && !isGeneric && !item.toLowerCase().startsWith('order #') && item !== cleanOrderId;
+                    return (
+                      <div className="w-full text-xs leading-relaxed flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-orange-600 font-sans">Order #{cleanOrderId}</span>
+                        {hasDistinctItems && (
+                          <span className="text-zinc-600 font-medium">• {item}</span>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  if (isGeneric) {
+                    return (
+                      <div className="w-full text-xs font-semibold text-zinc-600 leading-relaxed flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0"></span>
+                        <span>General Review</span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <p className="w-full text-xs text-zinc-600 font-medium leading-relaxed">
+                      {item}
+                    </p>
+                  );
+                })()}
 
                 {/* Comment */}
                 <p className="text-xs text-zinc-700 leading-relaxed font-normal bg-zinc-50/70 p-3 rounded-xl border border-zinc-100">

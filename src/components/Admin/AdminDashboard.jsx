@@ -835,7 +835,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                     )}
                   </div>
                   <span className="text-[10px] text-zinc-500 font-semibold mt-0.5 block truncate">
-                    {newReviewAlert.review.orderId ? `Order #${newReviewAlert.review.orderId} • ` : ''}Just now
+                    {newReviewAlert.review.orderId ? `Order #${String(newReviewAlert.review.orderId).replace(/^#/, '')} • ` : 'General Review • '}Just now
                   </span>
                 </div>
               </div>

@@ -598,7 +598,7 @@ export default function CustomerMobileApp({
       location: (checkoutForm.address || 'Wah Cantt').trim(),
       rating: Number(generalRating) || 5,
       platform: 'Mobile App Customer Feedback',
-      itemOrdered: 'General Store & Food Experience',
+      itemOrdered: 'General Review',
       comment: generalComment.trim()
     };
 

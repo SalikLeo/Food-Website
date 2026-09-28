@@ -1087,7 +1087,7 @@ export const sqliteDb = {
       date: 'Just now',
       avatar: initials,
       avatarBg: reviewData.avatarBg || randomColor,
-      itemOrdered: (reviewData.itemOrdered || 'MP Special Meal').trim(),
+      itemOrdered: (reviewData.itemOrdered || (reviewData.orderId ? `Order #${String(reviewData.orderId).replace(/^#/, '')}` : 'General Review')).trim(),
       comment: (reviewData.comment !== undefined && reviewData.comment !== null && reviewData.comment.trim() !== '') ? reviewData.comment.trim() : '-',
       createdAt: new Date().toISOString()
     };

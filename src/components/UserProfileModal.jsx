@@ -289,7 +289,7 @@ export default function UserProfileModal() {
       location: address || 'Wah Cantt',
       rating: Number(generalRating) || 5,
       platform: 'Website Customer Feedback',
-      itemOrdered: 'Fast Food Experience',
+      itemOrdered: 'General Review',
       comment: generalComment.trim()
     };
 
