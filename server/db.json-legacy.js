@@ -812,10 +812,16 @@ export const db = {
     const colors = ['bg-amber-500', 'bg-orange-600', 'bg-red-600', 'bg-emerald-600', 'bg-blue-600', 'bg-purple-600', 'bg-teal-600', 'bg-rose-600'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
+    const email = (reviewData.customerEmail || reviewData.email || '').toLowerCase().trim();
+    const customerAvatar = reviewData.customerAvatar || reviewData.picture || '';
+
     const newReview = {
       id: `rev-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       orderId: reviewData.orderId || null,
       name: (reviewData.name || 'Anonymous Customer').trim(),
+      email: email || null,
+      customerEmail: email || null,
+      customerAvatar: customerAvatar || null,
       location: (reviewData.location || 'Wah Cantt').trim(),
       platform: reviewData.platform || 'Customer Review',
       rating: Math.min(5, Math.max(1, Number(reviewData.rating) || 5)),
@@ -936,11 +942,11 @@ export const db = {
   // Stats for Admin Dashboard
   getStats() {
     const data = readDb();
-    const orders = data.orders || [];
-    const products = data.products || [];
-    const deals = data.deals || [];
-    const reviews = data.reviews || [];
-    const riders = data.riders || [];
+    const orders = Array.isArray(data.orders) ? data.orders : [];
+    const products = Array.isArray(data.products) ? data.products : [];
+    const dealsList = Array.isArray(data.deals) ? data.deals : (data.deals?.deals || []);
+    const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+    const riders = Array.isArray(data.riders) ? data.riders : [];
     
     const totalRevenue = orders
       .filter(o => o.status !== 'Cancelled')
@@ -950,7 +956,7 @@ export const db = {
     
     return {
       totalProducts: products.length,
-      totalDeals: deals.length + (data.familyDeal ? 1 : 0),
+      totalDeals: dealsList.length + (data.familyDeal ? 1 : 0),
       totalOrders: orders.length,
       pendingOrders,
       totalRevenue,

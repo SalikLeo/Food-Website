@@ -384,8 +384,8 @@ export const CartProvider = ({ children }) => {
     socket.on('order:rider_assigned', onSocketOrderUpdate);
     socket.on('order:updated', onSocketOrderUpdate);
 
-    // Heartbeat fallback polling
-    const interval = setInterval(syncRecentOrders, 15000);
+    // Heartbeat fallback polling (WebSockets already deliver instant 0ms updates)
+    const interval = setInterval(syncRecentOrders, 60000);
 
     const onFocus = () => {
       syncRecentOrders();
@@ -669,8 +669,8 @@ export const CartProvider = ({ children }) => {
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
-    // 5. Background polling every 10 seconds for multi-device live sync
-    const pollInterval = setInterval(refreshSettings, 10000);
+    // 5. Background polling every 60 seconds for multi-device sync
+    const pollInterval = setInterval(refreshSettings, 60000);
 
     return () => {
       window.removeEventListener('salik_settings_updated', handleSettingsUpdated);
