@@ -1450,6 +1450,17 @@ export default function OrdersManager({
                           <ReceiptText className="w-4 h-4" />
                         </button>
 
+                        {/* Delete Order Permanently */}
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirmOrder(order)}
+                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 hover:text-red-700 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                          title="Delete Order Permanently"
+                          aria-label="Delete Order Permanently"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+
                         {/* Smooth Dropdown Toggle Button */}
                         <button
                           onClick={() => toggleOrderExpand(order.id)}
