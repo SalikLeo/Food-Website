@@ -146,15 +146,15 @@ export default function ReviewManager({ reviews = [], onRefresh }) {
 
       // 2. Remove locally and notify
       showNotification('success', `Review from "${targetToDelete.name}" deleted.`);
-      setDeleteTarget(null);
+      window.dispatchEvent(new CustomEvent('salik_sync_reviews', { detail: { deletedId: targetToDelete.id } }));
       if (typeof onRefresh === 'function') {
         onRefresh();
       }
-      window.dispatchEvent(new CustomEvent('salik_sync_reviews', { detail: { deletedId: targetToDelete.id } }));
     } catch (err) {
       showNotification('error', err.message || 'Failed to delete review.');
     } finally {
       setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 

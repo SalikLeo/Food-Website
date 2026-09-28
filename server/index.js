@@ -537,6 +537,7 @@ app.post('/api/reviews', (req, res) => {
     }
     const comment = (req.body.comment || '').trim() || '-';
     const newReview = db.createReview({ ...req.body, comment });
+    io.emit('review:new', newReview);
     io.emit('reviews:updated', db.getReviews());
     res.status(201).json({ success: true, review: newReview });
   } catch (err) {
@@ -548,6 +549,7 @@ app.delete('/api/reviews/:id', (req, res) => {
   try {
     const deleted = db.deleteReview(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Review not found' });
+    io.emit('review:deleted', { id: String(req.params.id) });
     io.emit('reviews:updated', db.getReviews());
     res.json({ success: true, message: 'Review deleted successfully' });
   } catch (err) {

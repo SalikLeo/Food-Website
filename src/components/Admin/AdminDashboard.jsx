@@ -431,6 +431,16 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const knownReviewIdsRef = useRef(new Set());
   const initialReviewsLoadDoneRef = useRef(false);
 
+  // Auto-dismiss new review alert banner after 8 seconds
+  useEffect(() => {
+    if (newReviewAlert) {
+      const timer = setTimeout(() => {
+        setNewReviewAlert(null);
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [newReviewAlert]);
+
   const processIncomingReviews = (incomingReviews) => {
     if (!Array.isArray(incomingReviews)) return;
 
@@ -438,20 +448,37 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       incomingReviews.forEach(r => {
         if (r && r.id) knownReviewIdsRef.current.add(String(r.id).trim());
       });
-      initialReviewsLoadDoneRef.current = true;
+      if (incomingReviews.length > 0) {
+        initialReviewsLoadDoneRef.current = true;
+      }
       setReviews(incomingReviews);
       return;
     }
 
+    // Safety: If total reviews didn't strictly increase, it's a deletion or regular sync -> never alert
+    const prevCount = knownReviewIdsRef.current.size;
+    const isCountIncreased = incomingReviews.length > prevCount;
+
+    // Detect newly arrived reviews (must be fresh within last 90s)
     const newRevs = incomingReviews.filter(r => {
       if (!r || !r.id) return false;
       const cleanId = String(r.id).trim();
-      return !knownReviewIdsRef.current.has(cleanId);
+      if (knownReviewIdsRef.current.has(cleanId)) return false;
+
+      // Must be created in last 90 seconds to be considered a new incoming alert
+      if (r.createdAt) {
+        const ageMs = Date.now() - new Date(r.createdAt).getTime();
+        if (ageMs > 90000) return false;
+      }
+      return true;
     });
 
-    if (newRevs.length > 0) {
-      newRevs.forEach(r => knownReviewIdsRef.current.add(String(r.id).trim()));
+    // Always update known IDs with all current review IDs
+    incomingReviews.forEach(r => {
+      if (r && r.id) knownReviewIdsRef.current.add(String(r.id).trim());
+    });
 
+    if (newRevs.length > 0 && isCountIncreased) {
       const latest = newRevs[0];
       setNewReviewAlert({
         review: latest,
@@ -538,6 +565,12 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         const cleanId = String(e.detail.deletedId).trim();
         knownReviewIdsRef.current.delete(cleanId);
         setReviews(prev => prev.filter(r => String(r.id).trim() !== cleanId));
+        setNewReviewAlert(prev => {
+          if (prev && prev.review && String(prev.review.id).trim() === cleanId) {
+            return null;
+          }
+          return prev;
+        });
       }
     };
     window.addEventListener('salik_sync_reviews', handleSyncReviews);
@@ -596,6 +629,36 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       }
     };
 
+    const handleInstantNewReview = (review) => {
+      if (!review || !review.id) return;
+      const cleanId = String(review.id).trim();
+      if (knownReviewIdsRef.current.has(cleanId)) return;
+      knownReviewIdsRef.current.add(cleanId);
+
+      setReviews(prev => [review, ...prev.filter(r => String(r.id).trim() !== cleanId)]);
+
+      setNewReviewAlert({
+        review,
+        count: 1,
+        receivedAt: new Date()
+      });
+
+      notifyAdminNewReview(review, 1);
+    };
+
+    const handleInstantReviewDelete = ({ id }) => {
+      if (!id) return;
+      const cleanId = String(id).trim();
+      knownReviewIdsRef.current.delete(cleanId);
+      setReviews(prev => prev.filter(r => String(r.id).trim() !== cleanId));
+      setNewReviewAlert(prev => {
+        if (prev && prev.review && String(prev.review.id).trim() === cleanId) {
+          return null;
+        }
+        return prev;
+      });
+    };
+
     const handleInstantReviewsUpdate = (newReviews) => {
       if (Array.isArray(newReviews)) {
         processIncomingReviews(newReviews);
@@ -609,6 +672,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     socket.on('order:deleted', handleInstantOrderDelete);
     socket.on('settings:updated', handleInstantSettingsUpdate);
     socket.on('riders:updated', handleInstantRidersUpdate);
+    socket.on('review:new', handleInstantNewReview);
+    socket.on('review:deleted', handleInstantReviewDelete);
     socket.on('reviews:updated', handleInstantReviewsUpdate);
 
     // Heartbeat fallback polling (15s instead of rapid 3s to save battery/bandwidth while socket provides 0ms alerts)
@@ -634,6 +699,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       socket.off('order:deleted', handleInstantOrderDelete);
       socket.off('settings:updated', handleInstantSettingsUpdate);
       socket.off('riders:updated', handleInstantRidersUpdate);
+      socket.off('review:new', handleInstantNewReview);
+      socket.off('review:deleted', handleInstantReviewDelete);
       socket.off('reviews:updated', handleInstantReviewsUpdate);
       window.removeEventListener('salik_settings_updated', handleSettingsUpdated);
       window.removeEventListener('salik_sync_riders', handleSyncRiders);
