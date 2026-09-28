@@ -3204,6 +3204,100 @@ export default function CustomerMobileApp({
               </div>
             </div>
 
+            {/* Google Account & Cloud Sync Section */}
+            <div className={`p-4 rounded-2xl border transition-all ${
+              isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900 shadow-2xs'
+            }`}>
+              {customerUser ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {customerUser.picture ? (
+                        <img
+                          src={customerUser.picture}
+                          alt={customerUser.name}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-orange-500 shadow-xs shrink-0"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white font-bold flex items-center justify-center text-sm shadow-xs shrink-0">
+                          {customerUser.name?.[0] || 'U'}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs sm:text-sm font-bold truncate">
+                            {customerUser.name}
+                          </span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="Connected" />
+                        </div>
+                        <div className={`text-[11px] truncate ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                          {customerUser.email || 'Google Account Linked'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleRequestLogout}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer active:scale-95 shrink-0 ${
+                        isDark 
+                          ? 'border-red-500/40 text-red-400 hover:bg-red-500/10' 
+                          : 'border-red-200 text-red-600 hover:bg-red-50'
+                      }`}
+                    >
+                      Logout
+                    </button>
+                  </div>
+
+                  <div className={`text-[11px] leading-relaxed flex items-center gap-1.5 pt-1.5 border-t ${
+                    isDark ? 'border-white/5 text-emerald-400' : 'border-zinc-100 text-emerald-700'
+                  }`}>
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                    <span>Google Cloud Sync active — Orders & profile backed up</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z" />
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z" />
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+                      </svg>
+                      <h4 className="text-xs font-bold uppercase tracking-wider">
+                        Google Account Sync
+                      </h4>
+                    </div>
+                    <p className={`text-[11px] leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                      Sign in with your Google account to back up and sync your profile and past orders across all devices.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    disabled={googleLoading}
+                    className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer border ${
+                      isDark 
+                        ? 'bg-white text-zinc-900 hover:bg-zinc-100 border-transparent' 
+                        : 'bg-white text-zinc-800 hover:bg-zinc-50 border-zinc-300'
+                    }`}
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+                      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z" />
+                      <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z" />
+                      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
+                    </svg>
+                    <span>{googleLoading ? 'Connecting...' : 'Sign in with Google'}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Profile Form */}
             <form onSubmit={handleSaveProfileForm} className={`rounded-2xl p-4 sm:p-5 border space-y-4 ${
               isDark ? 'bg-[#15151a] border-white/10 shadow-lg' : 'bg-white border-zinc-200 shadow-sm'
@@ -3335,100 +3429,6 @@ export default function CustomerMobileApp({
                 </div>
                 <p className="text-[10px] text-zinc-400">Rate delivered orders</p>
               </button>
-            </div>
-
-            {/* Google Account & Cloud Sync Section */}
-            <div className={`p-4 rounded-2xl border transition-all ${
-              isDark ? 'bg-[#15151a] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-900 shadow-2xs'
-            }`}>
-              {customerUser ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {customerUser.picture ? (
-                        <img
-                          src={customerUser.picture}
-                          alt={customerUser.name}
-                          className="w-10 h-10 rounded-full object-cover border-2 border-orange-500 shadow-xs shrink-0"
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white font-bold flex items-center justify-center text-sm shadow-xs shrink-0">
-                          {customerUser.name?.[0] || 'U'}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs sm:text-sm font-bold truncate">
-                            {customerUser.name}
-                          </span>
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="Connected" />
-                        </div>
-                        <div className={`text-[11px] truncate ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                          {customerUser.email || 'Google Account Linked'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleRequestLogout}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer active:scale-95 shrink-0 ${
-                        isDark 
-                          ? 'border-red-500/40 text-red-400 hover:bg-red-500/10' 
-                          : 'border-red-200 text-red-600 hover:bg-red-50'
-                      }`}
-                    >
-                      Logout
-                    </button>
-                  </div>
-
-                  <div className={`text-[11px] leading-relaxed flex items-center gap-1.5 pt-1.5 border-t ${
-                    isDark ? 'border-white/5 text-emerald-400' : 'border-zinc-100 text-emerald-700'
-                  }`}>
-                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
-                    <span>Google Cloud Sync active — Orders & profile backed up</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
-                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z" />
-                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z" />
-                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
-                      </svg>
-                      <h4 className="text-xs font-bold uppercase tracking-wider">
-                        Google Account Sync
-                      </h4>
-                    </div>
-                    <p className={`text-[11px] leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                      Sign in with your Google account to back up and sync your profile and past orders across all devices.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleGoogleLogin}
-                    disabled={googleLoading}
-                    className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer border ${
-                      isDark 
-                        ? 'bg-white text-zinc-900 hover:bg-zinc-100 border-transparent' 
-                        : 'bg-white text-zinc-800 hover:bg-zinc-50 border-zinc-300'
-                    }`}
-                  >
-                    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
-                      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z" />
-                      <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z" />
-                      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
-                    </svg>
-                    <span>{googleLoading ? 'Connecting...' : 'Sign in with Google'}</span>
-                  </button>
-                </div>
-              )}
             </div>
 
           </div>
