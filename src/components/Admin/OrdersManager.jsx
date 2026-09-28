@@ -1432,7 +1432,7 @@ export default function OrdersManager({
 
                         {/* Status Badge (Immutable once Delivered) */}
                         <span
-                          className="px-2.5 py-1 rounded-full text-xs font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 select-none inline-flex items-center gap-1"
+                          className="h-8 px-2.5 rounded-full text-xs font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 select-none inline-flex items-center gap-1 shrink-0"
                           title="Delivered orders are final"
                         >
                           <Check className="w-3 h-3 text-emerald-600 stroke-[2.5]" />
@@ -1443,7 +1443,7 @@ export default function OrdersManager({
                         <button
                           type="button"
                           onClick={() => setViewingReceiptOrder(order)}
-                          className="p-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                          className="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                           title="View & Print Receipt"
                           aria-label="View & Print Receipt"
                         >
@@ -1454,7 +1454,7 @@ export default function OrdersManager({
                         <button
                           type="button"
                           onClick={() => setDeleteConfirmOrder(order)}
-                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 hover:text-red-700 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                          className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 hover:text-red-700 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                           title="Delete Order Permanently"
                           aria-label="Delete Order Permanently"
                         >
@@ -1464,7 +1464,7 @@ export default function OrdersManager({
                         {/* Smooth Dropdown Toggle Button */}
                         <button
                           onClick={() => toggleOrderExpand(order.id)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 hover:text-zinc-900 text-xs font-semibold transition-colors cursor-pointer active:scale-95"
+                          className="h-8 flex items-center gap-1 px-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 hover:text-zinc-900 text-xs font-semibold transition-colors cursor-pointer active:scale-95 shrink-0"
                           title={isExpanded ? 'Collapse Details' : 'View Details'}
                         >
                           <span>{isExpanded ? 'Hide' : 'View'}</span>
@@ -1754,7 +1754,7 @@ export default function OrdersManager({
                         <button
                           type="button"
                           onClick={() => setViewingReceiptOrder(order)}
-                          className="p-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                          className="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                           title="View & Print Receipt"
                           aria-label="View & Print Receipt"
                         >
@@ -1764,7 +1764,7 @@ export default function OrdersManager({
                         <button
                           type="button"
                           onClick={() => setDeleteConfirmOrder(order)}
-                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 hover:text-red-700 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                          className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 hover:text-red-700 shadow-2xs active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                           title="Delete Order Permanently"
                           aria-label="Delete Order Permanently"
                         >
