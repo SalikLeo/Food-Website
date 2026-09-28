@@ -1,11 +1,13 @@
 // Centralized Mobile App Version Configuration
-export const APP_VERSION = '1.0.1';
-export const APP_BUILD_NUMBER = 101;
-export const APP_RELEASE_DATE = '2026-09-25';
+import versionData from './version.json';
 
-export const ADMIN_APP_VERSION = '1.0.1';
-export const ADMIN_APP_BUILD_NUMBER = 101;
-export const ADMIN_APP_RELEASE_DATE = '2026-09-25';
+export const APP_VERSION = versionData.customer.version;
+export const APP_BUILD_NUMBER = Number(versionData.customer.build);
+export const APP_RELEASE_DATE = versionData.customer.releaseDate;
+
+export const ADMIN_APP_VERSION = versionData.admin.version;
+export const ADMIN_APP_BUILD_NUMBER = Number(versionData.admin.build);
+export const ADMIN_APP_RELEASE_DATE = versionData.admin.releaseDate;
 
 export default {
   APP_VERSION,

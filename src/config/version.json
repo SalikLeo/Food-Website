@@ -1,0 +1,27 @@
+{
+  "customer": {
+    "version": "1.0.2",
+    "build": 104,
+    "releaseDate": "2026-09-28",
+    "releaseNotes": [
+      "Latest order status updates with instant sync",
+      "Option to delete delivered orders directly from dashboard",
+      "Unified responsive design across all devices",
+      "Enhanced review submission with Google profile badge",
+      "Direct in-app 1-tap update downloads"
+    ],
+    "apkName": "Salik-Fast-Food-Customer.apk"
+  },
+  "admin": {
+    "version": "1.0.2",
+    "build": 104,
+    "releaseDate": "2026-09-28",
+    "releaseNotes": [
+      "Ability to delete delivered orders directly",
+      "Uniform button heights for clean alignment",
+      "Fixed false review alert on review deletion",
+      "Direct in-app 1-tap update downloads"
+    ],
+    "apkName": "Salik-Fast-Food-Admin.apk"
+  }
+}

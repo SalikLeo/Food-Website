@@ -75,36 +75,73 @@ app.get('/api/health', (req, res) => {
 
 // App Version Endpoint (For in-app update checks on Customer & Admin Mobile Apps)
 app.get('/api/app-version', (req, res) => {
-  res.json({
-    customer: {
-      version: '1.0.1',
-      build: 101,
-      releaseDate: '2026-09-25',
-      releaseNotes: [
-        'Instant order status notifications with auto-dismiss',
-        'Live streaming food images from server (~15MB APK)',
-        'In-app direct 1-tap update check & download',
-        'Full UI polish and performance improvements'
-      ],
-      apkUrl: 'https://salikleo.website/downloads/Salik-Fast-Food-Customer.apk',
-      apkName: 'Salik-Fast-Food-Customer.apk',
-      sizeMB: '15.28 MB'
-    },
-    admin: {
-      version: '1.0.1',
-      build: 101,
-      releaseDate: '2026-09-25',
-      releaseNotes: [
-        'Passcode protection before starting Admin App',
-        'Direct in-app updates for latest builds',
-        'Live image streaming from server (~15MB APK)',
-        'Full desktop & mobile layout optimizations'
-      ],
-      apkUrl: 'https://salikleo.website/downloads/Salik-Fast-Food-Admin.apk',
-      apkName: 'Salik-Fast-Food-Admin.apk',
-      sizeMB: '15.29 MB'
+  try {
+    const versionPath = path.join(__dirname, '..', 'src', 'config', 'version.json');
+    let versionData = {
+      customer: { version: '1.0.2', build: 102, releaseDate: '2026-09-28' },
+      admin: { version: '1.0.2', build: 102, releaseDate: '2026-09-28' }
+    };
+
+    if (fs.existsSync(versionPath)) {
+      versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
     }
-  });
+
+    const getApkDetails = (filename, defaultSize) => {
+      const p = path.join(__dirname, '..', 'public', 'downloads', filename);
+      let sizeMB = defaultSize;
+      let lastModified = Date.now();
+      if (fs.existsSync(p)) {
+        const stats = fs.statSync(p);
+        sizeMB = `${(stats.size / (1024 * 1024)).toFixed(2)} MB`;
+        lastModified = stats.mtimeMs;
+      }
+      return { sizeMB, lastModified };
+    };
+
+    const host = req.get('host') || '';
+    const isLocal = host.includes('localhost') || host.includes('192.168.') || host.includes('127.0.0.1');
+    const baseUrl = isLocal ? `${req.protocol}://${host}` : 'https://salikleo.website';
+
+    const custApk = getApkDetails('Salik-Fast-Food-Customer.apk', '15.28 MB');
+    const adminApk = getApkDetails('Salik-Fast-Food-Admin.apk', '15.29 MB');
+
+    res.json({
+      customer: {
+        version: versionData.customer?.version || '1.0.2',
+        build: Number(versionData.customer?.build) || 102,
+        releaseDate: versionData.customer?.releaseDate || '2026-09-28',
+        releaseNotes: versionData.customer?.releaseNotes || [
+          'Latest order status updates with instant sync',
+          'Option to delete delivered orders directly from dashboard',
+          'Unified responsive design across all devices',
+          'Enhanced review submission with Google profile badge',
+          'Direct in-app 1-tap update downloads'
+        ],
+        apkUrl: `${baseUrl}/downloads/Salik-Fast-Food-Customer.apk`,
+        apkName: 'Salik-Fast-Food-Customer.apk',
+        sizeMB: custApk.sizeMB,
+        lastModified: custApk.lastModified
+      },
+      admin: {
+        version: versionData.admin?.version || '1.0.2',
+        build: Number(versionData.admin?.build) || 102,
+        releaseDate: versionData.admin?.releaseDate || '2026-09-28',
+        releaseNotes: versionData.admin?.releaseNotes || [
+          'Ability to delete delivered orders directly',
+          'Uniform button heights for clean alignment',
+          'Fixed false review alert on review deletion',
+          'Direct in-app 1-tap update downloads'
+        ],
+        apkUrl: `${baseUrl}/downloads/Salik-Fast-Food-Admin.apk`,
+        apkName: 'Salik-Fast-Food-Admin.apk',
+        sizeMB: adminApk.sizeMB,
+        lastModified: adminApk.lastModified
+      }
+    });
+  } catch (err) {
+    console.error('Error serving app-version:', err);
+    res.status(500).json({ error: 'Failed to read app version' });
+  }
 });
 
 // Public static assets

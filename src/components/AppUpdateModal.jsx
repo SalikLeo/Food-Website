@@ -36,6 +36,13 @@ export default function AppUpdateModal({
     setDownloadStarted(true);
 
     try {
+      if (typeof window !== 'undefined' && updateInfo?.build) {
+        const storageKey = appName.toLowerCase().includes('admin')
+          ? 'salik_admin_last_downloaded_build'
+          : 'salik_last_downloaded_build';
+        localStorage.setItem(storageKey, String(updateInfo.build));
+      }
+
       // 1. Direct open via Capacitor system handler
       if (typeof window !== 'undefined') {
         window.open(apkUrl, '_system');
@@ -102,7 +109,7 @@ export default function AppUpdateModal({
                 You're All Caught Up!
               </h3>
               <p className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                You are currently running the latest build of <strong>{appName}</strong>.
+                You are currently running the latest build of <strong>{appName}</strong> (v{currentVersion} • Build {updateInfo?.build || '102'}).
               </p>
             </div>
 
@@ -140,7 +147,7 @@ export default function AppUpdateModal({
               </div>
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-orange-500 block">
-                  New Build Available
+                  New Build Available (v{remoteVersion} • Build {updateInfo?.build || '102'})
                 </span>
                 <h3 className="font-montserrat text-lg font-bold uppercase tracking-tight">
                   Update {appName}

@@ -90,7 +90,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     if (isCheckingUpdate) return;
     setIsCheckingUpdate(true);
     try {
-      const res = await fetch(apiUrl('/api/app-version'), {
+      const res = await fetch(apiUrl(`/api/app-version?t=${Date.now()}`), {
         cache: 'no-store'
       }).then(r => r.json()).catch(() => null);
 
@@ -98,7 +98,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       if (adminData) {
         setUpdateInfo(adminData);
         const remoteBuild = Number(adminData.build) || 0;
-        const isNewer = remoteBuild > ADMIN_APP_BUILD_NUMBER || adminData.version !== ADMIN_APP_VERSION;
+        const isCapacitor = typeof window !== 'undefined' && window.Capacitor !== undefined;
+        const lastDownloaded = Number(localStorage.getItem('salik_admin_last_downloaded_build') || 0);
+
+        // In Native APK: compare with compiled ADMIN_APP_BUILD_NUMBER
+        // In Web/Browser: if user hasn't downloaded or server build is higher than last download, show update
+        const isNewer = isCapacitor
+          ? (remoteBuild > ADMIN_APP_BUILD_NUMBER || adminData.version !== ADMIN_APP_VERSION)
+          : (remoteBuild > lastDownloaded || !localStorage.getItem('salik_admin_last_downloaded_build'));
 
         if (isNewer) {
           setHasUpdate(true);

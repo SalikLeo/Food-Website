@@ -4,7 +4,12 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+$jdk21 = "C:\Users\M.Salik Leo\.jdks\jbr-21.0.11"
+if (Test-Path $jdk21) {
+  $env:JAVA_HOME = $jdk21
+} else {
+  $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+}
 $baseDir = Split-Path -Parent $PSScriptRoot
 
 # Ensure output directories exist
@@ -17,6 +22,9 @@ New-Item -ItemType Directory -Force -Path $publicDownDir | Out-Null
 if (Test-Path (Join-Path $baseDir "dist")) {
   New-Item -ItemType Directory -Force -Path $distDownDir | Out-Null
 }
+
+# Auto-bump build numbers safely via node
+node (Join-Path $baseDir "scripts\bump-version.js") $Target
 
 function Build-Customer {
   Write-Host ">>> Building Customer Mobile Web Assets..." -ForegroundColor Cyan
