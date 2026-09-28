@@ -39,6 +39,7 @@ import { getSocket } from '../../services/socketService';
 import { ADMIN_APP_VERSION, ADMIN_APP_BUILD_NUMBER } from '../../config/version';
 import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
 import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
+import { updateSystemBarsTheme } from '../../utils/systemBars';
 import { App as CapApp } from '@capacitor/app';
 import { 
   requestNotificationPermission, 
@@ -134,6 +135,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   };
 
   useEffect(() => {
+    updateSystemBarsTheme(false);
     if (APP_MODE === 'admin') {
       const timer = setTimeout(() => {
         checkForUpdates(false);

@@ -18,6 +18,11 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+import android.graphics.Color;
+import android.view.View;
+import android.view.Window;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -31,6 +36,49 @@ import java.io.OutputStream;
 
 @CapacitorPlugin(name = "ReceiptBridge")
 public class ReceiptBridgePlugin extends Plugin {
+
+    @PluginMethod
+    public void setSystemBars(PluginCall call) {
+        Boolean isDarkObj = call.getBoolean("isDark");
+        final boolean isDark = isDarkObj != null ? isDarkObj : false;
+        final String statusBarColor = call.getString("statusBarColor", isDark ? "#0e0e11" : "#ffffff");
+        final String navigationBarColor = call.getString("navigationBarColor", isDark ? "#0e0e11" : "#ffffff");
+
+        if (getActivity() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getActivity();
+            mainActivity.setPersistedTheme(isDark);
+            mainActivity.runOnUiThread(() -> {
+                mainActivity.applySystemBars(isDark, statusBarColor, navigationBarColor);
+                JSObject ret = new JSObject();
+                ret.put("success", true);
+                call.resolve(ret);
+            });
+        } else {
+            getActivity().runOnUiThread(() -> {
+                try {
+                    Window window = getActivity().getWindow();
+                    int sbColor = Color.parseColor(statusBarColor);
+                    int nbColor = Color.parseColor(navigationBarColor);
+                    window.setStatusBarColor(sbColor);
+                    window.setNavigationBarColor(nbColor);
+                    View rootView = getActivity().findViewById(android.R.id.content);
+                    if (rootView != null) {
+                        rootView.setBackgroundColor(sbColor);
+                    }
+                    WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(window, window.getDecorView());
+                    if (insetsController != null) {
+                        insetsController.setAppearanceLightStatusBars(!isDark);
+                        insetsController.setAppearanceLightNavigationBars(!isDark);
+                    }
+                    JSObject ret = new JSObject();
+                    ret.put("success", true);
+                    call.resolve(ret);
+                } catch (Exception e) {
+                    call.reject("Failed: " + e.getMessage());
+                }
+            });
+        }
+    }
 
     @PluginMethod
     public void saveImageToPhone(PluginCall call) {

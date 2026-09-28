@@ -1,22 +1,23 @@
 {
   "customer": {
-    "version": "1.0.2",
-    "build": 104,
+    "version": "1.0.3",
+    "build": 106,
     "releaseDate": "2026-09-28",
     "releaseNotes": [
+      "Seamless Dark Mode for Android Status Bar & Navigation Bar (matches dark theme without white bars)",
+      "Automatic dynamic theme syncing with device and in-app toggle",
       "Latest order status updates with instant sync",
       "Option to delete delivered orders directly from dashboard",
-      "Unified responsive design across all devices",
-      "Enhanced review submission with Google profile badge",
-      "Direct in-app 1-tap update downloads"
+      "Unified responsive design across all devices"
     ],
     "apkName": "Salik-Fast-Food-Customer.apk"
   },
   "admin": {
-    "version": "1.0.2",
-    "build": 104,
+    "version": "1.0.3",
+    "build": 106,
     "releaseDate": "2026-09-28",
     "releaseNotes": [
+      "Seamless dark/light system status bar & navigation bar theme support",
       "Ability to delete delivered orders directly",
       "Uniform button heights for clean alignment",
       "Fixed false review alert on review deletion",

@@ -20,6 +20,7 @@ import AppUpdateModal from '../AppUpdateModal';
 import { formatPrice, cleanDealInclusions, isMarketingDealDescription } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { updateSystemBarsTheme } from '../../utils/systemBars';
 import { notifyCustomerReviewSubmitted } from '../../services/notificationService';
 import { 
   getStoredCustomerUser, 
@@ -159,6 +160,7 @@ export default function CustomerMobileApp({
         document.documentElement.classList.add('light');
       }
       window.dispatchEvent(new CustomEvent('salik_theme_changed', { detail: theme }));
+      updateSystemBarsTheme(theme === 'dark');
     } catch (e) {
       console.error(e);
     }

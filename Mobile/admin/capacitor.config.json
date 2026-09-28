@@ -9,7 +9,7 @@
   "plugins": {
     "SystemBars": {
       "insetsHandling": "disable",
-      "style": "LIGHT"
+      "style": "DEFAULT"
     }
   }
 }
