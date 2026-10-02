@@ -33,7 +33,7 @@ function Build-Customer {
   
   Write-Host ">>> Compiling Customer Android APK with Gradle..." -ForegroundColor Cyan
   Set-Location (Join-Path $baseDir "Mobile\customer\android")
-  .\gradlew assembleDebug
+  .\gradlew clean assembleDebug
   
   $builtApk = Join-Path $baseDir "Mobile\customer\android\app\build\outputs\apk\debug\app-debug.apk"
   if (Test-Path $builtApk) {
@@ -55,7 +55,7 @@ function Build-Admin {
   
   Write-Host ">>> Compiling Admin Android APK with Gradle..." -ForegroundColor Cyan
   Set-Location (Join-Path $baseDir "Mobile\admin\android")
-  .\gradlew assembleDebug
+  .\gradlew clean assembleDebug
   
   $builtApk = Join-Path $baseDir "Mobile\admin\android\app\build\outputs\apk\debug\app-debug.apk"
   if (Test-Path $builtApk) {
@@ -77,7 +77,7 @@ function Build-Rider {
   
   Write-Host ">>> Compiling Rider Android APK with Gradle..." -ForegroundColor Cyan
   Set-Location (Join-Path $baseDir "Mobile\rider\android")
-  .\gradlew assembleDebug
+  .\gradlew clean assembleDebug
   
   $builtApk = Join-Path $baseDir "Mobile\rider\android\app\build\outputs\apk\debug\app-debug.apk"
   if (Test-Path $builtApk) {

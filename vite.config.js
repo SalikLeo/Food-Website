@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(() => {
-  const isMobile = process.env.VITE_APP_MODE === 'customer' || process.env.VITE_APP_MODE === 'admin';
+  const isMobile = process.env.VITE_APP_MODE === 'customer' || process.env.VITE_APP_MODE === 'admin' || process.env.VITE_APP_MODE === 'rider';
 
   return {
     // When building for mobile APKs, do not bundle public assets/downloads into the app.
