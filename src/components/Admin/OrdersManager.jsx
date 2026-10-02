@@ -689,13 +689,13 @@ export default function OrdersManager({
         order: modifyingOrder
       });
       let res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/items`), {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: bodyStr
       });
       if (!res.ok) {
         res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/items`), {
-          method: 'POST',
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: bodyStr
         });
@@ -733,13 +733,13 @@ export default function OrdersManager({
       const cleanOrderId = encodeURIComponent(String(orderId || '').replace(/^#/, ''));
       const bodyStr = JSON.stringify(payload);
       let res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/status`), {
-        method: 'PATCH',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: bodyStr
       });
       if (!res.ok) {
         res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/status`), {
-          method: 'POST',
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: bodyStr
         });
@@ -800,13 +800,13 @@ export default function OrdersManager({
         ...(targetOrder ? { order: targetOrder } : {})
       });
       let res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/rider`), {
-        method: 'PATCH',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: bodyStr
       });
       if (!res.ok) {
         res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/rider`), {
-          method: 'POST',
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: bodyStr
         });

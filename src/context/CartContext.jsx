@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { apiUrl } from '../config/api';
+import { apiUrl, APP_MODE } from '../config/api';
 import { flyItemToCart } from '../utils/flyToCart';
 import { formatPrice, cleanDealInclusions } from '../utils/formatters';
 import { 
@@ -205,18 +205,22 @@ export const CartProvider = ({ children }) => {
     } catch {}
   };
 
-  const syncRecentOrders = async () => {
+  const lastRecentSyncRef = useRef(0);
+  const lastCloudSyncRef = useRef(0);
+
+  const syncRecentOrders = async (force = false) => {
     try {
+      if (APP_MODE === 'admin' || APP_MODE === 'rider') return;
+      const now = Date.now();
+      if (!force && now - lastRecentSyncRef.current < 4000) return;
+      lastRecentSyncRef.current = now;
+
       const saved = localStorage.getItem('salik_recent_orders');
       const localOrders = saved ? JSON.parse(saved) : [];
       if (!localOrders || !Array.isArray(localOrders) || localOrders.length === 0) return;
 
-      const res = await fetch(apiUrl(`/api/orders?_t=${Date.now()}`), {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        }
+      const res = await fetch(apiUrl(`/api/orders?_t=${now}`), {
+        cache: 'no-store'
       });
       if (!res.ok) return;
       const serverOrders = await res.json();
@@ -351,6 +355,11 @@ export const CartProvider = ({ children }) => {
    */
   const syncCustomerOrdersCloud = async (overrideEmail, overridePhone) => {
     try {
+      if (APP_MODE === 'admin' || APP_MODE === 'rider') return;
+      const now = Date.now();
+      if (!overrideEmail && !overridePhone && now - lastCloudSyncRef.current < 5000) return;
+      lastCloudSyncRef.current = now;
+
       const customer = getStoredCustomerUser();
       const email = (overrideEmail || customer?.email || '').trim();
       const prof = getStoredUserProfile();
@@ -414,6 +423,8 @@ export const CartProvider = ({ children }) => {
 
   // Sync recent orders periodically & on window focus/visibility/status events
   useEffect(() => {
+    if (APP_MODE === 'admin' || APP_MODE === 'rider') return;
+
     // Request notification permissions for Android Native & Web
     requestNotificationPermission().catch(() => {});
 
@@ -422,26 +433,29 @@ export const CartProvider = ({ children }) => {
 
     // ⚡ Real-Time WebSocket for instant 0ms order status notifications
     const socket = getSocket();
-    const onSocketOrderUpdate = (order) => {
-      if (order && order.id) {
-        syncRecentOrders();
-      }
+    let socketDebounce = null;
+    const onSocketOrderUpdate = () => {
+      if (socketDebounce) clearTimeout(socketDebounce);
+      socketDebounce = setTimeout(() => {
+        syncRecentOrders(true);
+      }, 300);
     };
 
-    socket.on('order:status_updated', onSocketOrderUpdate);
-    socket.on('order:rider_assigned', onSocketOrderUpdate);
-    socket.on('order:updated', onSocketOrderUpdate);
+    socket.on('orders:updated', onSocketOrderUpdate);
 
     // Heartbeat fallback polling (WebSockets already deliver instant 0ms updates)
-    const interval = setInterval(syncRecentOrders, 60000);
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      syncRecentOrders(false);
+    }, 60000);
 
     const onFocus = () => {
-      syncRecentOrders();
+      syncRecentOrders(false);
       syncCustomerOrdersCloud();
     };
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        syncRecentOrders();
+        syncRecentOrders(false);
         syncCustomerOrdersCloud();
       }
     };
@@ -459,7 +473,6 @@ export const CartProvider = ({ children }) => {
           });
         });
       }
-      syncRecentOrders();
     };
 
     const onStorageSync = () => {
@@ -471,7 +484,7 @@ export const CartProvider = ({ children }) => {
       } catch (err) {
         console.error(err);
       }
-      syncRecentOrders();
+      syncRecentOrders(false);
       syncCustomerOrdersCloud();
     };
 
@@ -484,7 +497,7 @@ export const CartProvider = ({ children }) => {
     try {
       CapApp.addListener('appStateChange', ({ isActive }) => {
         if (isActive) {
-          syncRecentOrders();
+          syncRecentOrders(false);
           syncCustomerOrdersCloud();
         }
       }).then(handle => {
@@ -500,10 +513,9 @@ export const CartProvider = ({ children }) => {
     document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
+      if (socketDebounce) clearTimeout(socketDebounce);
       clearInterval(interval);
-      socket.off('order:status_updated', onSocketOrderUpdate);
-      socket.off('order:rider_assigned', onSocketOrderUpdate);
-      socket.off('order:updated', onSocketOrderUpdate);
+      socket.off('orders:updated', onSocketOrderUpdate);
       if (appStateHandle?.remove) {
         appStateHandle.remove();
       }

@@ -708,43 +708,20 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     };
     window.addEventListener('salik_sync_reviews', handleSyncReviews);
 
-    // Fast live polling heartbeat fallback
-    const pollUpdates = () => {
+    // Throttled live polling heartbeat fallback (prevents burst HTTP requests that trigger CDN/WAF rate blocks)
+    let lastPollTime = 0;
+    const pollUpdates = (force = false) => {
+      if (!force && typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      const now = Date.now();
+      if (!force && now - lastPollTime < 5000) return;
+      lastPollTime = now;
+
       fetch(apiUrl('/api/orders'))
-        .then(r => r.json())
+        .then(r => (r.ok ? r.json() : null))
         .then(data => {
           if (Array.isArray(data)) {
             processIncomingOrders(data);
             try { localStorage.setItem('salik_cached_admin_orders', JSON.stringify(data)); } catch {}
-          }
-        })
-        .catch(() => {});
-
-      fetch(apiUrl('/api/reviews'))
-        .then(r => r.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            processIncomingReviews(data);
-          }
-        })
-        .catch(() => {});
-
-      fetch(apiUrl('/api/costs'))
-        .then(r => r.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setCosts(data);
-            try { localStorage.setItem('salik_cached_admin_costs', JSON.stringify(data)); } catch {}
-          }
-        })
-        .catch(() => {});
-
-      fetch(apiUrl('/api/stats'))
-        .then(r => r.json())
-        .then(data => {
-          if (data && typeof data === 'object') {
-            setStats(data);
-            try { localStorage.setItem('salik_cached_admin_stats', JSON.stringify(data)); } catch {}
           }
         })
         .catch(() => {});
@@ -753,22 +730,34 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     // ⚡ Real-Time WebSocket (Socket.io) Instant Synchronization
     const socket = getSocket();
 
-    const handleInstantNewOrder = (order) => {
-      if (!order) return;
-      console.log('⚡ [Admin] Instant order received via WebSocket:', order.id);
-      pollUpdates();
+    const handleInstantOrdersList = (updatedOrders) => {
+      if (Array.isArray(updatedOrders)) {
+        lastPollTime = Date.now();
+        processIncomingOrders(updatedOrders);
+        try { localStorage.setItem('salik_cached_admin_orders', JSON.stringify(updatedOrders)); } catch {}
+      } else {
+        pollUpdates();
+      }
     };
 
-    const handleInstantOrderUpdate = (order) => {
-      if (!order) return;
-      console.log('⚡ [Admin] Instant order update via WebSocket:', order.id);
-      pollUpdates();
+    const handleInstantOrderSingle = (order) => {
+      if (!order || !order.id) return;
+      // Only fallback-poll if orders:updated didn't already update within the last 2s
+      if (Date.now() - lastPollTime > 2000) {
+        pollUpdates();
+      }
     };
 
     const handleInstantOrderDelete = ({ id }) => {
-      console.log('⚡ [Admin] Order deleted via WebSocket:', id);
-      setOrders(prev => prev.filter(o => o.id !== id));
-      pollUpdates();
+      const cleanId = String(id || '').replace(/^#/, '').trim();
+      setOrders(prev => prev.filter(o => String(o?.id || '').replace(/^#/, '').trim() !== cleanId));
+    };
+
+    const handleInstantStatsUpdate = (newStats) => {
+      if (newStats && typeof newStats === 'object') {
+        setStats(newStats);
+        try { localStorage.setItem('salik_cached_admin_stats', JSON.stringify(newStats)); } catch {}
+      }
     };
 
     const handleInstantSettingsUpdate = (updatedSettings) => {
@@ -780,6 +769,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     const handleInstantRidersUpdate = (newRiders) => {
       if (Array.isArray(newRiders)) {
         setRiders(newRiders);
+        try { localStorage.setItem('salik_riders', JSON.stringify(newRiders)); } catch {}
       }
     };
 
@@ -822,14 +812,15 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     const handleInstantCostsUpdate = (newCosts) => {
       if (Array.isArray(newCosts)) {
         setCosts(newCosts);
+        try { localStorage.setItem('salik_cached_admin_costs', JSON.stringify(newCosts)); } catch {}
       }
     };
 
-    socket.on('order:new', handleInstantNewOrder);
-    socket.on('order:status_updated', handleInstantOrderUpdate);
-    socket.on('order:rider_assigned', handleInstantOrderUpdate);
-    socket.on('order:updated', handleInstantOrderUpdate);
+    socket.on('orders:updated', handleInstantOrdersList);
+    socket.on('order:new', handleInstantOrderSingle);
+    socket.on('order:updated', handleInstantOrderSingle);
     socket.on('order:deleted', handleInstantOrderDelete);
+    socket.on('stats:updated', handleInstantStatsUpdate);
     socket.on('settings:updated', handleInstantSettingsUpdate);
     socket.on('riders:updated', handleInstantRidersUpdate);
     socket.on('costs:updated', handleInstantCostsUpdate);
@@ -837,11 +828,12 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     socket.on('review:deleted', handleInstantReviewDelete);
     socket.on('reviews:updated', handleInstantReviewsUpdate);
 
-    // Heartbeat fallback polling (15s instead of rapid 3s to save battery/bandwidth while socket provides 0ms alerts)
-    const interval = setInterval(pollUpdates, 15000);
+    // Gentle heartbeat fallback polling (30s) when tab is visible
+    const interval = setInterval(() => pollUpdates(false), 30000);
 
     const onFocusOrVisible = () => {
-      pollUpdates();
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      pollUpdates(false);
       handleSyncRiders();
     };
 
@@ -853,11 +845,11 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
     return () => {
       clearInterval(interval);
-      socket.off('order:new', handleInstantNewOrder);
-      socket.off('order:status_updated', handleInstantOrderUpdate);
-      socket.off('order:rider_assigned', handleInstantOrderUpdate);
-      socket.off('order:updated', handleInstantOrderUpdate);
+      socket.off('orders:updated', handleInstantOrdersList);
+      socket.off('order:new', handleInstantOrderSingle);
+      socket.off('order:updated', handleInstantOrderSingle);
       socket.off('order:deleted', handleInstantOrderDelete);
+      socket.off('stats:updated', handleInstantStatsUpdate);
       socket.off('settings:updated', handleInstantSettingsUpdate);
       socket.off('riders:updated', handleInstantRidersUpdate);
       socket.off('costs:updated', handleInstantCostsUpdate);
@@ -870,7 +862,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       window.removeEventListener('focus', onFocusOrVisible);
       document.removeEventListener('visibilitychange', onFocusOrVisible);
     };
-  }, [soundEnabled]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#d5d8de] text-zinc-900 mobile-app-container is-mobile-app">
@@ -1634,7 +1626,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
               settings={settings}
               riders={riders}
               categories={categories}
-              onRefresh={fetchData}
+              onRefresh={() => pollUpdates(true)}
               onReceiptOpenChange={setIsReceiptOpen}
             />
           )}

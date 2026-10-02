@@ -353,34 +353,36 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
     };
     init();
 
-    // 1. Socket listener for instant updates
+    // 1. Socket listener for instant updates (debounced so multi-event broadcasts only fetch once)
     const socket = getSocket();
+    let debounceTimer = null;
     const handleOrderChange = () => {
-      fetchRiderData();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchRiderData(false);
+      }, 250);
     };
 
     if (socket) {
-      socket.on('order:updated', handleOrderChange);
-      socket.on('order:status_updated', handleOrderChange);
-      socket.on('order:rider_assigned', handleOrderChange);
       socket.on('orders:updated', handleOrderChange);
+      socket.on('order:rider_assigned', handleOrderChange);
     }
 
-    // 2. Polling fallback every 5 seconds
+    // 2. Gentle polling fallback every 20 seconds when visible
     const intervalId = setInterval(() => {
-      fetchRiderData();
-    }, 5000);
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      fetchRiderData(false);
+    }, 20000);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       if (socket) {
-        socket.off('order:updated', handleOrderChange);
-        socket.off('order:status_updated', handleOrderChange);
-        socket.off('order:rider_assigned', handleOrderChange);
         socket.off('orders:updated', handleOrderChange);
+        socket.off('order:rider_assigned', handleOrderChange);
       }
       clearInterval(intervalId);
     };
-  }, [rider.id, soundEnabled]);
+  }, [rider.id]);
 
   // Start Delivery (Transition order to Out for Delivery)
   const handleStartDelivery = async (orderId) => {
