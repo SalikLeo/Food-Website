@@ -432,6 +432,8 @@ app.post('/api/orders', orderCreationLimiter, (req, res) => {
 
     // Real-time broadcast: notify admin & kitchen instantly
     io.emit('order:new', order);
+    io.emit('orders:updated', db.getOrders());
+    io.emit('stats:updated', db.getStats());
 
     res.status(201).json({ success: true, order });
   } catch (err) {
@@ -451,6 +453,8 @@ app.patch('/api/orders/:id/status', (req, res) => {
     // Real-time broadcast: status updated
     io.emit('order:status_updated', updated);
     io.emit('order:updated', updated);
+    io.emit('orders:updated', db.getOrders());
+    io.emit('stats:updated', db.getStats());
 
     res.json(updated);
   } catch (err) {
@@ -500,6 +504,8 @@ app.put('/api/orders/:id/items', (req, res) => {
 
     // Real-time broadcast: order items updated
     io.emit('order:updated', updated);
+    io.emit('orders:updated', db.getOrders());
+    io.emit('stats:updated', db.getStats());
 
     res.json({ success: true, order: updated });
   } catch (err) {
@@ -514,6 +520,8 @@ app.delete('/api/orders/:id', (req, res) => {
 
     // Real-time broadcast: order deleted
     io.emit('order:deleted', { id: req.params.id });
+    io.emit('orders:updated', db.getOrders());
+    io.emit('stats:updated', db.getStats());
 
     res.json({ success: true, message: 'Order deleted successfully' });
   } catch (err) {
@@ -686,6 +694,7 @@ app.post('/api/costs', (req, res) => {
     }
     const newCost = db.createCost(req.body);
     io.emit('costs:updated', db.getCosts());
+    io.emit('stats:updated', db.getStats());
     res.status(201).json({ success: true, cost: newCost });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -701,6 +710,7 @@ app.put('/api/costs/:id', (req, res) => {
     const updated = db.updateCost(req.params.id, req.body);
     if (!updated) return res.status(404).json({ error: 'Cost entry not found' });
     io.emit('costs:updated', db.getCosts());
+    io.emit('stats:updated', db.getStats());
     res.json({ success: true, cost: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -712,6 +722,7 @@ app.delete('/api/costs/:id', (req, res) => {
     const deleted = db.deleteCost(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Cost entry not found' });
     io.emit('costs:updated', db.getCosts());
+    io.emit('stats:updated', db.getStats());
     res.json({ success: true, message: 'Cost entry deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });

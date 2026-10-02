@@ -146,7 +146,12 @@ const INITIAL_REVIEWS = [
   }
 ];
 
+let memoryCache = null;
+
 function readDb() {
+  if (memoryCache) {
+    return memoryCache;
+  }
   try {
     const raw = fs.readFileSync(dbFile, 'utf8');
     const data = JSON.parse(raw);
@@ -156,17 +161,30 @@ function readDb() {
     if (!Array.isArray(data.costs)) {
       data.costs = [];
     }
+    memoryCache = data;
     return data;
   } catch (err) {
     console.error('Error reading db.json:', err);
+    if (memoryCache) return memoryCache;
     return { categories: [], deals: [], products: [], orders: [], faqs: [], siteInfo: {}, riders: [], costs: [] };
   }
 }
 
 function writeDb(data) {
-  const tmpFile = `${dbFile}.tmp`;
-  fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), 'utf8');
-  fs.renameSync(tmpFile, dbFile);
+  memoryCache = data;
+  try {
+    const tmpFile = `${dbFile}.tmp`;
+    fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), 'utf8');
+    try {
+      fs.renameSync(tmpFile, dbFile);
+    } catch {
+      // Fallback for Windows file-locking or cross-device rename
+      fs.copyFileSync(tmpFile, dbFile);
+      try { fs.unlinkSync(tmpFile); } catch {}
+    }
+  } catch (err) {
+    console.error('Error persisting db.json to disk:', err);
+  }
 }
 
 export const db = {

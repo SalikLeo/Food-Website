@@ -42,13 +42,32 @@ export default function App() {
   });
   const [isCheckingConnection, setIsCheckingConnection] = useState(false);
 
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [deals, setDeals] = useState([]);
-  const [familyDeal, setFamilyDeal] = useState(null);
-  const [faqs, setFaqs] = useState([]);
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_categories')) || []; } catch { return []; }
+  });
+  const [products, setProducts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_products')) || []; } catch { return []; }
+  });
+  const [deals, setDeals] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_deals')) || []; } catch { return []; }
+  });
+  const [familyDeal, setFamilyDeal] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_familyDeal')) || null; } catch { return null; }
+  });
+  const [faqs, setFaqs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_faqs')) || []; } catch { return []; }
+  });
+  const [settings, setSettings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_settings')) || null; } catch { return null; }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('salik_cached_products');
+      return !cached || JSON.parse(cached).length === 0;
+    } catch {
+      return true;
+    }
+  });
 
   // Connectivity check helper
   const checkConnection = async () => {
@@ -228,31 +247,45 @@ export default function App() {
       }
 
       if (Array.isArray(catsRes) && catsRes.length > 0) {
-        setCategories(catsRes.map(c => ({
+        const mappedCats = catsRes.map(c => ({
           ...c,
           image: resolveImageUrl(c.image)
-        })));
+        }));
+        setCategories(mappedCats);
+        try { localStorage.setItem('salik_cached_categories', JSON.stringify(mappedCats)); } catch {}
       }
       if (Array.isArray(prodsRes) && prodsRes.length > 0) {
-        setProducts(prodsRes.map(p => ({
+        const mappedProds = prodsRes.map(p => ({
           ...p,
           image: resolveImageUrl(p.image)
-        })));
+        }));
+        setProducts(mappedProds);
+        try { localStorage.setItem('salik_cached_products', JSON.stringify(mappedProds)); } catch {}
       }
       if (dealsRes?.deals) {
-        setDeals(dealsRes.deals.map(d => ({
+        const mappedDeals = dealsRes.deals.map(d => ({
           ...d,
           image: resolveImageUrl(d.image)
-        })));
+        }));
+        setDeals(mappedDeals);
+        try { localStorage.setItem('salik_cached_deals', JSON.stringify(mappedDeals)); } catch {}
       }
       if (dealsRes?.familyDeal) {
-        setFamilyDeal({
+        const mappedFam = {
           ...dealsRes.familyDeal,
           image: resolveImageUrl(dealsRes.familyDeal.image)
-        });
+        };
+        setFamilyDeal(mappedFam);
+        try { localStorage.setItem('salik_cached_familyDeal', JSON.stringify(mappedFam)); } catch {}
       }
-      if (Array.isArray(faqsRes) && faqsRes.length > 0) setFaqs(faqsRes);
-      if (settingsRes) setSettings(settingsRes);
+      if (Array.isArray(faqsRes) && faqsRes.length > 0) {
+        setFaqs(faqsRes);
+        try { localStorage.setItem('salik_cached_faqs', JSON.stringify(faqsRes)); } catch {}
+      }
+      if (settingsRes) {
+        setSettings(settingsRes);
+        try { localStorage.setItem('salik_cached_settings', JSON.stringify(settingsRes)); } catch {}
+      }
       setIsOnline(true);
     } catch (e) {
       console.error('Error fetching storefront data:', e);
