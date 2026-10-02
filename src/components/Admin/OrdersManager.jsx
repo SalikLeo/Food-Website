@@ -315,7 +315,8 @@ export default function OrdersManager({
     if (!deleteConfirmOrder || isDeletingOrder) return;
     try {
       setIsDeletingOrder(true);
-      const res = await fetch(apiUrl(`/api/orders/${deleteConfirmOrder.id}`), {
+      const cleanOrderId = encodeURIComponent(String(deleteConfirmOrder.id || '').replace(/^#/, ''));
+      const res = await fetch(apiUrl(`/api/orders/${cleanOrderId}`), {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -669,7 +670,8 @@ export default function OrdersManager({
     if (!modifyingOrder || editItems.length === 0) return;
     setIsSaving(true);
     try {
-      const res = await fetch(apiUrl(`/api/orders/${modifyingOrder.id}/items`), {
+      const cleanOrderId = encodeURIComponent(String(modifyingOrder.id || '').replace(/^#/, ''));
+      const res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/items`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -706,7 +708,8 @@ export default function OrdersManager({
         payload.riderName = null;
         payload.riderPhone = null;
       }
-      const res = await fetch(apiUrl(`/api/orders/${orderId}/status`), {
+      const cleanOrderId = encodeURIComponent(String(orderId || '').replace(/^#/, ''));
+      const res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/status`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -757,7 +760,8 @@ export default function OrdersManager({
   const handleAssignRider = async (orderId, riderId) => {
     try {
       const selectedRider = (riders || []).find(r => r.id === riderId);
-      const res = await fetch(apiUrl(`/api/orders/${orderId}/rider`), {
+      const cleanOrderId = encodeURIComponent(String(orderId || '').replace(/^#/, ''));
+      const res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/rider`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

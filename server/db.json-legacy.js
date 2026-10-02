@@ -199,6 +199,18 @@ function writeDb(data) {
   }
 }
 
+function findOrderById(orders, id) {
+  if (!orders || !id) return null;
+  const rawId = String(id).trim();
+  const cleanId = rawId.replace(/^#/, '').trim();
+  return orders.find(o => {
+    if (!o || !o.id) return false;
+    const oRaw = String(o.id).trim();
+    const oClean = oRaw.replace(/^#/, '').trim();
+    return oRaw === rawId || oClean === cleanId || oClean.toLowerCase() === cleanId.toLowerCase();
+  }) || null;
+}
+
 export const db = {
   // Products
   getProducts({ category, search } = {}) {
@@ -476,7 +488,7 @@ export const db = {
 
   updateOrderStatus(id, status, riderData = null) {
     const data = readDb();
-    const order = (data.orders || []).find(o => o.id === id);
+    const order = findOrderById(data.orders, id);
     if (!order) return null;
     if (String(order.status || '').toLowerCase() === 'delivered') {
       return order; // Status cannot be changed once delivered
@@ -494,7 +506,7 @@ export const db = {
 
   assignOrderRider(id, { riderId, riderName, riderPhone } = {}) {
     const data = readDb();
-    const order = (data.orders || []).find(o => o.id === id);
+    const order = findOrderById(data.orders, id);
     if (!order) return null;
     if (!riderId) {
       order.riderId = null;
@@ -504,7 +516,7 @@ export const db = {
       let rName = riderName;
       let rPhone = riderPhone;
       if (!rName || !rPhone) {
-        const found = (data.riders || []).find(r => r.id === riderId);
+        const found = (data.riders || []).find(r => String(r.id) === String(riderId));
         if (found) {
           rName = rName || found.name;
           rPhone = rPhone || found.phone;
@@ -521,8 +533,15 @@ export const db = {
 
   deleteOrder(id) {
     const data = readDb();
+    const rawId = String(id).trim();
+    const cleanId = rawId.replace(/^#/, '').trim();
     const initialLen = (data.orders || []).length;
-    data.orders = (data.orders || []).filter(o => o.id !== id);
+    data.orders = (data.orders || []).filter(o => {
+      if (!o || !o.id) return false;
+      const oRaw = String(o.id).trim();
+      const oClean = oRaw.replace(/^#/, '').trim();
+      return oRaw !== rawId && oClean !== cleanId && oClean.toLowerCase() !== cleanId.toLowerCase();
+    });
     if (data.orders.length !== initialLen) {
       writeDb(data);
       return true;
@@ -885,7 +904,7 @@ export const db = {
 
   updateOrderDeliveryFee(id, newDeliveryFee) {
     const data = readDb();
-    const order = (data.orders || []).find(o => o.id === id);
+    const order = findOrderById(data.orders, id);
     if (!order) return null;
     order.deliveryFee = Math.max(0, Number(newDeliveryFee) || 0);
     order.total = Number(order.subtotal || 0) + order.deliveryFee;
@@ -896,7 +915,7 @@ export const db = {
 
   updateOrderItems(id, { items, subtotal, deliveryFee, total, notes }) {
     const data = readDb();
-    const order = (data.orders || []).find(o => o.id === id);
+    const order = findOrderById(data.orders, id);
     if (!order) return null;
     if (items) order.items = items;
     if (subtotal !== undefined) order.subtotal = Number(subtotal);
@@ -1024,25 +1043,42 @@ export const db = {
     return rider;
   },
 
-  getRiderOrders(riderId) {
+  getRiderOrders(riderId, riderPhone = '') {
     const data = readDb();
     const cleanId = String(riderId || '').trim();
-    let idDigits = cleanId.replace(/\D/g, '');
-    if (idDigits.startsWith('92') && idDigits.length === 12) idDigits = '0' + idDigits.slice(2);
-    else if (idDigits.length === 10 && idDigits.startsWith('3')) idDigits = '0' + idDigits;
-    const cleanPhone = idDigits.slice(0, 11);
+    const cleanPhoneParam = String(riderPhone || '').trim();
+
+    const normalizePhone = (p) => {
+      if (!p) return '';
+      let digits = String(p).replace(/\D/g, '');
+      if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
+      else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
+      return digits.slice(0, 11);
+    };
+
+    const searchPhone = normalizePhone(cleanPhoneParam || cleanId);
 
     const rider = (data.riders || []).find(r => {
-      let rDigits = String(r.phone || '').replace(/\D/g, '');
-      if (rDigits.startsWith('92') && rDigits.length === 12) rDigits = '0' + rDigits.slice(2);
-      else if (rDigits.length === 10 && rDigits.startsWith('3')) rDigits = '0' + rDigits;
-      return r.id === cleanId || rDigits.slice(0, 11) === cleanPhone;
+      if (cleanId && String(r.id) === cleanId) return true;
+      const rPhone = normalizePhone(r.phone);
+      if (searchPhone && rPhone === searchPhone) return true;
+      return false;
     });
 
     if (!rider) return { activeOrders: [], completedOrders: [], stats: { todayDeliveries: 0, todayCash: 0, allTimeDeliveries: 0, allTimeCash: 0 } };
 
+    const riderPhoneNorm = normalizePhone(rider.phone);
     const todayStr = new Date().toISOString().slice(0, 10);
-    const assignedOrders = (data.orders || []).filter(o => o.riderId === rider.id || (o.riderPhone && String(o.riderPhone).replace(/\D/g, '') === String(rider.phone).replace(/\D/g, '')));
+
+    const assignedOrders = (data.orders || []).filter(o => {
+      if (!o) return false;
+      if (o.riderId && String(o.riderId) === String(rider.id)) return true;
+      if (riderPhoneNorm && o.riderPhone) {
+        const oPhoneNorm = normalizePhone(o.riderPhone);
+        if (oPhoneNorm && oPhoneNorm === riderPhoneNorm) return true;
+      }
+      return false;
+    });
 
     const activeOrders = assignedOrders.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled');
     const completedOrders = assignedOrders.filter(o => o.status === 'Delivered');
@@ -1073,7 +1109,7 @@ export const db = {
 
   markOrderDeliveredByRider(orderId, riderId, notes) {
     const data = readDb();
-    const order = (data.orders || []).find(o => String(o.id) === String(orderId));
+    const order = findOrderById(data.orders, orderId);
     if (!order) return null;
 
     order.status = 'Delivered';
@@ -1088,7 +1124,7 @@ export const db = {
 
   startOrderDeliveryByRider(orderId, riderId) {
     const data = readDb();
-    const order = (data.orders || []).find(o => String(o.id) === String(orderId));
+    const order = findOrderById(data.orders, orderId);
     if (!order) return null;
 
     order.status = 'Out for Delivery';

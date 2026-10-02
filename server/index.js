@@ -443,11 +443,12 @@ app.post('/api/orders', orderCreationLimiter, (req, res) => {
 
 app.patch('/api/orders/:id/status', (req, res) => {
   try {
+    const orderId = decodeURIComponent(req.params.id || '');
     const { status, riderId, riderName, riderPhone } = req.body;
     const riderData = riderId !== undefined
       ? { riderId, riderName, riderPhone }
       : null;
-    const updated = db.updateOrderStatus(req.params.id, status, riderData);
+    const updated = db.updateOrderStatus(orderId, status, riderData);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: status updated
@@ -464,8 +465,9 @@ app.patch('/api/orders/:id/status', (req, res) => {
 
 app.patch('/api/orders/:id/rider', (req, res) => {
   try {
+    const orderId = decodeURIComponent(req.params.id || '');
     const { riderId, riderName, riderPhone } = req.body;
-    const updated = db.assignOrderRider(req.params.id, { riderId, riderName, riderPhone });
+    const updated = db.assignOrderRider(orderId, { riderId, riderName, riderPhone });
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: rider assigned
@@ -480,8 +482,9 @@ app.patch('/api/orders/:id/rider', (req, res) => {
 
 app.patch('/api/orders/:id/delivery-fee', (req, res) => {
   try {
+    const orderId = decodeURIComponent(req.params.id || '');
     const { deliveryFee } = req.body;
-    const updated = db.updateOrderDeliveryFee(req.params.id, deliveryFee);
+    const updated = db.updateOrderDeliveryFee(orderId, deliveryFee);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: order fee updated
@@ -495,11 +498,12 @@ app.patch('/api/orders/:id/delivery-fee', (req, res) => {
 
 app.put('/api/orders/:id/items', (req, res) => {
   try {
+    const orderId = decodeURIComponent(req.params.id || '');
     const { items, subtotal, deliveryFee, total, notes } = req.body;
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Order must contain at least one item' });
     }
-    const updated = db.updateOrderItems(req.params.id, { items, subtotal, deliveryFee, total, notes });
+    const updated = db.updateOrderItems(orderId, { items, subtotal, deliveryFee, total, notes });
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: order items updated
@@ -515,11 +519,12 @@ app.put('/api/orders/:id/items', (req, res) => {
 
 app.delete('/api/orders/:id', (req, res) => {
   try {
-    const deleted = db.deleteOrder(req.params.id);
+    const orderId = decodeURIComponent(req.params.id || '');
+    const deleted = db.deleteOrder(orderId);
     if (!deleted) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: order deleted
-    io.emit('order:deleted', { id: req.params.id });
+    io.emit('order:deleted', { id: orderId });
     io.emit('orders:updated', db.getOrders());
     io.emit('stats:updated', db.getStats());
 
@@ -709,11 +714,10 @@ app.post('/api/rider/login', (req, res) => {
 app.get('/api/rider/orders', (req, res) => {
   try {
     const { riderId, phone } = req.query;
-    const identifier = riderId || phone;
-    if (!identifier) {
+    if (!riderId && !phone) {
       return res.status(400).json({ error: 'Rider ID or phone is required' });
     }
-    const data = db.getRiderOrders(identifier);
+    const data = db.getRiderOrders(riderId, phone);
     res.json({ success: true, ...data });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -722,8 +726,9 @@ app.get('/api/rider/orders', (req, res) => {
 
 app.post('/api/rider/orders/:id/deliver', (req, res) => {
   try {
+    const orderId = decodeURIComponent(req.params.id || '');
     const { riderId, notes } = req.body;
-    const updated = db.markOrderDeliveredByRider(req.params.id, riderId, notes);
+    const updated = db.markOrderDeliveredByRider(orderId, riderId, notes);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     io.emit('order:status_updated', updated);
@@ -739,8 +744,9 @@ app.post('/api/rider/orders/:id/deliver', (req, res) => {
 
 app.post('/api/rider/orders/:id/start-delivery', (req, res) => {
   try {
+    const orderId = decodeURIComponent(req.params.id || '');
     const { riderId } = req.body;
-    const updated = db.startOrderDeliveryByRider(req.params.id, riderId);
+    const updated = db.startOrderDeliveryByRider(orderId, riderId);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     io.emit('order:status_updated', updated);

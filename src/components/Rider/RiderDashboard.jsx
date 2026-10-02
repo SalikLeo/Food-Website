@@ -30,10 +30,21 @@ import { getSocket } from '../../services/socketService';
 import { updateSystemBarsTheme } from '../../utils/systemBars';
 
 export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
+  const cacheKey = `salik_rider_cache_${rider?.id || rider?.phone || 'default'}`;
+  const initialCache = (() => {
+    try {
+      const saved = localStorage.getItem(cacheKey);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return null;
+  })();
+
   const [activeTab, setActiveTab] = useState('active'); // 'active' | 'history'
-  const [activeOrders, setActiveOrders] = useState([]);
-  const [completedOrders, setCompletedOrders] = useState([]);
-  const [stats, setStats] = useState({
+  const [activeOrders, setActiveOrders] = useState(initialCache?.activeOrders || []);
+  const [completedOrders, setCompletedOrders] = useState(initialCache?.completedOrders || []);
+  const [stats, setStats] = useState(initialCache?.stats || {
     activeCount: 0,
     activeCashToCollect: 0,
     todayDeliveries: 0,
@@ -41,7 +52,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
     allTimeDeliveries: 0,
     allTimeCash: 0
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialCache);
   const [refreshing, setRefreshing] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -128,19 +139,30 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
   };
 
   // Track known active order IDs to detect new assignments
-  const knownActiveIdsRef = useRef(new Set());
-  const initialLoadRef = useRef(false);
+  const knownActiveIdsRef = useRef(new Set((initialCache?.activeOrders || []).map(o => String(o.id))));
+  const initialLoadRef = useRef(Boolean(initialCache));
 
   const fetchRiderData = async (isManual = false) => {
     if (isManual) setRefreshing(true);
     try {
-      const res = await fetch(apiUrl(`/api/rider/orders?riderId=${rider.id}&t=${Date.now()}`), {
+      const qRiderId = encodeURIComponent(String(rider?.id || ''));
+      const qPhone = encodeURIComponent(String(rider?.phone || ''));
+      const res = await fetch(apiUrl(`/api/rider/orders?riderId=${qRiderId}&phone=${qPhone}&t=${Date.now()}`), {
         cache: 'no-store'
       });
       if (!res.ok) return;
       const data = await res.json();
       if (data.success) {
         const newActives = data.activeOrders || [];
+        const newCompleted = data.completedOrders || [];
+        const newStats = data.stats || {
+          activeCount: newActives.length,
+          activeCashToCollect: 0,
+          todayDeliveries: 0,
+          todayCash: 0,
+          allTimeDeliveries: 0,
+          allTimeCash: 0
+        };
 
         // Check if a brand new active order arrived
         if (initialLoadRef.current) {
@@ -155,8 +177,19 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
         initialLoadRef.current = true;
 
         setActiveOrders(newActives);
-        setCompletedOrders(data.completedOrders || []);
-        if (data.stats) setStats(data.stats);
+        setCompletedOrders(newCompleted);
+        setStats(newStats);
+
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({
+            activeOrders: newActives,
+            completedOrders: newCompleted,
+            stats: newStats,
+            updatedAt: Date.now()
+          }));
+        } catch (e) {
+          console.error('Cache save error:', e);
+        }
       }
     } catch (err) {
       console.error('Error fetching rider data:', err);
@@ -201,7 +234,8 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
   // Start Delivery (Transition order to Out for Delivery)
   const handleStartDelivery = async (orderId) => {
     try {
-      const res = await fetch(apiUrl(`/api/rider/orders/${orderId}/start-delivery`), {
+      const cleanOrderId = encodeURIComponent(String(orderId || '').replace(/^#/, ''));
+      const res = await fetch(apiUrl(`/api/rider/orders/${cleanOrderId}/start-delivery`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ riderId: rider.id })
@@ -221,7 +255,8 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
     setIsSubmittingDelivery(true);
 
     try {
-      const res = await fetch(apiUrl(`/api/rider/orders/${deliveringOrder.id}/deliver`), {
+      const cleanOrderId = encodeURIComponent(String(deliveringOrder.id || '').replace(/^#/, ''));
+      const res = await fetch(apiUrl(`/api/rider/orders/${cleanOrderId}/deliver`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
