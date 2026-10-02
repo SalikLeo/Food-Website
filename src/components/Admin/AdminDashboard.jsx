@@ -23,13 +23,15 @@ import {
   VolumeX,
   Bike,
   Smartphone,
-  FileText
+  FileText,
+  Receipt
 } from 'lucide-react';
 import ProductManager from './ProductManager';
 import OrdersManager from './OrdersManager';
 import DealsManager from './DealsManager';
 import DeliverySettingsManager from './DeliverySettingsManager';
 import ItemSalesManager from './ItemSalesManager';
+import CostsManager from './CostsManager';
 import ReviewManager from './ReviewManager';
 import RidersManager from './RidersManager';
 import ReportsManager from './ReportsManager';
@@ -152,6 +154,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const [orders, setOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [riders, setRiders] = useState([]);
+  const [costs, setCosts] = useState([]);
   const [settings, setSettings] = useState({ deliveryFee: 100, minOrder: 500 });
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -504,7 +507,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [prodsRes, catsRes, dealsRes, ordersRes, statsRes, settingsRes, reviewsRes, ridersRes] = await Promise.all([
+      const [prodsRes, catsRes, dealsRes, ordersRes, statsRes, settingsRes, reviewsRes, ridersRes, costsRes] = await Promise.all([
         fetch(apiUrl('/api/products')).then(r => r.json()),
         fetch(apiUrl('/api/categories')).then(r => r.json()),
         fetch(apiUrl('/api/deals')).then(r => r.json()),
@@ -512,7 +515,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         fetch(apiUrl('/api/stats')).then(r => r.json()),
         fetch(apiUrl('/api/settings')).then(r => r.json()).catch(() => ({ deliveryFee: 100 })),
         fetch(apiUrl('/api/reviews')).then(r => r.json()).catch(() => []),
-        fetch(apiUrl('/api/riders')).then(r => r.json()).catch(() => [])
+        fetch(apiUrl('/api/riders')).then(r => r.json()).catch(() => []),
+        fetch(apiUrl('/api/costs')).then(r => r.json()).catch(() => [])
       ]);
 
       setProducts((prodsRes || []).map(p => ({ ...p, image: resolveImageUrl(p.image) })));
@@ -521,6 +525,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       setFamilyDeal(dealsRes?.familyDeal ? { ...dealsRes.familyDeal, image: resolveImageUrl(dealsRes.familyDeal.image) } : null);
       if (ordersRes) processIncomingOrders(ordersRes);
       if (reviewsRes) processIncomingReviews(reviewsRes);
+      if (Array.isArray(costsRes)) setCosts(costsRes);
 
       let finalRiders = [];
       if (Array.isArray(ridersRes) && ridersRes.length > 0) {
@@ -674,6 +679,12 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       }
     };
 
+    const handleInstantCostsUpdate = (newCosts) => {
+      if (Array.isArray(newCosts)) {
+        setCosts(newCosts);
+      }
+    };
+
     socket.on('order:new', handleInstantNewOrder);
     socket.on('order:status_updated', handleInstantOrderUpdate);
     socket.on('order:rider_assigned', handleInstantOrderUpdate);
@@ -681,6 +692,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     socket.on('order:deleted', handleInstantOrderDelete);
     socket.on('settings:updated', handleInstantSettingsUpdate);
     socket.on('riders:updated', handleInstantRidersUpdate);
+    socket.on('costs:updated', handleInstantCostsUpdate);
     socket.on('review:new', handleInstantNewReview);
     socket.on('review:deleted', handleInstantReviewDelete);
     socket.on('reviews:updated', handleInstantReviewsUpdate);
@@ -708,6 +720,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
       socket.off('order:deleted', handleInstantOrderDelete);
       socket.off('settings:updated', handleInstantSettingsUpdate);
       socket.off('riders:updated', handleInstantRidersUpdate);
+      socket.off('costs:updated', handleInstantCostsUpdate);
       socket.off('review:new', handleInstantNewReview);
       socket.off('review:deleted', handleInstantReviewDelete);
       socket.off('reviews:updated', handleInstantReviewsUpdate);
@@ -1379,6 +1392,18 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           </button>
 
           <button
+            onClick={() => switchTab('costs')}
+            className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'costs'
+                ? 'bg-orange-600 text-white shadow-sm'
+                : 'bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 shadow-2xs'
+            }`}
+          >
+            <Receipt className="w-4 h-4 flex-shrink-0" />
+            <span>Costs ({costs.length})</span>
+          </button>
+
+          <button
             onClick={() => switchTab('riders')}
             className={`col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'riders'
@@ -1477,6 +1502,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             />
           )}
 
+          {activeTab === 'costs' && (
+            <CostsManager
+              costs={costs}
+              orders={orders}
+              onRefresh={fetchData}
+            />
+          )}
+
           {activeTab === 'riders' && (
             <RidersManager
               riders={riders}
@@ -1495,6 +1528,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
           {activeTab === 'reports' && (
             <ReportsManager
               orders={orders}
+              costs={costs}
               products={products}
               deals={deals}
               familyDeal={familyDeal}

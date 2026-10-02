@@ -153,10 +153,13 @@ function readDb() {
     if (!Array.isArray(data.riders)) {
       data.riders = [];
     }
+    if (!Array.isArray(data.costs)) {
+      data.costs = [];
+    }
     return data;
   } catch (err) {
     console.error('Error reading db.json:', err);
-    return { categories: [], deals: [], products: [], orders: [], faqs: [], siteInfo: {}, riders: [] };
+    return { categories: [], deals: [], products: [], orders: [], faqs: [], siteInfo: {}, riders: [], costs: [] };
   }
 }
 
@@ -939,6 +942,72 @@ export const db = {
     return (data.riders || []).length !== initialLen;
   },
 
+  // Daily Ingredient / Operational Costs Management
+  getCosts() {
+    const data = readDb();
+    return (data.costs || []).slice().sort((a, b) => {
+      if (b.date !== a.date) {
+        return (b.date || '').localeCompare(a.date || '');
+      }
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
+  },
+
+  getCostById(id) {
+    const data = readDb();
+    return (data.costs || []).find(c => String(c.id) === String(id)) || null;
+  },
+
+  createCost(costData) {
+    const data = readDb();
+    const dateStr = costData.date ? String(costData.date).trim() : new Date().toISOString().slice(0, 10);
+    const amountNum = Math.max(0, Number(costData.amount) || 0);
+    const noteStr = (costData.note || '').trim();
+
+    const newCost = {
+      id: costData.id || `cost-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      date: dateStr,
+      amount: amountNum,
+      note: noteStr,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    data.costs = [newCost, ...(data.costs || [])];
+    writeDb(data);
+    return newCost;
+  },
+
+  updateCost(id, updates) {
+    const data = readDb();
+    const idx = (data.costs || []).findIndex(c => String(c.id) === String(id));
+    if (idx === -1) return null;
+
+    const current = data.costs[idx];
+    const dateStr = updates.date !== undefined ? String(updates.date).trim() : current.date;
+    const amountNum = updates.amount !== undefined ? Math.max(0, Number(updates.amount) || 0) : current.amount;
+    const noteStr = updates.note !== undefined ? String(updates.note).trim() : current.note;
+
+    data.costs[idx] = {
+      ...current,
+      date: dateStr,
+      amount: amountNum,
+      note: noteStr,
+      updatedAt: new Date().toISOString()
+    };
+
+    writeDb(data);
+    return data.costs[idx];
+  },
+
+  deleteCost(id) {
+    const data = readDb();
+    const initialLen = (data.costs || []).length;
+    data.costs = (data.costs || []).filter(c => String(c.id) !== String(id));
+    writeDb(data);
+    return (data.costs || []).length !== initialLen;
+  },
+
   // Stats for Admin Dashboard
   getStats() {
     const data = readDb();
@@ -947,10 +1016,13 @@ export const db = {
     const dealsList = Array.isArray(data.deals) ? data.deals : (data.deals?.deals || []);
     const reviews = Array.isArray(data.reviews) ? data.reviews : [];
     const riders = Array.isArray(data.riders) ? data.riders : [];
+    const costs = Array.isArray(data.costs) ? data.costs : [];
     
     const totalRevenue = orders
       .filter(o => o.status !== 'Cancelled')
       .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+
+    const totalCosts = costs.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
       
     const pendingOrders = orders.filter(o => o.status === 'Pending').length;
     
@@ -960,8 +1032,10 @@ export const db = {
       totalOrders: orders.length,
       pendingOrders,
       totalRevenue,
+      totalCosts,
       totalReviews: reviews.length,
-      totalRiders: riders.length
+      totalRiders: riders.length,
+      totalCostsEntries: costs.length
     };
   }
 };

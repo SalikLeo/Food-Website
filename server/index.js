@@ -668,6 +668,56 @@ app.delete('/api/riders/:id', (req, res) => {
   }
 });
 
+// Costs Management Endpoints (Daily total ingredients/operational expenses)
+app.get('/api/costs', (req, res) => {
+  try {
+    const costs = db.getCosts();
+    res.json(costs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/costs', (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (amount === undefined || isNaN(Number(amount)) || Number(amount) < 0) {
+      return res.status(400).json({ error: 'Valid cost amount in Rs. is required' });
+    }
+    const newCost = db.createCost(req.body);
+    io.emit('costs:updated', db.getCosts());
+    res.status(201).json({ success: true, cost: newCost });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/costs/:id', (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (amount !== undefined && (isNaN(Number(amount)) || Number(amount) < 0)) {
+      return res.status(400).json({ error: 'Valid cost amount in Rs. is required' });
+    }
+    const updated = db.updateCost(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Cost entry not found' });
+    io.emit('costs:updated', db.getCosts());
+    res.json({ success: true, cost: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/costs/:id', (req, res) => {
+  try {
+    const deleted = db.deleteCost(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Cost entry not found' });
+    io.emit('costs:updated', db.getCosts());
+    res.json({ success: true, message: 'Cost entry deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Admin Stats
 app.get('/api/stats', (req, res) => {
   res.json(db.getStats());

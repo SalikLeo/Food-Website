@@ -6,6 +6,9 @@ import {
   ChevronRight,
   Printer,
   TrendingUp,
+  TrendingDown,
+  Receipt,
+  DollarSign,
   Wallet,
   ShoppingBag,
   Package,
@@ -26,6 +29,7 @@ const MONTH_NAMES = [
 
 export default function ReportsManager({
   orders = [],
+  costs = [],
   products = [],
   deals = [],
   familyDeal = null,
@@ -252,6 +256,31 @@ export default function ReportsManager({
 
     const avgOrderValue = deliveredOrders > 0 ? Math.round(totalGrossRevenue / deliveredOrders) : 0;
 
+    // Calculate Ingredients Cost for the selected timeframe
+    let periodIngredientsCost = 0;
+    (costs || []).forEach(c => {
+      if (!c || !c.date) return;
+      const amt = Number(c.amount) || 0;
+      if (reportType === 'daily') {
+        if (c.date === selectedDate) {
+          periodIngredientsCost += amt;
+        }
+      } else if (reportType === 'monthly') {
+        const dt = new Date(c.date);
+        if (dt.getMonth() === Number(selectedMonth) && dt.getFullYear() === Number(selectedYear)) {
+          periodIngredientsCost += amt;
+        }
+      } else if (reportType === 'annual') {
+        const dt = new Date(c.date);
+        if (dt.getFullYear() === Number(selectedYear)) {
+          periodIngredientsCost += amt;
+        }
+      }
+    });
+
+    const netProfit = totalGrossRevenue - periodIngredientsCost;
+    const profitMargin = totalGrossRevenue > 0 ? Math.round((netProfit / totalGrossRevenue) * 100) : 0;
+
     // Top 5 Best-Selling Items
     const sortedItems = Object.values(itemSalesMap).sort((a, b) => {
       if (b.qty !== a.qty) return b.qty - a.qty;
@@ -272,6 +301,9 @@ export default function ReportsManager({
       totalGrossRevenue,
       totalDeliveryFees,
       totalFoodSubtotal,
+      totalIngredientsCost: periodIngredientsCost,
+      netProfit,
+      profitMargin,
       avgOrderValue,
       codOrdersCount,
       codRevenue,
@@ -280,7 +312,7 @@ export default function ReportsManager({
       top5Items,
       totalItemsSold
     };
-  }, [filteredOrders]);
+  }, [filteredOrders, costs, reportType, selectedDate, selectedMonth, selectedYear]);
 
   // Report Period Label
   const periodLabel = useMemo(() => {
@@ -409,7 +441,7 @@ export default function ReportsManager({
       </div>
     </div>
 
-    <div class="section-title">Financial Summary</div>
+    <div class="section-title">Financial Summary & Profit</div>
     <div class="totals">
       <div class="totals-row">
         <span>Items Net Subtotal:</span>
@@ -421,8 +453,17 @@ export default function ReportsManager({
       </div>
       <div class="totals-divider"></div>
       <div class="grand-total">
-        <span>GROSS REVENUE:</span>
+        <span>TOTAL SALES (REVENUE):</span>
         <span>Rs. ${reportStats.totalGrossRevenue.toLocaleString()}</span>
+      </div>
+      <div class="totals-row" style="margin-top: 3px;">
+        <span>Total Ingredients Cost:</span>
+        <span style="font-weight:700; color: #000;">- Rs. ${reportStats.totalIngredientsCost.toLocaleString()}</span>
+      </div>
+      <div class="totals-divider"></div>
+      <div class="grand-total" style="font-size: 12px; padding-top: 2px;">
+        <span>NET OPERATING PROFIT:</span>
+        <span>Rs. ${reportStats.netProfit.toLocaleString()} (${reportStats.profitMargin}%)</span>
       </div>
       <div class="totals-row" style="margin-top: 3px;">
         <span>Average Order Value:</span>
@@ -701,70 +742,93 @@ export default function ReportsManager({
       </div>
 
       {/* 2. STATS SUMMARY PILLS (Dashboard Overview) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Total Revenue */}
-        <div className="bg-white rounded-2xl p-4 border border-zinc-200/90 shadow-2xs">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+        {/* 1. Total Sales (Revenue) */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Revenue</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <Wallet className="w-4 h-4" />
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total Sales</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <Wallet className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="mt-2 text-lg sm:text-xl font-extrabold text-emerald-600">
+          <div className="mt-1.5 text-base sm:text-lg font-extrabold text-emerald-600">
             {formatPrice(reportStats.totalGrossRevenue)}
           </div>
-          <div className="text-[11px] text-zinc-400 font-medium mt-0.5">
-            From {reportStats.deliveredOrders} delivered orders
+          <div className="text-[10.5px] text-zinc-400 font-medium mt-0.5">
+            {reportStats.deliveredOrders} delivered orders
           </div>
         </div>
 
-        {/* Total Orders */}
-        <div className="bg-white rounded-2xl p-4 border border-zinc-200/90 shadow-2xs">
+        {/* 2. Ingredients / Operating Cost */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Total Orders</span>
-            <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4" />
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total Cost</span>
+            <div className="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+              <Receipt className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="mt-2 text-lg sm:text-xl font-extrabold text-zinc-900">
+          <div className="mt-1.5 text-base sm:text-lg font-extrabold text-red-600">
+            {formatPrice(reportStats.totalIngredientsCost)}
+          </div>
+          <div className="text-[10.5px] text-zinc-400 font-medium mt-0.5">
+            Ingredients entered
+          </div>
+        </div>
+
+        {/* 3. Net Operating Profit */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Net Profit</span>
+            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+              reportStats.netProfit >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+            }`}>
+              <TrendingUp className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className={`mt-1.5 text-base sm:text-lg font-extrabold ${
+            reportStats.netProfit >= 0 ? 'text-zinc-900' : 'text-red-600'
+          }`}>
+            {formatPrice(reportStats.netProfit)}
+          </div>
+          <div className="text-[10.5px] font-bold mt-0.5 flex items-center gap-1">
+            <span className={reportStats.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+              {reportStats.profitMargin}% margin
+            </span>
+            <span className="text-zinc-400 font-normal">• Sales - Cost</span>
+          </div>
+        </div>
+
+        {/* 4. Total Orders */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Total Orders</span>
+            <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
+              <ShoppingBag className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-1.5 text-base sm:text-lg font-extrabold text-zinc-900">
             {reportStats.totalOrders}
           </div>
-          <div className="text-[11px] text-zinc-400 font-medium mt-0.5 flex items-center gap-1.5">
+          <div className="text-[10.5px] text-zinc-400 font-medium mt-0.5 flex items-center gap-1.5 truncate">
             <span className="text-emerald-600 font-bold">{reportStats.deliveredOrders} done</span>
             <span>•</span>
             <span className="text-amber-600 font-bold">{reportStats.inProgressOrders} active</span>
           </div>
         </div>
 
-        {/* Items Sold */}
-        <div className="bg-white rounded-2xl p-4 border border-zinc-200/90 shadow-2xs">
+        {/* 5. Items Sold */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Items Sold</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Package className="w-4 h-4" />
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Items Sold</span>
+            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Package className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="mt-2 text-lg sm:text-xl font-extrabold text-zinc-900">
+          <div className="mt-1.5 text-base sm:text-lg font-extrabold text-zinc-900">
             {reportStats.totalItemsSold}
           </div>
-          <div className="text-[11px] text-zinc-400 font-medium mt-0.5">
-            Food & deal portions
-          </div>
-        </div>
-
-        {/* Average Order Value */}
-        <div className="bg-white rounded-2xl p-4 border border-zinc-200/90 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Avg Order</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-lg sm:text-xl font-extrabold text-zinc-900">
-            {formatPrice(reportStats.avgOrderValue)}
-          </div>
-          <div className="text-[11px] text-zinc-400 font-medium mt-0.5">
-            Per completed order
+          <div className="text-[10.5px] text-zinc-400 font-medium mt-0.5">
+            Portions prepared
           </div>
         </div>
       </div>
@@ -821,10 +885,10 @@ export default function ReportsManager({
             </div>
           </div>
 
-          {/* Financial Totals Breakdown */}
+          {/* Financial & Profit Totals Breakdown */}
           <div className="py-3 border-b border-dashed border-zinc-400 space-y-1.5 font-sans text-xs">
             <div className="font-extrabold uppercase tracking-wide text-[11px] pb-1 border-b border-black">
-              Financial Breakdown
+              Financial & Profit Breakdown
             </div>
             <div className="flex justify-between pt-1">
               <span>Items Net Subtotal:</span>
@@ -836,10 +900,21 @@ export default function ReportsManager({
             </div>
             <div className="my-1.5 h-[1.5px] bg-black w-full" />
             <div className="flex justify-between font-extrabold text-sm text-black">
-              <span>GROSS REVENUE:</span>
+              <span>TOTAL SALES (REVENUE):</span>
               <span>{formatPrice(reportStats.totalGrossRevenue)}</span>
             </div>
-            <div className="flex justify-between text-[11px] text-zinc-700 pt-0.5">
+            <div className="flex justify-between text-zinc-900 font-bold pt-0.5">
+              <span>Total Ingredients Cost:</span>
+              <span className="text-black">- {formatPrice(reportStats.totalIngredientsCost)}</span>
+            </div>
+            <div className="my-1.5 h-[1.5px] bg-black w-full" />
+            <div className="flex justify-between items-center font-extrabold text-sm text-black pt-0.5">
+              <span>NET OPERATING PROFIT:</span>
+              <span className="border border-black px-1.5 py-0.5">
+                {formatPrice(reportStats.netProfit)} ({reportStats.profitMargin}%)
+              </span>
+            </div>
+            <div className="flex justify-between text-[11px] text-zinc-700 pt-1">
               <span>Average Order Value (AOV):</span>
               <span className="font-bold text-black">{formatPrice(reportStats.avgOrderValue)}</span>
             </div>
