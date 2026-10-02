@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, 'data');
 const dbFile = path.join(dataDir, 'db.json');
 const initialFile = path.join(__dirname, 'initialData.json');
+const backupDbFile = path.join(os.homedir() || os.tmpdir(), '.salik-fast-food-db-backup.json');
 
 // Ensure directory exists
 if (!fs.existsSync(dataDir)) {
@@ -147,30 +149,134 @@ const INITIAL_REVIEWS = [
 ];
 
 let memoryCache = null;
+let lastMtimeMs = 0;
 
-function readDb() {
-  if (memoryCache) {
-    return memoryCache;
+function normalizeDbData(data) {
+  if (!data || typeof data !== 'object') {
+    data = {};
   }
-  try {
-    const raw = fs.readFileSync(dbFile, 'utf8');
-    const data = JSON.parse(raw);
-    if (!Array.isArray(data.categories)) data.categories = [];
-    if (!Array.isArray(data.products)) data.products = [];
-    if (!Array.isArray(data.orders)) data.orders = [];
-    if (!Array.isArray(data.riders)) data.riders = [];
-    if (!Array.isArray(data.costs)) data.costs = [];
+  if (!Array.isArray(data.categories)) data.categories = [];
+  if (!Array.isArray(data.products)) data.products = [];
+  if (!Array.isArray(data.orders)) data.orders = [];
+  if (!Array.isArray(data.riders)) data.riders = [];
+  if (!Array.isArray(data.costs)) data.costs = [];
+  if (!Array.isArray(data.deletedOrderIds)) data.deletedOrderIds = [];
+  if (!Array.isArray(data.deletedRiderIds)) data.deletedRiderIds = [];
 
-    // Normalize deals if stored as an object
-    if (!Array.isArray(data.deals)) {
-      if (data.deals && Array.isArray(data.deals.deals)) {
-        if (!data.familyDeal && data.deals.familyDeal) {
-          data.familyDeal = data.deals.familyDeal;
-        }
-        data.deals = data.deals.deals;
-      } else {
-        data.deals = [];
+  if (!Array.isArray(data.deals)) {
+    if (data.deals && Array.isArray(data.deals.deals)) {
+      if (!data.familyDeal && data.deals.familyDeal) {
+        data.familyDeal = data.deals.familyDeal;
       }
+      data.deals = data.deals.deals;
+    } else {
+      data.deals = [];
+    }
+  }
+  return data;
+}
+
+function readDb(forceDisk = false) {
+  try {
+    let stat = null;
+    try {
+      stat = fs.statSync(dbFile);
+    } catch {}
+
+    if (!forceDisk && memoryCache && stat && stat.mtimeMs === lastMtimeMs) {
+      return memoryCache;
+    }
+
+    const raw = fs.readFileSync(dbFile, 'utf8');
+    const data = normalizeDbData(JSON.parse(raw));
+    if (stat) lastMtimeMs = stat.mtimeMs;
+
+    // Merge with persistent backup outside git repo so git pull/reset on Hostinger never wipes live orders/riders
+    try {
+      if (fs.existsSync(backupDbFile)) {
+        const backupRaw = fs.readFileSync(backupDbFile, 'utf8');
+        const backup = normalizeDbData(JSON.parse(backupRaw));
+        let mergedChanges = false;
+
+        // Merge deleted IDs
+        const deletedOrdersSet = new Set([
+          ...(data.deletedOrderIds || []),
+          ...(backup.deletedOrderIds || [])
+        ]);
+        if (deletedOrdersSet.size !== (data.deletedOrderIds || []).length) {
+          data.deletedOrderIds = Array.from(deletedOrdersSet);
+          mergedChanges = true;
+        }
+
+        const deletedRidersSet = new Set([
+          ...(data.deletedRiderIds || []),
+          ...(backup.deletedRiderIds || [])
+        ]);
+        if (deletedRidersSet.size !== (data.deletedRiderIds || []).length) {
+          data.deletedRiderIds = Array.from(deletedRidersSet);
+          mergedChanges = true;
+        }
+
+        // Merge orders from backup that were wiped by git reset or have newer status updates
+        if (Array.isArray(backup.orders) && backup.orders.length > 0) {
+          const orderMap = new Map();
+          for (const o of data.orders) {
+            if (!o || !o.id) continue;
+            const cleanId = String(o.id).replace(/^#/, '').trim();
+            if (!deletedOrdersSet.has(cleanId)) {
+              orderMap.set(cleanId, o);
+            }
+          }
+          for (const bo of backup.orders) {
+            if (!bo || !bo.id) continue;
+            const cleanId = String(bo.id).replace(/^#/, '').trim();
+            if (deletedOrdersSet.has(cleanId)) continue;
+            const existing = orderMap.get(cleanId);
+            if (!existing) {
+              orderMap.set(cleanId, bo);
+              mergedChanges = true;
+            } else {
+              const tExisting = new Date(existing.updatedAt || existing.deliveredAt || existing.createdAt || 0).getTime();
+              const tBackup = new Date(bo.updatedAt || bo.deliveredAt || bo.createdAt || 0).getTime();
+              if (tBackup > tExisting) {
+                orderMap.set(cleanId, bo);
+                mergedChanges = true;
+              }
+            }
+          }
+          if (mergedChanges) {
+            data.orders = Array.from(orderMap.values()).sort(
+              (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+            );
+          }
+        }
+
+        // Merge riders from backup
+        if (Array.isArray(backup.riders) && backup.riders.length > 0) {
+          const riderMap = new Map();
+          for (const r of data.riders) {
+            if (r && r.id && !deletedRidersSet.has(String(r.id))) {
+              riderMap.set(String(r.id), r);
+            }
+          }
+          for (const br of backup.riders) {
+            if (!br || !br.id || deletedRidersSet.has(String(br.id))) continue;
+            if (!riderMap.has(String(br.id))) {
+              riderMap.set(String(br.id), br);
+              mergedChanges = true;
+            }
+          }
+          if (mergedChanges) {
+            data.riders = Array.from(riderMap.values());
+          }
+        }
+
+        if (mergedChanges) {
+          writeDb(data);
+        }
+      }
+    } catch (backupErr) {
+      // Ignore backup merge errors
     }
 
     memoryCache = data;
@@ -184,19 +290,35 @@ function readDb() {
 
 function writeDb(data) {
   memoryCache = data;
+  const serialized = JSON.stringify(data, null, 2);
   try {
-    const tmpFile = `${dbFile}.tmp`;
-    fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), 'utf8');
+    const tmpFile = `${dbFile}.${process.pid}.${Date.now()}.tmp`;
+    fs.writeFileSync(tmpFile, serialized, 'utf8');
     try {
       fs.renameSync(tmpFile, dbFile);
     } catch {
-      // Fallback for Windows file-locking or cross-device rename
       fs.copyFileSync(tmpFile, dbFile);
       try { fs.unlinkSync(tmpFile); } catch {}
     }
+    try {
+      const stat = fs.statSync(dbFile);
+      lastMtimeMs = stat.mtimeMs;
+    } catch {}
   } catch (err) {
     console.error('Error persisting db.json to disk:', err);
   }
+
+  // Persist mirror backup outside git workspace
+  try {
+    const backupTmp = `${backupDbFile}.${process.pid}.tmp`;
+    fs.writeFileSync(backupTmp, serialized, 'utf8');
+    try {
+      fs.renameSync(backupTmp, backupDbFile);
+    } catch {
+      fs.copyFileSync(backupTmp, backupDbFile);
+      try { fs.unlinkSync(backupTmp); } catch {}
+    }
+  } catch {}
 }
 
 function findOrderById(orders, id) {
@@ -473,27 +595,76 @@ export const db = {
   },
 
   createOrder(orderData) {
-    const data = readDb();
-    const id = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(10 + Math.random() * 90)}`;
+    const data = readDb(true);
+    const id = orderData.id
+      ? String(orderData.id).replace(/^#/, '').trim()
+      : `ORD-${Date.now().toString().slice(-6)}-${Math.floor(10 + Math.random() * 90)}`;
+    const existing = findOrderById(data.orders, id);
+    if (existing) return existing;
+
     const newOrder = {
       id,
       ...orderData,
-      status: 'Pending', // Pending | Preparing | Out for Delivery | Delivered | Cancelled
-      createdAt: new Date().toISOString()
+      status: orderData.status || 'Pending', // Pending | Preparing | Out for Delivery | Delivered | Cancelled
+      createdAt: orderData.createdAt || new Date().toISOString()
     };
     data.orders = [newOrder, ...(data.orders || [])];
     writeDb(data);
     return newOrder;
   },
 
-  updateOrderStatus(id, status, riderData = null) {
-    const data = readDb();
-    const order = findOrderById(data.orders, id);
+  syncOrders(clientOrders = []) {
+    if (!Array.isArray(clientOrders) || clientOrders.length === 0) return this.getOrders();
+    const data = readDb(true);
+    data.orders = data.orders || [];
+    const deletedSet = new Set((data.deletedOrderIds || []).map(id => String(id).replace(/^#/, '').trim().toLowerCase()));
+    let changed = false;
+
+    clientOrders.forEach(co => {
+      if (!co || !co.id || !Array.isArray(co.items) || co.items.length === 0) return;
+      const cleanId = String(co.id).replace(/^#/, '').trim();
+      if (!cleanId || cleanId.startsWith('WA-') || deletedSet.has(cleanId.toLowerCase())) return;
+      const existing = findOrderById(data.orders, cleanId);
+      if (!existing) {
+        data.orders.unshift({
+          ...co,
+          id: cleanId,
+          status: co.status || 'Pending',
+          createdAt: co.createdAt || new Date().toISOString()
+        });
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      data.orders.sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
+      writeDb(data);
+    }
+    return this.getOrders();
+  },
+
+  updateOrderStatus(id, status, riderData = null, orderSnapshot = null) {
+    const data = readDb(true);
+    let order = findOrderById(data.orders, id);
+    if (!order && orderSnapshot && typeof orderSnapshot === 'object') {
+      const cleanId = String(id || orderSnapshot.id || '').replace(/^#/, '').trim();
+      if (cleanId) {
+        order = {
+          ...orderSnapshot,
+          id: cleanId,
+          createdAt: orderSnapshot.createdAt || new Date().toISOString()
+        };
+        data.orders = [order, ...(data.orders || [])];
+      }
+    }
     if (!order) return null;
-    if (String(order.status || '').toLowerCase() === 'delivered') {
+    if (String(order.status || '').toLowerCase() === 'delivered' && String(status || '').toLowerCase() !== 'delivered') {
       return order; // Status cannot be changed once delivered
     }
     order.status = status;
+    if (String(status || '').toLowerCase() === 'delivered' && !order.deliveredAt) {
+      order.deliveredAt = new Date().toISOString();
+    }
     if (riderData) {
       if (riderData.riderId !== undefined) order.riderId = riderData.riderId;
       if (riderData.riderName !== undefined) order.riderName = riderData.riderName;
@@ -504,9 +675,20 @@ export const db = {
     return order;
   },
 
-  assignOrderRider(id, { riderId, riderName, riderPhone } = {}) {
-    const data = readDb();
-    const order = findOrderById(data.orders, id);
+  assignOrderRider(id, { riderId, riderName, riderPhone, orderSnapshot } = {}) {
+    const data = readDb(true);
+    let order = findOrderById(data.orders, id);
+    if (!order && orderSnapshot && typeof orderSnapshot === 'object') {
+      const cleanId = String(id || orderSnapshot.id || '').replace(/^#/, '').trim();
+      if (cleanId) {
+        order = {
+          ...orderSnapshot,
+          id: cleanId,
+          createdAt: orderSnapshot.createdAt || new Date().toISOString()
+        };
+        data.orders = [order, ...(data.orders || [])];
+      }
+    }
     if (!order) return null;
     if (!riderId) {
       order.riderId = null;
@@ -532,7 +714,7 @@ export const db = {
   },
 
   deleteOrder(id) {
-    const data = readDb();
+    const data = readDb(true);
     const rawId = String(id).trim();
     const cleanId = rawId.replace(/^#/, '').trim();
     const initialLen = (data.orders || []).length;
@@ -542,10 +724,12 @@ export const db = {
       const oClean = oRaw.replace(/^#/, '').trim();
       return oRaw !== rawId && oClean !== cleanId && oClean.toLowerCase() !== cleanId.toLowerCase();
     });
+    data.deletedOrderIds = Array.from(new Set([...(data.deletedOrderIds || []), cleanId]));
     if (data.orders.length !== initialLen) {
       writeDb(data);
       return true;
     }
+    writeDb(data);
     return false;
   },
 
@@ -902,20 +1086,42 @@ export const db = {
     return false;
   },
 
-  updateOrderDeliveryFee(id, newDeliveryFee) {
-    const data = readDb();
-    const order = findOrderById(data.orders, id);
+  updateOrderDeliveryFee(id, newDeliveryFee, orderSnapshot = null) {
+    const data = readDb(true);
+    let order = findOrderById(data.orders, id);
+    if (!order && orderSnapshot && typeof orderSnapshot === 'object') {
+      const cleanId = String(id || orderSnapshot.id || '').replace(/^#/, '').trim();
+      if (cleanId) {
+        order = {
+          ...orderSnapshot,
+          id: cleanId,
+          createdAt: orderSnapshot.createdAt || new Date().toISOString()
+        };
+        data.orders = [order, ...(data.orders || [])];
+      }
+    }
     if (!order) return null;
     order.deliveryFee = Math.max(0, Number(newDeliveryFee) || 0);
-    order.total = Number(order.subtotal || 0) + order.deliveryFee;
+    order.total = Number(order.subtotal || 0) + order.deliveryFee - (Number(order.couponDiscount) || 0);
     order.updatedAt = new Date().toISOString();
     writeDb(data);
     return order;
   },
 
-  updateOrderItems(id, { items, subtotal, deliveryFee, total, notes }) {
-    const data = readDb();
-    const order = findOrderById(data.orders, id);
+  updateOrderItems(id, { items, subtotal, deliveryFee, total, notes, orderSnapshot }) {
+    const data = readDb(true);
+    let order = findOrderById(data.orders, id);
+    if (!order && orderSnapshot && typeof orderSnapshot === 'object') {
+      const cleanId = String(id || orderSnapshot.id || '').replace(/^#/, '').trim();
+      if (cleanId) {
+        order = {
+          ...orderSnapshot,
+          id: cleanId,
+          createdAt: orderSnapshot.createdAt || new Date().toISOString()
+        };
+        data.orders = [order, ...(data.orders || [])];
+      }
+    }
     if (!order) return null;
     if (items) order.items = items;
     if (subtotal !== undefined) order.subtotal = Number(subtotal);
@@ -939,7 +1145,7 @@ export const db = {
   },
 
   createRider(riderData) {
-    const data = readDb();
+    const data = readDb(true);
     let digits = String(riderData.phone || '').replace(/\D/g, '');
     if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
     else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
@@ -960,7 +1166,7 @@ export const db = {
   },
 
   updateRider(id, updates) {
-    const data = readDb();
+    const data = readDb(true);
     const idx = (data.riders || []).findIndex(r => r.id === id);
     if (idx === -1) return null;
 
@@ -998,9 +1204,10 @@ export const db = {
   },
 
   deleteRider(id) {
-    const data = readDb();
+    const data = readDb(true);
     const initialLen = (data.riders || []).length;
     data.riders = (data.riders || []).filter(r => r.id !== id);
+    data.deletedRiderIds = Array.from(new Set([...(data.deletedRiderIds || []), String(id)]));
     // Unassign deleted rider from active undelivered orders
     (data.orders || []).forEach(o => {
       if (o.riderId === id && o.status !== 'Delivered') {
@@ -1014,7 +1221,7 @@ export const db = {
   },
 
   riderLogin({ phone, pin }) {
-    const data = readDb();
+    const data = readDb(true);
     let digits = String(phone || '').replace(/\D/g, '');
     if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
     else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
@@ -1043,10 +1250,11 @@ export const db = {
     return rider;
   },
 
-  getRiderOrders(riderId, riderPhone = '') {
+  getRiderOrders(riderId, riderPhone = '', riderName = '') {
     const data = readDb();
     const cleanId = String(riderId || '').trim();
     const cleanPhoneParam = String(riderPhone || '').trim();
+    const cleanNameParam = String(riderName || '').trim().toLowerCase();
 
     const normalizePhone = (p) => {
       if (!p) return '';
@@ -1062,21 +1270,35 @@ export const db = {
       if (cleanId && String(r.id) === cleanId) return true;
       const rPhone = normalizePhone(r.phone);
       if (searchPhone && rPhone === searchPhone) return true;
+      if (cleanNameParam && (r.name || '').trim().toLowerCase() === cleanNameParam) return true;
       return false;
-    });
+    }) || (cleanId || searchPhone ? { id: cleanId, phone: searchPhone, name: riderName || 'Rider' } : null);
 
-    if (!rider) return { activeOrders: [], completedOrders: [], stats: { todayDeliveries: 0, todayCash: 0, allTimeDeliveries: 0, allTimeCash: 0 } };
+    if (!rider) return { activeOrders: [], completedOrders: [], stats: { activeCount: 0, activeCashToCollect: 0, todayDeliveries: 0, todayCash: 0, allTimeDeliveries: 0, allTimeCash: 0 } };
 
-    const riderPhoneNorm = normalizePhone(rider.phone);
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const riderPhoneNorm = normalizePhone(rider.phone || searchPhone);
+    const effectiveName = (rider.name || cleanNameParam || '').trim().toLowerCase();
+
+    const toPktDateStr = (isoStr) => {
+      if (!isoStr) return '';
+      try {
+        const d = new Date(isoStr);
+        if (isNaN(d.getTime())) return String(isoStr).slice(0, 10);
+        return new Date(d.getTime() + 5 * 3600 * 1000).toISOString().slice(0, 10);
+      } catch {
+        return String(isoStr).slice(0, 10);
+      }
+    };
+    const todayStr = toPktDateStr(new Date().toISOString());
 
     const assignedOrders = (data.orders || []).filter(o => {
       if (!o) return false;
-      if (o.riderId && String(o.riderId) === String(rider.id)) return true;
+      if (o.riderId && (String(o.riderId) === String(rider.id) || (cleanId && String(o.riderId) === cleanId))) return true;
       if (riderPhoneNorm && o.riderPhone) {
         const oPhoneNorm = normalizePhone(o.riderPhone);
         if (oPhoneNorm && oPhoneNorm === riderPhoneNorm) return true;
       }
+      if (effectiveName && o.riderName && o.riderName.trim().toLowerCase() === effectiveName) return true;
       return false;
     });
 
@@ -1084,7 +1306,7 @@ export const db = {
     const completedOrders = assignedOrders.filter(o => o.status === 'Delivered');
 
     const todayCompleted = completedOrders.filter(o => {
-      const dStr = (o.updatedAt || o.createdAt || '').slice(0, 10);
+      const dStr = toPktDateStr(o.deliveredAt || o.updatedAt || o.createdAt || '');
       return dStr === todayStr;
     });
 
@@ -1107,9 +1329,20 @@ export const db = {
     };
   },
 
-  markOrderDeliveredByRider(orderId, riderId, notes) {
-    const data = readDb();
-    const order = findOrderById(data.orders, orderId);
+  markOrderDeliveredByRider(orderId, riderId, notes, orderSnapshot = null) {
+    const data = readDb(true);
+    let order = findOrderById(data.orders, orderId);
+    if (!order && orderSnapshot && typeof orderSnapshot === 'object') {
+      const cleanId = String(orderId || orderSnapshot.id || '').replace(/^#/, '').trim();
+      if (cleanId) {
+        order = {
+          ...orderSnapshot,
+          id: cleanId,
+          createdAt: orderSnapshot.createdAt || new Date().toISOString()
+        };
+        data.orders = [order, ...(data.orders || [])];
+      }
+    }
     if (!order) return null;
 
     order.status = 'Delivered';
@@ -1122,9 +1355,20 @@ export const db = {
     return order;
   },
 
-  startOrderDeliveryByRider(orderId, riderId) {
-    const data = readDb();
-    const order = findOrderById(data.orders, orderId);
+  startOrderDeliveryByRider(orderId, riderId, orderSnapshot = null) {
+    const data = readDb(true);
+    let order = findOrderById(data.orders, orderId);
+    if (!order && orderSnapshot && typeof orderSnapshot === 'object') {
+      const cleanId = String(orderId || orderSnapshot.id || '').replace(/^#/, '').trim();
+      if (cleanId) {
+        order = {
+          ...orderSnapshot,
+          id: cleanId,
+          createdAt: orderSnapshot.createdAt || new Date().toISOString()
+        };
+        data.orders = [order, ...(data.orders || [])];
+      }
+    }
     if (!order) return null;
 
     order.status = 'Out for Delivery';

@@ -174,6 +174,7 @@ export const CartProvider = ({ children }) => {
   const [activeOrderNotification, setActiveOrderNotification] = useState(null);
   const knownStatusesRef = useRef(new Map());
   const initialSyncDoneRef = useRef(false);
+  const syncedMissingIdsRef = useRef(new Set());
 
   const dismissOrderNotification = () => setActiveOrderNotification(null);
 
@@ -229,6 +230,27 @@ export const CartProvider = ({ children }) => {
         serverMap.set(rawId, o);
         serverMap.set(cleanId, o);
       });
+
+      // Self-heal any recent orders (< 24h old) that exist locally but were missing on server
+      const missingRecent = localOrders.filter(lo => {
+        if (!lo || !lo.id || !Array.isArray(lo.items) || lo.items.length === 0) return false;
+        const cleanId = String(lo.id).trim().replace(/^#/, '');
+        if (!cleanId || cleanId.startsWith('WA-')) return false;
+        if (serverMap.has(cleanId) || syncedMissingIdsRef.current.has(cleanId)) return false;
+        const ageMs = Date.now() - new Date(lo.createdAt || 0).getTime();
+        return ageMs >= 0 && ageMs < 24 * 3600 * 1000;
+      });
+
+      if (missingRecent.length > 0) {
+        missingRecent.forEach(lo => syncedMissingIdsRef.current.add(String(lo.id).trim().replace(/^#/, '')));
+        try {
+          fetch(apiUrl('/api/orders/sync'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orders: missingRecent })
+          }).catch(() => {});
+        } catch {}
+      }
 
       const notifiedSet = getNotifiedStatuses();
       let hasChanges = false;

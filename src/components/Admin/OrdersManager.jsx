@@ -664,22 +664,42 @@ export default function OrdersManager({
   const calcDeliveryFee = calcSubtotal > 0 ? (isFree ? 0 : baseDeliveryFee) : 0;
   const calcTotal = calcSubtotal + calcDeliveryFee;
 
+  const findOrderSnapshot = (orderId, explicitOrder = null) => {
+    if (explicitOrder && typeof explicitOrder === 'object') return explicitOrder;
+    const cleanId = String(orderId || '').replace(/^#/, '').trim();
+    if (!cleanId) return null;
+    return (
+      (orders || []).find(o => String(o?.id || '').replace(/^#/, '').trim() === cleanId) ||
+      (allOrders || []).find(o => String(o?.id || '').replace(/^#/, '').trim() === cleanId) ||
+      null
+    );
+  };
+
   const handleSaveModifiedOrder = async () => {
     if (!modifyingOrder || editItems.length === 0) return;
     setIsSaving(true);
     try {
       const cleanOrderId = encodeURIComponent(String(modifyingOrder.id || '').replace(/^#/, ''));
-      const res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/items`), {
+      const bodyStr = JSON.stringify({
+        items: editItems,
+        subtotal: calcSubtotal,
+        deliveryFee: calcDeliveryFee,
+        total: calcTotal,
+        notes: editNotes,
+        order: modifyingOrder
+      });
+      let res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/items`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: editItems,
-          subtotal: calcSubtotal,
-          deliveryFee: calcDeliveryFee,
-          total: calcTotal,
-          notes: editNotes
-        })
+        body: bodyStr
       });
+      if (!res.ok) {
+        res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/items`), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: bodyStr
+        });
+      }
       if (res.ok) {
         setModifyingOrder(null);
         onRefresh();
@@ -694,24 +714,36 @@ export default function OrdersManager({
     }
   };
 
-  const handleStatusChange = async (orderId, newStatus, riderData = null) => {
+  const handleStatusChange = async (orderId, newStatus, riderData = null, orderObj = null) => {
     try {
-      const payload = { status: newStatus };
+      const targetOrder = findOrderSnapshot(orderId, orderObj);
+      const payload = {
+        status: newStatus,
+        ...(targetOrder ? { order: targetOrder } : {})
+      };
       if (riderData) {
         payload.riderId = riderData.riderId;
         payload.riderName = riderData.riderName;
         payload.riderPhone = riderData.riderPhone;
-      } else if (newStatus === 'Out for Delivery' || newStatus === 'Preparing' || newStatus === 'Pending') {
+      } else if (newStatus === 'Cancelled') {
         payload.riderId = null;
         payload.riderName = null;
         payload.riderPhone = null;
       }
       const cleanOrderId = encodeURIComponent(String(orderId || '').replace(/^#/, ''));
-      const res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/status`), {
+      const bodyStr = JSON.stringify(payload);
+      let res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/status`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: bodyStr
       });
+      if (!res.ok) {
+        res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/status`), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: bodyStr
+        });
+      }
       if (res.ok) {
         onRefresh();
 
@@ -728,7 +760,7 @@ export default function OrdersManager({
                   upd.riderId = riderData.riderId;
                   upd.riderName = riderData.riderName;
                   upd.riderPhone = riderData.riderPhone;
-                } else if (newStatus === 'Out for Delivery' || newStatus === 'Preparing' || newStatus === 'Pending') {
+                } else if (newStatus === 'Cancelled') {
                   upd.riderId = null;
                   upd.riderName = null;
                   upd.riderPhone = null;
@@ -748,26 +780,37 @@ export default function OrdersManager({
         window.dispatchEvent(new CustomEvent('salik_order_status_updated', { detail: { id: orderId, status: newStatus } }));
         window.dispatchEvent(new Event('storage'));
       } else {
-        alert('Failed to update status');
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || 'Failed to update status');
       }
     } catch {
       alert('Error updating status');
     }
   };
 
-  const handleAssignRider = async (orderId, riderId) => {
+  const handleAssignRider = async (orderId, riderId, orderObj = null) => {
     try {
       const selectedRider = (riders || []).find(r => r.id === riderId);
+      const targetOrder = findOrderSnapshot(orderId, orderObj);
       const cleanOrderId = encodeURIComponent(String(orderId || '').replace(/^#/, ''));
-      const res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/rider`), {
+      const bodyStr = JSON.stringify({
+        riderId: riderId || null,
+        riderName: selectedRider ? selectedRider.name : null,
+        riderPhone: selectedRider ? selectedRider.phone : null,
+        ...(targetOrder ? { order: targetOrder } : {})
+      });
+      let res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/rider`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          riderId: riderId || null,
-          riderName: selectedRider ? selectedRider.name : null,
-          riderPhone: selectedRider ? selectedRider.phone : null
-        })
+        body: bodyStr
       });
+      if (!res.ok) {
+        res = await fetch(apiUrl(`/api/orders/${cleanOrderId}/rider`), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: bodyStr
+        });
+      }
       if (res.ok) {
         onRefresh();
         // Update local cache
@@ -795,7 +838,8 @@ export default function OrdersManager({
         window.dispatchEvent(new CustomEvent('salik_sync_orders'));
         window.dispatchEvent(new Event('storage'));
       } else {
-        alert('Failed to assign rider');
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || 'Failed to assign rider');
       }
     } catch {
       alert('Error assigning rider');
@@ -817,10 +861,10 @@ export default function OrdersManager({
     setIsUpdatingStatus(true);
     try {
       let riderData = null;
-      if (newStatus === 'Out for Delivery' || newStatus === 'Preparing' || newStatus === 'Pending') {
+      if (newStatus === 'Cancelled') {
         riderData = { riderId: null, riderName: null, riderPhone: null };
       }
-      await handleStatusChange(order.id, newStatus, riderData);
+      await handleStatusChange(order.id, newStatus, riderData, order);
       setStatusChangeConfirmModal(null);
     } finally {
       setIsUpdatingStatus(false);
@@ -2734,7 +2778,7 @@ export default function OrdersManager({
                     <button
                       type="button"
                       onClick={async () => {
-                        await handleAssignRider(assigningRiderOrder.id, '');
+                        await handleAssignRider(assigningRiderOrder.id, '', assigningRiderOrder);
                         setAssigningRiderOrder(null);
                       }}
                       className={`w-full flex items-center justify-between p-3 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
@@ -2780,7 +2824,7 @@ export default function OrdersManager({
                           <button
                             type="button"
                             onClick={async () => {
-                              await handleAssignRider(assigningRiderOrder.id, r.id);
+                              await handleAssignRider(assigningRiderOrder.id, r.id, assigningRiderOrder);
                               setAssigningRiderOrder(null);
                             }}
                             className="flex-1 flex items-center gap-3 text-left cursor-pointer"

@@ -604,10 +604,37 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             } catch {}
           }
         }),
-        safeFetch('/api/orders', []).then(data => {
+        safeFetch('/api/orders', []).then(async (data) => {
           if (Array.isArray(data)) {
-            processIncomingOrders(data);
-            try { localStorage.setItem('salik_cached_admin_orders', JSON.stringify(data)); } catch {}
+            let finalOrders = data;
+            if (!initialLoadDoneRef.current) {
+              try {
+                const cachedRaw = localStorage.getItem('salik_cached_admin_orders');
+                const cachedList = cachedRaw ? JSON.parse(cachedRaw) : [];
+                if (Array.isArray(cachedList) && cachedList.length > 0) {
+                  const serverIds = new Set(data.map(o => String(o?.id || '').replace(/^#/, '').trim()));
+                  const missingRecent = cachedList.filter(co => {
+                    if (!co || !co.id || !Array.isArray(co.items) || co.items.length === 0) return false;
+                    const cId = String(co.id).replace(/^#/, '').trim();
+                    if (!cId || serverIds.has(cId)) return false;
+                    const ageMs = Date.now() - new Date(co.createdAt || 0).getTime();
+                    return ageMs >= 0 && ageMs < 24 * 3600 * 1000;
+                  });
+                  if (missingRecent.length > 0) {
+                    const syncRes = await fetch(apiUrl('/api/orders/sync'), {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ orders: missingRecent })
+                    }).then(r => r.ok ? r.json() : null).catch(() => null);
+                    if (syncRes && Array.isArray(syncRes.orders)) {
+                      finalOrders = syncRes.orders;
+                    }
+                  }
+                }
+              } catch {}
+            }
+            processIncomingOrders(finalOrders);
+            try { localStorage.setItem('salik_cached_admin_orders', JSON.stringify(finalOrders)); } catch {}
           }
         }),
         safeFetch('/api/stats', {}).then(data => {

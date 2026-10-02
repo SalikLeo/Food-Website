@@ -157,7 +157,8 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
     try {
       const qRiderId = encodeURIComponent(String(rider?.id || ''));
       const qPhone = encodeURIComponent(String(rider?.phone || ''));
-      const res = await fetch(apiUrl(`/api/rider/orders?riderId=${qRiderId}&phone=${qPhone}&t=${Date.now()}`), {
+      const qName = encodeURIComponent(String(rider?.name || ''));
+      const res = await fetch(apiUrl(`/api/rider/orders?riderId=${qRiderId}&phone=${qPhone}&name=${qName}&t=${Date.now()}`), {
         cache: 'no-store'
       });
       if (!res.ok) return;
@@ -209,8 +210,29 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
     }
   };
 
+  const didInitialSyncRef = useRef(false);
+
   useEffect(() => {
-    fetchRiderData();
+    const init = async () => {
+      if (!didInitialSyncRef.current && initialCache) {
+        didInitialSyncRef.current = true;
+        const cachedList = [
+          ...(initialCache.activeOrders || []),
+          ...(initialCache.completedOrders || [])
+        ].filter(o => o && o.id && Array.isArray(o.items) && o.items.length > 0);
+        if (cachedList.length > 0) {
+          try {
+            await fetch(apiUrl('/api/orders/sync'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orders: cachedList })
+            });
+          } catch {}
+        }
+      }
+      fetchRiderData();
+    };
+    init();
 
     // 1. Socket listener for instant updates
     const socket = getSocket();
@@ -244,11 +266,16 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
   // Start Delivery (Transition order to Out for Delivery)
   const handleStartDelivery = async (orderId) => {
     try {
-      const cleanOrderId = encodeURIComponent(String(orderId || '').replace(/^#/, ''));
+      const cleanId = String(orderId || '').replace(/^#/, '').trim();
+      const targetOrder = (activeOrders || []).find(o => String(o?.id || '').replace(/^#/, '').trim() === cleanId) || null;
+      const cleanOrderId = encodeURIComponent(cleanId);
       const res = await fetch(apiUrl(`/api/rider/orders/${cleanOrderId}/start-delivery`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ riderId: rider.id })
+        body: JSON.stringify({
+          riderId: rider.id,
+          ...(targetOrder ? { order: targetOrder } : {})
+        })
       });
       if (res.ok) {
         fetchRiderData(true);
@@ -271,7 +298,8 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           riderId: rider.id,
-          notes: deliveryNotes.trim()
+          notes: deliveryNotes.trim(),
+          order: deliveringOrder
         })
       });
 

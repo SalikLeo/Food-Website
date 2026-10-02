@@ -25,41 +25,53 @@ const io = new Server(httpServer, {
 });
 
 // Trust proxy for proper IP resolution behind Hostinger / Cloudflare / Nginx reverse proxies
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 // Enable CORS and JSON
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 
-// 1. General API Rate Limiting (DDoS & Brute Force protection: 300 req/min per IP)
+// Safe WebSocket broadcast wrapper so socket/stats errors never fail HTTP responses
+function safeBroadcast(fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.warn('Socket broadcast warning:', err?.message || err);
+  }
+}
+
+// 1. General API Rate Limiting (Generous threshold for multi-device polling behind shared proxy/NAT)
 const generalApiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 300,
+  max: 10000,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   message: { error: 'Too many requests. Please slow down.' },
-  skip: (req) => req.path === '/api/health' || req.path === '/api/app-version'
+  skip: (req) => req.path === '/api/health' || req.path === '/api/app-version' || req.path.startsWith('/api/orders') || req.path.startsWith('/api/rider')
 });
 app.use('/api/', generalApiLimiter);
 
-// 2. Strict Order Creation Limiter (Anti-Spam / Bot Protection: max 10 orders per 5 min per IP)
+// 2. Order Creation Limiter (Generous limit for busy shifts / shared Wi-Fi)
 const orderCreationLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 10,
+  max: 200,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   message: {
     success: false,
-    error: 'Order limit exceeded. Please wait a few minutes before submitting another order, or contact us directly on WhatsApp or Phone.'
+    error: 'Order limit exceeded. Please wait a moment before submitting another order, or contact us directly on WhatsApp or Phone.'
   }
 });
 
-// 3. Admin Login Brute Force Protection (max 15 attempts per 15 min per IP)
+// 3. Admin Login Brute Force Protection (max 30 attempts per 15 min per IP)
 const adminLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 15,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
   message: { success: false, error: 'Too many failed login attempts. Please wait 15 minutes before trying again.' }
 });
 
@@ -392,6 +404,17 @@ app.get('/api/orders', (req, res) => {
   res.json(db.getOrders());
 });
 
+app.post('/api/orders/sync', (req, res) => {
+  try {
+    const { orders } = req.body || {};
+    const synced = db.syncOrders(Array.isArray(orders) ? orders : []);
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.json({ success: true, orders: synced });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/orders', orderCreationLimiter, (req, res) => {
   try {
     const { customerName, phone, address, notes, paymentMethod, items, subtotal, deliveryFee, total, customerEmail, customerGoogleId, couponCode, couponDiscount } = req.body;
@@ -430,10 +453,12 @@ app.post('/api/orders', orderCreationLimiter, (req, res) => {
       }
     }
 
-    // Real-time broadcast: notify admin & kitchen instantly
-    io.emit('order:new', order);
-    io.emit('orders:updated', db.getOrders());
-    io.emit('stats:updated', db.getStats());
+    // Real-time broadcast: notify admin & kitchen instantly (wrapped so it never fails HTTP 201)
+    safeBroadcast(() => {
+      io.emit('order:new', order);
+      io.emit('orders:updated', db.getOrders());
+      io.emit('stats:updated', db.getStats());
+    });
 
     res.status(201).json({ success: true, order });
   } catch (err) {
@@ -441,81 +466,102 @@ app.post('/api/orders', orderCreationLimiter, (req, res) => {
   }
 });
 
-app.patch('/api/orders/:id/status', (req, res) => {
+const handleUpdateOrderStatus = (req, res) => {
   try {
     const orderId = decodeURIComponent(req.params.id || '');
-    const { status, riderId, riderName, riderPhone } = req.body;
+    const { status, riderId, riderName, riderPhone, order: orderSnapshot } = req.body || {};
     const riderData = riderId !== undefined
       ? { riderId, riderName, riderPhone }
       : null;
-    const updated = db.updateOrderStatus(orderId, status, riderData);
+    const updated = db.updateOrderStatus(orderId, status, riderData, orderSnapshot || null);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: status updated
-    io.emit('order:status_updated', updated);
-    io.emit('order:updated', updated);
-    io.emit('orders:updated', db.getOrders());
-    io.emit('stats:updated', db.getStats());
+    safeBroadcast(() => {
+      io.emit('order:status_updated', updated);
+      io.emit('order:updated', updated);
+      io.emit('orders:updated', db.getOrders());
+      io.emit('stats:updated', db.getStats());
+    });
 
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.patch('/api/orders/:id/status', handleUpdateOrderStatus);
+app.post('/api/orders/:id/status', handleUpdateOrderStatus);
+app.put('/api/orders/:id/status', handleUpdateOrderStatus);
 
-app.patch('/api/orders/:id/rider', (req, res) => {
+const handleAssignOrderRider = (req, res) => {
   try {
     const orderId = decodeURIComponent(req.params.id || '');
-    const { riderId, riderName, riderPhone } = req.body;
-    const updated = db.assignOrderRider(orderId, { riderId, riderName, riderPhone });
+    const { riderId, riderName, riderPhone, order: orderSnapshot } = req.body || {};
+    const updated = db.assignOrderRider(orderId, { riderId, riderName, riderPhone, orderSnapshot: orderSnapshot || null });
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: rider assigned
-    io.emit('order:rider_assigned', updated);
-    io.emit('order:updated', updated);
+    safeBroadcast(() => {
+      io.emit('order:rider_assigned', updated);
+      io.emit('order:updated', updated);
+      io.emit('orders:updated', db.getOrders());
+    });
 
     res.json({ success: true, order: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.patch('/api/orders/:id/rider', handleAssignOrderRider);
+app.post('/api/orders/:id/rider', handleAssignOrderRider);
+app.put('/api/orders/:id/rider', handleAssignOrderRider);
 
-app.patch('/api/orders/:id/delivery-fee', (req, res) => {
+const handleUpdateOrderDeliveryFee = (req, res) => {
   try {
     const orderId = decodeURIComponent(req.params.id || '');
-    const { deliveryFee } = req.body;
-    const updated = db.updateOrderDeliveryFee(orderId, deliveryFee);
+    const { deliveryFee, order: orderSnapshot } = req.body || {};
+    const updated = db.updateOrderDeliveryFee(orderId, deliveryFee, orderSnapshot || null);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: order fee updated
-    io.emit('order:updated', updated);
+    safeBroadcast(() => {
+      io.emit('order:updated', updated);
+      io.emit('orders:updated', db.getOrders());
+    });
 
     res.json({ success: true, order: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.patch('/api/orders/:id/delivery-fee', handleUpdateOrderDeliveryFee);
+app.post('/api/orders/:id/delivery-fee', handleUpdateOrderDeliveryFee);
+app.put('/api/orders/:id/delivery-fee', handleUpdateOrderDeliveryFee);
 
-app.put('/api/orders/:id/items', (req, res) => {
+const handleUpdateOrderItems = (req, res) => {
   try {
     const orderId = decodeURIComponent(req.params.id || '');
-    const { items, subtotal, deliveryFee, total, notes } = req.body;
+    const { items, subtotal, deliveryFee, total, notes, order: orderSnapshot } = req.body || {};
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Order must contain at least one item' });
     }
-    const updated = db.updateOrderItems(orderId, { items, subtotal, deliveryFee, total, notes });
+    const updated = db.updateOrderItems(orderId, { items, subtotal, deliveryFee, total, notes, orderSnapshot: orderSnapshot || null });
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: order items updated
-    io.emit('order:updated', updated);
-    io.emit('orders:updated', db.getOrders());
-    io.emit('stats:updated', db.getStats());
+    safeBroadcast(() => {
+      io.emit('order:updated', updated);
+      io.emit('orders:updated', db.getOrders());
+      io.emit('stats:updated', db.getStats());
+    });
 
     res.json({ success: true, order: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.put('/api/orders/:id/items', handleUpdateOrderItems);
+app.post('/api/orders/:id/items', handleUpdateOrderItems);
 
 app.delete('/api/orders/:id', (req, res) => {
   try {
@@ -524,9 +570,11 @@ app.delete('/api/orders/:id', (req, res) => {
     if (!deleted) return res.status(404).json({ error: 'Order not found' });
 
     // Real-time broadcast: order deleted
-    io.emit('order:deleted', { id: orderId });
-    io.emit('orders:updated', db.getOrders());
-    io.emit('stats:updated', db.getStats());
+    safeBroadcast(() => {
+      io.emit('order:deleted', { id: orderId });
+      io.emit('orders:updated', db.getOrders());
+      io.emit('stats:updated', db.getStats());
+    });
 
     res.json({ success: true, message: 'Order deleted successfully' });
   } catch (err) {
@@ -542,7 +590,7 @@ app.get('/api/settings', (req, res) => {
 app.put('/api/settings', (req, res) => {
   try {
     const updated = db.updateSettings(req.body);
-    io.emit('settings:updated', updated);
+    safeBroadcast(() => io.emit('settings:updated', updated));
     res.json({ success: true, settings: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -552,7 +600,7 @@ app.put('/api/settings', (req, res) => {
 app.post('/api/settings', (req, res) => {
   try {
     const updated = db.updateSettings(req.body);
-    io.emit('settings:updated', updated);
+    safeBroadcast(() => io.emit('settings:updated', updated));
     res.json({ success: true, settings: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -587,8 +635,10 @@ app.post('/api/reviews', (req, res) => {
     }
     const comment = (req.body.comment || '').trim() || '-';
     const newReview = db.createReview({ ...req.body, comment });
-    io.emit('review:new', newReview);
-    io.emit('reviews:updated', db.getReviews());
+    safeBroadcast(() => {
+      io.emit('review:new', newReview);
+      io.emit('reviews:updated', db.getReviews());
+    });
     res.status(201).json({ success: true, review: newReview });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -599,8 +649,10 @@ app.delete('/api/reviews/:id', (req, res) => {
   try {
     const deleted = db.deleteReview(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Review not found' });
-    io.emit('review:deleted', { id: String(req.params.id) });
-    io.emit('reviews:updated', db.getReviews());
+    safeBroadcast(() => {
+      io.emit('review:deleted', { id: String(req.params.id) });
+      io.emit('reviews:updated', db.getReviews());
+    });
     res.json({ success: true, message: 'Review deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -637,7 +689,7 @@ app.post('/api/riders', (req, res) => {
       return res.status(400).json({ error: 'Rider phone number must be 11 digits (e.g. 03001234567)' });
     }
     const newRider = db.createRider({ name: name.trim(), phone: cleanPhone, pin, status });
-    io.emit('riders:updated', db.getRiders());
+    safeBroadcast(() => io.emit('riders:updated', db.getRiders()));
     res.status(201).json({ success: true, rider: newRider });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -661,7 +713,7 @@ app.put('/api/riders/:id', (req, res) => {
       ...(status !== undefined ? { status } : {})
     });
     if (!updated) return res.status(404).json({ error: 'Rider not found' });
-    io.emit('riders:updated', db.getRiders());
+    safeBroadcast(() => io.emit('riders:updated', db.getRiders()));
     res.json({ success: true, rider: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -680,7 +732,7 @@ app.delete('/api/riders/:id', (req, res) => {
     }
     const deleted = db.deleteRider(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Rider not found' });
-    io.emit('riders:updated', db.getRiders());
+    safeBroadcast(() => io.emit('riders:updated', db.getRiders()));
     res.json({ success: true, message: 'Rider deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -713,11 +765,12 @@ app.post('/api/rider/login', (req, res) => {
 
 app.get('/api/rider/orders', (req, res) => {
   try {
-    const { riderId, phone } = req.query;
-    if (!riderId && !phone) {
+    const { riderId, phone, name } = req.query;
+    if (!riderId && !phone && !name) {
       return res.status(400).json({ error: 'Rider ID or phone is required' });
     }
-    const data = db.getRiderOrders(riderId, phone);
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    const data = db.getRiderOrders(riderId, phone, name);
     res.json({ success: true, ...data });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -727,14 +780,16 @@ app.get('/api/rider/orders', (req, res) => {
 app.post('/api/rider/orders/:id/deliver', (req, res) => {
   try {
     const orderId = decodeURIComponent(req.params.id || '');
-    const { riderId, notes } = req.body;
-    const updated = db.markOrderDeliveredByRider(orderId, riderId, notes);
+    const { riderId, notes, order: orderSnapshot } = req.body || {};
+    const updated = db.markOrderDeliveredByRider(orderId, riderId, notes, orderSnapshot || null);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
-    io.emit('order:status_updated', updated);
-    io.emit('order:updated', updated);
-    io.emit('orders:updated', db.getOrders());
-    io.emit('stats:updated', db.getStats());
+    safeBroadcast(() => {
+      io.emit('order:status_updated', updated);
+      io.emit('order:updated', updated);
+      io.emit('orders:updated', db.getOrders());
+      io.emit('stats:updated', db.getStats());
+    });
 
     res.json({ success: true, order: updated });
   } catch (err) {
@@ -745,14 +800,16 @@ app.post('/api/rider/orders/:id/deliver', (req, res) => {
 app.post('/api/rider/orders/:id/start-delivery', (req, res) => {
   try {
     const orderId = decodeURIComponent(req.params.id || '');
-    const { riderId } = req.body;
-    const updated = db.startOrderDeliveryByRider(orderId, riderId);
+    const { riderId, order: orderSnapshot } = req.body || {};
+    const updated = db.startOrderDeliveryByRider(orderId, riderId, orderSnapshot || null);
     if (!updated) return res.status(404).json({ error: 'Order not found' });
 
-    io.emit('order:status_updated', updated);
-    io.emit('order:updated', updated);
-    io.emit('orders:updated', db.getOrders());
-    io.emit('stats:updated', db.getStats());
+    safeBroadcast(() => {
+      io.emit('order:status_updated', updated);
+      io.emit('order:updated', updated);
+      io.emit('orders:updated', db.getOrders());
+      io.emit('stats:updated', db.getStats());
+    });
 
     res.json({ success: true, order: updated });
   } catch (err) {
@@ -777,8 +834,10 @@ app.post('/api/costs', (req, res) => {
       return res.status(400).json({ error: 'Valid cost amount in Rs. is required' });
     }
     const newCost = db.createCost(req.body);
-    io.emit('costs:updated', db.getCosts());
-    io.emit('stats:updated', db.getStats());
+    safeBroadcast(() => {
+      io.emit('costs:updated', db.getCosts());
+      io.emit('stats:updated', db.getStats());
+    });
     res.status(201).json({ success: true, cost: newCost });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -793,8 +852,10 @@ app.put('/api/costs/:id', (req, res) => {
     }
     const updated = db.updateCost(req.params.id, req.body);
     if (!updated) return res.status(404).json({ error: 'Cost entry not found' });
-    io.emit('costs:updated', db.getCosts());
-    io.emit('stats:updated', db.getStats());
+    safeBroadcast(() => {
+      io.emit('costs:updated', db.getCosts());
+      io.emit('stats:updated', db.getStats());
+    });
     res.json({ success: true, cost: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -805,8 +866,10 @@ app.delete('/api/costs/:id', (req, res) => {
   try {
     const deleted = db.deleteCost(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Cost entry not found' });
-    io.emit('costs:updated', db.getCosts());
-    io.emit('stats:updated', db.getStats());
+    safeBroadcast(() => {
+      io.emit('costs:updated', db.getCosts());
+      io.emit('stats:updated', db.getStats());
+    });
     res.json({ success: true, message: 'Cost entry deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
