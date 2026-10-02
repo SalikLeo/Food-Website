@@ -22,8 +22,10 @@ import {
   ArrowRight,
   Loader2,
   X,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
+import WhatsAppIcon from '../WhatsAppIcon';
 import { apiUrl } from '../../config/api';
 import { formatPrice, getLocalDateStr } from '../../utils/formatters';
 import { getSocket } from '../../services/socketService';
@@ -55,6 +57,14 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
   const [loading, setLoading] = useState(!initialCache);
   const [refreshing, setRefreshing] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [expandedItemsOrders, setExpandedItemsOrders] = useState({});
+
+  const toggleItemsExpand = (orderId) => {
+    setExpandedItemsOrders(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
 
   // Delivery Action Modal State
   const [deliveringOrder, setDeliveringOrder] = useState(null);
@@ -505,6 +515,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                 const cleanPhone = getCleanPhone(order.phone);
                 const isOutForDelivery = order.status === 'Out for Delivery';
                 const createdTime = order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                const isItemsExpanded = Boolean(expandedItemsOrders[order.id]);
 
                 return (
                   <div
@@ -530,7 +541,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1 text-xs text-zinc-400 font-medium">
+                      <div className={`flex items-center gap-1 text-xs font-medium ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                         <Clock className="w-3.5 h-3.5" />
                         <span>{createdTime}</span>
                       </div>
@@ -542,7 +553,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h4 className="font-black text-base tracking-tight">{order.customerName || 'Customer'}</h4>
-                          <p className={`text-xs font-sans font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                          <p className={`text-xs font-sans font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                             {order.phone}
                           </p>
                         </div>
@@ -568,65 +579,72 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                               className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all cursor-pointer"
                               title="Chat on WhatsApp"
                             >
-                              <MessageCircle className="w-4 h-4" />
+                              <WhatsAppIcon className="w-4 h-4" />
                             </a>
                           )}
                         </div>
                       </div>
 
-                      {/* Delivery Address & 1-Tap Google Maps */}
+                      {/* Delivery Address */}
                       <div className={`p-3 rounded-2xl border flex items-start justify-between gap-3 ${
                         isDark ? 'bg-zinc-950/60 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
                       }`}>
                         <div className="flex items-start gap-2 min-w-0">
                           <MapPin className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
                           <div className="min-w-0">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                               Delivery Address
                             </span>
-                            <p className="text-xs sm:text-sm font-semibold leading-snug break-words">
+                            <p className={`text-xs sm:text-sm font-semibold leading-snug break-words ${isDark ? 'text-zinc-100' : 'text-zinc-800'}`}>
                               {order.address || 'Address not provided'}
                             </p>
                             {order.notes && (
-                              <p className="text-xs text-amber-500 font-medium mt-1">
+                              <p className={`text-xs font-medium mt-1 ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
                                 Note: {order.notes}
                               </p>
                             )}
                           </div>
                         </div>
-
-                        {order.address && (
-                          <a
-                            href={getMapLink(order.address)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 shrink-0 shadow-sm transition-colors cursor-pointer"
-                            title="Open in Google Maps"
-                          >
-                            <Navigation className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Navigate</span>
-                          </a>
-                        )}
                       </div>
 
-                      {/* Ordered Items Summary */}
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                          Included Items ({(order.items || []).length})
-                        </span>
-                        <div className="space-y-1">
-                          {(order.items || []).map((it, idx) => (
-                            <div key={idx} className="flex items-center justify-between text-xs py-0.5">
-                              <span className="font-semibold text-zinc-300 truncate">
-                                {it.quantity || 1}x {it.name}
-                                {it.size && <span className="text-orange-400 ml-1">({it.size})</span>}
-                              </span>
-                              <span className="font-sans font-semibold text-zinc-400 shrink-0">
-                                Rs. {formatPrice(it.price * (it.quantity || 1))}
-                              </span>
-                            </div>
-                          ))}
+                      {/* Ordered Items Summary (Collapsible via View / Hide button) */}
+                      <div className={`p-3 rounded-2xl border transition-all ${
+                        isDark ? 'bg-zinc-950/40 border-zinc-800/80' : 'bg-zinc-50/70 border-zinc-200/80'
+                      }`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                            Included Items ({(order.items || []).length})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => toggleItemsExpand(order.id)}
+                            className={`h-7 flex items-center gap-1 px-2.5 rounded-lg border text-xs font-bold transition-colors cursor-pointer active:scale-95 shrink-0 ${
+                              isDark
+                                ? 'bg-zinc-800 hover:bg-zinc-700 border-zinc-700 text-zinc-200'
+                                : 'bg-white hover:bg-zinc-100 border-zinc-200 text-zinc-700 shadow-2xs'
+                            }`}
+                            title={isItemsExpanded ? 'Hide Items' : 'View Items'}
+                          >
+                            <span>{isItemsExpanded ? 'Hide' : 'View'}</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isItemsExpanded ? 'rotate-180' : ''}`} />
+                          </button>
                         </div>
+
+                        {isItemsExpanded && (
+                          <div className={`mt-2.5 pt-2.5 border-t space-y-1.5 ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
+                            {(order.items || []).map((it, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-xs py-0.5">
+                                <span className={`font-semibold truncate ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                  {it.quantity || 1}x {it.name}
+                                  {it.size && <span className={`ml-1 font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>({it.size})</span>}
+                                </span>
+                                <span className={`font-sans font-semibold shrink-0 ${isDark ? 'text-zinc-400' : 'text-zinc-700'}`}>
+                                  Rs. {formatPrice(it.price * (it.quantity || 1))}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {/* Total Bill / Cash to Collect */}
@@ -634,19 +652,19 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                         isDark ? 'bg-zinc-950 border-zinc-800' : 'bg-orange-50/60 border-orange-200'
                       }`}>
                         <div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                             Payment Method
                           </span>
-                          <span className="text-xs font-bold text-zinc-300">
+                          <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
                             {order.paymentMethod || 'Cash on Delivery'}
                           </span>
                         </div>
 
                         <div className="text-right">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 block">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block">
                             Cash to Collect
                           </span>
-                          <span className="text-lg sm:text-xl font-sans font-bold text-emerald-500">
+                          <span className="text-lg sm:text-xl font-sans font-bold text-emerald-600">
                             Rs. {formatPrice(order.total)}
                           </span>
                         </div>
@@ -729,17 +747,17 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                         </span>
                       </div>
                       <h4 className="font-bold text-xs sm:text-sm truncate">{order.customerName || 'Customer'}</h4>
-                      <p className="text-[11px] text-zinc-400 truncate">{order.address}</p>
+                      <p className={`text-[11px] truncate ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>{order.address}</p>
                       <span className="text-[10px] text-zinc-500 mt-1 block">
                         {formattedTime}
                       </span>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider block ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                         Collected
                       </span>
-                      <span className="font-sans font-bold text-sm sm:text-base text-emerald-500">
+                      <span className="font-sans font-bold text-sm sm:text-base text-emerald-600">
                         Rs. {formatPrice(order.total)}
                       </span>
                     </div>
