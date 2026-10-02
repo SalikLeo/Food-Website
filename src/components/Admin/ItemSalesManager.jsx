@@ -468,8 +468,8 @@ export default function ItemSalesManager({
                             style={{ width: `${Math.max(item.totalQty > 0 ? 5 : 0, percentOfTop)}%` }}
                           />
                         </div>
-                        <span className="text-[10px] text-zinc-400 mt-1 block">
-                          {item.totalQty > 0 ? `${percentOfTotal}% of sales` : '0%'}
+                        <span className="text-[11px] font-medium text-zinc-600 mt-1.5 block">
+                          <span className="font-bold text-zinc-800">{item.totalQty > 0 ? `${percentOfTotal}%` : '0%'}</span> of sales
                         </span>
                       </td>
 
