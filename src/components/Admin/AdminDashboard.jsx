@@ -305,13 +305,13 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const totalDealsCount = uniqueDealsCount;
 
   const totalItemsSold = useMemo(() => {
-    return orders
+    return dateFilteredOrders
       .filter(o => o.status === 'Delivered')
       .reduce((sum, o) => {
         const itemQty = (o.items || []).reduce((q, item) => q + (Number(item.quantity) || 1), 0);
         return sum + itemQty;
       }, 0);
-  }, [orders]);
+  }, [dateFilteredOrders]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -1608,7 +1608,8 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
           {activeTab === 'sales' && (
             <ItemSalesManager
-              orders={orders}
+              orders={dateFilteredOrders}
+              allOrders={orders}
               products={products}
               deals={deals}
               familyDeal={familyDeal}
