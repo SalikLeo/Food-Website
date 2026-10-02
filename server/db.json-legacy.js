@@ -1139,11 +1139,12 @@ export const db = {
 
     const totalCosts = costs.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
       
-    const pendingOrders = orders.filter(o => o.status === 'Pending').length;
-    
+    const hasSeparateFamily = data.familyDeal && !dealsList.some(d => String(d.id) === String(data.familyDeal.id));
+    const totalDeals = dealsList.length + (hasSeparateFamily ? 1 : 0);
+
     return {
       totalProducts: products.length,
-      totalDeals: dealsList.length + (data.familyDeal ? 1 : 0),
+      totalDeals,
       totalOrders: orders.length,
       pendingOrders,
       totalRevenue,

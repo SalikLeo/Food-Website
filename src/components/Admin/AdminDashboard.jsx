@@ -247,6 +247,14 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     return (orders || []).filter(o => o.status === 'Pending' && getLocalDateStr(o.createdAt) !== todayLocalStr).length;
   }, [orders, timeFilterMode, selectedDate, todayLocalStr]);
 
+  const uniqueDealsCount = useMemo(() => {
+    const list = Array.isArray(deals) ? [...deals] : [];
+    if (familyDeal && !list.some(d => String(d.id) === String(familyDeal.id))) {
+      list.push(familyDeal);
+    }
+    return list.length;
+  }, [deals, familyDeal]);
+
   const displayStats = useMemo(() => {
     const totalOrders = dateFilteredOrders.length;
     const pendingOrders = dateFilteredOrders.filter(o => o.status === 'Pending').length;
@@ -256,21 +264,19 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
 
     return {
       totalProducts: stats.totalProducts || products.length,
-      totalDeals: stats.totalDeals || (deals.length + (familyDeal ? 1 : 0)),
+      totalDeals: uniqueDealsCount,
       totalOrders,
       pendingOrders,
       totalRevenue
     };
-  }, [dateFilteredOrders, stats, products.length, deals.length, familyDeal]);
+  }, [dateFilteredOrders, stats, products.length, uniqueDealsCount]);
 
   // Derived counts for tab buttons
   const pendingOrdersCount = useMemo(() => {
     return orders.filter(o => o.status === 'Pending').length;
   }, [orders]);
 
-  const totalDealsCount = useMemo(() => {
-    return stats.totalDeals || (deals.length + (familyDeal ? 1 : 0));
-  }, [stats.totalDeals, deals.length, familyDeal]);
+  const totalDealsCount = uniqueDealsCount;
 
   const totalItemsSold = useMemo(() => {
     return orders
