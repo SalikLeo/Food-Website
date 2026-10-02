@@ -423,10 +423,10 @@ export default function RidersManager({
 
                       {/* PIN (Next line, hidden with view toggle) */}
                       <div className="flex items-center gap-1.5 pt-0.5">
-                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-900 font-medium">
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 font-medium">
                           <Lock className="w-3 h-3 text-amber-600 shrink-0" />
                           <span className="text-amber-800 text-[10px] font-bold uppercase tracking-wider">PIN:</span>
-                          <span className="font-mono font-bold tracking-widest text-amber-950">
+                          <span className="font-sans font-semibold text-zinc-700 tracking-wide text-xs">
                             {visiblePinIds[rider.id]
                               ? (rider.pin || (rider.phone ? rider.phone.slice(-4) : '1234'))
                               : '••••'}
