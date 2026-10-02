@@ -481,15 +481,10 @@ export default function ItemSalesManager({
                       </td>
 
                       {/* Total Revenue */}
-                      <td className="px-5 py-3.5 text-right">
-                        <span className="font-sans text-sm font-semibold text-orange-600 block leading-tight">
+                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                        <span className="font-sans text-sm font-bold text-orange-600 block leading-tight">
                           Rs. {formatPrice(item.totalRevenue)}
                         </span>
-                        {item.totalQty > 0 && (
-                          <span className="text-[10px] text-zinc-400">
-                            Rs. {formatPrice(Math.round(item.totalRevenue / item.totalQty))}
-                          </span>
-                        )}
                       </td>
                     </tr>
                   );
