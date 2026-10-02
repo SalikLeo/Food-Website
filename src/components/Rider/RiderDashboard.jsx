@@ -292,7 +292,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                 </span>
               </div>
               <p className={`text-[11px] font-medium truncate ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                {rider.phone} &bull; PIN: <span className="font-mono">{rider.pin || '••••'}</span>
+                {rider.phone} &bull; PIN: {rider.pin || '••••'}
               </p>
             </div>
           </div>

@@ -159,7 +159,7 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   placeholder="••••"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#fffdfa] border border-orange-200/80 text-zinc-900 font-mono font-bold text-base tracking-widest placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#fffdfa] border border-orange-200/80 text-zinc-900 font-semibold text-sm placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
                 />
               </div>
             </div>
@@ -173,12 +173,12 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Signing In...</span>
+                  <span>Logging In...</span>
                 </>
               ) : (
                 <>
                   <Bike className="w-4 h-4" />
-                  <span>Start Shift / Login</span>
+                  <span>Login</span>
                 </>
               )}
             </button>
