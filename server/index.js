@@ -623,7 +623,7 @@ app.get('/api/riders', (req, res) => {
 
 app.post('/api/riders', (req, res) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, pin, status } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Rider name is required' });
     }
@@ -631,7 +631,7 @@ app.post('/api/riders', (req, res) => {
     if (!cleanPhone || cleanPhone.length !== 11) {
       return res.status(400).json({ error: 'Rider phone number must be 11 digits (e.g. 03001234567)' });
     }
-    const newRider = db.createRider({ name: name.trim(), phone: cleanPhone });
+    const newRider = db.createRider({ name: name.trim(), phone: cleanPhone, pin, status });
     io.emit('riders:updated', db.getRiders());
     res.status(201).json({ success: true, rider: newRider });
   } catch (err) {
@@ -641,14 +641,20 @@ app.post('/api/riders', (req, res) => {
 
 app.put('/api/riders/:id', (req, res) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, pin, status } = req.body;
+    let cleanPhone;
     if (phone !== undefined) {
-      const cleanPhone = String(phone || '').replace(/\D/g, '').slice(0, 11);
+      cleanPhone = String(phone || '').replace(/\D/g, '').slice(0, 11);
       if (!cleanPhone || cleanPhone.length !== 11) {
         return res.status(400).json({ error: 'Rider phone number must be 11 digits (e.g. 03001234567)' });
       }
     }
-    const updated = db.updateRider(req.params.id, req.body);
+    const updated = db.updateRider(req.params.id, {
+      ...(name !== undefined ? { name: name.trim() } : {}),
+      ...(cleanPhone !== undefined ? { phone: cleanPhone } : {}),
+      ...(pin !== undefined ? { pin: String(pin).trim() } : {}),
+      ...(status !== undefined ? { status } : {})
+    });
     if (!updated) return res.status(404).json({ error: 'Rider not found' });
     io.emit('riders:updated', db.getRiders());
     res.json({ success: true, rider: updated });

@@ -2833,6 +2833,8 @@
       "id": "rider-1790235082079-8z3k",
       "name": "Salik",
       "phone": "03213415645",
+      "pin": "5645",
+      "status": "active",
       "createdAt": "2026-09-24T07:31:22.079Z",
       "updatedAt": "2026-10-02T08:52:29.743Z"
     }

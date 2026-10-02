@@ -921,8 +921,12 @@ export const db = {
 
   createRider(riderData) {
     const data = readDb();
-    const cleanPhone = String(riderData.phone || '').replace(/\D/g, '').slice(0, 11);
-    const pin = riderData.pin ? String(riderData.pin).trim() : (cleanPhone.slice(-4) || '1234');
+    let digits = String(riderData.phone || '').replace(/\D/g, '');
+    if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
+    else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
+    const cleanPhone = digits.slice(0, 11);
+
+    const pin = (riderData.pin && String(riderData.pin).trim()) || cleanPhone.slice(-4) || '1234';
     const newRider = {
       id: `rider-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       name: (riderData.name || '').trim(),
@@ -940,9 +944,19 @@ export const db = {
     const data = readDb();
     const idx = (data.riders || []).findIndex(r => r.id === id);
     if (idx === -1) return null;
-    const cleanPhone = updates.phone !== undefined ? String(updates.phone).replace(/\D/g, '').slice(0, 11) : data.riders[idx].phone;
+
+    let cleanPhone = data.riders[idx].phone;
+    if (updates.phone !== undefined) {
+      let digits = String(updates.phone).replace(/\D/g, '');
+      if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
+      else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
+      cleanPhone = digits.slice(0, 11);
+    }
+
     const newName = updates.name !== undefined ? updates.name.trim() : data.riders[idx].name;
-    const newPin = updates.pin !== undefined ? String(updates.pin).trim() : (data.riders[idx].pin || cleanPhone.slice(-4) || '1234');
+    const newPin = (updates.pin !== undefined && String(updates.pin).trim() !== '')
+      ? String(updates.pin).trim()
+      : (data.riders[idx].pin || cleanPhone.slice(-4) || '1234');
     const newStatus = updates.status !== undefined ? updates.status : (data.riders[idx].status || 'active');
 
     data.riders[idx] = {
@@ -982,12 +996,28 @@ export const db = {
 
   riderLogin({ phone, pin }) {
     const data = readDb();
-    const cleanPhone = String(phone || '').replace(/\D/g, '').slice(0, 11);
-    const rider = (data.riders || []).find(r => String(r.phone).replace(/\D/g, '') === cleanPhone);
+    let digits = String(phone || '').replace(/\D/g, '');
+    if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
+    else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
+    const cleanPhone = digits.slice(0, 11);
+
+    const rider = (data.riders || []).find(r => {
+      let rDigits = String(r.phone || '').replace(/\D/g, '');
+      if (rDigits.startsWith('92') && rDigits.length === 12) rDigits = '0' + rDigits.slice(2);
+      else if (rDigits.length === 10 && rDigits.startsWith('3')) rDigits = '0' + rDigits;
+      return rDigits.slice(0, 11) === cleanPhone || String(r.id) === String(phone).trim();
+    });
+
     if (!rider) return null;
 
-    const expectedPin = rider.pin || rider.phone.slice(-4) || '1234';
-    if (String(pin).trim() !== String(expectedPin).trim() && String(pin).trim() !== '1234' && String(pin).trim() !== 'Salik.leo1212') {
+    const expectedPin = (rider.pin && String(rider.pin).trim()) || (rider.phone ? String(rider.phone).replace(/\D/g, '').slice(-4) : '1234');
+    const inputPin = String(pin || '').trim();
+
+    if (
+      inputPin !== String(expectedPin).trim() &&
+      inputPin !== '1234' &&
+      inputPin !== 'Salik.leo1212'
+    ) {
       return { invalidPin: true };
     }
 
@@ -997,7 +1027,18 @@ export const db = {
   getRiderOrders(riderId) {
     const data = readDb();
     const cleanId = String(riderId || '').trim();
-    const rider = (data.riders || []).find(r => r.id === cleanId || String(r.phone).replace(/\D/g, '') === cleanId);
+    let idDigits = cleanId.replace(/\D/g, '');
+    if (idDigits.startsWith('92') && idDigits.length === 12) idDigits = '0' + idDigits.slice(2);
+    else if (idDigits.length === 10 && idDigits.startsWith('3')) idDigits = '0' + idDigits;
+    const cleanPhone = idDigits.slice(0, 11);
+
+    const rider = (data.riders || []).find(r => {
+      let rDigits = String(r.phone || '').replace(/\D/g, '');
+      if (rDigits.startsWith('92') && rDigits.length === 12) rDigits = '0' + rDigits.slice(2);
+      else if (rDigits.length === 10 && rDigits.startsWith('3')) rDigits = '0' + rDigits;
+      return r.id === cleanId || rDigits.slice(0, 11) === cleanPhone;
+    });
+
     if (!rider) return { activeOrders: [], completedOrders: [], stats: { todayDeliveries: 0, todayCash: 0, allTimeDeliveries: 0, allTimeCash: 0 } };
 
     const todayStr = new Date().toISOString().slice(0, 10);

@@ -13,7 +13,10 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
     e.preventDefault();
     setError('');
 
-    const cleanPhone = phone.replace(/\D/g, '').slice(0, 11);
+    let cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.startsWith('92') && cleanPhone.length === 12) cleanPhone = '0' + cleanPhone.slice(2);
+    else if (cleanPhone.length === 10 && cleanPhone.startsWith('3')) cleanPhone = '0' + cleanPhone;
+
     if (!cleanPhone || cleanPhone.length !== 11) {
       setError('Please enter a valid 11-digit phone number (e.g. 03001234567).');
       return;
@@ -80,10 +83,10 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-500/30 mb-3.5 ring-4 ring-orange-500/10">
             <Bike className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase font-display">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-wide text-white uppercase font-sans">
             Salik Fast Food
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1.5 font-medium">
             Delivery Staff & Rider Access
           </p>
         </div>

@@ -33,6 +33,7 @@ export default function RidersManager({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
   const [copiedPortalLink, setCopiedPortalLink] = useState(false);
+  const [showModalPin, setShowModalPin] = useState(false);
 
   // Compute active orders & total deliveries per rider
   const riderStats = useMemo(() => {
@@ -586,7 +587,7 @@ export default function RidersManager({
                     setFormData(prev => ({
                       ...prev,
                       phone: clean,
-                      pin: prev.pin || (clean.length >= 4 ? clean.slice(-4) : prev.pin)
+                      pin: prev.pin || (clean.length >= 4 ? clean.slice(-4) : '')
                     }));
                   }}
                   placeholder="03001234567"
@@ -600,24 +601,32 @@ export default function RidersManager({
                   <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider">
                     Login PIN (4 Digits) *
                   </label>
-                  <span className="text-[11px] text-zinc-400">Used by rider to log in</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowModalPin(!showModalPin)}
+                    className="text-[11px] text-orange-600 hover:text-orange-700 font-bold cursor-pointer"
+                  >
+                    {showModalPin ? 'Hide PIN' : 'Show PIN'}
+                  </button>
                 </div>
-                <input
-                  type="password"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  required
-                  value={formData.pin}
-                  onChange={(e) => {
-                    const clean = e.target.value.replace(/\D/g, '').slice(0, 6);
-                    setFormData(prev => ({ ...prev, pin: clean }));
-                  }}
-                  placeholder="4-digit PIN (e.g. 1234)"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-xs font-mono font-medium text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white tracking-widest"
-                />
+                <div className="relative">
+                  <input
+                    type={showModalPin ? 'text' : 'password'}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={8}
+                    required
+                    value={formData.pin}
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 8);
+                      setFormData(prev => ({ ...prev, pin: clean }));
+                    }}
+                    placeholder="4-digit PIN (e.g. 1234)"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-xs font-mono font-bold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white tracking-widest"
+                  />
+                </div>
                 <p className="text-[11px] text-zinc-500">
-                  Riders use their phone number and this PIN to access the <code>/rider</code> app.
+                  Rider uses their phone number and this PIN to log into <code>/rider</code> app.
                 </p>
               </div>
 
