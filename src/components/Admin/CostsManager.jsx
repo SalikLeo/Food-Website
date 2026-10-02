@@ -14,15 +14,10 @@ import {
   AlertTriangle,
   Loader2,
   DollarSign,
-  Filter,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Info,
   Clock
 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
-import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
+import { formatPrice, getLocalDateStr } from '../../utils/formatters';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -32,19 +27,16 @@ const MONTH_NAMES = [
 export default function CostsManager({
   costs = [],
   orders = [],
+  dateFilteredOrders = [],
+  timeFilterMode = 'today',
+  selectedDate = '',
+  selectedMonth = new Date().getMonth(),
+  selectedYear = new Date().getFullYear(),
   onRefresh
 }) {
   const todayStr = useMemo(() => getLocalDateStr(new Date()), []);
-  const yesterdayStr = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return getLocalDateStr(d);
-  }, []);
-
+  const activeDate = selectedDate || todayStr;
   const [search, setSearch] = useState('');
-  const [filterMode, setFilterMode] = useState('all'); // 'all' | 'this_month' | 'specific_date'
-  const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingCost, setEditingCost] = useState(null);
@@ -52,14 +44,14 @@ export default function CostsManager({
 
   // Form State
   const [formData, setFormData] = useState({
-    date: todayStr,
+    date: activeDate,
     amount: '',
     note: ''
   });
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Delivered orders map by date (YYYY-MM-DD) for instant daily profit comparison
+  // Map delivered orders by date (YYYY-MM-DD) for individual row comparisons
   const dailyDeliveredSalesMap = useMemo(() => {
     const map = {};
     (orders || []).forEach(o => {
@@ -72,76 +64,33 @@ export default function CostsManager({
     return map;
   }, [orders]);
 
-  // Available Years from costs & orders
-  const availableYears = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const set = new Set([currentYear, currentYear - 1]);
-    costs.forEach(c => {
-      if (c.date) {
-        const y = new Date(c.date).getFullYear();
-        if (!isNaN(y)) set.add(y);
-      }
-    });
-    return Array.from(set).sort((a, b) => b - a);
-  }, [costs]);
-
-  // Overall Statistics Calculation
-  const stats = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-
-    let todayTotal = 0;
-    let yesterdayTotal = 0;
-    let thisMonthTotal = 0;
-    let allTimeTotal = 0;
-
-    costs.forEach(c => {
-      const amt = Number(c.amount) || 0;
-      allTimeTotal += amt;
-
-      if (c.date === todayStr) {
-        todayTotal += amt;
-      }
-
-      if (c.date === yesterdayStr) {
-        yesterdayTotal += amt;
-      }
-
-      if (c.date) {
-        const dt = new Date(c.date);
-        if (dt.getFullYear() === currentYear && dt.getMonth() === currentMonth) {
-          thisMonthTotal += amt;
-        }
-      }
-    });
-
-    const uniqueDatesCount = new Set(costs.map(c => c.date)).size;
-    const avgDailyCost = uniqueDatesCount > 0 ? Math.round(allTimeTotal / uniqueDatesCount) : 0;
-
-    return {
-      todayTotal,
-      yesterdayTotal,
-      thisMonthTotal,
-      allTimeTotal,
-      totalEntries: costs.length,
-      avgDailyCost,
-      uniqueDays: uniqueDatesCount
-    };
-  }, [costs, todayStr, yesterdayStr]);
-
-  // Filtered Costs List
+  // Filtered Costs matching top dashboard time filter & search
   const filteredCosts = useMemo(() => {
     return costs.filter(c => {
-      // 1. Filter by time mode
-      if (filterMode === 'this_month') {
-        if (!c.date) return false;
-        const dt = new Date(c.date);
-        if (dt.getMonth() !== Number(selectedMonth) || dt.getFullYear() !== Number(selectedYear)) {
+      if (!c || !c.date) return false;
+      const costDate = new Date(c.date);
+      if (isNaN(costDate.getTime())) return false;
+
+      // 1. Match top dashboard time filter
+      if (timeFilterMode === 'today') {
+        if (activeDate && c.date !== activeDate) {
+          return false;
+        }
+      } else if (timeFilterMode === 'monthly') {
+        if (
+          costDate.getMonth() !== Number(selectedMonth) ||
+          costDate.getFullYear() !== Number(selectedYear)
+        ) {
+          return false;
+        }
+      } else if (timeFilterMode === 'annual') {
+        if (costDate.getFullYear() !== Number(selectedYear)) {
           return false;
         }
       }
+      // 'all' includes all records
 
-      // 2. Search query filter
+      // 2. Match search query
       if (search.trim()) {
         const q = search.trim().toLowerCase();
         const matchesNote = (c.note || '').toLowerCase().includes(q);
@@ -152,10 +101,60 @@ export default function CostsManager({
 
       return true;
     });
-  }, [costs, filterMode, selectedMonth, selectedYear, search]);
+  }, [costs, timeFilterMode, activeDate, selectedMonth, selectedYear, search]);
+
+  // Period label for headers and cards
+  const periodLabel = useMemo(() => {
+    if (timeFilterMode === 'today') {
+      try {
+        const [y, m, d] = activeDate.split('-').map(Number);
+        const dt = new Date(y, m - 1, d);
+        return dt.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      } catch {
+        return activeDate;
+      }
+    }
+    if (timeFilterMode === 'monthly') {
+      return `${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
+    }
+    if (timeFilterMode === 'annual') {
+      return `Year ${selectedYear}`;
+    }
+    return 'All Time';
+  }, [timeFilterMode, activeDate, selectedMonth, selectedYear]);
+
+  // Period Stats Calculation (tied directly to top time filter)
+  const stats = useMemo(() => {
+    const totalPeriodCost = filteredCosts.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+
+    // Delivered sales for the same period from dateFilteredOrders
+    const totalPeriodSales = (dateFilteredOrders || [])
+      .filter(o => o.status === 'Delivered')
+      .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+
+    const netProfit = totalPeriodSales - totalPeriodCost;
+    const profitMargin = totalPeriodSales > 0 ? Math.round((netProfit / totalPeriodSales) * 100) : 0;
+
+    const uniqueDays = new Set(filteredCosts.map(c => c.date)).size;
+    const avgDailyCost = uniqueDays > 0 ? Math.round(totalPeriodCost / uniqueDays) : totalPeriodCost;
+
+    return {
+      totalPeriodCost,
+      totalPeriodSales,
+      netProfit,
+      profitMargin,
+      avgDailyCost,
+      entriesCount: filteredCosts.length,
+      uniqueDays
+    };
+  }, [filteredCosts, dateFilteredOrders]);
 
   // Open Add Modal
-  const handleOpenAddModal = (initialDate = todayStr) => {
+  const handleOpenAddModal = (initialDate = activeDate) => {
     setEditingCost(null);
     setFormData({
       date: initialDate,
@@ -170,7 +169,7 @@ export default function CostsManager({
   const handleOpenEditModal = (cost) => {
     setEditingCost(cost);
     setFormData({
-      date: cost.date || todayStr,
+      date: cost.date || activeDate,
       amount: String(cost.amount || ''),
       note: cost.note || ''
     });
@@ -273,18 +272,18 @@ export default function CostsManager({
               <h2 className="text-base sm:text-lg font-bold text-zinc-900 leading-tight flex items-center gap-2">
                 <span>Daily Ingredient & Operational Costs</span>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                  {costs.length} {costs.length === 1 ? 'entry' : 'entries'}
+                  {filteredCosts.length} {filteredCosts.length === 1 ? 'entry' : 'entries'}
                 </span>
               </h2>
               <p className="text-xs text-zinc-500 font-medium mt-0.5">
-                Record total daily ingredients used to calculate accurate net profit in business reports
+                Viewing data for: <span className="font-bold text-zinc-800">{periodLabel}</span>
               </p>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={() => handleOpenAddModal(todayStr)}
+            onClick={() => handleOpenAddModal(activeDate)}
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider shadow-xs hover:shadow-md active:scale-95 transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
@@ -293,65 +292,63 @@ export default function CostsManager({
         </div>
       </div>
 
-      {/* 2. STATS OVERVIEW CARDS */}
+      {/* 2. DYNAMIC STATS OVERVIEW CARDS (Tied to Top Dashboard Time Header) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
-        {/* Today's Cost */}
+        
+        {/* Total Cost for Period */}
         <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Today's Cost</span>
-            <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
-              <Calendar className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div className="mt-2 text-base sm:text-xl font-extrabold text-red-600 leading-none">
-            {formatPrice(stats.todayTotal)}
-          </div>
-          <div className="text-[10.5px] text-zinc-400 font-semibold mt-1">
-            {stats.todayTotal > 0 ? (
-              <span className="text-emerald-600 font-bold">
-                Daily Sales: {formatPrice(dailyDeliveredSalesMap[todayStr] || 0)}
-              </span>
-            ) : (
-              'No cost recorded for today'
-            )}
-          </div>
-        </div>
-
-        {/* This Month's Cost */}
-        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">This Month</span>
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              {timeFilterMode === 'today' ? "Cost (Selected Date)" : "Total Cost"}
+            </span>
             <div className="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
               <TrendingDown className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="mt-2 text-base sm:text-xl font-extrabold text-red-600 leading-none">
-            {formatPrice(stats.thisMonthTotal)}
+            {formatPrice(stats.totalPeriodCost)}
           </div>
           <div className="text-[10.5px] text-zinc-400 font-semibold mt-1 truncate">
-            {MONTH_NAMES[new Date().getMonth()]} total expenses
+            {stats.entriesCount} recorded {stats.entriesCount === 1 ? 'day' : 'days'}
           </div>
         </div>
 
-        {/* Yesterday's Cost */}
+        {/* Delivered Sales for Period */}
         <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Yesterday</span>
-            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Clock className="w-3.5 h-3.5" />
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Delivered Sales</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <Wallet className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="mt-2 text-base sm:text-xl font-extrabold text-zinc-900 leading-none">
-            {formatPrice(stats.yesterdayTotal)}
+          <div className="mt-2 text-base sm:text-xl font-extrabold text-emerald-600 leading-none">
+            {formatPrice(stats.totalPeriodSales)}
           </div>
-          <div className="text-[10.5px] text-zinc-400 font-semibold mt-1">
-            {stats.yesterdayTotal > 0 ? (
-              <span className="text-zinc-600 font-bold">
-                Daily Sales: {formatPrice(dailyDeliveredSalesMap[yesterdayStr] || 0)}
-              </span>
-            ) : (
-              'No cost recorded'
-            )}
+          <div className="text-[10.5px] text-zinc-400 font-semibold mt-1 truncate">
+            Completed order revenue
+          </div>
+        </div>
+
+        {/* Net Profit for Period */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Net Profit</span>
+            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+              stats.netProfit >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+            }`}>
+              <TrendingUp className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className={`mt-2 text-base sm:text-xl font-extrabold leading-none ${
+            stats.netProfit >= 0 ? 'text-zinc-900' : 'text-red-600'
+          }`}>
+            {formatPrice(stats.netProfit)}
+          </div>
+          <div className="text-[10.5px] font-bold mt-1 flex items-center gap-1">
+            <span className={stats.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+              {stats.profitMargin}% margin
+            </span>
+            <span className="text-zinc-400 font-normal">• Sales - Cost</span>
           </div>
         </div>
 
@@ -366,90 +363,36 @@ export default function CostsManager({
           <div className="mt-2 text-base sm:text-xl font-extrabold text-zinc-900 leading-none">
             {formatPrice(stats.avgDailyCost)}
           </div>
-          <div className="text-[10.5px] text-zinc-400 font-semibold mt-1">
+          <div className="text-[10.5px] text-zinc-400 font-semibold mt-1 truncate">
             Average expense per day
           </div>
         </div>
       </div>
 
-      {/* 3. FILTER & SEARCH CONTROLS */}
-      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-zinc-200/90 shadow-2xs space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-          {/* Filter Mode Tabs */}
-          <div className="inline-flex bg-zinc-100 p-1 rounded-xl border border-zinc-200 shrink-0">
+      {/* 3. SEARCH CONTROL (Clean & Full Width, Tied to Top Filter) */}
+      <div className="bg-white rounded-2xl p-3 sm:p-3.5 border border-zinc-200/90 shadow-2xs">
+        <div className="relative w-full">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={`Search in ${periodLabel} by notes, amount, or date...`}
+            className="w-full pl-10 pr-9 py-2 text-xs rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-red-500 bg-zinc-50"
+          />
+          {search && (
             <button
               type="button"
-              onClick={() => setFilterMode('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                filterMode === 'all'
-                  ? 'bg-red-600 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900'
-              }`}
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 cursor-pointer p-0.5"
             >
-              All Recorded
+              <X className="w-3.5 h-3.5" />
             </button>
-            <button
-              type="button"
-              onClick={() => setFilterMode('this_month')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                filterMode === 'this_month'
-                  ? 'bg-red-600 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900'
-              }`}
-            >
-              By Month
-            </button>
-          </div>
-
-          {/* Month / Year Selectors when 'this_month' is active */}
-          {filterMode === 'this_month' && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="text-xs font-bold text-zinc-800 bg-zinc-50 border border-zinc-300 rounded-xl py-1.5 px-3 outline-none cursor-pointer"
-              >
-                {MONTH_NAMES.map((m, idx) => (
-                  <option key={idx} value={idx}>{m}</option>
-                ))}
-              </select>
-
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="text-xs font-bold text-zinc-800 bg-zinc-50 border border-zinc-300 rounded-xl py-1.5 px-3 outline-none cursor-pointer"
-              >
-                {availableYears.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
           )}
-
-          {/* Search Box */}
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by notes or date (YYYY-MM-DD)..."
-              className="w-full pl-9 pr-3.5 py-1.5 sm:py-2 text-xs rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-red-500 bg-zinc-50"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
         </div>
       </div>
 
-      {/* 4. COSTS LIST TABLE & CARDS */}
+      {/* 4. COSTS LIST TABLE */}
       <div className="bg-white rounded-2xl border border-zinc-200/90 shadow-2xs overflow-hidden">
         {filteredCosts.length > 0 ? (
           <div className="overflow-x-auto">
@@ -470,7 +413,7 @@ export default function CostsManager({
                   const dayProfit = daySales - Number(cost.amount || 0);
                   const isProfitable = dayProfit >= 0;
 
-                  // Date label formatting (e.g. Oct 2, 2026)
+                  // Clean date label (e.g. Oct 2, 2026)
                   let dateFormatted = cost.date;
                   try {
                     const [y, m, d] = (cost.date || '').split('-').map(Number);
@@ -565,18 +508,18 @@ export default function CostsManager({
               <Receipt className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-zinc-800">No Cost Records Found</h3>
+              <h3 className="text-sm font-bold text-zinc-800">No Cost Records in {periodLabel}</h3>
               <p className="text-xs text-zinc-500 max-w-sm mx-auto mt-0.5">
-                {search ? 'No daily cost entries matched your search query.' : 'You haven\'t recorded any daily ingredients costs yet.'}
+                {search ? 'No daily cost entries matched your search query.' : `No ingredient cost recorded for ${periodLabel}.`}
               </p>
             </div>
             <button
               type="button"
-              onClick={() => handleOpenAddModal(todayStr)}
+              onClick={() => handleOpenAddModal(activeDate)}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer active:scale-95 transition-all"
             >
               <Plus className="w-4 h-4" />
-              <span>Record Today's Cost</span>
+              <span>Record Cost for {periodLabel}</span>
             </button>
           </div>
         )}

@@ -1506,6 +1506,11 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             <CostsManager
               costs={costs}
               orders={orders}
+              dateFilteredOrders={dateFilteredOrders}
+              timeFilterMode={timeFilterMode}
+              selectedDate={selectedDate}
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
               onRefresh={fetchData}
             />
           )}
