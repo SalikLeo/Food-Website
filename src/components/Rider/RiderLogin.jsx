@@ -55,23 +55,33 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50/40 via-zinc-50 to-zinc-100 text-zinc-900 flex flex-col justify-between p-4 sm:p-6 relative overflow-hidden font-sans select-none">
-      {/* Subtle background glow accents */}
-      <div className="absolute -top-32 -left-32 w-80 h-80 bg-orange-200/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-amber-200/40 rounded-full blur-3xl pointer-events-none" />
+    <div
+      className="min-h-screen text-zinc-900 flex flex-col justify-between p-4 sm:p-6 relative overflow-hidden font-sans select-none bg-[#fffaf5]"
+      style={{
+        background: `
+          radial-gradient(ellipse 80% 70% at 95% 20%, rgba(249, 115, 22, 0.18) 0%, rgba(251, 146, 60, 0.08) 50%, transparent 80%),
+          radial-gradient(ellipse 70% 60% at 5% 40%, rgba(234, 88, 12, 0.14) 0%, rgba(249, 115, 22, 0.06) 45%, transparent 75%),
+          radial-gradient(ellipse 55% 35% at 50% 0%, rgba(251, 191, 36, 0.15) 0%, transparent 60%),
+          linear-gradient(180deg, #fffaf5 0%, #fbf5ec 45%, #f6efe4 85%, #f3eae0 100%)
+        `
+      }}
+    >
+      {/* Background ambient lighting matching main website */}
+      <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-orange-500/10 blur-[140px] rounded-full pointer-events-none" />
+      <div className="absolute top-16 right-0 w-[600px] h-[600px] bg-amber-400/15 blur-[160px] rounded-full pointer-events-none" />
 
       {/* Top Header */}
       <div className="flex items-center justify-between z-10 max-w-4xl mx-auto w-full">
         <button
           type="button"
           onClick={onBackToStore}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-zinc-200/80 text-zinc-700 hover:text-zinc-900 hover:bg-zinc-50 transition-colors text-xs font-bold shadow-2xs cursor-pointer"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/90 backdrop-blur-xs border border-orange-200/80 text-zinc-800 hover:text-orange-600 hover:bg-white transition-all text-xs font-bold shadow-2xs cursor-pointer active:scale-98"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Customer Storefront</span>
         </button>
 
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-100/80 border border-orange-200 text-orange-800 text-[11px] font-bold tracking-wider uppercase">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-600 text-[11px] font-bold tracking-wider uppercase">
           <Bike className="w-3.5 h-3.5 text-orange-600" />
           <span>Rider Portal</span>
         </span>
@@ -80,7 +90,7 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
       {/* Main Login Card */}
       <div className="w-full max-w-md mx-auto my-auto z-10 py-6">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-500/25 mb-3.5 ring-4 ring-orange-100">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-500/25 mb-3.5 ring-4 ring-orange-200/60">
             <Bike className="w-8 h-8" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-wide text-zinc-900 uppercase font-sans">
@@ -91,7 +101,7 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
           </p>
         </div>
 
-        <div className="bg-white border border-zinc-200/90 rounded-3xl p-6 sm:p-8 shadow-xl shadow-zinc-200/60">
+        <div className="bg-white/95 backdrop-blur-md border border-orange-200/70 rounded-3xl p-6 sm:p-8 shadow-xl shadow-orange-950/5">
           {error && (
             <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2 animate-in fade-in">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
@@ -113,7 +123,7 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="03001234567"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 font-semibold text-sm placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#fffdfa] border border-orange-200/80 text-zinc-900 font-semibold text-sm placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
                 />
               </div>
             </div>
@@ -141,7 +151,7 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
                   placeholder="••••"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 font-mono font-bold text-base tracking-widest placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#fffdfa] border border-orange-200/80 text-zinc-900 font-mono font-bold text-base tracking-widest placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
                 />
               </div>
               <p className="text-[11px] text-zinc-500 mt-1">
@@ -153,7 +163,7 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-sm uppercase tracking-wider shadow-md shadow-orange-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-sm uppercase tracking-wider shadow-md shadow-orange-500/25 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               {loading ? (
                 <>
