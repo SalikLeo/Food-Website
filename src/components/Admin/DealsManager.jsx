@@ -213,6 +213,17 @@ function ItemCombobox({
     });
   }, [allCatalogItems, query, hasSelectedValue]);
 
+  // Group filtered options by category for clean visual hierarchy
+  const groupedOptions = useMemo(() => {
+    const groups = {};
+    filteredOptions.forEach((item) => {
+      const cat = item.category || 'Other';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(item);
+    });
+    return groups;
+  }, [filteredOptions]);
+
   const handleSelect = (item) => {
     onChange(item.name);
     setQuery(item.name);
@@ -300,48 +311,58 @@ function ItemCombobox({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-zinc-200 rounded-2xl shadow-xl max-h-60 overflow-y-auto py-1 text-xs divide-y divide-zinc-100/70 custom-dropdown-scroll animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-zinc-200 rounded-2xl shadow-xl max-h-72 overflow-y-auto py-1.5 text-xs custom-dropdown-scroll animate-in fade-in zoom-in-95 duration-100">
           {filteredOptions.length === 0 ? (
             <div className="px-4 py-3 text-xs text-zinc-400 text-center font-medium">
               No matching menu item found. You can keep typing custom item name!
             </div>
           ) : (
-            filteredOptions.map((item) => {
-              const baseName = extractBaseName(item.name);
-              const isDisabled = disabledBaseNames.has(baseName);
+            Object.entries(groupedOptions).map(([categoryName, items]) => (
+              <div key={categoryName} className="mb-1.5 last:mb-0">
+                <div className="px-3 py-1 bg-zinc-100/80 text-[10px] font-extrabold uppercase tracking-wider text-zinc-500 sticky top-0 z-10 backdrop-blur-xs flex items-center justify-between border-y border-zinc-200/50">
+                  <span>{categoryName}</span>
+                  <span className="text-zinc-400 font-normal">{items.length} items</span>
+                </div>
+                <div className="divide-y divide-zinc-100/60">
+                  {items.map((item) => {
+                    const baseName = extractBaseName(item.name);
+                    const isDisabled = disabledBaseNames.has(baseName);
 
-              return (
-                <button
-                  key={item.displayName}
-                  type="button"
-                  disabled={isDisabled}
-                  onClick={() => handleSelect(item)}
-                  className={`w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-2 transition-colors ${
-                    isDisabled
-                      ? 'opacity-40 bg-zinc-50/70 text-zinc-400 cursor-not-allowed'
-                      : 'hover:bg-orange-50 hover:text-orange-700 text-zinc-800 cursor-pointer'
-                  }`}
-                >
-                  <span className="font-semibold truncate text-xs sm:text-sm">
-                    {item.name} <span className="text-zinc-400 font-normal text-xs">({item.category})</span>
-                  </span>
+                    return (
+                      <button
+                        key={item.displayName}
+                        type="button"
+                        disabled={isDisabled}
+                        onClick={() => handleSelect(item)}
+                        className={`w-full text-left px-3.5 py-2 flex items-center justify-between gap-2 transition-colors ${
+                          isDisabled
+                            ? 'opacity-40 bg-zinc-50/70 text-zinc-400 cursor-not-allowed'
+                            : 'hover:bg-orange-50 hover:text-orange-700 text-zinc-800 cursor-pointer'
+                        }`}
+                      >
+                        <span className="font-semibold truncate text-xs sm:text-sm">
+                          {item.name}
+                        </span>
 
-                  {isDisabled ? (
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-zinc-200 text-zinc-600 px-2 py-0.5 rounded-full flex-shrink-0">
-                      Already Added
-                    </span>
-                  ) : item.size ? (
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full flex-shrink-0">
-                      {item.size}
-                    </span>
-                  ) : (
-                    <span className="text-[11px] text-zinc-400 font-medium flex-shrink-0">
-                      {item.category}
-                    </span>
-                  )}
-                </button>
-              );
-            })
+                        {isDisabled ? (
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-zinc-200 text-zinc-600 px-2 py-0.5 rounded-full flex-shrink-0">
+                            Already Added
+                          </span>
+                        ) : item.size ? (
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full flex-shrink-0">
+                            {item.size}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded-md flex-shrink-0">
+                            {item.category}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
           )}
         </div>
       )}
@@ -356,6 +377,37 @@ export default function DealsManager({
   categories = [],
   onRefresh
 }) {
+  // Resilient products fallback from local cache & self-fetch
+  const [localProducts, setLocalProducts] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('salik_cached_admin_products')) || [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (products && products.length > 0) {
+      setLocalProducts(products);
+    } else {
+      fetch(apiUrl('/api/products'))
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setLocalProducts(data);
+            try {
+              localStorage.setItem('salik_cached_admin_products', JSON.stringify(data));
+            } catch {}
+          }
+        })
+        .catch(() => {});
+    }
+  }, [products]);
+
+  const effectiveProducts = useMemo(() => {
+    return (products && products.length > 0) ? products : localProducts;
+  }, [products, localProducts]);
+
   // Local state for immediate optimistic star updates
   const [localFeaturedId, setLocalFeaturedId] = useState(() => {
     const list = [...deals];
@@ -423,7 +475,7 @@ export default function DealsManager({
       fries: 'Fries',
       wings: 'Hot Wings',
       nuggets: 'Nuggets',
-      special: 'Special',
+      special: 'Special Items',
       drinks: 'Beverages',
       beverages: 'Beverages'
     };
@@ -433,14 +485,14 @@ export default function DealsManager({
     return map;
   }, [categories]);
 
-  // Comprehensive list of catalog items with category in bracket (base items only; size selected via pills)
+  // Comprehensive list of catalog items with category in bracket
   const allCatalogItems = useMemo(() => {
     const list = [];
     const seen = new Set();
 
-    // 1. Database Products (base names only)
-    products.forEach((p) => {
-      if (p.name) {
+    // 1. Database Menu Products (all items from db)
+    effectiveProducts.forEach((p) => {
+      if (p && p.name) {
         const cat = categoryLabelMap[p.category] || p.category || 'General';
         const pName = p.name.trim();
         const lower = pName.toLowerCase();
@@ -455,7 +507,7 @@ export default function DealsManager({
       }
     });
 
-    // 2. Preset Sides, Beverages & Core Items
+    // 2. Preset Beverages & Core Generic Options
     const presets = [
       { name: 'Coke 500ml', category: 'Beverages' },
       { name: 'Coke 1L', category: 'Beverages' },
@@ -464,10 +516,12 @@ export default function DealsManager({
       { name: 'Sprite 1.5L', category: 'Beverages' },
       { name: 'Fanta 500ml', category: 'Beverages' },
       { name: 'Mineral Water', category: 'Beverages' },
+      { name: 'Any Pizza (Choice)', category: 'Pizza' },
       { name: 'Pizza', category: 'Pizza' },
+      { name: 'Any Shawarma (Choice)', category: 'Shawarma' },
       { name: 'Shawarma', category: 'Shawarma' },
       { name: 'Regular Fries', category: 'Fries' },
-      { name: 'Loaded Fries', category: 'Special' },
+      { name: 'Loaded Fries', category: 'Special Items' },
       { name: '6 Nuggets', category: 'Nuggets' },
       { name: '10 Nuggets', category: 'Nuggets' },
       { name: '4 Pcs Wings', category: 'Hot Wings' },
@@ -486,8 +540,14 @@ export default function DealsManager({
       }
     });
 
-    return list;
-  }, [products, categoryLabelMap]);
+    // Sort catalog items by category and then by name
+    return list.sort((a, b) => {
+      if (a.category.localeCompare(b.category) !== 0) {
+        return a.category.localeCompare(b.category);
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [effectiveProducts, categoryLabelMap]);
 
   // Helper to auto-enrich any bare item name with (Category) if matched
   const enrichItemNameWithCategory = useMemo(() => {
@@ -1249,7 +1309,7 @@ export default function DealsManager({
                     );
 
                     const isDup = duplicateIndices.has(idx);
-                    const sizeInfo = getItemSizeInfo(item.name, products);
+                    const sizeInfo = getItemSizeInfo(item.name, effectiveProducts);
 
                     return (
                       <div
