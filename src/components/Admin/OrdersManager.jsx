@@ -45,6 +45,12 @@ export default function OrdersManager({
 
   const totalOutForDeliveryOrders = (allOrders && allOrders.length > 0 ? allOrders : orders).filter(o => o.status === 'Out for Delivery').length;
 
+  const hasOrdersOutsideCurrentFilter = (status) => {
+    const visibleCount = (orders || []).filter(o => status === 'All' ? true : o.status === status).length;
+    const totalCount = (allOrders && allOrders.length > 0 ? allOrders : orders).filter(o => status === 'All' ? true : o.status === status).length;
+    return totalCount > visibleCount;
+  };
+
   const resolveCategoryLabel = (rawCategory) => {
     if (!rawCategory) return '';
     const clean = String(rawCategory).toLowerCase().trim();
@@ -219,15 +225,7 @@ export default function OrdersManager({
 
   const handleStatusSelect = (st) => {
     if (statusHasMovedRef.current) return;
-    const count = st === 'Pending'
-      ? totalPendingOrders
-      : st === 'Preparing'
-      ? totalPreparingOrders
-      : st === 'Out for Delivery'
-      ? totalOutForDeliveryOrders
-      : null;
-
-    if (typeof count === 'number' && count > 0 && typeof onResetToAllPending === 'function') {
+    if (hasOrdersOutsideCurrentFilter(st) && typeof onResetToAllPending === 'function') {
       onResetToAllPending();
     }
     setStatusFilter(st);
@@ -1243,7 +1241,9 @@ export default function OrdersManager({
           </div>
           <button
             onClick={() => {
-              if (typeof onResetToAllPending === 'function') onResetToAllPending();
+              if (hasOrdersOutsideCurrentFilter('Pending') && typeof onResetToAllPending === 'function') {
+                onResetToAllPending();
+              }
               setStatusFilter('Pending');
             }}
             className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs uppercase tracking-wider flex-shrink-0 transition-colors cursor-pointer shadow-xs active:scale-95"
@@ -1344,7 +1344,7 @@ export default function OrdersManager({
                 <button
                   type="button"
                   onClick={() => {
-                    onResetToAllPending();
+                    if (hasOrdersOutsideCurrentFilter('Pending')) onResetToAllPending();
                     setStatusFilter('Pending');
                     setSearch('');
                   }}
@@ -1356,7 +1356,7 @@ export default function OrdersManager({
                 <button
                   type="button"
                   onClick={() => {
-                    onResetToAllPending();
+                    if (hasOrdersOutsideCurrentFilter('Preparing')) onResetToAllPending();
                     setStatusFilter('Preparing');
                     setSearch('');
                   }}
@@ -1368,7 +1368,7 @@ export default function OrdersManager({
                 <button
                   type="button"
                   onClick={() => {
-                    onResetToAllPending();
+                    if (hasOrdersOutsideCurrentFilter('Out for Delivery')) onResetToAllPending();
                     setStatusFilter('Out for Delivery');
                     setSearch('');
                   }}

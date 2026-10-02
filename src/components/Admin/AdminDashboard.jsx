@@ -927,7 +927,13 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                 type="button"
                 onClick={() => {
                   switchTab('orders');
-                  setTimeFilterMode('all');
+                  const orderDate = newOrderAlert.order ? getLocalDateStr(newOrderAlert.order.createdAt) : todayLocalStr;
+                  const isOutsideCurrentView = (timeFilterMode === 'today' && orderDate !== selectedDate) ||
+                                               (timeFilterMode === 'monthly' && orderDate.slice(0, 7) !== selectedMonth) ||
+                                               (timeFilterMode === 'annual' && orderDate.slice(0, 4) !== String(selectedYear));
+                  if (isOutsideCurrentView) {
+                    setTimeFilterMode('all');
+                  }
                   setNewOrderAlert(null);
                 }}
                 className="flex-1 py-2 px-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
