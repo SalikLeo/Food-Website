@@ -147,21 +147,41 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   }, []);
 
 
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [deals, setDeals] = useState([]);
-  const [familyDeal, setFamilyDeal] = useState(null);
-  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_admin_products')) || []; } catch { return []; }
+  });
+  const [categories, setCategories] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_admin_categories')) || []; } catch { return []; }
+  });
+  const [deals, setDeals] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_admin_deals')) || []; } catch { return []; }
+  });
+  const [familyDeal, setFamilyDeal] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_admin_familyDeal')) || null; } catch { return null; }
+  });
+  const [orders, setOrders] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_admin_orders')) || []; } catch { return []; }
+  });
   const [reviews, setReviews] = useState([]);
-  const [riders, setRiders] = useState([]);
-  const [costs, setCosts] = useState([]);
+  const [riders, setRiders] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_riders')) || []; } catch { return []; }
+  });
+  const [costs, setCosts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('salik_cached_admin_costs')) || []; } catch { return []; }
+  });
   const [settings, setSettings] = useState({ deliveryFee: 100, minOrder: 500 });
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalDeals: 0,
-    totalOrders: 0,
-    pendingOrders: 0,
-    totalRevenue: 0
+  const [stats, setStats] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('salik_cached_admin_stats')) || {
+        totalProducts: 0,
+        totalDeals: 0,
+        totalOrders: 0,
+        pendingOrders: 0,
+        totalRevenue: 0
+      };
+    } catch {
+      return { totalProducts: 0, totalDeals: 0, totalOrders: 0, pendingOrders: 0, totalRevenue: 0 };
+    }
   });
   const [loading, setLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -507,46 +527,78 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [prodsRes, catsRes, dealsRes, ordersRes, statsRes, settingsRes, reviewsRes, ridersRes, costsRes] = await Promise.all([
-        fetch(apiUrl('/api/products')).then(r => r.json()),
-        fetch(apiUrl('/api/categories')).then(r => r.json()),
-        fetch(apiUrl('/api/deals')).then(r => r.json()),
-        fetch(apiUrl('/api/orders')).then(r => r.json()),
-        fetch(apiUrl('/api/stats')).then(r => r.json()),
-        fetch(apiUrl('/api/settings')).then(r => r.json()).catch(() => ({ deliveryFee: 100 })),
-        fetch(apiUrl('/api/reviews')).then(r => r.json()).catch(() => []),
-        fetch(apiUrl('/api/riders')).then(r => r.json()).catch(() => []),
-        fetch(apiUrl('/api/costs')).then(r => r.json()).catch(() => [])
-      ]);
-
-      setProducts((prodsRes || []).map(p => ({ ...p, image: resolveImageUrl(p.image) })));
-      setCategories((catsRes || []).map(c => ({ ...c, image: resolveImageUrl(c.image) })));
-      setDeals((dealsRes?.deals || []).map(d => ({ ...d, image: resolveImageUrl(d.image) })));
-      setFamilyDeal(dealsRes?.familyDeal ? { ...dealsRes.familyDeal, image: resolveImageUrl(dealsRes.familyDeal.image) } : null);
-      if (ordersRes) processIncomingOrders(ordersRes);
-      if (reviewsRes) processIncomingReviews(reviewsRes);
-      if (Array.isArray(costsRes)) setCosts(costsRes);
-
-      let finalRiders = [];
-      if (Array.isArray(ridersRes) && ridersRes.length > 0) {
-        finalRiders = ridersRes;
+      const safeFetch = async (endpoint, fallback = null) => {
         try {
-          localStorage.setItem('salik_riders', JSON.stringify(ridersRes));
-        } catch {}
-      } else {
-        try {
-          const local = localStorage.getItem('salik_riders');
-          if (local) {
-            finalRiders = JSON.parse(local);
+          const res = await fetch(apiUrl(endpoint));
+          if (!res.ok) return fallback;
+          return await res.json();
+        } catch {
+          return fallback;
+        }
+      };
+
+      await Promise.allSettled([
+        safeFetch('/api/products', []).then(data => {
+          if (Array.isArray(data)) {
+            const mapped = data.map(p => ({ ...p, image: resolveImageUrl(p.image) }));
+            setProducts(mapped);
+            try { localStorage.setItem('salik_cached_admin_products', JSON.stringify(mapped)); } catch {}
           }
-        } catch {}
-      }
-      setRiders(finalRiders);
-
-      setStats(statsRes || {});
-      if (settingsRes && typeof settingsRes === 'object') {
-        setSettings(settingsRes);
-      }
+        }),
+        safeFetch('/api/categories', []).then(data => {
+          if (Array.isArray(data)) {
+            const mapped = data.map(c => ({ ...c, image: resolveImageUrl(c.image) }));
+            setCategories(mapped);
+            try { localStorage.setItem('salik_cached_admin_categories', JSON.stringify(mapped)); } catch {}
+          }
+        }),
+        safeFetch('/api/deals', { deals: [], familyDeal: null }).then(data => {
+          if (data) {
+            const dealsArr = (data?.deals || []).map(d => ({ ...d, image: resolveImageUrl(d.image) }));
+            setDeals(dealsArr);
+            const fam = data?.familyDeal ? { ...data.familyDeal, image: resolveImageUrl(data.familyDeal.image) } : null;
+            setFamilyDeal(fam);
+            try {
+              localStorage.setItem('salik_cached_admin_deals', JSON.stringify(dealsArr));
+              localStorage.setItem('salik_cached_admin_familyDeal', JSON.stringify(fam));
+            } catch {}
+          }
+        }),
+        safeFetch('/api/orders', []).then(data => {
+          if (Array.isArray(data)) {
+            processIncomingOrders(data);
+            try { localStorage.setItem('salik_cached_admin_orders', JSON.stringify(data)); } catch {}
+          }
+        }),
+        safeFetch('/api/stats', {}).then(data => {
+          if (data && typeof data === 'object') {
+            setStats(data);
+            try { localStorage.setItem('salik_cached_admin_stats', JSON.stringify(data)); } catch {}
+          }
+        }),
+        safeFetch('/api/settings', { deliveryFee: 100 }).then(data => {
+          if (data && typeof data === 'object') {
+            setSettings(data);
+          }
+        }),
+        safeFetch('/api/reviews', []).then(data => {
+          if (Array.isArray(data)) {
+            processIncomingReviews(data);
+          }
+        }),
+        safeFetch('/api/riders', []).then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            setRiders(data);
+            try { localStorage.setItem('salik_riders', JSON.stringify(data)); } catch {}
+          }
+        }),
+        safeFetch('/api/costs', []).then(data => {
+          if (Array.isArray(data)) {
+            setCosts(data);
+            try { localStorage.setItem('salik_cached_admin_costs', JSON.stringify(data)); } catch {}
+          }
+        })
+      ]);
     } catch (e) {
       console.error('Error fetching admin data:', e);
     } finally {
@@ -596,6 +648,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         .then(data => {
           if (Array.isArray(data)) {
             processIncomingOrders(data);
+            try { localStorage.setItem('salik_cached_admin_orders', JSON.stringify(data)); } catch {}
           }
         })
         .catch(() => {});
@@ -605,6 +658,26 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         .then(data => {
           if (Array.isArray(data)) {
             processIncomingReviews(data);
+          }
+        })
+        .catch(() => {});
+
+      fetch(apiUrl('/api/costs'))
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setCosts(data);
+            try { localStorage.setItem('salik_cached_admin_costs', JSON.stringify(data)); } catch {}
+          }
+        })
+        .catch(() => {});
+
+      fetch(apiUrl('/api/stats'))
+        .then(r => r.json())
+        .then(data => {
+          if (data && typeof data === 'object') {
+            setStats(data);
+            try { localStorage.setItem('salik_cached_admin_stats', JSON.stringify(data)); } catch {}
           }
         })
         .catch(() => {});

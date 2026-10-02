@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Receipt,
   Plus,
@@ -37,6 +37,12 @@ export default function CostsManager({
   const todayStr = useMemo(() => getLocalDateStr(new Date()), []);
   const activeDate = selectedDate || todayStr;
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if ((!costs || costs.length === 0) && typeof onRefresh === 'function') {
+      onRefresh();
+    }
+  }, []);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingCost, setEditingCost] = useState(null);
