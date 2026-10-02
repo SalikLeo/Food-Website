@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <!-- Background & Rim Gradients -->
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="70%" stop-color="#c2410c"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="innerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <!-- Circular Path for Top Text -->
+    <path id="textArcTop" d="M 85 250 A 165 165 0 0 1 415 250" fill="none" />
+    <!-- Circular Path for Bottom Text -->
+    <path id="textArcBottom" d="M 415 250 A 165 165 0 0 1 85 250" fill="none" />
+  </defs>
+
+  <!-- Outer Ring (Gold) -->
+  <circle cx="250" cy="250" r="240" fill="url(#ringGrad)" stroke="#78350f" stroke-width="4"/>
+  
+  <!-- Outer Red/Orange Disc -->
+  <circle cx="250" cy="250" r="225" fill="url(#bgGrad)" stroke="#fed7aa" stroke-width="3"/>
+
+  <!-- Inner Dark Blue/Charcoal Disc -->
+  <circle cx="250" cy="250" r="165" fill="url(#innerGrad)" stroke="url(#ringGrad)" stroke-width="6"/>
+
+  <!-- Curved Top Text: SALIK FAST FOOD -->
+  <text fill="#ffffff" font-family="system-ui, -apple-system, 'Impact', 'Segoe UI', sans-serif" font-size="34" font-weight="900" letter-spacing="4" text-anchor="middle">
+    <textPath href="#textArcTop" startOffset="50%">
+      SALIK FAST FOOD
+    </textPath>
+  </text>
+
+  <!-- Side Stars -->
+  <polygon points="65,250 71,232 89,232 75,243 80,261 65,250 50,261 55,243 41,232 59,232" fill="#fbbf24" stroke="#78350f" stroke-width="1.5"/>
+  <polygon points="435,250 441,232 459,232 445,243 450,261 435,250 420,261 425,243 411,232 429,232" fill="#fbbf24" stroke="#78350f" stroke-width="1.5"/>
+
+  <!-- Curved Bottom Text: WAH CANTT • ESTD -->
+  <text fill="#fbbf24" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="24" font-weight="800" letter-spacing="5" text-anchor="middle">
+    <textPath href="#textArcBottom" startOffset="50%">
+      ★ WAH CANTT ★
+    </textPath>
+  </text>
+
+  <!-- Central Mascot Graphic: Chef Hat + Delicious Burger Icon -->
+  <g transform="translate(145, 135)">
+    <!-- Chef Hat -->
+    <path d="M 45 65 C 20 65, 10 40, 30 25 C 20 5, 55 -5, 75 10 C 90 -8, 130 -8, 140 12 C 160 -2, 190 10, 185 30 C 200 45, 185 65, 165 65 Z" fill="#ffffff" stroke="#e2e8f0" stroke-width="4"/>
+    <rect x="52" y="62" width="105" height="18" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+    <line x1="75" y1="20" x2="75" y2="55" stroke="#e2e8f0" stroke-width="3" stroke-linecap="round"/>
+    <line x1="105" y1="12" x2="105" y2="55" stroke="#e2e8f0" stroke-width="3" stroke-linecap="round"/>
+    <line x1="135" y1="20" x2="135" y2="55" stroke="#e2e8f0" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Burger / Fast Food Central Emblem -->
+    <!-- Top Bun -->
+    <path d="M 20 125 C 20 85, 190 85, 190 125 Z" fill="#f59e0b" stroke="#b45309" stroke-width="4"/>
+    <!-- Sesame Seeds -->
+    <ellipse cx="65" cy="102" rx="4" ry="2.5" fill="#fef3c7"/>
+    <ellipse cx="105" cy="94" rx="4" ry="2.5" fill="#fef3c7"/>
+    <ellipse cx="145" cy="102" rx="4" ry="2.5" fill="#fef3c7"/>
+    <ellipse cx="85" cy="112" rx="4" ry="2.5" fill="#fef3c7"/>
+    <ellipse cx="125" cy="112" rx="4" ry="2.5" fill="#fef3c7"/>
+
+    <!-- Cheese slice (Melted) -->
+    <polygon points="15,130 195,130 175,145 140,135 105,150 75,135 35,145" fill="#fbbf24"/>
+
+    <!-- Crispy Patty -->
+    <rect x="22" y="132" width="166" height="24" rx="12" fill="#78350f" stroke="#451a03" stroke-width="3"/>
+
+    <!-- Lettuce waves -->
+    <path d="M 15 130 Q 30 122, 45 130 Q 60 122, 75 130 Q 90 122, 105 130 Q 120 122, 135 130 Q 150 122, 165 130 Q 180 122, 195 130" fill="none" stroke="#22c55e" stroke-width="7" stroke-linecap="round"/>
+
+    <!-- Bottom Bun -->
+    <rect x="25" y="156" width="160" height="25" rx="10" fill="#f59e0b" stroke="#b45309" stroke-width="4"/>
+  </g>
+</svg>

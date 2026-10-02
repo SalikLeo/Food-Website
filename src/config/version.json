@@ -24,5 +24,18 @@
       "Direct in-app 1-tap update downloads"
     ],
     "apkName": "Salik-Fast-Food-Admin.apk"
+  },
+  "rider": {
+    "version": "1.0.0",
+    "build": 102,
+    "releaseDate": "2026-10-02",
+    "releaseNotes": [
+      "Dedicated Rider Delivery Fleet App",
+      "Real-time assigned parcel alerts & sound chimes",
+      "1-Tap Customer phone call and WhatsApp message",
+      "1-Tap Google Maps GPS navigation to customer location",
+      "Shift cash collection & delivered orders tracker"
+    ],
+    "apkName": "Salik-Fast-Food-Rider.apk"
   }
 }

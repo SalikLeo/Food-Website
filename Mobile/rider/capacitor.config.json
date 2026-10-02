@@ -1,0 +1,15 @@
+{
+  "appId": "com.mehrban.rider",
+  "appName": "Salik Rider",
+  "webDir": "www",
+  "server": {
+    "cleartext": true,
+    "androidScheme": "http"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "disable",
+      "style": "DEFAULT"
+    }
+  }
+}

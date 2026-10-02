@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Google Sign-In - Salik Fast Food</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #09090b 0%, #18181b 100%);
+      color: #f4f4f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 24px;
+      padding: 32px 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+    }
+    .logo-wrap {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 20px;
+      background: #ea580c;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4);
+    }
+    .logo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+    p.desc {
+      font-size: 13px;
+      color: #a1a1aa;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+      min-height: 48px;
+    }
+    .success-panel {
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 3px solid #22c55e;
+      margin: 0 auto 12px;
+      object-fit: cover;
+    }
+    .user-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .user-email {
+      font-size: 12px;
+      color: #a1a1aa;
+      margin-bottom: 20px;
+    }
+    .return-btn {
+      display: block;
+      background: #ea580c;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 14px 20px;
+      border-radius: 14px;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 20px -4px rgba(234, 88, 12, 0.4);
+    }
+    .return-btn:active {
+      transform: scale(0.98);
+      background: #c2410c;
+    }
+    .spinner {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #ea580c;
+      animation: spin 0.8s ease-in-out infinite;
+      margin: 12px auto;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .footer-note {
+      margin-top: 24px;
+      font-size: 11px;
+      color: #71717a;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-wrap">
+      <img src="/assets/salik-logo.png" alt="Salik Fast Food" class="logo-img" onerror="this.style.display='none';">
+    </div>
+
+    <div id="login-section">
+      <h1>Sign in with Google</h1>
+      <p class="desc">Connect your Google account to sync your orders and profile in your Salik Fast Food app.</p>
+      
+      <div class="btn-container" id="google-btn-container">
+        <div class="spinner"></div>
+      </div>
+      
+      <p class="footer-note">Secure connection directly with Google Identity Services.</p>
+    </div>
+
+    <div id="success-section" class="success-panel">
+      <img id="user-avatar" src="" alt="Avatar" class="avatar" style="display: none;">
+      <div id="user-name" class="user-name">Welcome!</div>
+      <div id="user-email" class="user-email"></div>
+      <p style="font-size: 13px; color: #22c55e; font-weight: 600; margin-bottom: 18px;">
+        Authentication Successful!
+      </p>
+      <a id="open-app-btn" href="#" class="return-btn">
+        Open Salik Fast Food App
+      </a>
+      <p class="footer-note" style="margin-top: 14px;">
+        If the app did not open automatically, tap the button above.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const CLIENT_ID = '272845957801-6kr91o68g9m00acgmhboi1opc1kp32mt.apps.googleusercontent.com';
+
+    function parseJwt(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+        return JSON.parse(jsonPayload);
+      } catch (e) {
+        console.error('Failed to decode JWT', e);
+        return null;
+      }
+    }
+
+    function handleCredentialResponse(response) {
+      if (!response.credential) return;
+      const user = parseJwt(response.credential);
+      if (!user) return;
+
+      const email = (user.email || '').toLowerCase().trim();
+      const name = user.name || user.given_name || 'Google Customer';
+      const picture = user.picture || '';
+
+      // Save customer profile to server
+      if (email) {
+        try {
+          fetch('/api/customer/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, name })
+          }).catch(console.warn);
+        } catch (e) {}
+      }
+
+      // Show success UI
+      document.getElementById('login-section').style.display = 'none';
+      const successSec = document.getElementById('success-section');
+      successSec.style.display = 'block';
+
+      if (picture) {
+        const avatar = document.getElementById('user-avatar');
+        avatar.src = picture;
+        avatar.style.display = 'block';
+      }
+      document.getElementById('user-name').textContent = name;
+      document.getElementById('user-email').textContent = email;
+
+      // Construct Deep Link to native app
+      const deepLink = 'salikfood://auth?email=' + encodeURIComponent(email) + 
+                       '&name=' + encodeURIComponent(name) + 
+                       '&picture=' + encodeURIComponent(picture);
+
+      const appBtn = document.getElementById('open-app-btn');
+      appBtn.href = deepLink;
+
+      // Automatically trigger redirect to the app
+      setTimeout(function() {
+        window.location.href = deepLink;
+      }, 400);
+    }
+
+    window.onload = function() {
+      if (window.google && window.google.accounts) {
+        initGsi();
+      } else {
+        const checkInterval = setInterval(function() {
+          if (window.google && window.google.accounts) {
+            clearInterval(checkInterval);
+            initGsi();
+          }
+        }, 100);
+        setTimeout(function() { clearInterval(checkInterval); }, 5000);
+      }
+    };
+
+    function initGsi() {
+      try {
+        google.accounts.id.initialize({
+          client_id: CLIENT_ID,
+          callback: handleCredentialResponse,
+          auto_select: true
+        });
+
+        const container = document.getElementById('google-btn-container');
+        container.innerHTML = '';
+        google.accounts.id.renderButton(container, {
+          theme: 'outline',
+          size: 'large',
+          type: 'standard',
+          shape: 'pill',
+          text: 'continue_with',
+          logo_alignment: 'left',
+          width: 280
+        });
+
+        google.accounts.id.prompt();
+      } catch (err) {
+        console.error('GIS Init Error:', err);
+      }
+    }
+  </script>
+</body>
+</html>

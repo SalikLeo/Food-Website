@@ -26,5 +26,11 @@ if (fs.existsSync(versionFile)) {
     console.log(`>>> Incremented Admin Build to ${vJson.admin.build} (Version: ${vJson.admin.version})`);
   }
 
+  if (target === 'rider' || target === 'all') {
+    vJson.rider.build = (Number(vJson.rider.build) || 100) + 1;
+    vJson.rider.releaseDate = today;
+    console.log(`>>> Incremented Rider Build to ${vJson.rider.build} (Version: ${vJson.rider.version})`);
+  }
+
   fs.writeFileSync(versionFile, JSON.stringify(vJson, null, 2) + '\n', 'utf8');
 }

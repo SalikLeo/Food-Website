@@ -16,14 +16,18 @@
     "postinstall": "vite build",
     "build:customer": "cross-env VITE_APP_MODE=customer vite build --outDir Mobile/customer/www && cd Mobile/customer && npx cap copy android",
     "build:admin": "cross-env VITE_APP_MODE=admin vite build --outDir Mobile/admin/www && cd Mobile/admin && npx cap copy android",
+    "build:rider": "cross-env VITE_APP_MODE=rider vite build --outDir Mobile/rider/www && cd Mobile/rider && npx cap copy android",
     "preview": "vite preview",
     "preview:customer": "vite preview --outDir Mobile/customer/www",
     "preview:admin": "vite preview --outDir Mobile/admin/www",
+    "preview:rider": "vite preview --outDir Mobile/rider/www",
     "open:customer": "cd Mobile/customer && npx cap open android",
     "open:admin": "cd Mobile/admin && npx cap open android",
+    "open:rider": "cd Mobile/rider && npx cap open android",
     "apks": "powershell -ExecutionPolicy Bypass -File scripts/build-apks.ps1 -Target all",
     "apks:customer": "powershell -ExecutionPolicy Bypass -File scripts/build-apks.ps1 -Target customer",
-    "apks:admin": "powershell -ExecutionPolicy Bypass -File scripts/build-apks.ps1 -Target admin"
+    "apks:admin": "powershell -ExecutionPolicy Bypass -File scripts/build-apks.ps1 -Target admin",
+    "apks:rider": "powershell -ExecutionPolicy Bypass -File scripts/build-apks.ps1 -Target rider"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

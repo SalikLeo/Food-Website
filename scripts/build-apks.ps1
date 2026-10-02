@@ -70,15 +70,41 @@ function Build-Admin {
   }
 }
 
+function Build-Rider {
+  Write-Host ">>> Building Rider Mobile Web Assets..." -ForegroundColor Cyan
+  Set-Location $baseDir
+  npm run build:rider
+  
+  Write-Host ">>> Compiling Rider Android APK with Gradle..." -ForegroundColor Cyan
+  Set-Location (Join-Path $baseDir "Mobile\rider\android")
+  .\gradlew assembleDebug
+  
+  $builtApk = Join-Path $baseDir "Mobile\rider\android\app\build\outputs\apk\debug\app-debug.apk"
+  if (Test-Path $builtApk) {
+    Copy-Item -Path $builtApk -Destination (Join-Path $apkDir "Salik-Fast-Food-Rider.apk") -Force
+    Copy-Item -Path $builtApk -Destination (Join-Path $publicDownDir "Salik-Fast-Food-Rider.apk") -Force
+    if (Test-Path $distDownDir) {
+      Copy-Item -Path $builtApk -Destination (Join-Path $distDownDir "Salik-Fast-Food-Rider.apk") -Force
+    }
+    Write-Host "[SUCCESS] Rider APK copied to APKs, public/downloads, and dist/downloads!" -ForegroundColor Green
+  } else {
+    Write-Host "[ERROR] Rider APK build output not found!" -ForegroundColor Red
+  }
+}
+
 try {
   if ($Target -eq "customer") {
     Build-Customer
   } elseif ($Target -eq "admin") {
     Build-Admin
+  } elseif ($Target -eq "rider") {
+    Build-Rider
   } else {
     Build-Customer
     Build-Admin
+    Build-Rider
   }
 } finally {
   Set-Location $baseDir
 }
+
