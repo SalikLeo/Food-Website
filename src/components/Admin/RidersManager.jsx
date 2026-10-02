@@ -13,7 +13,10 @@ import {
   Package, 
   Copy, 
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Lock
 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
 
@@ -34,6 +37,14 @@ export default function RidersManager({
   const [copiedId, setCopiedId] = useState(null);
   const [copiedPortalLink, setCopiedPortalLink] = useState(false);
   const [showModalPin, setShowModalPin] = useState(false);
+  const [visiblePinIds, setVisiblePinIds] = useState({});
+
+  const togglePinVisibility = (riderId) => {
+    setVisiblePinIds(prev => ({
+      ...prev,
+      [riderId]: !prev[riderId]
+    }));
+  };
 
   // Compute active orders & total deliveries per rider
   const riderStats = useMemo(() => {
@@ -379,39 +390,60 @@ export default function RidersManager({
                         ? rider.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
                         : 'RD'}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="text-sm font-bold text-zinc-900 truncate">
-                          {rider.name}
-                        </h3>
-                        {rider.phone && (
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-zinc-300">•</span>
-                            <Phone className="w-3 h-3 text-orange-600 shrink-0" />
-                            <a
-                              href={`tel:${rider.phone}`}
-                              className="text-xs font-semibold text-zinc-700 hover:text-orange-600 hover:underline tracking-wide"
-                              title="Click to call rider"
-                            >
-                              {rider.phone}
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyPhone(rider.id, rider.phone)}
-                              className="p-0.5 rounded text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
-                              title="Copy phone number"
-                            >
-                              {copiedId === rider.id ? (
-                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </button>
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-mono text-[10px] font-bold border border-amber-200" title="Login PIN for rider app">
-                              PIN: {rider.pin || rider.phone.slice(-4) || '1234'}
-                            </span>
-                          </div>
-                        )}
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <h3 className="text-sm font-bold text-zinc-900 truncate">
+                        {rider.name}
+                      </h3>
+
+                      {/* Contact Phone */}
+                      {rider.phone && (
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Phone className="w-3 h-3 text-orange-600 shrink-0" />
+                          <a
+                            href={`tel:${rider.phone}`}
+                            className="font-semibold text-zinc-700 hover:text-orange-600 hover:underline tracking-wide"
+                            title="Click to call rider"
+                          >
+                            {rider.phone}
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPhone(rider.id, rider.phone)}
+                            className="p-0.5 rounded text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer"
+                            title="Copy phone number"
+                          >
+                            {copiedId === rider.id ? (
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* PIN (Next line, hidden with view toggle) */}
+                      <div className="flex items-center gap-1.5 pt-0.5">
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-900 font-medium">
+                          <Lock className="w-3 h-3 text-amber-600 shrink-0" />
+                          <span className="text-amber-800 text-[10px] font-bold uppercase tracking-wider">PIN:</span>
+                          <span className="font-mono font-bold tracking-widest text-amber-950">
+                            {visiblePinIds[rider.id]
+                              ? (rider.pin || (rider.phone ? rider.phone.slice(-4) : '1234'))
+                              : '••••'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => togglePinVisibility(rider.id)}
+                            className="p-0.5 rounded text-amber-700 hover:text-amber-950 hover:bg-amber-100 transition-colors cursor-pointer ml-0.5"
+                            title={visiblePinIds[rider.id] ? 'Hide PIN' : 'View PIN'}
+                          >
+                            {visiblePinIds[rider.id] ? (
+                              <EyeOff className="w-3.5 h-3.5" />
+                            ) : (
+                              <Eye className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
