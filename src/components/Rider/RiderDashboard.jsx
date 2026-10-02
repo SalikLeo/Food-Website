@@ -752,7 +752,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                 const cleanId = String(order.id).replace(/^#/, '');
                 const cleanPhone = getCleanPhone(order.phone);
                 const isOutForDelivery = order.status === 'Out for Delivery';
-                const createdTime = order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                const createdTime = order.createdAt ? new Date(order.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
                 const isItemsExpanded = Boolean(expandedItemsOrders[order.id]);
 
                 return (
@@ -801,11 +801,10 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                           {cleanPhone && (
                             <a
                               href={`tel:${cleanPhone}`}
-                              className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                              className="p-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-sm transition-all cursor-pointer"
                               title="Call Customer"
                             >
-                              <Phone className="w-3.5 h-3.5" />
-                              <span className="hidden xs:inline">Call</span>
+                              <Phone className="w-5 h-5" />
                             </a>
                           )}
 
@@ -814,10 +813,10 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                               href={getWhatsAppLink(cleanPhone, cleanId, order.total)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all cursor-pointer"
+                              className="p-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all cursor-pointer"
                               title="Chat on WhatsApp"
                             >
-                              <WhatsAppIcon className="w-4 h-4" />
+                              <WhatsAppIcon className="w-5 h-5" />
                             </a>
                           )}
                         </div>
@@ -965,7 +964,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                 const cleanId = String(order.id).replace(/^#/, '');
                 const deliveredDate = order.deliveredAt || order.updatedAt || order.createdAt;
                 const formattedTime = deliveredDate
-                  ? new Date(deliveredDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                  ? new Date(deliveredDate).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', hour12: true })
                   : '';
 
                 return (
