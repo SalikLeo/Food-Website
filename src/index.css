@@ -451,15 +451,15 @@
   animation: reminderBounce 2.8s ease-in-out infinite;
 }
 
-/* Mobile Header & Bottom Navigation Adjustments (Dynamic Safe Area) */
+/* Mobile Header & Bottom Navigation Adjustments */
 .mobile-app-header {
-  padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
+  padding-top: 0.28rem;
   padding-bottom: 0.65rem;
 }
 
 .admin-app-header {
-  padding-top: max(env(safe-area-inset-top, 0px), 0.65rem);
-  padding-bottom: 0.65rem;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 .mobile-app-container {
