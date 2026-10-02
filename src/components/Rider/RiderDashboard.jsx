@@ -542,7 +542,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h4 className="font-black text-base tracking-tight">{order.customerName || 'Customer'}</h4>
-                          <p className={`text-xs font-mono font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                          <p className={`text-xs font-sans font-semibold ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                             {order.phone}
                           </p>
                         </div>
@@ -621,7 +621,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                                 {it.quantity || 1}x {it.name}
                                 {it.size && <span className="text-orange-400 ml-1">({it.size})</span>}
                               </span>
-                              <span className="font-mono text-zinc-400 shrink-0">
+                              <span className="font-sans font-semibold text-zinc-400 shrink-0">
                                 Rs. {formatPrice(it.price * (it.quantity || 1))}
                               </span>
                             </div>
@@ -646,7 +646,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                           <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 block">
                             Cash to Collect
                           </span>
-                          <span className="text-lg sm:text-xl font-black text-emerald-500 font-mono">
+                          <span className="text-lg sm:text-xl font-sans font-bold text-emerald-500">
                             Rs. {formatPrice(order.total)}
                           </span>
                         </div>
@@ -739,7 +739,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
                         Collected
                       </span>
-                      <span className="font-mono font-bold text-sm sm:text-base text-emerald-500">
+                      <span className="font-sans font-bold text-sm sm:text-base text-emerald-500">
                         Rs. {formatPrice(order.total)}
                       </span>
                     </div>
