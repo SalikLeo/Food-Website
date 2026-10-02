@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Info
+  Info,
+  Clock
 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
 import { formatPrice, getLocalDateStr, formatToDDMMYY } from '../../utils/formatters';
@@ -34,6 +35,12 @@ export default function CostsManager({
   onRefresh
 }) {
   const todayStr = useMemo(() => getLocalDateStr(new Date()), []);
+  const yesterdayStr = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return getLocalDateStr(d);
+  }, []);
+
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'this_month' | 'specific_date'
   const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth());
@@ -84,6 +91,7 @@ export default function CostsManager({
     const currentMonth = new Date().getMonth();
 
     let todayTotal = 0;
+    let yesterdayTotal = 0;
     let thisMonthTotal = 0;
     let allTimeTotal = 0;
 
@@ -93,6 +101,10 @@ export default function CostsManager({
 
       if (c.date === todayStr) {
         todayTotal += amt;
+      }
+
+      if (c.date === yesterdayStr) {
+        yesterdayTotal += amt;
       }
 
       if (c.date) {
@@ -108,13 +120,14 @@ export default function CostsManager({
 
     return {
       todayTotal,
+      yesterdayTotal,
       thisMonthTotal,
       allTimeTotal,
       totalEntries: costs.length,
       avgDailyCost,
       uniqueDays: uniqueDatesCount
     };
-  }, [costs, todayStr]);
+  }, [costs, todayStr, yesterdayStr]);
 
   // Filtered Costs List
   const filteredCosts = useMemo(() => {
@@ -320,19 +333,25 @@ export default function CostsManager({
           </div>
         </div>
 
-        {/* All-Time Total Costs */}
+        {/* Yesterday's Cost */}
         <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-zinc-200/90 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">All-Time Total</span>
-            <div className="w-7 h-7 rounded-lg bg-zinc-100 text-zinc-700 flex items-center justify-center">
-              <Wallet className="w-3.5 h-3.5" />
+            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Yesterday</span>
+            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="mt-2 text-base sm:text-xl font-extrabold text-zinc-900 leading-none">
-            {formatPrice(stats.allTimeTotal)}
+            {formatPrice(stats.yesterdayTotal)}
           </div>
           <div className="text-[10.5px] text-zinc-400 font-semibold mt-1">
-            Across {stats.uniqueDays} active days
+            {stats.yesterdayTotal > 0 ? (
+              <span className="text-zinc-600 font-bold">
+                Daily Sales: {formatPrice(dailyDeliveredSalesMap[yesterdayStr] || 0)}
+              </span>
+            ) : (
+              'No cost recorded'
+            )}
           </div>
         </div>
 
@@ -451,9 +470,8 @@ export default function CostsManager({
                   const dayProfit = daySales - Number(cost.amount || 0);
                   const isProfitable = dayProfit >= 0;
 
-                  // Date label formatting
+                  // Date label formatting (e.g. Oct 2, 2026)
                   let dateFormatted = cost.date;
-                  let dayName = '';
                   try {
                     const [y, m, d] = (cost.date || '').split('-').map(Number);
                     const dt = new Date(y, m - 1, d);
@@ -462,24 +480,13 @@ export default function CostsManager({
                       day: 'numeric',
                       year: 'numeric'
                     });
-                    dayName = dt.toLocaleDateString('en-US', { weekday: 'short' });
                   } catch {}
 
                   return (
                     <tr key={cost.id} className="hover:bg-zinc-50/80 transition-colors">
                       {/* Date */}
-                      <td className="py-3 px-3.5 sm:px-4 font-bold text-zinc-900 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-7 py-0.5 rounded text-[10px] font-extrabold uppercase text-center bg-zinc-100 text-zinc-700">
-                            {dayName || 'Day'}
-                          </span>
-                          <span className="text-xs font-bold text-zinc-900">{dateFormatted}</span>
-                          {cost.date === todayStr && (
-                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-extrabold uppercase bg-emerald-100 text-emerald-800">
-                              Today
-                            </span>
-                          )}
-                        </div>
+                      <td className="py-3 px-3.5 sm:px-4 font-bold text-zinc-900 whitespace-nowrap text-xs">
+                        {dateFormatted}
                       </td>
 
                       {/* Ingredient Cost */}

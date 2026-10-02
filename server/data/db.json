@@ -2929,5 +2929,15 @@
       "q": "Where can I see the Salik Fast Food menu and prices?",
       "a": "The full menu with current prices is on this website — every category has its own tab with item photos and prices."
     }
+  ],
+  "costs": [
+    {
+      "id": "cost-1790927758333-dynl",
+      "date": "2026-10-02",
+      "amount": 25000,
+      "note": "",
+      "createdAt": "2026-10-02T07:55:58.333Z",
+      "updatedAt": "2026-10-02T07:55:58.333Z"
+    }
   ]
 }
