@@ -85,13 +85,14 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: Date.now() });
 });
 
-// App Version Endpoint (For in-app update checks on Customer & Admin Mobile Apps)
+// App Version Endpoint (For in-app update checks on Customer, Admin & Rider Mobile Apps)
 app.get('/api/app-version', (req, res) => {
   try {
     const versionPath = path.join(__dirname, '..', 'src', 'config', 'version.json');
     let versionData = {
-      customer: { version: '1.0.2', build: 102, releaseDate: '2026-09-28' },
-      admin: { version: '1.0.2', build: 102, releaseDate: '2026-09-28' }
+      customer: { version: '1.0.3', build: 108, releaseDate: '2026-10-02' },
+      admin: { version: '1.0.3', build: 108, releaseDate: '2026-10-02' },
+      rider: { version: '1.0.0', build: 112, releaseDate: '2026-10-02' }
     };
 
     if (fs.existsSync(versionPath)) {
@@ -116,12 +117,13 @@ app.get('/api/app-version', (req, res) => {
 
     const custApk = getApkDetails('Salik-Fast-Food-Customer.apk', '15.28 MB');
     const adminApk = getApkDetails('Salik-Fast-Food-Admin.apk', '15.29 MB');
+    const riderApk = getApkDetails('Salik-Fast-Food-Rider.apk', '15.25 MB');
 
     res.json({
       customer: {
-        version: versionData.customer?.version || '1.0.2',
-        build: Number(versionData.customer?.build) || 102,
-        releaseDate: versionData.customer?.releaseDate || '2026-09-28',
+        version: versionData.customer?.version || '1.0.3',
+        build: Number(versionData.customer?.build) || 108,
+        releaseDate: versionData.customer?.releaseDate || '2026-10-02',
         releaseNotes: versionData.customer?.releaseNotes || [
           'Latest order status updates with instant sync',
           'Option to delete delivered orders directly from dashboard',
@@ -135,9 +137,9 @@ app.get('/api/app-version', (req, res) => {
         lastModified: custApk.lastModified
       },
       admin: {
-        version: versionData.admin?.version || '1.0.2',
-        build: Number(versionData.admin?.build) || 102,
-        releaseDate: versionData.admin?.releaseDate || '2026-09-28',
+        version: versionData.admin?.version || '1.0.3',
+        build: Number(versionData.admin?.build) || 108,
+        releaseDate: versionData.admin?.releaseDate || '2026-10-02',
         releaseNotes: versionData.admin?.releaseNotes || [
           'Ability to delete delivered orders directly',
           'Uniform button heights for clean alignment',
@@ -148,6 +150,21 @@ app.get('/api/app-version', (req, res) => {
         apkName: 'Salik-Fast-Food-Admin.apk',
         sizeMB: adminApk.sizeMB,
         lastModified: adminApk.lastModified
+      },
+      rider: {
+        version: versionData.rider?.version || '1.0.0',
+        build: Number(versionData.rider?.build) || 112,
+        releaseDate: versionData.rider?.releaseDate || '2026-10-02',
+        releaseNotes: versionData.rider?.releaseNotes || [
+          'Dedicated Rider Delivery Fleet App',
+          'Real-time assigned parcel alerts & sound chimes',
+          '1-Tap Customer phone call and WhatsApp message',
+          'Shift cash collection & delivered orders tracker'
+        ],
+        apkUrl: `${baseUrl}/downloads/Salik-Fast-Food-Rider.apk`,
+        apkName: 'Salik-Fast-Food-Rider.apk',
+        sizeMB: riderApk.sizeMB,
+        lastModified: riderApk.lastModified
       }
     });
   } catch (err) {
@@ -254,13 +271,14 @@ app.post('/api/products', (req, res) => {
       tag: tag || '',
       inStock: inStock !== false
     });
+    safeBroadcast(() => io.emit('stats:updated', db.getStats()));
     res.status(201).json(newProduct);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put('/api/products/:id', (req, res) => {
+const handleUpdateProduct = (req, res) => {
   try {
     const updated = db.updateProduct(req.params.id, req.body);
     if (!updated) return res.status(404).json({ error: 'Product not found' });
@@ -268,12 +286,16 @@ app.put('/api/products/:id', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.put('/api/products/:id', handleUpdateProduct);
+app.patch('/api/products/:id', handleUpdateProduct);
+app.post('/api/products/:id', handleUpdateProduct);
 
 app.delete('/api/products/:id', (req, res) => {
   try {
     const deleted = db.deleteProduct(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Product not found' });
+    safeBroadcast(() => io.emit('stats:updated', db.getStats()));
     res.json({ success: true, message: 'Product deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -298,7 +320,7 @@ app.post('/api/categories', (req, res) => {
   }
 });
 
-app.put('/api/categories/:id', (req, res) => {
+const handleUpdateCategory = (req, res) => {
   try {
     const { label, blurb } = req.body;
     if (!label || !label.trim()) {
@@ -310,7 +332,10 @@ app.put('/api/categories/:id', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.put('/api/categories/:id', handleUpdateCategory);
+app.patch('/api/categories/:id', handleUpdateCategory);
+app.post('/api/categories/:id', handleUpdateCategory);
 
 app.delete('/api/categories/:id', (req, res) => {
   try {
@@ -335,13 +360,14 @@ app.get('/api/deals', (req, res) => {
 app.post('/api/deals', (req, res) => {
   try {
     const newDeal = db.createDeal(req.body);
+    safeBroadcast(() => io.emit('stats:updated', db.getStats()));
     res.status(201).json(newDeal);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put('/api/deals/:id', (req, res) => {
+const handleUpdateDeal = (req, res) => {
   try {
     const updated = db.updateDeal(req.params.id, req.body);
     if (!updated) return res.status(404).json({ error: 'Deal not found' });
@@ -349,11 +375,15 @@ app.put('/api/deals/:id', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.put('/api/deals/:id', handleUpdateDeal);
+app.patch('/api/deals/:id', handleUpdateDeal);
+app.post('/api/deals/:id', handleUpdateDeal);
 
 app.delete('/api/deals/:id', (req, res) => {
   try {
     db.deleteDeal(req.params.id);
+    safeBroadcast(() => io.emit('stats:updated', db.getStats()));
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -678,30 +708,43 @@ app.get('/api/riders', (req, res) => {
   }
 });
 
+function normalizeRiderPhoneInput(phone) {
+  let digits = String(phone || '').replace(/\D/g, '');
+  if (digits.startsWith('92') && digits.length === 12) {
+    digits = '0' + digits.slice(2);
+  } else if (digits.length === 10 && digits.startsWith('3')) {
+    digits = '0' + digits;
+  }
+  return digits.slice(0, 11);
+}
+
 app.post('/api/riders', (req, res) => {
   try {
     const { name, phone, pin, status } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Rider name is required' });
     }
-    const cleanPhone = String(phone || '').replace(/\D/g, '').slice(0, 11);
+    const cleanPhone = normalizeRiderPhoneInput(phone);
     if (!cleanPhone || cleanPhone.length !== 11) {
       return res.status(400).json({ error: 'Rider phone number must be 11 digits (e.g. 03001234567)' });
     }
     const newRider = db.createRider({ name: name.trim(), phone: cleanPhone, pin, status });
-    safeBroadcast(() => io.emit('riders:updated', db.getRiders()));
+    safeBroadcast(() => {
+      io.emit('riders:updated', db.getRiders());
+      io.emit('stats:updated', db.getStats());
+    });
     res.status(201).json({ success: true, rider: newRider });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put('/api/riders/:id', (req, res) => {
+const handleUpdateRider = (req, res) => {
   try {
     const { name, phone, pin, status } = req.body;
     let cleanPhone;
     if (phone !== undefined) {
-      cleanPhone = String(phone || '').replace(/\D/g, '').slice(0, 11);
+      cleanPhone = normalizeRiderPhoneInput(phone);
       if (!cleanPhone || cleanPhone.length !== 11) {
         return res.status(400).json({ error: 'Rider phone number must be 11 digits (e.g. 03001234567)' });
       }
@@ -713,17 +756,23 @@ app.put('/api/riders/:id', (req, res) => {
       ...(status !== undefined ? { status } : {})
     });
     if (!updated) return res.status(404).json({ error: 'Rider not found' });
-    safeBroadcast(() => io.emit('riders:updated', db.getRiders()));
+    safeBroadcast(() => {
+      io.emit('riders:updated', db.getRiders());
+      io.emit('orders:updated', db.getOrders());
+    });
     res.json({ success: true, rider: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.put('/api/riders/:id', handleUpdateRider);
+app.patch('/api/riders/:id', handleUpdateRider);
+app.post('/api/riders/:id', handleUpdateRider);
 
 app.delete('/api/riders/:id', (req, res) => {
   try {
     const activeOrders = (db.getOrders() || []).filter(
-      o => o.riderId === req.params.id && o.status === 'Out for Delivery'
+      o => String(o.riderId) === String(req.params.id) && o.status === 'Out for Delivery'
     );
     if (activeOrders.length > 0) {
       return res.status(400).json({
@@ -732,7 +781,11 @@ app.delete('/api/riders/:id', (req, res) => {
     }
     const deleted = db.deleteRider(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Rider not found' });
-    safeBroadcast(() => io.emit('riders:updated', db.getRiders()));
+    safeBroadcast(() => {
+      io.emit('riders:updated', db.getRiders());
+      io.emit('orders:updated', db.getOrders());
+      io.emit('stats:updated', db.getStats());
+    });
     res.json({ success: true, message: 'Rider deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -743,7 +796,7 @@ app.delete('/api/riders/:id', (req, res) => {
 app.post('/api/rider/login', (req, res) => {
   try {
     const { phone, pin } = req.body;
-    if (!phone || !phone.trim()) {
+    if (!phone || !String(phone).trim()) {
       return res.status(400).json({ error: 'Rider phone number is required' });
     }
     const rider = db.riderLogin({ phone, pin });
@@ -844,7 +897,7 @@ app.post('/api/costs', (req, res) => {
   }
 });
 
-app.put('/api/costs/:id', (req, res) => {
+const handleUpdateCost = (req, res) => {
   try {
     const { amount } = req.body;
     if (amount !== undefined && (isNaN(Number(amount)) || Number(amount) < 0)) {
@@ -860,7 +913,10 @@ app.put('/api/costs/:id', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.put('/api/costs/:id', handleUpdateCost);
+app.patch('/api/costs/:id', handleUpdateCost);
+app.post('/api/costs/:id', handleUpdateCost);
 
 app.delete('/api/costs/:id', (req, res) => {
   try {
@@ -883,7 +939,7 @@ app.get('/api/stats', (req, res) => {
 
 // Admin Auth (Protected with rate limiting against brute-force attacks)
 app.post('/api/admin/login', adminLoginLimiter, (req, res) => {
-  const { password } = req.body;
+  const { password } = req.body || {};
   const validPass = process.env.ADMIN_PASSWORD || 'Salik.leo1212';
   if (password === validPass || password === 'Salik.leo1212') {
     return res.json({ success: true, token: 'salik-auth-token-valid' });
@@ -902,6 +958,24 @@ if (fs.existsSync(distDir)) {
     res.sendFile(path.join(distDir, 'index.html'));
   });
 }
+
+// Global JSON Error Handler (ensures multer/JSON parse errors return valid JSON instead of HTML)
+app.use((err, req, res, _next) => {
+  console.error('Express error middleware caught:', err?.message || err);
+  if (res.headersSent) return;
+  const status = err.status || err.statusCode || 400;
+  res.status(status).json({
+    success: false,
+    error: err.message || 'An unexpected server error occurred'
+  });
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception (kept server alive):', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled promise rejection (kept server alive):', reason);
+});
 
 function getLocalNetworkIp() {
   const nets = os.networkInterfaces();

@@ -148,8 +148,23 @@ const INITIAL_REVIEWS = [
   }
 ];
 
+const liveDbFile = path.join(dataDir, 'db-live.json');
+const tmpBackupFile = path.join(os.tmpdir(), 'salik-fast-food-db-backup.json');
+const backupFiles = Array.from(new Set([liveDbFile, backupDbFile, tmpBackupFile].filter(Boolean)));
+
 let memoryCache = null;
 let lastMtimeMs = 0;
+
+function normalizePhone11(phone) {
+  if (!phone) return '';
+  let digits = String(phone).replace(/\D/g, '');
+  if (digits.startsWith('92') && digits.length === 12) {
+    digits = '0' + digits.slice(2);
+  } else if (digits.length === 10 && digits.startsWith('3')) {
+    digits = '0' + digits;
+  }
+  return digits.slice(0, 11);
+}
 
 function normalizeDbData(data) {
   if (!data || typeof data !== 'object') {
@@ -160,8 +175,14 @@ function normalizeDbData(data) {
   if (!Array.isArray(data.orders)) data.orders = [];
   if (!Array.isArray(data.riders)) data.riders = [];
   if (!Array.isArray(data.costs)) data.costs = [];
+  if (!data.customerProfiles || typeof data.customerProfiles !== 'object') data.customerProfiles = {};
   if (!Array.isArray(data.deletedOrderIds)) data.deletedOrderIds = [];
   if (!Array.isArray(data.deletedRiderIds)) data.deletedRiderIds = [];
+  if (!Array.isArray(data.deletedProductIds)) data.deletedProductIds = [];
+  if (!Array.isArray(data.deletedCategoryIds)) data.deletedCategoryIds = [];
+  if (!Array.isArray(data.deletedDealIds)) data.deletedDealIds = [];
+  if (!Array.isArray(data.deletedReviewIds)) data.deletedReviewIds = [];
+  if (!Array.isArray(data.deletedCostIds)) data.deletedCostIds = [];
 
   if (!Array.isArray(data.deals)) {
     if (data.deals && Array.isArray(data.deals.deals)) {
@@ -176,82 +197,94 @@ function normalizeDbData(data) {
   return data;
 }
 
+function getItemTimestamp(item) {
+  if (!item || typeof item !== 'object') return 0;
+  const ts = new Date(item.updatedAt || item.deliveredAt || item.outForDeliveryAt || item.createdAt || 0).getTime();
+  return Number.isFinite(ts) ? ts : 0;
+}
+
 function readDb(forceDisk = false) {
   try {
     let stat = null;
-    try {
-      stat = fs.statSync(dbFile);
-    } catch {}
+    let liveStat = null;
+    try { stat = fs.statSync(dbFile); } catch {}
+    try { liveStat = fs.statSync(liveDbFile); } catch {}
 
-    if (!forceDisk && memoryCache && stat && stat.mtimeMs === lastMtimeMs) {
+    const currentMtime = Math.max(stat ? stat.mtimeMs : 0, liveStat ? liveStat.mtimeMs : 0);
+
+    if (!forceDisk && memoryCache && currentMtime > 0 && currentMtime === lastMtimeMs) {
       return memoryCache;
     }
 
-    const raw = fs.readFileSync(dbFile, 'utf8');
-    const data = normalizeDbData(JSON.parse(raw));
-    if (stat) lastMtimeMs = stat.mtimeMs;
-
-    // Merge with persistent backup outside git repo so git pull/reset on Hostinger never wipes live orders/riders
+    let raw = '';
     try {
-      if (fs.existsSync(backupDbFile)) {
-        const backupRaw = fs.readFileSync(backupDbFile, 'utf8');
+      raw = fs.readFileSync(dbFile, 'utf8');
+    } catch {
+      if (fs.existsSync(liveDbFile)) {
+        raw = fs.readFileSync(liveDbFile, 'utf8');
+      } else if (fs.existsSync(initialFile)) {
+        raw = fs.readFileSync(initialFile, 'utf8');
+      } else {
+        raw = '{}';
+      }
+    }
+    const data = normalizeDbData(JSON.parse(raw || '{}'));
+    if (currentMtime > 0) lastMtimeMs = currentMtime;
+
+    let mergedChanges = false;
+
+    // Merge with persistent backups (server/data/db-live.json, homedir, tmpdir) so git pull/reset never wipes live data
+    for (const bFile of backupFiles) {
+      try {
+        if (!fs.existsSync(bFile)) continue;
+        const backupRaw = fs.readFileSync(bFile, 'utf8');
+        if (!backupRaw || !backupRaw.trim()) continue;
         const backup = normalizeDbData(JSON.parse(backupRaw));
-        let mergedChanges = false;
 
-        // Merge deleted IDs
-        const deletedOrdersSet = new Set([
-          ...(data.deletedOrderIds || []),
-          ...(backup.deletedOrderIds || [])
-        ]);
-        if (deletedOrdersSet.size !== (data.deletedOrderIds || []).length) {
-          data.deletedOrderIds = Array.from(deletedOrdersSet);
-          mergedChanges = true;
-        }
+        const mergeDeletedList = (key) => {
+          const combined = new Set([...(data[key] || []).map(String), ...(backup[key] || []).map(String)]);
+          if (combined.size !== (data[key] || []).length) {
+            data[key] = Array.from(combined);
+            mergedChanges = true;
+          }
+          return combined;
+        };
 
-        const deletedRidersSet = new Set([
-          ...(data.deletedRiderIds || []),
-          ...(backup.deletedRiderIds || [])
-        ]);
-        if (deletedRidersSet.size !== (data.deletedRiderIds || []).length) {
-          data.deletedRiderIds = Array.from(deletedRidersSet);
-          mergedChanges = true;
-        }
+        const deletedOrdersSet = mergeDeletedList('deletedOrderIds');
+        const deletedRidersSet = mergeDeletedList('deletedRiderIds');
+        const deletedProductsSet = mergeDeletedList('deletedProductIds');
+        const deletedCategoriesSet = mergeDeletedList('deletedCategoryIds');
+        const deletedDealsSet = mergeDeletedList('deletedDealIds');
+        const deletedReviewsSet = mergeDeletedList('deletedReviewIds');
+        const deletedCostsSet = mergeDeletedList('deletedCostIds');
 
-        // Merge orders from backup that were wiped by git reset or have newer status updates
+        // 1. Merge Orders
         if (Array.isArray(backup.orders) && backup.orders.length > 0) {
           const orderMap = new Map();
           for (const o of data.orders) {
             if (!o || !o.id) continue;
             const cleanId = String(o.id).replace(/^#/, '').trim();
-            if (!deletedOrdersSet.has(cleanId)) {
+            if (!deletedOrdersSet.has(cleanId) && !deletedOrdersSet.has(cleanId.toLowerCase())) {
               orderMap.set(cleanId, o);
             }
           }
           for (const bo of backup.orders) {
             if (!bo || !bo.id) continue;
             const cleanId = String(bo.id).replace(/^#/, '').trim();
-            if (deletedOrdersSet.has(cleanId)) continue;
+            if (deletedOrdersSet.has(cleanId) || deletedOrdersSet.has(cleanId.toLowerCase())) continue;
             const existing = orderMap.get(cleanId);
             if (!existing) {
               orderMap.set(cleanId, bo);
               mergedChanges = true;
-            } else {
-              const tExisting = new Date(existing.updatedAt || existing.deliveredAt || existing.createdAt || 0).getTime();
-              const tBackup = new Date(bo.updatedAt || bo.deliveredAt || bo.createdAt || 0).getTime();
-              if (tBackup > tExisting) {
-                orderMap.set(cleanId, bo);
-                mergedChanges = true;
-              }
+            } else if (getItemTimestamp(bo) > getItemTimestamp(existing)) {
+              orderMap.set(cleanId, bo);
+              mergedChanges = true;
             }
           }
-          if (mergedChanges) {
-            data.orders = Array.from(orderMap.values()).sort(
-              (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-            );
-          }
+          data.orders = Array.from(orderMap.values());
         }
 
-        // Merge riders from backup
+        // 2. Merge Riders
         if (Array.isArray(backup.riders) && backup.riders.length > 0) {
           const riderMap = new Map();
           for (const r of data.riders) {
@@ -261,22 +294,168 @@ function readDb(forceDisk = false) {
           }
           for (const br of backup.riders) {
             if (!br || !br.id || deletedRidersSet.has(String(br.id))) continue;
-            if (!riderMap.has(String(br.id))) {
+            const existing = riderMap.get(String(br.id));
+            if (!existing) {
+              riderMap.set(String(br.id), br);
+              mergedChanges = true;
+            } else if (getItemTimestamp(br) > getItemTimestamp(existing)) {
               riderMap.set(String(br.id), br);
               mergedChanges = true;
             }
           }
-          if (mergedChanges) {
-            data.riders = Array.from(riderMap.values());
+          data.riders = Array.from(riderMap.values());
+        }
+
+        // 3. Merge Costs
+        if (Array.isArray(backup.costs) && backup.costs.length > 0) {
+          const costMap = new Map();
+          for (const c of data.costs) {
+            if (c && c.id && !deletedCostsSet.has(String(c.id))) {
+              costMap.set(String(c.id), c);
+            }
+          }
+          for (const bc of backup.costs) {
+            if (!bc || !bc.id || deletedCostsSet.has(String(bc.id))) continue;
+            const existing = costMap.get(String(bc.id));
+            if (!existing) {
+              costMap.set(String(bc.id), bc);
+              mergedChanges = true;
+            } else if (getItemTimestamp(bc) > getItemTimestamp(existing)) {
+              costMap.set(String(bc.id), bc);
+              mergedChanges = true;
+            }
+          }
+          data.costs = Array.from(costMap.values());
+        }
+
+        // 4. Merge Reviews
+        if (Array.isArray(backup.reviews) && backup.reviews.length > 0) {
+          const reviewMap = new Map();
+          for (const rev of data.reviews || []) {
+            if (rev && rev.id && !deletedReviewsSet.has(String(rev.id))) {
+              reviewMap.set(String(rev.id), rev);
+            }
+          }
+          for (const bRev of backup.reviews) {
+            if (!bRev || !bRev.id || deletedReviewsSet.has(String(bRev.id))) continue;
+            if (!reviewMap.has(String(bRev.id))) {
+              reviewMap.set(String(bRev.id), bRev);
+              mergedChanges = true;
+            }
+          }
+          data.reviews = Array.from(reviewMap.values());
+        }
+
+        // 5. Merge Customer Profiles
+        if (backup.customerProfiles && typeof backup.customerProfiles === 'object') {
+          for (const [emailKey, bProf] of Object.entries(backup.customerProfiles)) {
+            if (!bProf || typeof bProf !== 'object') continue;
+            const existingProf = data.customerProfiles[emailKey];
+            if (!existingProf || getItemTimestamp(bProf) > getItemTimestamp(existingProf)) {
+              data.customerProfiles[emailKey] = bProf;
+              mergedChanges = true;
+            }
           }
         }
 
-        if (mergedChanges) {
-          writeDb(data);
+        // 6. Merge Products (respecting deletedProductIds and newer updatedAt)
+        if (Array.isArray(backup.products) && backup.products.length > 0) {
+          const prodMap = new Map();
+          for (const p of data.products) {
+            if (p && p.id && !deletedProductsSet.has(String(p.id))) {
+              prodMap.set(String(p.id), p);
+            }
+          }
+          for (const bp of backup.products) {
+            if (!bp || !bp.id || deletedProductsSet.has(String(bp.id))) continue;
+            const existing = prodMap.get(String(bp.id));
+            if (!existing) {
+              prodMap.set(String(bp.id), bp);
+              mergedChanges = true;
+            } else if (getItemTimestamp(bp) > getItemTimestamp(existing)) {
+              prodMap.set(String(bp.id), bp);
+              mergedChanges = true;
+            }
+          }
+          data.products = Array.from(prodMap.values());
+        }
+
+        // 7. Merge Categories
+        if (Array.isArray(backup.categories) && backup.categories.length > 0) {
+          const catMap = new Map();
+          for (const c of data.categories) {
+            if (c && c.id && !deletedCategoriesSet.has(String(c.id))) {
+              catMap.set(String(c.id), c);
+            }
+          }
+          for (const bc of backup.categories) {
+            if (!bc || !bc.id || deletedCategoriesSet.has(String(bc.id))) continue;
+            const existing = catMap.get(String(bc.id));
+            if (!existing) {
+              catMap.set(String(bc.id), bc);
+              mergedChanges = true;
+            } else if (getItemTimestamp(bc) > getItemTimestamp(existing)) {
+              catMap.set(String(bc.id), bc);
+              mergedChanges = true;
+            }
+          }
+          data.categories = Array.from(catMap.values());
+        }
+
+        // 8. Merge Deals
+        if (Array.isArray(backup.deals) && backup.deals.length > 0) {
+          const dealMap = new Map();
+          for (const d of data.deals) {
+            if (d && d.id && !deletedDealsSet.has(String(d.id))) {
+              dealMap.set(String(d.id), d);
+            }
+          }
+          for (const bd of backup.deals) {
+            if (!bd || !bd.id || deletedDealsSet.has(String(bd.id))) continue;
+            const existing = dealMap.get(String(bd.id));
+            if (!existing) {
+              dealMap.set(String(bd.id), bd);
+              mergedChanges = true;
+            } else if (getItemTimestamp(bd) > getItemTimestamp(existing)) {
+              dealMap.set(String(bd.id), bd);
+              mergedChanges = true;
+            }
+          }
+          data.deals = Array.from(dealMap.values());
+        }
+
+        // 9. Merge Settings if backup has newer updatedAt
+        if (backup.settings && typeof backup.settings === 'object') {
+          if (!data.settings || getItemTimestamp(backup.settings) > getItemTimestamp(data.settings)) {
+            data.settings = { ...(data.settings || {}), ...backup.settings };
+            mergedChanges = true;
+          }
+        }
+      } catch {
+        // Ignore single backup read error
+      }
+    }
+
+    // Deduplicate & sort orders newest-first
+    if (Array.isArray(data.orders) && data.orders.length > 0) {
+      const deletedSet = new Set((data.deletedOrderIds || []).map(id => String(id).replace(/^#/, '').trim().toLowerCase()));
+      const deduped = new Map();
+      for (const o of data.orders) {
+        if (!o || !o.id) continue;
+        const cleanId = String(o.id).replace(/^#/, '').trim();
+        if (!cleanId || deletedSet.has(cleanId.toLowerCase())) continue;
+        const prev = deduped.get(cleanId);
+        if (!prev || getItemTimestamp(o) >= getItemTimestamp(prev)) {
+          deduped.set(cleanId, o);
         }
       }
-    } catch (backupErr) {
-      // Ignore backup merge errors
+      data.orders = Array.from(deduped.values()).sort(
+        (a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime()
+      );
+    }
+
+    if (mergedChanges || !fs.existsSync(liveDbFile)) {
+      writeDb(data);
     }
 
     memoryCache = data;
@@ -284,40 +463,43 @@ function readDb(forceDisk = false) {
   } catch (err) {
     console.error('Error reading db.json:', err);
     if (memoryCache) return memoryCache;
-    return { categories: [], deals: [], products: [], orders: [], faqs: [], siteInfo: {}, riders: [], costs: [] };
+    return normalizeDbData({});
+  }
+}
+
+function atomicWriteFile(targetPath, content) {
+  try {
+    const tmpFile = `${targetPath}.${process.pid}.${Date.now()}.tmp`;
+    fs.writeFileSync(tmpFile, content, 'utf8');
+    try {
+      fs.renameSync(tmpFile, targetPath);
+    } catch {
+      fs.copyFileSync(tmpFile, targetPath);
+      try { fs.unlinkSync(tmpFile); } catch {}
+    }
+    return true;
+  } catch {
+    return false;
   }
 }
 
 function writeDb(data) {
+  data.lastUpdatedAt = new Date().toISOString();
   memoryCache = data;
   const serialized = JSON.stringify(data, null, 2);
-  try {
-    const tmpFile = `${dbFile}.${process.pid}.${Date.now()}.tmp`;
-    fs.writeFileSync(tmpFile, serialized, 'utf8');
-    try {
-      fs.renameSync(tmpFile, dbFile);
-    } catch {
-      fs.copyFileSync(tmpFile, dbFile);
-      try { fs.unlinkSync(tmpFile); } catch {}
-    }
-    try {
-      const stat = fs.statSync(dbFile);
-      lastMtimeMs = stat.mtimeMs;
-    } catch {}
-  } catch (err) {
-    console.error('Error persisting db.json to disk:', err);
+
+  if (!atomicWriteFile(dbFile, serialized)) {
+    console.error('Error persisting db.json to disk');
   }
 
-  // Persist mirror backup outside git workspace
+  for (const bFile of backupFiles) {
+    atomicWriteFile(bFile, serialized);
+  }
+
   try {
-    const backupTmp = `${backupDbFile}.${process.pid}.tmp`;
-    fs.writeFileSync(backupTmp, serialized, 'utf8');
-    try {
-      fs.renameSync(backupTmp, backupDbFile);
-    } catch {
-      fs.copyFileSync(backupTmp, backupDbFile);
-      try { fs.unlinkSync(backupTmp); } catch {}
-    }
+    const stat = fs.statSync(dbFile);
+    const liveStat = fs.existsSync(liveDbFile) ? fs.statSync(liveDbFile) : null;
+    lastMtimeMs = Math.max(stat ? stat.mtimeMs : 0, liveStat ? liveStat.mtimeMs : 0);
   } catch {}
 }
 
@@ -339,13 +521,15 @@ export const db = {
     const data = readDb();
     let items = data.products || [];
     if (category && category !== 'all') {
-      items = items.filter(p => p.category === category);
+      items = items.filter(p => p && p.category === category);
     }
     if (search) {
-      const q = search.toLowerCase();
-      items = items.filter(p => 
-        p.name.toLowerCase().includes(q) || 
-        (p.description && p.description.toLowerCase().includes(q))
+      const q = String(search).toLowerCase();
+      items = items.filter(p =>
+        p && (
+          (p.name && String(p.name).toLowerCase().includes(q)) ||
+          (p.description && String(p.description).toLowerCase().includes(q))
+        )
       );
     }
     return items;
@@ -353,35 +537,38 @@ export const db = {
 
   getProductById(id) {
     const data = readDb();
-    return (data.products || []).find(p => p.id === id);
+    return (data.products || []).find(p => p && String(p.id) === String(id)) || null;
   },
 
   createProduct(productData) {
-    const data = readDb();
+    const data = readDb(true);
     const id = productData.id || `prod-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const now = new Date().toISOString();
     const newProduct = {
       ...productData,
       id,
       inStock: productData.inStock !== false,
-      createdAt: new Date().toISOString()
+      createdAt: now,
+      updatedAt: now
     };
     data.products = [newProduct, ...(data.products || [])];
-    
+    data.deletedProductIds = (data.deletedProductIds || []).filter(dId => String(dId) !== String(id));
+
     // Update category count
-    const cat = (data.categories || []).find(c => c.id === newProduct.category);
+    const cat = (data.categories || []).find(c => c && c.id === newProduct.category);
     if (cat) {
       cat.count = (cat.count || 0) + 1;
     }
-    
+
     writeDb(data);
     return newProduct;
   },
 
   updateProduct(id, updates) {
-    const data = readDb();
-    const idx = (data.products || []).findIndex(p => p.id === id);
+    const data = readDb(true);
+    const idx = (data.products || []).findIndex(p => p && String(p.id) === String(id));
     if (idx === -1) return null;
-    
+
     data.products[idx] = {
       ...data.products[idx],
       ...updates,
@@ -392,18 +579,19 @@ export const db = {
   },
 
   deleteProduct(id) {
-    const data = readDb();
-    const item = (data.products || []).find(p => p.id === id);
+    const data = readDb(true);
+    const item = (data.products || []).find(p => p && String(p.id) === String(id));
     if (!item) return false;
-    
-    data.products = data.products.filter(p => p.id !== id);
-    
+
+    data.products = (data.products || []).filter(p => p && String(p.id) !== String(id));
+    data.deletedProductIds = Array.from(new Set([...(data.deletedProductIds || []), String(id)]));
+
     // Update category count
-    const cat = (data.categories || []).find(c => c.id === item.category);
+    const cat = (data.categories || []).find(c => c && c.id === item.category);
     if (cat && cat.count > 0) {
       cat.count -= 1;
     }
-    
+
     writeDb(data);
     return true;
   },
@@ -415,15 +603,15 @@ export const db = {
     // recalculate counts dynamically
     return cats.map(c => ({
       ...c,
-      count: (data.products || []).filter(p => p.category === c.id).length
+      count: (data.products || []).filter(p => p && p.category === c.id).length
     }));
   },
 
   createCategory({ label, blurb, id }) {
-    const data = readDb();
+    const data = readDb(true);
     data.categories = data.categories || [];
 
-    const cleanId = (id || label)
+    const cleanId = String(id || label || '')
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
@@ -431,47 +619,52 @@ export const db = {
 
     let uniqueId = cleanId || `cat-${Date.now()}`;
     let counter = 1;
-    while (data.categories.some(c => c.id === uniqueId)) {
+    while (data.categories.some(c => c && c.id === uniqueId)) {
       uniqueId = `${cleanId}-${counter}`;
       counter++;
     }
 
+    const now = new Date().toISOString();
     const newCategory = {
       id: uniqueId,
-      label: label.trim(),
-      blurb: (blurb || '').trim(),
-      count: 0
+      label: String(label || '').trim(),
+      blurb: String(blurb || '').trim(),
+      count: 0,
+      createdAt: now,
+      updatedAt: now
     };
 
     data.categories.push(newCategory);
+    data.deletedCategoryIds = (data.deletedCategoryIds || []).filter(dId => String(dId) !== String(uniqueId));
     writeDb(data);
     return newCategory;
   },
 
   updateCategory(id, { label, blurb }) {
-    const data = readDb();
-    const idx = (data.categories || []).findIndex(c => c.id === id);
+    const data = readDb(true);
+    const idx = (data.categories || []).findIndex(c => c && String(c.id) === String(id));
     if (idx === -1) return null;
 
     data.categories[idx] = {
       ...data.categories[idx],
-      label: label !== undefined ? label.trim() : data.categories[idx].label,
-      blurb: blurb !== undefined ? blurb.trim() : data.categories[idx].blurb
+      label: label !== undefined ? String(label).trim() : data.categories[idx].label,
+      blurb: blurb !== undefined ? String(blurb).trim() : data.categories[idx].blurb,
+      updatedAt: new Date().toISOString()
     };
 
     writeDb(data);
     return {
       ...data.categories[idx],
-      count: (data.products || []).filter(p => p.category === id).length
+      count: (data.products || []).filter(p => p && String(p.category) === String(id)).length
     };
   },
 
   deleteCategory(id) {
-    const data = readDb();
-    const cat = (data.categories || []).find(c => c.id === id);
+    const data = readDb(true);
+    const cat = (data.categories || []).find(c => c && String(c.id) === String(id));
     if (!cat) return { notFound: true };
 
-    const productCount = (data.products || []).filter(p => p.category === id).length;
+    const productCount = (data.products || []).filter(p => p && String(p.category) === String(id)).length;
     if (productCount > 0) {
       return {
         hasProducts: true,
@@ -480,7 +673,8 @@ export const db = {
       };
     }
 
-    data.categories = data.categories.filter(c => c.id !== id);
+    data.categories = (data.categories || []).filter(c => c && String(c.id) !== String(id));
+    data.deletedCategoryIds = Array.from(new Set([...(data.deletedCategoryIds || []), String(id)]));
     writeDb(data);
     return { success: true };
   },
@@ -512,9 +706,10 @@ export const db = {
   },
 
   createDeal(dealData) {
-    const data = readDb();
+    const data = readDb(true);
     const isFamily = dealData.dealType === 'family';
     const id = dealData.id || (isFamily ? `family-deal-${Date.now()}` : `deal-${Date.now()}`);
+    const now = new Date().toISOString();
     if (dealData.featured) {
       data.deals = (data.deals || []).map(d => ({ ...d, featured: false }));
       if (data.familyDeal) data.familyDeal.featured = false;
@@ -523,16 +718,20 @@ export const db = {
       ...dealData,
       id,
       dealType: isFamily ? 'family' : 'normal',
-      featured: !!dealData.featured
+      featured: !!dealData.featured,
+      createdAt: now,
+      updatedAt: now
     };
     data.deals = [...(data.deals || []), newDeal];
+    data.deletedDealIds = (data.deletedDealIds || []).filter(dId => String(dId) !== String(id));
     writeDb(data);
     return newDeal;
   },
 
   updateDeal(id, updates) {
-    const data = readDb();
+    const data = readDb(true);
     const strId = String(id);
+    const now = new Date().toISOString();
     if (updates.featured !== undefined) {
       const isFeat = !!updates.featured;
       data.deals = (data.deals || []).map(d => ({
@@ -545,11 +744,11 @@ export const db = {
     }
 
     if (data.familyDeal && (strId === 'family-deal' || strId === String(data.familyDeal.id))) {
-      data.familyDeal = { ...data.familyDeal, ...updates };
+      data.familyDeal = { ...data.familyDeal, ...updates, updatedAt: now };
     }
-    const idx = (data.deals || []).findIndex(d => String(d.id) === strId);
+    const idx = (data.deals || []).findIndex(d => d && String(d.id) === strId);
     if (idx !== -1) {
-      data.deals[idx] = { ...data.deals[idx], ...updates };
+      data.deals[idx] = { ...data.deals[idx], ...updates, updatedAt: now };
       writeDb(data);
       return data.deals[idx];
     }
@@ -561,11 +760,13 @@ export const db = {
   },
 
   deleteDeal(id) {
-    const data = readDb();
-    if (id === 'family-deal' || (data.familyDeal && data.familyDeal.id === id)) {
+    const data = readDb(true);
+    const strId = String(id);
+    if (strId === 'family-deal' || (data.familyDeal && String(data.familyDeal.id) === strId)) {
       data.familyDeal = null;
     }
-    data.deals = (data.deals || []).filter(d => d.id !== id);
+    data.deals = (data.deals || []).filter(d => d && String(d.id) !== strId);
+    data.deletedDealIds = Array.from(new Set([...(data.deletedDealIds || []), strId]));
     writeDb(data);
     return true;
   },
@@ -579,16 +780,21 @@ export const db = {
     const phoneToEmail = {};
     Object.values(profiles).forEach(p => {
       if (p && p.phone && p.email) {
-        const cleanP = String(p.phone).replace(/\D/g, '').slice(-10);
-        if (cleanP) phoneToEmail[cleanP] = (p.email || '').toLowerCase().trim();
+        const digits = String(p.phone).replace(/\D/g, '');
+        if (digits.length >= 10) {
+          phoneToEmail[digits.slice(-10)] = (p.email || '').toLowerCase().trim();
+        }
       }
     });
 
     return orders.map(o => {
       if (o.customerEmail) return o;
-      const cleanOrderPhone = String(o.phone || '').replace(/\D/g, '').slice(-10);
-      if (cleanOrderPhone && phoneToEmail[cleanOrderPhone]) {
-        return { ...o, customerEmail: phoneToEmail[cleanOrderPhone] };
+      const digits = String(o.phone || '').replace(/\D/g, '');
+      if (digits.length >= 10) {
+        const cleanOrderPhone = digits.slice(-10);
+        if (phoneToEmail[cleanOrderPhone]) {
+          return { ...o, customerEmail: phoneToEmail[cleanOrderPhone] };
+        }
       }
       return o;
     });
@@ -602,13 +808,18 @@ export const db = {
     const existing = findOrderById(data.orders, id);
     if (existing) return existing;
 
+    const now = new Date().toISOString();
     const newOrder = {
       id,
       ...orderData,
       status: orderData.status || 'Pending', // Pending | Preparing | Out for Delivery | Delivered | Cancelled
-      createdAt: orderData.createdAt || new Date().toISOString()
+      createdAt: orderData.createdAt || now,
+      updatedAt: now
     };
     data.orders = [newOrder, ...(data.orders || [])];
+    data.deletedOrderIds = (data.deletedOrderIds || []).filter(
+      dId => String(dId).replace(/^#/, '').trim().toLowerCase() !== id.toLowerCase()
+    );
     writeDb(data);
     return newOrder;
   },
@@ -668,7 +879,7 @@ export const db = {
     if (riderData) {
       if (riderData.riderId !== undefined) order.riderId = riderData.riderId;
       if (riderData.riderName !== undefined) order.riderName = riderData.riderName;
-      if (riderData.riderPhone !== undefined) order.riderPhone = riderData.riderPhone;
+      if (riderData.riderPhone !== undefined) order.riderPhone = riderData.riderPhone ? normalizePhone11(riderData.riderPhone) : riderData.riderPhone;
     }
     order.updatedAt = new Date().toISOString();
     writeDb(data);
@@ -698,7 +909,7 @@ export const db = {
       let rName = riderName;
       let rPhone = riderPhone;
       if (!rName || !rPhone) {
-        const found = (data.riders || []).find(r => String(r.id) === String(riderId));
+        const found = (data.riders || []).find(r => r && String(r.id) === String(riderId));
         if (found) {
           rName = rName || found.name;
           rPhone = rPhone || found.phone;
@@ -706,7 +917,7 @@ export const db = {
       }
       order.riderId = riderId;
       order.riderName = rName || '';
-      order.riderPhone = rPhone ? String(rPhone).replace(/\D/g, '').slice(0, 11) : '';
+      order.riderPhone = rPhone ? normalizePhone11(rPhone) : '';
     }
     order.updatedAt = new Date().toISOString();
     writeDb(data);
@@ -725,41 +936,34 @@ export const db = {
       return oRaw !== rawId && oClean !== cleanId && oClean.toLowerCase() !== cleanId.toLowerCase();
     });
     data.deletedOrderIds = Array.from(new Set([...(data.deletedOrderIds || []), cleanId]));
-    if (data.orders.length !== initialLen) {
-      writeDb(data);
-      return true;
-    }
     writeDb(data);
-    return false;
+    return data.orders.length !== initialLen;
   },
 
   // Customer Orders Query (Cross-Device Cloud Sync via Google Email / Phone)
   getCustomerOrders({ email, phone } = {}) {
     const data = readDb();
     const cleanEmail = (email || '').toLowerCase().trim();
-    const cleanPhone = (phone || '').replace(/\D/g, '');
+    const targetPhoneNormalized = normalizePhone11(phone);
 
-    if (!cleanEmail && !cleanPhone) {
+    if (!cleanEmail && !targetPhoneNormalized) {
       return [];
     }
 
-    const normalizePhone = (p) => {
-      if (!p) return '';
-      const digits = String(p).replace(/\D/g, '');
-      if (digits.startsWith('92') && digits.length === 12) {
-        return '0' + digits.slice(2);
-      }
-      return digits;
-    };
-
-    const targetPhoneNormalized = cleanPhone ? normalizePhone(cleanPhone) : '';
-
     return (data.orders || []).filter(o => {
+      if (!o) return false;
       const orderEmail = (o.customerEmail || '').toLowerCase().trim();
-      const orderPhoneNormalized = normalizePhone(o.phone);
+      const orderPhoneNormalized = normalizePhone11(o.phone);
 
-      const emailMatch = cleanEmail && orderEmail && orderEmail === cleanEmail;
-      const phoneMatch = targetPhoneNormalized && orderPhoneNormalized && (orderPhoneNormalized === targetPhoneNormalized || orderPhoneNormalized.endsWith(targetPhoneNormalized.slice(-10)));
+      const emailMatch = Boolean(cleanEmail && orderEmail && orderEmail === cleanEmail);
+      const phoneMatch = Boolean(
+        targetPhoneNormalized &&
+        orderPhoneNormalized &&
+        (
+          orderPhoneNormalized === targetPhoneNormalized ||
+          (targetPhoneNormalized.length >= 10 && orderPhoneNormalized.length >= 10 && orderPhoneNormalized.slice(-10) === targetPhoneNormalized.slice(-10))
+        )
+      );
 
       return emailMatch || phoneMatch;
     });
@@ -777,7 +981,9 @@ export const db = {
     }
 
     // Auto-discover previous profile info from their latest order if profile not yet explicitly saved
-    const userOrders = (data.orders || []).filter(o => (o.customerEmail || '').toLowerCase().trim() === cleanEmail);
+    const userOrders = (data.orders || [])
+      .filter(o => o && (o.customerEmail || '').toLowerCase().trim() === cleanEmail)
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     if (userOrders.length > 0) {
       const latest = userOrders[0];
       return {
@@ -793,7 +999,7 @@ export const db = {
   },
 
   saveCustomerProfile({ email, name, phone, address }) {
-    const data = readDb();
+    const data = readDb(true);
     const cleanEmail = (email || '').toLowerCase().trim();
     if (!cleanEmail) return null;
 
@@ -901,7 +1107,7 @@ export const db = {
   },
 
   updateSettings(updates) {
-    const data = readDb();
+    const data = readDb(true);
     const current = data.settings || {};
     const currentButtons = current.floatingButtons || {
       whatsappWeb: true,
@@ -977,9 +1183,9 @@ export const db = {
     // 1. Calculate sales count for each product from delivered orders
     const salesMap = {};
     (data.orders || []).forEach(order => {
-      if (order.status !== 'Delivered') return;
+      if (!order || order.status !== 'Delivered') return;
       (order.items || []).forEach(item => {
-        const name = (item.name || '').trim().toLowerCase();
+        const name = (item?.name || '').trim().toLowerCase();
         if (!name) return;
         const qty = Number(item.quantity) || 1;
         salesMap[name] = (salesMap[name] || 0) + qty;
@@ -989,7 +1195,7 @@ export const db = {
     // 2. Filter products in catalog belonging to allowedCategories
     const allProducts = data.products || [];
     const eligibleProducts = allProducts.filter(p => {
-      const cat = (p.category || '').toLowerCase();
+      const cat = (p?.category || '').toLowerCase();
       return allowedCategories.includes(cat);
     });
 
@@ -1027,14 +1233,15 @@ export const db = {
   getReviews() {
     const data = readDb();
     if (!Array.isArray(data.reviews) || data.reviews.length === 0) {
-      data.reviews = INITIAL_REVIEWS;
+      const deletedSet = new Set((data.deletedReviewIds || []).map(String));
+      data.reviews = INITIAL_REVIEWS.filter(r => !deletedSet.has(String(r.id)));
       writeDb(data);
     }
     return data.reviews;
   },
 
   createReview(reviewData) {
-    const data = readDb();
+    const data = readDb(true);
     if (!Array.isArray(data.reviews)) {
       data.reviews = INITIAL_REVIEWS;
     }
@@ -1050,6 +1257,7 @@ export const db = {
 
     const email = (reviewData.customerEmail || reviewData.email || '').toLowerCase().trim();
     const customerAvatar = reviewData.customerAvatar || reviewData.picture || '';
+    const now = new Date().toISOString();
 
     const newReview = {
       id: `rev-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
@@ -1065,8 +1273,9 @@ export const db = {
       avatar: initials,
       avatarBg: reviewData.avatarBg || randomColor,
       itemOrdered: (reviewData.itemOrdered || (reviewData.orderId ? `Order #${String(reviewData.orderId).replace(/^#/, '')}` : 'General Review')).trim(),
-      comment: (reviewData.comment !== undefined && reviewData.comment !== null && reviewData.comment.trim() !== '') ? reviewData.comment.trim() : '-',
-      createdAt: new Date().toISOString()
+      comment: (reviewData.comment !== undefined && reviewData.comment !== null && String(reviewData.comment).trim() !== '') ? String(reviewData.comment).trim() : '-',
+      createdAt: now,
+      updatedAt: now
     };
 
     data.reviews = [newReview, ...data.reviews];
@@ -1075,10 +1284,12 @@ export const db = {
   },
 
   deleteReview(id) {
-    const data = readDb();
+    const data = readDb(true);
     if (!Array.isArray(data.reviews)) return false;
+    const strId = String(id);
     const initialLen = data.reviews.length;
-    data.reviews = data.reviews.filter(r => String(r.id) !== String(id));
+    data.reviews = data.reviews.filter(r => r && String(r.id) !== strId);
+    data.deletedReviewIds = Array.from(new Set([...(data.deletedReviewIds || []), strId]));
     if (data.reviews.length !== initialLen) {
       writeDb(data);
       return true;
@@ -1141,15 +1352,13 @@ export const db = {
 
   getRiderById(id) {
     const data = readDb();
-    return (data.riders || []).find(r => r.id === id) || null;
+    return (data.riders || []).find(r => r && String(r.id) === String(id)) || null;
   },
 
   createRider(riderData) {
     const data = readDb(true);
-    let digits = String(riderData.phone || '').replace(/\D/g, '');
-    if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
-    else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
-    const cleanPhone = digits.slice(0, 11);
+    const cleanPhone = normalizePhone11(riderData.phone);
+    const now = new Date().toISOString();
 
     const pin = (riderData.pin && String(riderData.pin).trim()) || cleanPhone.slice(-4) || '1234';
     const newRider = {
@@ -1158,7 +1367,8 @@ export const db = {
       phone: cleanPhone,
       pin: pin,
       status: riderData.status || 'active',
-      createdAt: new Date().toISOString()
+      createdAt: now,
+      updatedAt: now
     };
     data.riders = [...(data.riders || []), newRider];
     writeDb(data);
@@ -1167,18 +1377,16 @@ export const db = {
 
   updateRider(id, updates) {
     const data = readDb(true);
-    const idx = (data.riders || []).findIndex(r => r.id === id);
+    const strId = String(id);
+    const idx = (data.riders || []).findIndex(r => r && String(r.id) === strId);
     if (idx === -1) return null;
 
     let cleanPhone = data.riders[idx].phone;
     if (updates.phone !== undefined) {
-      let digits = String(updates.phone).replace(/\D/g, '');
-      if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
-      else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
-      cleanPhone = digits.slice(0, 11);
+      cleanPhone = normalizePhone11(updates.phone);
     }
 
-    const newName = updates.name !== undefined ? updates.name.trim() : data.riders[idx].name;
+    const newName = updates.name !== undefined ? String(updates.name).trim() : data.riders[idx].name;
     const newPin = (updates.pin !== undefined && String(updates.pin).trim() !== '')
       ? String(updates.pin).trim()
       : (data.riders[idx].pin || cleanPhone.slice(-4) || '1234');
@@ -1194,7 +1402,7 @@ export const db = {
     };
     // Sync updated rider info to active orders assigned to this rider
     (data.orders || []).forEach(o => {
-      if (o.riderId === id) {
+      if (o && String(o.riderId) === strId) {
         if (updates.name !== undefined) o.riderName = newName;
         if (updates.phone !== undefined) o.riderPhone = cleanPhone;
       }
@@ -1205,12 +1413,13 @@ export const db = {
 
   deleteRider(id) {
     const data = readDb(true);
+    const strId = String(id);
     const initialLen = (data.riders || []).length;
-    data.riders = (data.riders || []).filter(r => r.id !== id);
-    data.deletedRiderIds = Array.from(new Set([...(data.deletedRiderIds || []), String(id)]));
+    data.riders = (data.riders || []).filter(r => r && String(r.id) !== strId);
+    data.deletedRiderIds = Array.from(new Set([...(data.deletedRiderIds || []), strId]));
     // Unassign deleted rider from active undelivered orders
     (data.orders || []).forEach(o => {
-      if (o.riderId === id && o.status !== 'Delivered') {
+      if (o && String(o.riderId) === strId && o.status !== 'Delivered') {
         o.riderId = null;
         o.riderName = null;
         o.riderPhone = null;
@@ -1222,16 +1431,12 @@ export const db = {
 
   riderLogin({ phone, pin }) {
     const data = readDb(true);
-    let digits = String(phone || '').replace(/\D/g, '');
-    if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
-    else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
-    const cleanPhone = digits.slice(0, 11);
+    const cleanPhone = normalizePhone11(phone);
 
     const rider = (data.riders || []).find(r => {
-      let rDigits = String(r.phone || '').replace(/\D/g, '');
-      if (rDigits.startsWith('92') && rDigits.length === 12) rDigits = '0' + rDigits.slice(2);
-      else if (rDigits.length === 10 && rDigits.startsWith('3')) rDigits = '0' + rDigits;
-      return rDigits.slice(0, 11) === cleanPhone || String(r.id) === String(phone).trim();
+      if (!r) return false;
+      const rPhone = normalizePhone11(r.phone);
+      return (cleanPhone && rPhone === cleanPhone) || String(r.id) === String(phone).trim();
     });
 
     if (!rider) return null;
@@ -1256,19 +1461,12 @@ export const db = {
     const cleanPhoneParam = String(riderPhone || '').trim();
     const cleanNameParam = String(riderName || '').trim().toLowerCase();
 
-    const normalizePhone = (p) => {
-      if (!p) return '';
-      let digits = String(p).replace(/\D/g, '');
-      if (digits.startsWith('92') && digits.length === 12) digits = '0' + digits.slice(2);
-      else if (digits.length === 10 && digits.startsWith('3')) digits = '0' + digits;
-      return digits.slice(0, 11);
-    };
-
-    const searchPhone = normalizePhone(cleanPhoneParam || cleanId);
+    const searchPhone = normalizePhone11(cleanPhoneParam || cleanId);
 
     const rider = (data.riders || []).find(r => {
+      if (!r) return false;
       if (cleanId && String(r.id) === cleanId) return true;
-      const rPhone = normalizePhone(r.phone);
+      const rPhone = normalizePhone11(r.phone);
       if (searchPhone && rPhone === searchPhone) return true;
       if (cleanNameParam && (r.name || '').trim().toLowerCase() === cleanNameParam) return true;
       return false;
@@ -1276,7 +1474,7 @@ export const db = {
 
     if (!rider) return { activeOrders: [], completedOrders: [], stats: { activeCount: 0, activeCashToCollect: 0, todayDeliveries: 0, todayCash: 0, allTimeDeliveries: 0, allTimeCash: 0 } };
 
-    const riderPhoneNorm = normalizePhone(rider.phone || searchPhone);
+    const riderPhoneNorm = normalizePhone11(rider.phone || searchPhone);
     const effectiveName = (rider.name || cleanNameParam || '').trim().toLowerCase();
 
     const toPktDateStr = (isoStr) => {
@@ -1295,7 +1493,7 @@ export const db = {
       if (!o) return false;
       if (o.riderId && (String(o.riderId) === String(rider.id) || (cleanId && String(o.riderId) === cleanId))) return true;
       if (riderPhoneNorm && o.riderPhone) {
-        const oPhoneNorm = normalizePhone(o.riderPhone);
+        const oPhoneNorm = normalizePhone11(o.riderPhone);
         if (oPhoneNorm && oPhoneNorm === riderPhoneNorm) return true;
       }
       if (effectiveName && o.riderName && o.riderName.trim().toLowerCase() === effectiveName) return true;
@@ -1345,6 +1543,19 @@ export const db = {
     }
     if (!order) return null;
 
+    if (riderId) {
+      const rider = (data.riders || []).find(
+        r => r && (String(r.id) === String(riderId) || (r.phone && normalizePhone11(r.phone) === normalizePhone11(riderId)))
+      );
+      if (rider) {
+        order.riderId = order.riderId || rider.id;
+        order.riderName = order.riderName || rider.name;
+        order.riderPhone = order.riderPhone || normalizePhone11(rider.phone);
+      } else if (!order.riderId) {
+        order.riderId = riderId;
+      }
+    }
+
     order.status = 'Delivered';
     order.deliveredAt = new Date().toISOString();
     order.updatedAt = new Date().toISOString();
@@ -1371,6 +1582,19 @@ export const db = {
     }
     if (!order) return null;
 
+    if (riderId) {
+      const rider = (data.riders || []).find(
+        r => r && (String(r.id) === String(riderId) || (r.phone && normalizePhone11(r.phone) === normalizePhone11(riderId)))
+      );
+      if (rider) {
+        order.riderId = order.riderId || rider.id;
+        order.riderName = order.riderName || rider.name;
+        order.riderPhone = order.riderPhone || normalizePhone11(rider.phone);
+      } else if (!order.riderId) {
+        order.riderId = riderId;
+      }
+    }
+
     order.status = 'Out for Delivery';
     order.outForDeliveryAt = new Date().toISOString();
     order.updatedAt = new Date().toISOString();
@@ -1391,22 +1615,23 @@ export const db = {
 
   getCostById(id) {
     const data = readDb();
-    return (data.costs || []).find(c => String(c.id) === String(id)) || null;
+    return (data.costs || []).find(c => c && String(c.id) === String(id)) || null;
   },
 
   createCost(costData) {
-    const data = readDb();
+    const data = readDb(true);
     const dateStr = costData.date ? String(costData.date).trim() : new Date().toISOString().slice(0, 10);
     const amountNum = Math.max(0, Number(costData.amount) || 0);
     const noteStr = (costData.note || '').trim();
+    const now = new Date().toISOString();
 
     const newCost = {
       id: costData.id || `cost-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       date: dateStr,
       amount: amountNum,
       note: noteStr,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: now,
+      updatedAt: now
     };
 
     data.costs = [newCost, ...(data.costs || [])];
@@ -1415,8 +1640,8 @@ export const db = {
   },
 
   updateCost(id, updates) {
-    const data = readDb();
-    const idx = (data.costs || []).findIndex(c => String(c.id) === String(id));
+    const data = readDb(true);
+    const idx = (data.costs || []).findIndex(c => c && String(c.id) === String(id));
     if (idx === -1) return null;
 
     const current = data.costs[idx];
@@ -1437,9 +1662,11 @@ export const db = {
   },
 
   deleteCost(id) {
-    const data = readDb();
+    const data = readDb(true);
+    const strId = String(id);
     const initialLen = (data.costs || []).length;
-    data.costs = (data.costs || []).filter(c => String(c.id) !== String(id));
+    data.costs = (data.costs || []).filter(c => c && String(c.id) !== strId);
+    data.deletedCostIds = Array.from(new Set([...(data.deletedCostIds || []), strId]));
     writeDb(data);
     return (data.costs || []).length !== initialLen;
   },
