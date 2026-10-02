@@ -1,4 +1,4 @@
-package com.mehrban.admin;
+package com.mehrban.rider;
 
 import android.content.Context;
 import android.content.SharedPreferences;
