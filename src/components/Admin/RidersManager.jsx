@@ -622,7 +622,7 @@ export default function RidersManager({
                       setFormData(prev => ({ ...prev, pin: clean }));
                     }}
                     placeholder="4-digit PIN (e.g. 1234)"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-xs font-mono font-bold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white tracking-widest"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-xs font-medium text-zinc-900 placeholder:font-sans placeholder:font-normal placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white"
                   />
                 </div>
                 <p className="text-[11px] text-zinc-500">
