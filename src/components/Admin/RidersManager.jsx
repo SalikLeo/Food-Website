@@ -28,10 +28,11 @@ export default function RidersManager({
   const [deletingRider, setDeletingRider] = useState(null);
 
   // Form states
-  const [formData, setFormData] = useState({ name: '', phone: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '', pin: '' });
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
+  const [copiedPortalLink, setCopiedPortalLink] = useState(false);
 
   // Compute active orders & total deliveries per rider
   const riderStats = useMemo(() => {
@@ -62,7 +63,8 @@ export default function RidersManager({
     if (!q) return riders;
     return riders.filter(r => 
       (r.name && r.name.toLowerCase().includes(q)) ||
-      (r.phone && r.phone.includes(q))
+      (r.phone && r.phone.includes(q)) ||
+      (r.pin && r.pin.includes(q))
     );
   }, [riders, search]);
 
@@ -76,15 +78,28 @@ export default function RidersManager({
     }
   };
 
+  const handleCopyPortalLink = () => {
+    try {
+      const url = `${window.location.origin}/rider`;
+      navigator.clipboard.writeText(url);
+      setCopiedPortalLink(true);
+      setTimeout(() => setCopiedPortalLink(false), 2000);
+    } catch {}
+  };
+
   const openAddModal = () => {
-    setFormData({ name: '', phone: '' });
+    setFormData({ name: '', phone: '', pin: '' });
     setFormError('');
     setIsAddModalOpen(true);
   };
 
   const openEditModal = (rider) => {
     setEditingRider(rider);
-    setFormData({ name: rider.name || '', phone: rider.phone || '' });
+    setFormData({
+      name: rider.name || '',
+      phone: rider.phone || '',
+      pin: rider.pin || (rider.phone ? rider.phone.slice(-4) : '1234')
+    });
     setFormError('');
   };
 
@@ -94,6 +109,7 @@ export default function RidersManager({
 
     const cleanName = (formData.name || '').trim();
     const cleanPhone = (formData.phone || '').replace(/\D/g, '').slice(0, 11);
+    const cleanPin = (formData.pin || '').trim() || cleanPhone.slice(-4) || '1234';
 
     if (!cleanName) {
       setFormError('Rider name is required.');
@@ -105,6 +121,11 @@ export default function RidersManager({
       return;
     }
 
+    if (cleanPin.length < 4) {
+      setFormError('Rider PIN must be at least 4 digits.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const isEdit = Boolean(editingRider);
@@ -113,6 +134,8 @@ export default function RidersManager({
         id: riderId,
         name: cleanName,
         phone: cleanPhone,
+        pin: cleanPin,
+        status: editingRider?.status || 'active',
         createdAt: isEdit ? editingRider.createdAt : new Date().toISOString()
       };
 
@@ -138,7 +161,7 @@ export default function RidersManager({
         const res = await fetch(endpoint, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: cleanName, phone: cleanPhone })
+          body: JSON.stringify({ name: cleanName, phone: cleanPhone, pin: cleanPin })
         });
 
         if (res.ok) {
@@ -244,14 +267,46 @@ export default function RidersManager({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={openAddModal}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-98 transition-all cursor-pointer shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add New Rider</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={handleCopyPortalLink}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs transition-colors cursor-pointer shrink-0"
+              title="Copy link to /rider portal"
+            >
+              {copiedPortalLink ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-emerald-700">Link Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-zinc-500" />
+                  <span>Copy /rider Link</span>
+                </>
+              )}
+            </button>
+
+            <a
+              href="/rider"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs transition-colors cursor-pointer shrink-0"
+              title="Open Rider Delivery Portal in new tab"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Open Rider App</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={openAddModal}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-sm active:scale-98 transition-all cursor-pointer shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add New Rider</span>
+            </button>
+          </div>
         </div>
 
         {/* Search Bar */}
@@ -329,7 +384,7 @@ export default function RidersManager({
                           {rider.name}
                         </h3>
                         {rider.phone && (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-zinc-300">•</span>
                             <Phone className="w-3 h-3 text-orange-600 shrink-0" />
                             <a
@@ -351,6 +406,9 @@ export default function RidersManager({
                                 <Copy className="w-3 h-3" />
                               )}
                             </button>
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-mono text-[10px] font-bold border border-amber-200" title="Login PIN for rider app">
+                              PIN: {rider.pin || rider.phone.slice(-4) || '1234'}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -525,11 +583,42 @@ export default function RidersManager({
                   value={formData.phone}
                   onChange={(e) => {
                     const clean = e.target.value.replace(/\D/g, '').slice(0, 11);
-                    setFormData({ ...formData, phone: clean });
+                    setFormData(prev => ({
+                      ...prev,
+                      phone: clean,
+                      pin: prev.pin || (clean.length >= 4 ? clean.slice(-4) : prev.pin)
+                    }));
                   }}
                   placeholder="03001234567"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-xs font-medium text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white"
                 />
+              </div>
+
+              {/* Rider Login PIN */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider">
+                    Login PIN (4 Digits) *
+                  </label>
+                  <span className="text-[11px] text-zinc-400">Used by rider to log in</span>
+                </div>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  required
+                  value={formData.pin}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setFormData(prev => ({ ...prev, pin: clean }));
+                  }}
+                  placeholder="4-digit PIN (e.g. 1234)"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 text-xs font-mono font-medium text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white tracking-widest"
+                />
+                <p className="text-[11px] text-zinc-500">
+                  Riders use their phone number and this PIN to access the <code>/rider</code> app.
+                </p>
               </div>
 
               {/* Footer Buttons */}

@@ -19,6 +19,7 @@ import AdminDashboard from './components/Admin/AdminDashboard';
 import CustomerMobileApp from './components/MobileApp/CustomerMobileApp';
 import NoInternetScreen from './components/NoInternetScreen';
 import GoogleLoginPromptModal from './components/GoogleLoginPromptModal';
+import RiderPortal from './components/Rider/RiderPortal';
 import { Network } from '@capacitor/network';
 import { CartProvider, useCart } from './context/CartContext';
 import { apiUrl, resolveImageUrl, APP_MODE, isCustomerApp } from './config/api';
@@ -28,6 +29,11 @@ export default function App() {
     if (APP_MODE === 'admin') return true;
     if (APP_MODE === 'customer' || isCustomerApp) return false;
     return window.location.pathname.includes('/admin') || window.location.hash.includes('admin');
+  });
+
+  const [isRiderView, setIsRiderView] = useState(() => {
+    if (APP_MODE === 'rider') return true;
+    return window.location.pathname.startsWith('/rider') || window.location.hash.includes('rider');
   });
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
@@ -100,13 +106,18 @@ export default function App() {
     }
   };
 
-  // Sync hash/path for admin
+  // Sync hash/path for admin & rider
   useEffect(() => {
     const handleHashChange = () => {
       setIsAdminView(window.location.hash.includes('admin') || window.location.pathname.includes('/admin'));
+      setIsRiderView(window.location.hash.includes('rider') || window.location.pathname.startsWith('/rider'));
     };
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
   }, []);
 
   // Multi-layer instant online / offline detection while using the app
@@ -326,6 +337,16 @@ export default function App() {
     loadData(); // refresh storefront in case products were edited
   };
 
+  const handleExitRider = () => {
+    if (APP_MODE === 'rider') return;
+    window.location.hash = '';
+    if (window.location.pathname.startsWith('/rider')) {
+      window.history.pushState(null, '', '/');
+    }
+    setIsRiderView(false);
+    loadData();
+  };
+
   const handleAdminLogout = () => {
     localStorage.removeItem('salik_admin_token');
     localStorage.removeItem('mehrban_admin_token');
@@ -334,11 +355,13 @@ export default function App() {
 
   return (
     <CartProvider>
-      {!isOnline && !isAdminView ? (
+      {!isOnline && !isAdminView && !isRiderView ? (
         <NoInternetScreen 
           onRetry={handleRetryConnection} 
           isChecking={isCheckingConnection} 
         />
+      ) : isRiderView ? (
+        <RiderPortal onBackToStore={handleExitRider} />
       ) : isAdminView ? (
         isAdminAuthenticated ? (
           <AdminDashboard
@@ -370,7 +393,7 @@ export default function App() {
           handleOpenAdmin={handleOpenAdmin}
         />
       )}
-      {!isAdminView && <GoogleLoginPromptModal />}
+      {!isAdminView && !isRiderView && <GoogleLoginPromptModal />}
     </CartProvider>
   );
 }

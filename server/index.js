@@ -676,6 +676,78 @@ app.delete('/api/riders/:id', (req, res) => {
   }
 });
 
+// Dedicated Rider Portal Endpoints
+app.post('/api/rider/login', (req, res) => {
+  try {
+    const { phone, pin } = req.body;
+    if (!phone || !phone.trim()) {
+      return res.status(400).json({ error: 'Rider phone number is required' });
+    }
+    const rider = db.riderLogin({ phone, pin });
+    if (!rider) {
+      return res.status(404).json({ error: 'Rider not found with this phone number. Please contact admin to register.' });
+    }
+    if (rider.invalidPin) {
+      return res.status(401).json({ error: 'Incorrect 4-digit PIN. Please try again.' });
+    }
+    res.json({
+      success: true,
+      token: `rider-token-${rider.id}-${Date.now()}`,
+      rider
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/rider/orders', (req, res) => {
+  try {
+    const { riderId, phone } = req.query;
+    const identifier = riderId || phone;
+    if (!identifier) {
+      return res.status(400).json({ error: 'Rider ID or phone is required' });
+    }
+    const data = db.getRiderOrders(identifier);
+    res.json({ success: true, ...data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/rider/orders/:id/deliver', (req, res) => {
+  try {
+    const { riderId, notes } = req.body;
+    const updated = db.markOrderDeliveredByRider(req.params.id, riderId, notes);
+    if (!updated) return res.status(404).json({ error: 'Order not found' });
+
+    io.emit('order:status_updated', updated);
+    io.emit('order:updated', updated);
+    io.emit('orders:updated', db.getOrders());
+    io.emit('stats:updated', db.getStats());
+
+    res.json({ success: true, order: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/rider/orders/:id/start-delivery', (req, res) => {
+  try {
+    const { riderId } = req.body;
+    const updated = db.startOrderDeliveryByRider(req.params.id, riderId);
+    if (!updated) return res.status(404).json({ error: 'Order not found' });
+
+    io.emit('order:status_updated', updated);
+    io.emit('order:updated', updated);
+    io.emit('orders:updated', db.getOrders());
+    io.emit('stats:updated', db.getStats());
+
+    res.json({ success: true, order: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Costs Management Endpoints (Daily total ingredients/operational expenses)
 app.get('/api/costs', (req, res) => {
   try {

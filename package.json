@@ -8,6 +8,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "dev:customer": "cross-env VITE_APP_MODE=customer vite",
     "dev:admin": "cross-env VITE_APP_MODE=admin vite",
+    "dev:rider": "cross-env VITE_APP_MODE=rider vite",
     "client": "vite",
     "start": "node server/index.js",
     "server": "node server/index.js",
