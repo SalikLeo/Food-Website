@@ -241,6 +241,32 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     });
   }, [orders, timeFilterMode, selectedDate, selectedMonth, selectedYear]);
 
+  // Filtered costs matching current time filter
+  const dateFilteredCosts = useMemo(() => {
+    return (costs || []).filter(c => {
+      if (!c || !c.date) return false;
+      const costDate = new Date(c.date);
+      if (isNaN(costDate.getTime())) return false;
+
+      if (timeFilterMode === 'today') {
+        return selectedDate ? c.date === selectedDate : true;
+      }
+      if (timeFilterMode === 'monthly') {
+        return (
+          costDate.getMonth() === Number(selectedMonth) &&
+          costDate.getFullYear() === Number(selectedYear)
+        );
+      }
+      if (timeFilterMode === 'annual') {
+        return costDate.getFullYear() === Number(selectedYear);
+      }
+      if (timeFilterMode === 'all') {
+        return true;
+      }
+      return true;
+    });
+  }, [costs, timeFilterMode, selectedDate, selectedMonth, selectedYear]);
+
   // Check if there are pending orders from other days when viewing today
   const pendingOutsideCount = useMemo(() => {
     if (timeFilterMode !== 'today' || selectedDate !== todayLocalStr) return 0;
@@ -1487,7 +1513,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             }`}
           >
             <Receipt className="w-4 h-4 flex-shrink-0" />
-            <span>Costs ({costs.length})</span>
+            <span>Costs ({dateFilteredCosts.length})</span>
           </button>
 
           <button
