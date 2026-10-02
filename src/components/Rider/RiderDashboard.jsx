@@ -27,6 +27,7 @@ import {
 import { apiUrl } from '../../config/api';
 import { formatPrice, getLocalDateStr } from '../../utils/formatters';
 import { getSocket } from '../../services/socketService';
+import { updateSystemBarsTheme } from '../../utils/systemBars';
 
 export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
   const [activeTab, setActiveTab] = useState('active'); // 'active' | 'history'
@@ -42,6 +43,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Delivery Action Modal State
   const [deliveringOrder, setDeliveringOrder] = useState(null);
@@ -68,6 +70,10 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
   });
 
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    updateSystemBarsTheme(isDark);
+  }, [isDark]);
 
   const toggleTheme = () => {
     const next = isDark ? 'light' : 'dark';
@@ -334,7 +340,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
             {/* Logout */}
             <button
               type="button"
-              onClick={onLogout}
+              onClick={() => setShowLogoutConfirm(true)}
               className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
               title="Logout from shift"
             >
@@ -446,7 +452,9 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
               <div className={`text-center py-12 px-4 rounded-3xl border border-dashed ${
                 isDark ? 'bg-zinc-900/40 border-zinc-800 text-zinc-500' : 'bg-white border-zinc-300 text-zinc-400'
               }`}>
-                <div className="w-12 h-12 rounded-2xl bg-zinc-800/40 flex items-center justify-center mx-auto mb-3 text-zinc-500">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 border ${
+                  isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600'
+                }`}>
                   <CheckCircle2 className="w-6 h-6 text-emerald-500" />
                 </div>
                 <h3 className={`text-base font-bold uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
@@ -475,7 +483,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                       isDark ? 'border-zinc-800/80 bg-zinc-900' : 'border-zinc-100 bg-zinc-50'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-black text-sm text-orange-500">
+                        <span className="font-sans font-bold text-sm text-orange-600">
                           #{cleanId}
                         </span>
                         <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
@@ -649,8 +657,12 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
               <div className={`text-center py-12 px-4 rounded-3xl border border-dashed ${
                 isDark ? 'bg-zinc-900/40 border-zinc-800 text-zinc-500' : 'bg-white border-zinc-300 text-zinc-400'
               }`}>
-                <Receipt className="w-10 h-10 mx-auto mb-2 text-zinc-500" />
-                <h3 className="text-base font-bold uppercase tracking-wider text-zinc-400">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 border ${
+                  isDark ? 'bg-zinc-800/60 border-zinc-700/60 text-zinc-400' : 'bg-zinc-100 border-zinc-200 text-zinc-600'
+                }`}>
+                  <Receipt className="w-6 h-6 text-zinc-400" />
+                </div>
+                <h3 className={`text-base font-bold uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
                   No Completed Deliveries Yet
                 </h3>
                 <p className="text-xs mt-1">
@@ -674,7 +686,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-mono font-bold text-xs text-orange-500">
+                        <span className="font-sans font-bold text-xs text-orange-600">
                           #{cleanId}
                         </span>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
@@ -768,6 +780,57 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setShowLogoutConfirm(false)}
+        >
+          <div
+            className={`rounded-2xl max-w-sm w-full p-6 shadow-2xl border space-y-4 animate-in zoom-in-95 duration-150 text-center ${
+              isDark ? 'bg-zinc-900 border-zinc-800 text-white' : 'bg-white border-zinc-200 text-zinc-900'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 flex items-center justify-center mx-auto">
+              <LogOut className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold">
+                Confirm Logout
+              </h3>
+              <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                Are you sure you want to end your shift and log out of the rider app?
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className={`flex-1 px-4 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer border ${
+                  isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700' : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-200'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  onLogout();
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 active:scale-98"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Yes, Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

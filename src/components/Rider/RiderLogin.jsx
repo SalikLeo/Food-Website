@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bike, Lock, Phone, ArrowLeft, Loader2, AlertCircle, Sparkles, CheckCircle2, Smartphone } from 'lucide-react';
 import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
+import { updateSystemBarsTheme } from '../../utils/systemBars';
 
 export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
   const [phone, setPhone] = useState('');
@@ -9,20 +10,22 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
   const [error, setError] = useState('');
   const [showPin, setShowPin] = useState(false);
 
+  useEffect(() => {
+    updateSystemBarsTheme(false);
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    let cleanPhone = phone.replace(/\D/g, '');
-    if (cleanPhone.startsWith('92') && cleanPhone.length === 12) cleanPhone = '0' + cleanPhone.slice(2);
-    else if (cleanPhone.length === 10 && cleanPhone.startsWith('3')) cleanPhone = '0' + cleanPhone;
-
+    const cleanPhone = phone.replace(/\D/g, '');
     if (!cleanPhone || cleanPhone.length !== 11) {
-      setError('Please enter a valid 11-digit phone number (e.g. 03001234567).');
+      setError('Please enter a valid phone number.');
       return;
     }
 
-    if (!pin || pin.trim().length < 4) {
+    const cleanPin = pin.replace(/\D/g, '');
+    if (!cleanPin || cleanPin.length !== 4) {
       setError('Please enter your 4-digit PIN.');
       return;
     }
@@ -32,7 +35,7 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
       const res = await fetch(apiUrl('/api/rider/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: cleanPhone, pin: pin.trim() })
+        body: JSON.stringify({ phone: cleanPhone, pin: cleanPin })
       });
 
       const data = await res.json();
@@ -119,9 +122,12 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
                 <Phone className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={11}
                   required
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
                   placeholder="03001234567"
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#fffdfa] border border-orange-200/80 text-zinc-900 font-semibold text-sm placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
                 />
@@ -146,17 +152,16 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
                 <Lock className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type={showPin ? 'text' : 'password'}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   required
-                  maxLength={8}
+                  maxLength={4}
                   value={pin}
-                  onChange={(e) => setPin(e.target.value)}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   placeholder="••••"
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#fffdfa] border border-orange-200/80 text-zinc-900 font-mono font-bold text-base tracking-widest placeholder-zinc-400 focus:bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
                 />
               </div>
-              <p className="text-[11px] text-zinc-500 mt-1">
-                Default PIN is the last 4 digits of your phone number (or check with manager).
-              </p>
             </div>
 
             {/* Submit Button */}

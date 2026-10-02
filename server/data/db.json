@@ -905,6 +905,61 @@
   ],
   "orders": [
     {
+      "id": "ORD-842525-71",
+      "customerName": "Salikleo",
+      "phone": "90325823905",
+      "address": "lane 17",
+      "notes": "",
+      "paymentMethod": "Cash on Delivery",
+      "customerEmail": "muhammadsalikleo321@gmail.com",
+      "customerGoogleId": "118108186798504873659",
+      "items": [
+        {
+          "cartKey": "pizza-4-Small",
+          "id": "pizza-4",
+          "name": "Chicken Supreme",
+          "category": "pizza",
+          "size": "Small",
+          "price": 450,
+          "image": "https://salikleo.website/assets/images/p-pizza-supreme-CJThciNL.jpg",
+          "quantity": 2,
+          "description": "Loaded chicken, veggies and extra cheese",
+          "includes": null
+        },
+        {
+          "cartKey": "pizza-5-Small",
+          "id": "pizza-5",
+          "name": "Pickle Punjabi",
+          "category": "pizza",
+          "size": "Small",
+          "price": 450,
+          "image": "https://salikleo.website/assets/images/p-pizza-punjabi-Dw1oJ_dL.jpg",
+          "quantity": 1,
+          "description": "Desi punjabi masala chicken with pickle and cheese",
+          "includes": null
+        },
+        {
+          "cartKey": "shawarma-bbq-paratha-default",
+          "id": "shawarma-bbq-paratha",
+          "name": "B.B.Q Paratha",
+          "category": "shawarma",
+          "size": null,
+          "price": 270,
+          "image": "/assets/images/p-shawarma-bbq-paratha-C4qj-bEe.jpg",
+          "quantity": 1,
+          "description": "Smoky BBQ chicken rolled in a crispy paratha",
+          "includes": null
+        }
+      ],
+      "subtotal": 1620,
+      "deliveryFee": 200,
+      "couponCode": null,
+      "couponDiscount": 0,
+      "total": 1820,
+      "status": "Pending",
+      "createdAt": "2026-10-02T10:10:42.525Z"
+    },
+    {
       "id": "ORD-853479-40",
       "customerName": "Salikleo",
       "phone": "90325823905",
@@ -2981,5 +3036,14 @@
     "number": "01",
     "dealType": "family",
     "featured": true
+  },
+  "customerProfiles": {
+    "muhammadsalikleo321@gmail.com": {
+      "email": "muhammadsalikleo321@gmail.com",
+      "name": "Salikleo",
+      "phone": "90325823905",
+      "address": "lane 17",
+      "updatedAt": "2026-10-02T10:10:42.527Z"
+    }
   }
 }
