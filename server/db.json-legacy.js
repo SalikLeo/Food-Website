@@ -155,12 +155,24 @@ function readDb() {
   try {
     const raw = fs.readFileSync(dbFile, 'utf8');
     const data = JSON.parse(raw);
-    if (!Array.isArray(data.riders)) {
-      data.riders = [];
+    if (!Array.isArray(data.categories)) data.categories = [];
+    if (!Array.isArray(data.products)) data.products = [];
+    if (!Array.isArray(data.orders)) data.orders = [];
+    if (!Array.isArray(data.riders)) data.riders = [];
+    if (!Array.isArray(data.costs)) data.costs = [];
+
+    // Normalize deals if stored as an object
+    if (!Array.isArray(data.deals)) {
+      if (data.deals && Array.isArray(data.deals.deals)) {
+        if (!data.familyDeal && data.deals.familyDeal) {
+          data.familyDeal = data.deals.familyDeal;
+        }
+        data.deals = data.deals.deals;
+      } else {
+        data.deals = [];
+      }
     }
-    if (!Array.isArray(data.costs)) {
-      data.costs = [];
-    }
+
     memoryCache = data;
     return data;
   } catch (err) {

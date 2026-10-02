@@ -554,13 +554,21 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
         }),
         safeFetch('/api/deals', { deals: [], familyDeal: null }).then(data => {
           if (data) {
-            const dealsArr = (data?.deals || []).map(d => ({ ...d, image: resolveImageUrl(d.image) }));
+            const rawList = Array.isArray(data)
+              ? data
+              : (Array.isArray(data.deals)
+                ? data.deals
+                : (Array.isArray(data.deals?.deals)
+                  ? data.deals.deals
+                  : []));
+            const dealsArr = rawList.map(d => ({ ...d, image: resolveImageUrl(d.image) }));
             setDeals(dealsArr);
-            const fam = data?.familyDeal ? { ...data.familyDeal, image: resolveImageUrl(data.familyDeal.image) } : null;
-            setFamilyDeal(fam);
+            const fam = data.familyDeal || data.deals?.familyDeal || null;
+            const famMapped = fam ? { ...fam, image: resolveImageUrl(fam.image) } : null;
+            setFamilyDeal(famMapped);
             try {
               localStorage.setItem('salik_cached_admin_deals', JSON.stringify(dealsArr));
-              localStorage.setItem('salik_cached_admin_familyDeal', JSON.stringify(fam));
+              localStorage.setItem('salik_cached_admin_familyDeal', JSON.stringify(famMapped));
             } catch {}
           }
         }),

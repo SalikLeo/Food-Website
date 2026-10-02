@@ -408,36 +408,98 @@ export default function DealsManager({
     return (products && products.length > 0) ? products : localProducts;
   }, [products, localProducts]);
 
+  // Resilient deals & familyDeal fallback from local cache & self-fetch
+  const [localDeals, setLocalDeals] = useState(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem('salik_cached_admin_deals'));
+      if (Array.isArray(cached) && cached.length > 0) return cached;
+    } catch {}
+    return [];
+  });
+  const [localFamilyDeal, setLocalFamilyDeal] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('salik_cached_admin_familyDeal')) || null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    const dealsList = Array.isArray(deals) ? deals : (Array.isArray(deals?.deals) ? deals.deals : []);
+    if (dealsList.length > 0) {
+      setLocalDeals(dealsList);
+    } else {
+      fetch(apiUrl('/api/deals'))
+        .then((r) => r.json())
+        .then((data) => {
+          if (data) {
+            const list = Array.isArray(data)
+              ? data
+              : (Array.isArray(data.deals)
+                ? data.deals
+                : (Array.isArray(data.deals?.deals)
+                  ? data.deals.deals
+                  : []));
+            if (list.length > 0) {
+              const mapped = list.map((d) => ({ ...d, image: resolveImageUrl(d.image) }));
+              setLocalDeals(mapped);
+              try {
+                localStorage.setItem('salik_cached_admin_deals', JSON.stringify(mapped));
+              } catch {}
+            }
+            const fam = data.familyDeal || data.deals?.familyDeal || null;
+            if (fam) {
+              const mappedFam = { ...fam, image: resolveImageUrl(fam.image) };
+              setLocalFamilyDeal(mappedFam);
+              try {
+                localStorage.setItem('salik_cached_admin_familyDeal', JSON.stringify(mappedFam));
+              } catch {}
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [deals]);
+
+  const effectiveDeals = useMemo(() => {
+    const dealsList = Array.isArray(deals) ? deals : (Array.isArray(deals?.deals) ? deals.deals : []);
+    return dealsList.length > 0 ? dealsList : localDeals;
+  }, [deals, localDeals]);
+
+  const effectiveFamilyDeal = useMemo(() => {
+    return familyDeal || localFamilyDeal;
+  }, [familyDeal, localFamilyDeal]);
+
   // Local state for immediate optimistic star updates
   const [localFeaturedId, setLocalFeaturedId] = useState(() => {
-    const list = [...deals];
-    if (familyDeal && !list.some((d) => String(d.id) === String(familyDeal.id))) {
-      list.unshift(familyDeal);
+    const list = [...effectiveDeals];
+    if (effectiveFamilyDeal && !list.some((d) => String(d.id) === String(effectiveFamilyDeal.id))) {
+      list.unshift(effectiveFamilyDeal);
     }
     const feat = list.find((d) => d.featured === true || d.featured === 'true');
     return feat ? String(feat.id) : null;
   });
 
   useEffect(() => {
-    const list = [...deals];
-    if (familyDeal && !list.some((d) => String(d.id) === String(familyDeal.id))) {
-      list.unshift(familyDeal);
+    const list = [...effectiveDeals];
+    if (effectiveFamilyDeal && !list.some((d) => String(d.id) === String(effectiveFamilyDeal.id))) {
+      list.unshift(effectiveFamilyDeal);
     }
     const feat = list.find((d) => d.featured === true || d.featured === 'true');
     setLocalFeaturedId(feat ? String(feat.id) : null);
-  }, [deals, familyDeal]);
+  }, [effectiveDeals, effectiveFamilyDeal]);
 
   // Combine all deals and enforce single featured deal exclusivity
   const allDeals = useMemo(() => {
-    const list = [...deals];
-    if (familyDeal && !list.some((d) => String(d.id) === String(familyDeal.id))) {
-      list.unshift({ ...familyDeal, dealType: 'family' });
+    const list = [...effectiveDeals];
+    if (effectiveFamilyDeal && !list.some((d) => String(d.id) === String(effectiveFamilyDeal.id))) {
+      list.unshift({ ...effectiveFamilyDeal, dealType: 'family' });
     }
     return list.map((d) => ({
       ...d,
       featured: localFeaturedId ? String(d.id) === String(localFeaturedId) : false
     }));
-  }, [deals, familyDeal, localFeaturedId]);
+  }, [effectiveDeals, effectiveFamilyDeal, localFeaturedId]);
 
   const normalDeals = useMemo(() => allDeals.filter((d) => !isFamilyDeal(d)), [allDeals]);
   const familyDeals = useMemo(() => allDeals.filter((d) => isFamilyDeal(d)), [allDeals]);

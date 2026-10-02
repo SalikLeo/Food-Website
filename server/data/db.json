@@ -831,79 +831,8 @@
       "updatedAt": "2026-09-25T07:42:49.194Z"
     }
   ],
-  "deals": {
-    "deals": [
-      {
-        "id": "family-deal",
-        "name": "Family Deal 1",
-        "category": "deals",
-        "includes": [
-          "5 Zinger Burger",
-          "2 Patty Burger",
-          "2 Small Shawarma",
-          "1 Large Shawarma",
-          "12 Nuggets",
-          "1 Coke 1.5L"
-        ],
-        "price": 2580,
-        "image": "/assets/deal-family.png",
-        "description": "One big combo bundle crafted for the entire family — packed with burgers, pizza, shawarmas, and chilled beverages.",
-        "tag": "Family Bundle",
-        "number": "01",
-        "dealType": "family",
-        "featured": true
-      },
-      {
-        "name": "Deal 12",
-        "number": "12",
-        "category": "deals",
-        "dealType": "normal",
-        "price": 800,
-        "image": "/assets/deal-1.png",
-        "includes": [
-          "2 Zinger Burger (Burgers)",
-          "2 Coke 500ml (Beverages)"
-        ],
-        "description": "2 Zinger Burger (Burgers) + 2 Coke 500ml (Beverages)",
-        "tag": "",
-        "id": "deal-1789746368640",
-        "featured": false
-      },
-      {
-        "name": "Deal 2",
-        "number": "02",
-        "category": "deals",
-        "dealType": "normal",
-        "price": 1300,
-        "image": "/assets/deal-2.png",
-        "includes": [
-          "1 Small Chicken Tikka (Pizza)",
-          "1 Coke 1L (Beverages)"
-        ],
-        "description": "1 Small Chicken Tikka (Pizza) + 1 Coke 1L (Beverages)",
-        "tag": "",
-        "id": "deal-1789746424743",
-        "featured": false
-      },
-      {
-        "name": "Deal 5",
-        "number": "05",
-        "category": "deals",
-        "dealType": "normal",
-        "price": 3000,
-        "image": "/assets/deal-3.png",
-        "includes": [
-          "1 Large B.B.Q",
-          "1 Small Chicken Tikk",
-          "3 Small Pickle Punjabi"
-        ],
-        "description": "1 Large B.B.Q + 1 Small Chicken Tikk + 3 Small Pickle Punjabi",
-        "tag": "",
-        "featured": false,
-        "id": "deal-1790143167883"
-      }
-    ],
-    "familyDeal": {
+  "deals": [
+    {
       "id": "family-deal",
       "name": "Family Deal 1",
       "category": "deals",
@@ -922,8 +851,57 @@
       "number": "01",
       "dealType": "family",
       "featured": true
+    },
+    {
+      "name": "Deal 12",
+      "number": "12",
+      "category": "deals",
+      "dealType": "normal",
+      "price": 800,
+      "image": "/assets/deal-1.png",
+      "includes": [
+        "2 Zinger Burger (Burgers)",
+        "2 Coke 500ml (Beverages)"
+      ],
+      "description": "2 Zinger Burger (Burgers) + 2 Coke 500ml (Beverages)",
+      "tag": "",
+      "id": "deal-1789746368640",
+      "featured": false
+    },
+    {
+      "name": "Deal 2",
+      "number": "02",
+      "category": "deals",
+      "dealType": "normal",
+      "price": 1300,
+      "image": "/assets/deal-2.png",
+      "includes": [
+        "1 Small Chicken Tikka (Pizza)",
+        "1 Coke 1L (Beverages)"
+      ],
+      "description": "1 Small Chicken Tikka (Pizza) + 1 Coke 1L (Beverages)",
+      "tag": "",
+      "id": "deal-1789746424743",
+      "featured": false
+    },
+    {
+      "name": "Deal 5",
+      "number": "05",
+      "category": "deals",
+      "dealType": "normal",
+      "price": 3000,
+      "image": "/assets/deal-3.png",
+      "includes": [
+        "1 Large B.B.Q",
+        "1 Small Chicken Tikk",
+        "3 Small Pickle Punjabi"
+      ],
+      "description": "1 Large B.B.Q + 1 Small Chicken Tikk + 3 Small Pickle Punjabi",
+      "tag": "",
+      "featured": false,
+      "id": "deal-1790143167883"
     }
-  },
+  ],
   "orders": [
     {
       "id": "ORD-853479-40",
@@ -2971,5 +2949,25 @@
       "createdAt": "2026-10-02T07:55:58.333Z",
       "updatedAt": "2026-10-02T07:55:58.333Z"
     }
-  ]
+  ],
+  "familyDeal": {
+    "id": "family-deal",
+    "name": "Family Deal 1",
+    "category": "deals",
+    "includes": [
+      "5 Zinger Burger",
+      "2 Patty Burger",
+      "2 Small Shawarma",
+      "1 Large Shawarma",
+      "12 Nuggets",
+      "1 Coke 1.5L"
+    ],
+    "price": 2580,
+    "image": "/assets/deal-family.png",
+    "description": "One big combo bundle crafted for the entire family — packed with burgers, pizza, shawarmas, and chilled beverages.",
+    "tag": "Family Bundle",
+    "number": "01",
+    "dealType": "family",
+    "featured": true
+  }
 }
