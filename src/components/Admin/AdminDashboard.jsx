@@ -1462,7 +1462,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
             }`}
           >
             <ShoppingBag className="w-4 h-4 flex-shrink-0" />
-            <span>Orders ({pendingOrdersCount})</span>
+            <span>Orders ({dateFilteredOrders.length})</span>
             {pendingOrdersCount > 0 && (
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
             )}
