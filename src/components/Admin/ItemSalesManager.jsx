@@ -438,18 +438,24 @@ export default function ItemSalesManager({
                         </div>
                       </td>
 
-                      {/* Size */}
+                      {/* Size Breakdown with Quantities */}
                       <td className="px-4 py-3.5">
                         {Object.keys(item.sizes).length > 0 ? (
                           <div className="flex flex-wrap gap-1.5">
-                            {Object.keys(item.sizes).map((sz) => (
-                              <span
-                                key={sz}
-                                className="px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-zinc-800 text-[10px] font-semibold"
-                              >
-                                {sz}
-                              </span>
-                            ))}
+                            {Object.entries(item.sizes)
+                              .sort((a, b) => {
+                                const order = { Small: 1, Medium: 2, Large: 3 };
+                                return (order[a[0]] || 99) - (order[b[0]] || 99) || b[1] - a[1];
+                              })
+                              .map(([sz, count]) => (
+                                <span
+                                  key={sz}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-zinc-800 text-[10px] font-medium"
+                                >
+                                  <span>{sz}</span>
+                                  <span className="font-bold text-orange-600">({count})</span>
+                                </span>
+                              ))}
                           </div>
                         ) : (
                           <span className="text-zinc-400 text-[11px] italic">Standard</span>
