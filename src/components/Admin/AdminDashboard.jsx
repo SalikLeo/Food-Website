@@ -1119,7 +1119,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                   aria-label="Download Admin App"
                 >
                   <Smartphone className="w-4 h-4 text-orange-600 shrink-0" />
-                  <span className="hidden md:inline">Download App</span>
+                  <span className="hidden md:inline">Download Admin App</span>
                 </a>
               )}
 

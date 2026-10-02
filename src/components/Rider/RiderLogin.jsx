@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Bike, Lock, Phone, ArrowLeft, Loader2, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
-import { apiUrl, resolveImageUrl } from '../../config/api';
+import { Bike, Lock, Phone, ArrowLeft, Loader2, AlertCircle, Sparkles, CheckCircle2, Smartphone } from 'lucide-react';
+import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
 
 export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
   const [phone, setPhone] = useState('');
@@ -178,6 +178,22 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
               )}
             </button>
           </form>
+
+          {APP_MODE !== 'rider' && (
+            <div className="mt-6 pt-5 border-t border-orange-100 text-center">
+              <p className="text-xs text-zinc-500 font-medium mb-2.5">
+                Install the dedicated delivery app on your phone
+              </p>
+              <a
+                href="/downloads/Salik-Fast-Food-Rider.apk"
+                download="Salik-Fast-Food-Rider.apk"
+                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-800 font-bold text-xs uppercase tracking-wider shadow-2xs hover:scale-[1.01] active:scale-[0.98] transition-all"
+              >
+                <Smartphone className="w-4 h-4 text-orange-600 shrink-0" />
+                <span>Download Rider App (.APK)</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
 
