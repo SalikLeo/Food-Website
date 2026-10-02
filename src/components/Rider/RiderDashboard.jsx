@@ -23,13 +23,21 @@ import {
   Loader2,
   X,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  Bell
 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import WhatsAppIcon from '../WhatsAppIcon';
 import { apiUrl } from '../../config/api';
 import { formatPrice, getLocalDateStr } from '../../utils/formatters';
 import { getSocket } from '../../services/socketService';
 import { updateSystemBarsTheme } from '../../utils/systemBars';
+import {
+  requestNotificationPermission,
+  notifyRiderNewAssignment,
+  notifyRiderOrderUpdate
+} from '../../services/notificationService';
 
 export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
   const cacheKey = `salik_rider_cache_${rider?.id || rider?.phone || 'default'}`;
@@ -58,6 +66,7 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
   const [refreshing, setRefreshing] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [expandedItemsOrders, setExpandedItemsOrders] = useState({});
+  const [riderAlert, setRiderAlert] = useState(null);
 
   const toggleItemsExpand = (orderId) => {
     setExpandedItemsOrders(prev => ({
@@ -65,6 +74,39 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
       [orderId]: !prev[orderId]
     }));
   };
+
+  // Auto-dismiss in-app notification banner after 7 seconds
+  useEffect(() => {
+    if (!riderAlert) return;
+    const timer = setTimeout(() => {
+      setRiderAlert(null);
+    }, 7000);
+    return () => clearTimeout(timer);
+  }, [riderAlert]);
+
+  // Request notification permissions & handle notification tap in native APK
+  useEffect(() => {
+    requestNotificationPermission().catch(() => {});
+
+    let notifListener = null;
+    if (Capacitor.isNativePlatform()) {
+      LocalNotifications.addListener('localNotificationActionPerformed', (event) => {
+        const extra = event?.notification?.extra || {};
+        setActiveTab('active');
+        if (extra.orderId) {
+          setExpandedItemsOrders(prev => ({ ...prev, [extra.orderId]: true }));
+        }
+      }).then(handle => {
+        notifListener = handle;
+      }).catch(() => {});
+    }
+
+    return () => {
+      if (notifListener && typeof notifListener.remove === 'function') {
+        notifListener.remove();
+      }
+    };
+  }, []);
 
   // Delivery Action Modal State
   const [deliveringOrder, setDeliveringOrder] = useState(null);
@@ -80,6 +122,10 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
       return true;
     }
   });
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
 
   // Dark / Light Theme
   const [theme, setTheme] = useState(() => {
@@ -148,8 +194,16 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
     }
   };
 
-  // Track known active order IDs to detect new assignments
-  const knownActiveIdsRef = useRef(new Set((initialCache?.activeOrders || []).map(o => String(o.id))));
+  // Track known active order IDs & statuses to detect new assignments and updates
+  const knownActiveIdsRef = useRef(new Set((initialCache?.activeOrders || []).map(o => String(o.id).replace(/^#/, ''))));
+  const knownActiveMetaRef = useRef(
+    new Map(
+      (initialCache?.activeOrders || []).map(o => [
+        String(o.id).replace(/^#/, ''),
+        { status: o.status, total: Number(o.total) || 0, customerName: o.customerName }
+      ])
+    )
+  );
   const initialLoadRef = useRef(Boolean(initialCache));
 
   const fetchRiderData = async (isManual = false) => {
@@ -175,16 +229,81 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
           allTimeCash: 0
         };
 
-        // Check if a brand new active order arrived
         if (initialLoadRef.current) {
-          const freshOrders = newActives.filter(o => !knownActiveIdsRef.current.has(String(o.id)));
-          if (freshOrders.length > 0 && soundEnabled) {
-            playAlertSound();
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          // 1. Detect brand new assigned active orders
+          const freshOrders = newActives.filter(
+            o => o && o.id && !knownActiveIdsRef.current.has(String(o.id).replace(/^#/, ''))
+          );
+          if (freshOrders.length > 0) {
+            const latest = freshOrders[0];
+            const cleanId = String(latest.id).replace(/^#/, '');
+            notifyRiderNewAssignment(latest, freshOrders.length, soundEnabledRef.current);
+            setRiderAlert({
+              type: 'new',
+              orderId: cleanId,
+              title: freshOrders.length > 1 ? `${freshOrders.length} New Deliveries Assigned!` : `New Delivery Assigned (#${cleanId})`,
+              message: `${latest.customerName || 'Customer'} • Rs. ${formatPrice(latest.total)}${latest.address ? ` • ${latest.address}` : ''}`
+            });
+          } else {
+            // 2. Detect status or bill changes on already-assigned active orders
+            for (const o of newActives) {
+              if (!o || !o.id) continue;
+              const cleanId = String(o.id).replace(/^#/, '');
+              const prev = knownActiveMetaRef.current.get(cleanId);
+              if (!prev) continue;
+              if (prev.status && o.status && prev.status !== o.status) {
+                const title = `🛵 Order #${cleanId} Status Updated`;
+                const body = `Order #${cleanId} for ${o.customerName || 'Customer'} is now "${o.status}".`;
+                notifyRiderOrderUpdate(o, title, body, soundEnabledRef.current);
+                setRiderAlert({
+                  type: 'update',
+                  orderId: cleanId,
+                  title: `Order #${cleanId} • ${o.status}`,
+                  message: `${o.customerName || 'Customer'} • Rs. ${formatPrice(o.total)}`
+                });
+                break;
+              }
+              if (Number(prev.total) !== (Number(o.total) || 0)) {
+                const title = `💰 Order #${cleanId} Bill Updated`;
+                const body = `Updated cash to collect for #${cleanId}: Rs. ${formatPrice(o.total)}.`;
+                notifyRiderOrderUpdate(o, title, body, soundEnabledRef.current);
+                setRiderAlert({
+                  type: 'update',
+                  orderId: cleanId,
+                  title: `Order #${cleanId} Bill Updated`,
+                  message: `New cash to collect: Rs. ${formatPrice(o.total)}`
+                });
+                break;
+              }
+            }
+
+            // 3. Detect if an active order was cancelled or unassigned by Admin
+            const currentActiveSet = new Set(newActives.map(o => String(o.id).replace(/^#/, '')));
+            const completedSet = new Set(newCompleted.map(o => String(o.id).replace(/^#/, '')));
+            for (const [oldId, oldMeta] of knownActiveMetaRef.current.entries()) {
+              if (!currentActiveSet.has(oldId) && !completedSet.has(oldId)) {
+                const title = `⚠️ Order #${oldId} Removed`;
+                const body = `Order #${oldId} (${oldMeta.customerName || 'Customer'}) was cancelled or unassigned.`;
+                notifyRiderOrderUpdate({ id: oldId }, title, body, soundEnabledRef.current);
+                setRiderAlert({
+                  type: 'warning',
+                  orderId: oldId,
+                  title: `Order #${oldId} Cancelled / Unassigned`,
+                  message: `Order for ${oldMeta.customerName || 'Customer'} is no longer active.`
+                });
+                break;
+              }
+            }
           }
         }
 
-        knownActiveIdsRef.current = new Set(newActives.map(o => String(o.id)));
+        knownActiveIdsRef.current = new Set(newActives.map(o => String(o.id).replace(/^#/, '')));
+        knownActiveMetaRef.current = new Map(
+          newActives.map(o => [
+            String(o.id).replace(/^#/, ''),
+            { status: o.status, total: Number(o.total) || 0, customerName: o.customerName }
+          ])
+        );
         initialLoadRef.current = true;
 
         setActiveOrders(newActives);
@@ -269,6 +388,13 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
       const cleanId = String(orderId || '').replace(/^#/, '').trim();
       const targetOrder = (activeOrders || []).find(o => String(o?.id || '').replace(/^#/, '').trim() === cleanId) || null;
       const cleanOrderId = encodeURIComponent(cleanId);
+
+      // Update known meta ahead of fetch so self-triggered status change doesn't double-notify
+      const prevMeta = knownActiveMetaRef.current.get(cleanId);
+      if (prevMeta) {
+        knownActiveMetaRef.current.set(cleanId, { ...prevMeta, status: 'Out for Delivery' });
+      }
+
       const res = await fetch(apiUrl(`/api/rider/orders/${cleanOrderId}/start-delivery`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -278,6 +404,12 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
         })
       });
       if (res.ok) {
+        setRiderAlert({
+          type: 'update',
+          orderId: cleanId,
+          title: `Order #${cleanId} Out for Delivery`,
+          message: `Customer has been notified that you are on the way.`
+        });
         fetchRiderData(true);
       }
     } catch (err) {
@@ -292,7 +424,13 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
     setIsSubmittingDelivery(true);
 
     try {
-      const cleanOrderId = encodeURIComponent(String(deliveringOrder.id || '').replace(/^#/, ''));
+      const cleanId = String(deliveringOrder.id || '').replace(/^#/, '').trim();
+      const cleanOrderId = encodeURIComponent(cleanId);
+
+      // Remove from known active map ahead of fetch so it doesn't trigger a cancellation warning
+      knownActiveIdsRef.current.delete(cleanId);
+      knownActiveMetaRef.current.delete(cleanId);
+
       const res = await fetch(apiUrl(`/api/rider/orders/${cleanOrderId}/deliver`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -304,6 +442,19 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
       });
 
       if (res.ok) {
+        const collectedAmount = formatPrice(deliveringOrder.total);
+        notifyRiderOrderUpdate(
+          deliveringOrder,
+          `✅ Order #${cleanId} Delivered!`,
+          `Rs. ${collectedAmount} collected from ${deliveringOrder.customerName || 'Customer'}.`,
+          soundEnabledRef.current
+        );
+        setRiderAlert({
+          type: 'delivered',
+          orderId: cleanId,
+          title: `Order #${cleanId} Delivered!`,
+          message: `Rs. ${collectedAmount} added to today's collected cash.`
+        });
         setDeliveringOrder(null);
         setDeliveryNotes('');
         fetchRiderData(true);
@@ -425,6 +576,63 @@ export default function RiderDashboard({ rider, onLogout, onBackToStore }) {
 
       {/* Main Content Area */}
       <main className="max-w-4xl mx-auto px-4 py-4 space-y-4 pb-20">
+        {/* In-App Notification Banner */}
+        {riderAlert && (
+          <div
+            onClick={() => {
+              if (riderAlert.type !== 'delivered') {
+                setActiveTab('active');
+              }
+              setRiderAlert(null);
+            }}
+            className={`p-3.5 rounded-2xl border shadow-lg flex items-center justify-between gap-3 cursor-pointer transition-all animate-in fade-in slide-in-from-top-2 duration-200 ${
+              riderAlert.type === 'new'
+                ? (isDark ? 'bg-orange-500/15 border-orange-500/40 text-orange-200' : 'bg-orange-50 border-orange-300 text-orange-950')
+                : riderAlert.type === 'delivered'
+                ? (isDark ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200' : 'bg-emerald-50 border-emerald-300 text-emerald-950')
+                : riderAlert.type === 'warning'
+                ? (isDark ? 'bg-red-500/15 border-red-500/40 text-red-200' : 'bg-red-50 border-red-300 text-red-950')
+                : (isDark ? 'bg-blue-500/15 border-blue-500/40 text-blue-200' : 'bg-blue-50 border-blue-300 text-blue-950')
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                riderAlert.type === 'new'
+                  ? 'bg-orange-600 text-white'
+                  : riderAlert.type === 'delivered'
+                  ? 'bg-emerald-600 text-white'
+                  : riderAlert.type === 'warning'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-blue-600 text-white'
+              }`}>
+                <Bell className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-sans font-bold text-xs sm:text-sm truncate">
+                  {riderAlert.title}
+                </p>
+                <p className={`text-[11px] sm:text-xs font-medium truncate ${
+                  isDark ? 'text-zinc-300' : 'text-zinc-700'
+                }`}>
+                  {riderAlert.message}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setRiderAlert(null);
+              }}
+              className={`p-1.5 rounded-lg transition-colors shrink-0 ${
+                isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-zinc-500'
+              }`}
+              aria-label="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         {/* Metric Cards Row */}
         <div className="grid grid-cols-3 gap-2.5">
           {/* 1. Active Deliveries */}

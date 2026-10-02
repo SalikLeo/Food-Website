@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bike, Lock, Phone, ArrowLeft, Loader2, AlertCircle, Sparkles, CheckCircle2, Smartphone } from 'lucide-react';
 import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
 import { updateSystemBarsTheme } from '../../utils/systemBars';
+import { requestNotificationPermission } from '../../services/notificationService';
 
 export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
   const [phone, setPhone] = useState('');
@@ -12,11 +13,13 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
 
   useEffect(() => {
     updateSystemBarsTheme(false);
+    requestNotificationPermission().catch(() => {});
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    requestNotificationPermission().catch(() => {});
 
     const cleanPhone = phone.replace(/\D/g, '');
     if (!cleanPhone || cleanPhone.length !== 11) {

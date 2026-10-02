@@ -345,3 +345,46 @@ export async function notifyCustomerReviewSubmitted(review) {
   });
 }
 
+/**
+ * Trigger Rider New Delivery Assignment Notification
+ */
+export async function notifyRiderNewAssignment(order, count = 1, soundEnabled = true) {
+  if (!order) return;
+  const cleanId = String(order.id || '').replace(/^#/, '');
+  const custName = order.customerName || order.customer?.name || 'Customer';
+  const totalVal = order.total ? `Rs. ${formatPrice(order.total)}` : '';
+  const addr = order.address ? ` • ${order.address}` : '';
+
+  const title = count > 1 ? `🛵 ${count} New Deliveries Assigned!` : '🛵 New Delivery Assigned!';
+  const body = `Order #${cleanId} (${totalVal}) for ${custName}${addr}`;
+
+  if (soundEnabled) {
+    playNotificationSound('new_order');
+  }
+  triggerVibration([300, 100, 300, 100, 500]);
+  await showSystemNotification({
+    title,
+    body,
+    id: `rider-assign-${cleanId}-${Date.now()}`,
+    extra: { orderId: cleanId, type: 'rider_new_assignment' }
+  });
+}
+
+/**
+ * Trigger Rider Order Update / Action Notification
+ */
+export async function notifyRiderOrderUpdate(order, title, body, soundEnabled = true) {
+  const cleanId = order?.id ? String(order.id).replace(/^#/, '') : String(Date.now());
+  if (soundEnabled) {
+    playNotificationSound('status_update');
+  }
+  triggerVibration([200, 100, 200]);
+  await showSystemNotification({
+    title,
+    body,
+    id: `rider-update-${cleanId}-${Date.now()}`,
+    extra: { orderId: cleanId, type: 'rider_order_update' }
+  });
+}
+
+
