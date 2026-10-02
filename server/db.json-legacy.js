@@ -1214,6 +1214,7 @@ export const db = {
       .filter(o => o.status !== 'Cancelled')
       .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
 
+    const pendingOrders = orders.filter(o => o.status === 'Pending').length;
     const totalCosts = costs.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
       
     const hasSeparateFamily = data.familyDeal && !dealsList.some(d => String(d.id) === String(data.familyDeal.id));

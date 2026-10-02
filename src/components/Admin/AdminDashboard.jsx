@@ -927,11 +927,21 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
                 type="button"
                 onClick={() => {
                   switchTab('orders');
-                  const orderDate = newOrderAlert.order ? getLocalDateStr(newOrderAlert.order.createdAt) : todayLocalStr;
-                  const isOutsideCurrentView = (timeFilterMode === 'today' && orderDate !== selectedDate) ||
-                                               (timeFilterMode === 'monthly' && orderDate.slice(0, 7) !== selectedMonth) ||
-                                               (timeFilterMode === 'annual' && orderDate.slice(0, 4) !== String(selectedYear));
-                  if (isOutsideCurrentView) {
+                  const orderDateObj = newOrderAlert.order?.createdAt ? new Date(newOrderAlert.order.createdAt) : new Date();
+                  const orderDateStr = getLocalDateStr(orderDateObj);
+
+                  let isOrderVisible = true;
+                  if (timeFilterMode === 'today') {
+                    isOrderVisible = orderDateStr === selectedDate;
+                  } else if (timeFilterMode === 'monthly') {
+                    isOrderVisible = orderDateObj.getFullYear() === Number(selectedYear) && orderDateObj.getMonth() === Number(selectedMonth);
+                  } else if (timeFilterMode === 'annual') {
+                    isOrderVisible = orderDateObj.getFullYear() === Number(selectedYear);
+                  }
+
+                  const hasPendingOutside = (orders || []).some(o => o.status === 'Pending' && getLocalDateStr(o.createdAt) !== selectedDate);
+
+                  if (!isOrderVisible || hasPendingOutside) {
                     setTimeFilterMode('all');
                   }
                   setNewOrderAlert(null);
