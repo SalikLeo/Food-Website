@@ -870,15 +870,24 @@ export default function CustomerMobileApp({
 
   // Check device biometric availability
   useEffect(() => {
-    isBiometricAvailable().then((avail) => {
-      setBiometricAvailable(avail);
-      const enrolled = avail && isBiometricEnrolled('customer');
-      setBiometricEnrolled(enrolled);
-      if (enrolled) {
-        setSavedBiometricUser(getSavedBiometricProfile('customer'));
-      }
-    });
-  }, [customerUser, view]);
+    let isMounted = true;
+    isBiometricAvailable()
+      .then((avail) => {
+        if (!isMounted) return;
+        setBiometricAvailable(avail);
+        const enrolled = Boolean(avail && isBiometricEnrolled('customer'));
+        setBiometricEnrolled(enrolled);
+        if (enrolled) {
+          setSavedBiometricUser(getSavedBiometricProfile('customer'));
+        }
+      })
+      .catch((err) => {
+        console.warn('Biometrics check error:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [customerUser, currentView]);
 
   const handleEnableBiometrics = async () => {
     setBiometricLoading(true);

@@ -1,7 +1,7 @@
 {
   "customer": {
     "version": "1.0.3",
-    "build": 111,
+    "build": 112,
     "releaseDate": "2026-10-03",
     "releaseNotes": [
       "Seamless Dark Mode for Android Status Bar & Navigation Bar (matches dark theme without white bars)",
