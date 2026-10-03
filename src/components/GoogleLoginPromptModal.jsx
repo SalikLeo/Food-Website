@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, ShieldCheck, History, Loader2, 
-  CheckCircle2 
+  CheckCircle2, Fingerprint
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { 
@@ -11,12 +11,64 @@ import {
 } from '../services/googleAuth';
 import { fetchCustomerCloudProfile } from '../services/customerSync';
 import { saveStoredUserProfile } from '../services/userProfile';
+import {
+  isBiometricAvailable,
+  isBiometricEnrolled,
+  authenticateWithBiometrics,
+  getSavedBiometricProfile
+} from '../services/biometricService';
 import { Capacitor } from '@capacitor/core';
 
 export default function GoogleLoginPromptModal() {
   const { isDark, syncCustomerOrdersCloud, userProfile, saveUserProfile } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [biometricEnrolled, setBiometricEnrolled] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const [savedBiometricUser, setSavedBiometricUser] = useState(null);
+
+  // Check biometric enrollment on startup
+  useEffect(() => {
+    isBiometricAvailable().then((avail) => {
+      const enrolled = avail && isBiometricEnrolled('customer');
+      setBiometricEnrolled(enrolled);
+      if (enrolled) {
+        setSavedBiometricUser(getSavedBiometricProfile('customer'));
+      }
+    });
+  }, []);
+
+  const handleBiometricLogin = async () => {
+    setBiometricLoading(true);
+    try {
+      const res = await authenticateWithBiometrics('customer');
+      if (res.success && res.profile) {
+        const prof = res.profile;
+        if (prof.email) {
+          setStoredCustomerUser(prof);
+          if (typeof syncCustomerOrdersCloud === 'function') {
+            syncCustomerOrdersCloud(prof.email, prof.phone || userProfile?.phone);
+          }
+        }
+        const updated = {
+          name: prof.name || userProfile?.name || '',
+          phone: prof.phone || userProfile?.phone || '',
+          address: prof.address || userProfile?.address || ''
+        };
+        if (typeof saveUserProfile === 'function') {
+          saveUserProfile(updated);
+        } else {
+          saveStoredUserProfile(updated);
+        }
+        window.dispatchEvent(new Event('salik_customer_auth_changed'));
+        setIsOpen(false);
+      }
+    } catch (err) {
+      console.warn('Prompt biometric login error:', err);
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
 
   // Auto-show prompt on startup if user is not already logged in
   useEffect(() => {
@@ -203,6 +255,28 @@ export default function GoogleLoginPromptModal() {
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-1">
+          {/* 1-Tap Biometric Fingerprint Login (if enrolled) */}
+          {biometricEnrolled && (
+            <button
+              type="button"
+              onClick={handleBiometricLogin}
+              disabled={biometricLoading}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2.5 transition-transform active:scale-[0.98] shadow-md cursor-pointer disabled:opacity-50"
+            >
+              {biometricLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Scanning Fingerprint...</span>
+                </>
+              ) : (
+                <>
+                  <Fingerprint className="w-5 h-5 text-white" />
+                  <span>Sign in with Fingerprint {savedBiometricUser?.name ? `(${savedBiometricUser.name})` : ''}</span>
+                </>
+              )}
+            </button>
+          )}
+
           <button
             type="button"
             onClick={handleGoogleLogin}

@@ -15,7 +15,8 @@ import {
   User,
   RotateCcw,
   Smartphone,
-  LogOut
+  LogOut,
+  Fingerprint
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import ThemeToggle from './ThemeToggle';
@@ -26,6 +27,12 @@ import {
   clearStoredCustomerUser, 
   triggerGoogleLogin 
 } from '../services/googleAuth';
+import {
+  isBiometricAvailable,
+  isBiometricEnrolled,
+  authenticateWithBiometrics
+} from '../services/biometricService';
+import { saveStoredUserProfile } from '../services/userProfile';
 
 export default function Header({ onAdminClick, hideAdmin = false }) {
   const { itemCount, setIsCartOpen, openProfileModal, isDark, settings } = useCart();
@@ -36,11 +43,21 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [biometricEnrolled, setBiometricEnrolled] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const checkBiometrics = () => {
+      isBiometricAvailable().then((avail) => {
+        setBiometricEnrolled(avail && isBiometricEnrolled('customer'));
+      });
+    };
+    checkBiometrics();
+
     const handleAuthChange = () => {
       setCustomerUser(getStoredCustomerUser());
+      checkBiometrics();
     };
     window.addEventListener('salik_customer_auth_changed', handleAuthChange);
     window.addEventListener('storage', handleAuthChange);
@@ -49,6 +66,30 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
       window.removeEventListener('storage', handleAuthChange);
     };
   }, []);
+
+  const handleBiometricHeaderLogin = async () => {
+    setBiometricLoading(true);
+    try {
+      const res = await authenticateWithBiometrics('customer');
+      if (res.success && res.profile) {
+        const prof = res.profile;
+        if (prof.email) {
+          setStoredCustomerUser(prof);
+          setCustomerUser(prof);
+        }
+        saveStoredUserProfile({
+          name: prof.name || '',
+          phone: prof.phone || '',
+          address: prof.address || ''
+        });
+        window.dispatchEvent(new Event('salik_customer_auth_changed'));
+      }
+    } catch (err) {
+      console.warn('Header biometric login error:', err);
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
@@ -271,6 +312,20 @@ export default function Header({ onAdminClick, hideAdmin = false }) {
             {/* Desktop Theme Toggle (Web only) */}
             {!isCustomerApp && (
               <ThemeToggle variant="compact" className="hidden lg:flex mr-1" />
+            )}
+
+            {/* Header Quick Fingerprint Sign-in Trigger (Web only: when enrolled and signed out) */}
+            {!isCustomerApp && !customerUser && biometricEnrolled && (
+              <button
+                type="button"
+                onClick={handleBiometricHeaderLogin}
+                disabled={biometricLoading}
+                className="relative p-2.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all focus:outline-none cursor-pointer shadow-2xs active:scale-95"
+                title="Sign in with Fingerprint"
+                aria-label="Sign in with Fingerprint"
+              >
+                <Fingerprint className="w-5 h-5" />
+              </button>
             )}
 
             {/* Header Profile Trigger (Web only: both desktop & mobile view) */}

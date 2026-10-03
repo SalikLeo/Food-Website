@@ -1,8 +1,8 @@
 {
   "customer": {
     "version": "1.0.3",
-    "build": 109,
-    "releaseDate": "2026-10-02",
+    "build": 110,
+    "releaseDate": "2026-10-03",
     "releaseNotes": [
       "Seamless Dark Mode for Android Status Bar & Navigation Bar (matches dark theme without white bars)",
       "Automatic dynamic theme syncing with device and in-app toggle",
@@ -14,7 +14,7 @@
   },
   "admin": {
     "version": "1.0.3",
-    "build": 110,
+    "build": 111,
     "releaseDate": "2026-10-03",
     "releaseNotes": [
       "Seamless dark/light system status bar & navigation bar theme support",
@@ -27,8 +27,8 @@
   },
   "rider": {
     "version": "1.0.0",
-    "build": 115,
-    "releaseDate": "2026-10-02",
+    "build": 116,
+    "releaseDate": "2026-10-03",
     "releaseNotes": [
       "Dedicated Rider Delivery Fleet App",
       "Real-time assigned parcel alerts & sound chimes",

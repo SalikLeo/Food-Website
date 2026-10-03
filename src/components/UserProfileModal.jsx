@@ -17,7 +17,8 @@ import {
   Flame,
   Utensils,
   LogOut,
-  Lock
+  Lock,
+  Fingerprint
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/formatters';
@@ -25,11 +26,20 @@ import { apiUrl } from '../config/api';
 import CustomerReceiptModal from './CustomerReceiptModal';
 import {
   getStoredCustomerUser,
+  setStoredCustomerUser,
   clearStoredCustomerUser,
   triggerGoogleLogin
 } from '../services/googleAuth';
 import { saveStoredUserProfile } from '../services/userProfile';
 import { fetchCustomerCloudProfile, saveCustomerCloudProfile } from '../services/customerSync';
+import {
+  isBiometricAvailable,
+  isBiometricEnrolled,
+  authenticateWithBiometrics,
+  registerBiometricCredential,
+  removeBiometricCredential,
+  getSavedBiometricProfile
+} from '../services/biometricService';
 
 export default function UserProfileModal() {
   const {
@@ -56,6 +66,12 @@ export default function UserProfileModal() {
   const [customerUser, setCustomerUser] = useState(() => getStoredCustomerUser());
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Biometrics state
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnrolled, setBiometricEnrolled] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const [savedBiometricUser, setSavedBiometricUser] = useState(null);
 
   // Reviews tracking state
   const [reviewedOrderIds, setReviewedOrderIds] = useState(() => {
@@ -223,6 +239,81 @@ export default function UserProfileModal() {
     setCustomerUser(null);
     setShowLogoutConfirm(false);
     window.dispatchEvent(new Event('salik_customer_auth_changed'));
+  };
+
+  // Check device biometric availability
+  useEffect(() => {
+    isBiometricAvailable().then((avail) => {
+      setBiometricAvailable(avail);
+      const enrolled = avail && isBiometricEnrolled('customer');
+      setBiometricEnrolled(enrolled);
+      if (enrolled) {
+        setSavedBiometricUser(getSavedBiometricProfile('customer'));
+      }
+    });
+  }, [customerUser, isProfileOpen]);
+
+  const handleEnableBiometrics = async () => {
+    setBiometricLoading(true);
+    try {
+      const profileToBind = {
+        name: customerUser?.name || name || 'Customer',
+        email: customerUser?.email || '',
+        googleId: customerUser?.sub || customerUser?.id || '',
+        picture: customerUser?.picture || '',
+        phone: phone || '',
+        address: address || ''
+      };
+      await registerBiometricCredential({
+        role: 'customer',
+        profile: profileToBind
+      });
+      setBiometricEnrolled(true);
+      setSavedBiometricUser(profileToBind);
+      alert('Fingerprint login enabled successfully! You can now sign in with 1 tap.');
+    } catch (err) {
+      console.warn('Enable biometrics error:', err);
+      alert(err?.message || 'Could not register fingerprint.');
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
+
+  const handleDisableBiometrics = () => {
+    removeBiometricCredential('customer');
+    setBiometricEnrolled(false);
+    setSavedBiometricUser(null);
+  };
+
+  const handleBiometricCustomerLogin = async () => {
+    setBiometricLoading(true);
+    try {
+      const res = await authenticateWithBiometrics('customer');
+      if (res.success && res.profile) {
+        const prof = res.profile;
+        if (prof.email) {
+          setStoredCustomerUser(prof);
+          setCustomerUser(prof);
+          window.dispatchEvent(new Event('salik_customer_auth_changed'));
+          if (typeof syncCustomerOrdersCloud === 'function') {
+            syncCustomerOrdersCloud(prof.email, prof.phone || phone);
+          }
+        }
+        if (prof.name) setName(prof.name);
+        if (prof.phone) setPhone(prof.phone);
+        if (prof.address) setAddress(prof.address);
+        saveStoredUserProfile({
+          name: prof.name || name,
+          phone: prof.phone || phone,
+          address: prof.address || address
+        });
+      }
+    } catch (err) {
+      console.warn('Customer biometric login failed:', err);
+      alert(err?.message || 'Biometric verification failed.');
+    } finally {
+      setBiometricLoading(false);
+    }
   };
 
   const handleSubmitOrderReview = async (order) => {
@@ -617,32 +708,118 @@ export default function UserProfileModal() {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleGoogleLogin}
-                    disabled={googleLoading}
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-800 border border-zinc-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer shrink-0"
-                  >
-                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                      <path
-                        fill="#4285F4"
-                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                      />
-                      <path
-                        fill="#34A853"
-                        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                      />
-                    </svg>
-                    <span>{googleLoading ? 'Connecting...' : 'Login with Google'}</span>
-                  </button>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {biometricEnrolled && (
+                      <button
+                        type="button"
+                        onClick={handleBiometricCustomerLogin}
+                        disabled={biometricLoading}
+                        className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs active:scale-98 transition-transform cursor-pointer shrink-0"
+                      >
+                        {biometricLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Scanning...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Fingerprint className="w-4 h-4" />
+                            <span>Fingerprint</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleGoogleLogin}
+                      disabled={googleLoading}
+                      className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-100 text-zinc-800 border border-zinc-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xs active:scale-98 transition-transform cursor-pointer shrink-0"
+                    >
+                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                        <path
+                          fill="#4285F4"
+                          d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                        />
+                      </svg>
+                      <span>{googleLoading ? 'Connecting...' : 'Login with Google'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Biometric Fingerprint Enrollment Card (when device supports platform biometrics) */}
+              {biometricAvailable && (
+                <div className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                  isDark ? 'bg-white/5 border-white/10' : 'bg-orange-50/40 border-orange-200/70'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                      biometricEnrolled
+                        ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
+                        : 'bg-orange-500/15 text-orange-500 border border-orange-500/30'
+                    }`}>
+                      <Fingerprint className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                          Fingerprint Login
+                        </h4>
+                        {biometricEnrolled && (
+                          <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                        {biometricEnrolled
+                          ? `Enrolled for ${savedBiometricUser?.email || savedBiometricUser?.name || 'this device'} (1-tap sign in).`
+                          : 'Use your phone’s fingerprint sensor for fast 1-tap checkout.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {biometricEnrolled ? (
+                    <button
+                      type="button"
+                      onClick={handleDisableBiometrics}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+                    >
+                      Turn Off
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleEnableBiometrics}
+                      disabled={biometricLoading}
+                      className="w-full sm:w-auto px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs active:scale-98 transition-all cursor-pointer shrink-0"
+                    >
+                      {biometricLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Scanning...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Fingerprint className="w-4 h-4" />
+                          <span>Enable Fingerprint</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               )}
 

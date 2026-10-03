@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Bike, Lock, Phone, ArrowLeft, Loader2, AlertCircle, Sparkles, CheckCircle2, Smartphone } from 'lucide-react';
+import { Bike, Lock, Phone, ArrowLeft, Loader2, AlertCircle, Sparkles, CheckCircle2, Smartphone, Fingerprint } from 'lucide-react';
 import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
 import { updateSystemBarsTheme } from '../../utils/systemBars';
 import { requestNotificationPermission } from '../../services/notificationService';
+import {
+  isBiometricAvailable,
+  isBiometricEnrolled,
+  authenticateWithBiometrics,
+  registerBiometricCredential,
+  getSavedBiometricProfile
+} from '../../services/biometricService';
 
 export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
   const [phone, setPhone] = useState('');
@@ -10,11 +17,63 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPin, setShowPin] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnrolled, setBiometricEnrolled] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const [savedRiderProfile, setSavedRiderProfile] = useState(null);
+  const [enableBiometricCheckbox, setEnableBiometricCheckbox] = useState(false);
 
   useEffect(() => {
     updateSystemBarsTheme(false);
     requestNotificationPermission().catch(() => {});
+
+    isBiometricAvailable().then((avail) => {
+      setBiometricAvailable(avail);
+      const enrolled = avail && isBiometricEnrolled('rider');
+      setBiometricEnrolled(enrolled);
+      if (enrolled) {
+        setSavedRiderProfile(getSavedBiometricProfile('rider'));
+      }
+    });
   }, []);
+
+  const handleBiometricRiderLogin = async () => {
+    setBiometricLoading(true);
+    setError('');
+    try {
+      const res = await authenticateWithBiometrics('rider');
+      if (res.success && res.profile) {
+        const saved = res.profile;
+        if (saved.phone && saved.pin) {
+          try {
+            const apiRes = await fetch(apiUrl('/api/rider/login'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phone: saved.phone, pin: saved.pin })
+            });
+            const data = await apiRes.json();
+            if (apiRes.ok && data.success && data.rider) {
+              localStorage.setItem('salik_rider_token', data.token);
+              localStorage.setItem('salik_rider_user', JSON.stringify(data.rider));
+              if (typeof onLoginSuccess === 'function') {
+                onLoginSuccess(data.rider);
+              }
+              return;
+            }
+          } catch {}
+        }
+        localStorage.setItem('salik_rider_user', JSON.stringify(saved));
+        if (typeof onLoginSuccess === 'function') {
+          onLoginSuccess(saved);
+        }
+      }
+    } catch (err) {
+      console.warn('Rider biometric login failed:', err);
+      setError(err?.message || 'Biometric verification failed.');
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,7 +105,15 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
         try {
           localStorage.setItem('salik_rider_token', data.token);
           localStorage.setItem('salik_rider_user', JSON.stringify(data.rider));
-        } catch {}
+          if (enableBiometricCheckbox && biometricAvailable) {
+            await registerBiometricCredential({
+              role: 'rider',
+              profile: { ...data.rider, pin: cleanPin }
+            });
+          }
+        } catch (bioErr) {
+          console.warn('Could not save rider biometric profile:', bioErr);
+        }
         if (typeof onLoginSuccess === 'function') {
           onLoginSuccess(data.rider);
         }
@@ -115,6 +182,38 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
             </div>
           )}
 
+          {/* Biometric Fingerprint Login (if enrolled) */}
+          {biometricEnrolled && (
+            <div className="mb-5">
+              <button
+                type="button"
+                onClick={handleBiometricRiderLogin}
+                disabled={biometricLoading}
+                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm uppercase tracking-wider shadow-md shadow-emerald-600/20 active:scale-98 transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
+              >
+                {biometricLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Scanning Fingerprint...</span>
+                  </>
+                ) : (
+                  <>
+                    <Fingerprint className="w-5 h-5" />
+                    <span>Login with Fingerprint {savedRiderProfile?.name ? `(${savedRiderProfile.name})` : ''}</span>
+                  </>
+                )}
+              </button>
+
+              <div className="relative flex py-3 items-center">
+                <div className="flex-grow border-t border-orange-200/80"></div>
+                <span className="flex-shrink mx-3 text-zinc-400 text-[11px] font-bold uppercase tracking-wider">
+                  Or Login with PIN
+                </span>
+                <div className="flex-grow border-t border-orange-200/80"></div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Phone Number Input */}
             <div>
@@ -166,6 +265,20 @@ export default function RiderLogin({ onLoginSuccess, onBackToStore }) {
                 />
               </div>
             </div>
+
+            {/* Opt-in to Biometrics (if available and not yet enrolled) */}
+            {biometricAvailable && !biometricEnrolled && (
+              <label className="flex items-center gap-2 text-xs text-zinc-600 font-medium cursor-pointer py-1 select-none">
+                <input
+                  type="checkbox"
+                  checked={enableBiometricCheckbox}
+                  onChange={(e) => setEnableBiometricCheckbox(e.target.checked)}
+                  className="w-4 h-4 rounded text-orange-600 border-zinc-300 focus:ring-orange-500 cursor-pointer"
+                />
+                <Fingerprint className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                <span>Enable Fingerprint login for fast shift unlock</span>
+              </label>
+            )}
 
             {/* Submit Button */}
             <button

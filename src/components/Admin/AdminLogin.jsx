@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, ArrowLeft, ShieldAlert, Eye, EyeOff, Smartphone } from 'lucide-react';
+import { Lock, ArrowLeft, ShieldAlert, Eye, EyeOff, Smartphone, Fingerprint, Loader2 } from 'lucide-react';
 import { apiUrl, resolveImageUrl, APP_MODE } from '../../config/api';
+import {
+  isBiometricAvailable,
+  isBiometricEnrolled,
+  authenticateWithBiometrics,
+  registerBiometricCredential
+} from '../../services/biometricService';
 
 export default function AdminLogin({ onLogin, onBackToStore }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnrolled, setBiometricEnrolled] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const [enableBiometricCheckbox, setEnableBiometricCheckbox] = useState(false);
   const [logoUrl, setLogoUrl] = useState(() => {
     try {
       const cached = localStorage.getItem('salik_settings');
@@ -19,6 +29,11 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
   });
 
   useEffect(() => {
+    isBiometricAvailable().then((avail) => {
+      setBiometricAvailable(avail);
+      setBiometricEnrolled(avail && isBiometricEnrolled('admin'));
+    });
+
     fetch(apiUrl('/api/settings'))
       .then(r => r.json())
       .then(data => {
@@ -26,6 +41,23 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
       })
       .catch(() => {});
   }, []);
+
+  const handleBiometricUnlock = async () => {
+    setBiometricLoading(true);
+    setError('');
+    try {
+      const res = await authenticateWithBiometrics('admin');
+      if (res.success) {
+        localStorage.setItem('salik_admin_token', 'salik-auth-token-valid');
+        onLogin();
+      }
+    } catch (err) {
+      console.warn('Admin biometric unlock failed:', err);
+      setError(err?.message || 'Biometric verification failed.');
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,6 +75,16 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
       const data = await res.json();
       if (res.ok && data.success) {
         localStorage.setItem('salik_admin_token', data.token);
+        if (enableBiometricCheckbox && biometricAvailable) {
+          try {
+            await registerBiometricCredential({
+              role: 'admin',
+              profile: { name: 'Admin', role: 'admin' }
+            });
+          } catch (bioErr) {
+            console.warn('Could not register biometrics on admin login:', bioErr);
+          }
+        }
         onLogin();
       } else {
         setError(data.error || 'Invalid admin passcode');
@@ -51,6 +93,14 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
       // Offline / network fallback verification for admin master passcode
       if (cleanPass === 'Salik.leo1212') {
         localStorage.setItem('salik_admin_token', 'salik-auth-token-valid');
+        if (enableBiometricCheckbox && biometricAvailable) {
+          try {
+            await registerBiometricCredential({
+              role: 'admin',
+              profile: { name: 'Admin', role: 'admin' }
+            });
+          } catch {}
+        }
         onLogin();
         return;
       }
@@ -101,6 +151,38 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
           </div>
         )}
 
+        {/* Instant Biometric Unlock (if enrolled) */}
+        {biometricEnrolled && (
+          <div className="mb-5">
+            <button
+              type="button"
+              onClick={handleBiometricUnlock}
+              disabled={biometricLoading}
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
+            >
+              {biometricLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Scanning Fingerprint...</span>
+                </>
+              ) : (
+                <>
+                  <Fingerprint className="w-5 h-5" />
+                  <span>Unlock with Fingerprint</span>
+                </>
+              )}
+            </button>
+
+            <div className="relative flex py-3 items-center">
+              <div className="flex-grow border-t border-zinc-200"></div>
+              <span className="flex-shrink mx-3 text-zinc-400 text-[11px] font-bold uppercase tracking-wider">
+                Or Enter Passcode
+              </span>
+              <div className="flex-grow border-t border-zinc-200"></div>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-zinc-700 uppercase tracking-wider mb-2">
@@ -126,6 +208,20 @@ export default function AdminLogin({ onLogin, onBackToStore }) {
               </button>
             </div>
           </div>
+
+          {/* Opt-in to Fingerprint Login (if available and not yet enrolled) */}
+          {biometricAvailable && !biometricEnrolled && (
+            <label className="flex items-center gap-2 text-xs text-zinc-600 font-medium cursor-pointer py-1 select-none">
+              <input
+                type="checkbox"
+                checked={enableBiometricCheckbox}
+                onChange={(e) => setEnableBiometricCheckbox(e.target.checked)}
+                className="w-4 h-4 rounded text-orange-600 border-zinc-300 focus:ring-orange-500 cursor-pointer"
+              />
+              <Fingerprint className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+              <span>Enable Fingerprint unlock for next time</span>
+            </label>
+          )}
 
           <button
             type="submit"
