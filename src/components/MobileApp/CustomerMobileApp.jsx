@@ -24,7 +24,6 @@ import OrderSuccessModal from '../OrderSuccessModal';
 import CustomerReceiptModal from '../CustomerReceiptModal';
 import CustomerNotificationBanner from '../CustomerNotificationBanner';
 import ItemDetailPage from './ItemDetailPage';
-import AppUpdateModal from '../AppUpdateModal';
 import { formatPrice, cleanDealInclusions, isMarketingDealDescription } from '../../utils/formatters';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -225,71 +224,6 @@ export default function CustomerMobileApp({
   }, []);
 
   const isDark = theme === 'dark';
-
-  // In-App Update State & Logic
-  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
-  const [updateModalOpen, setUpdateModalOpen] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState(null);
-  const [hasUpdate, setHasUpdate] = useState(false);
-  const [isLatestVersion, setIsLatestVersion] = useState(false);
-
-  const checkForUpdates = async (isManual = false) => {
-    if (isCheckingUpdate) return;
-    setIsCheckingUpdate(true);
-
-    try {
-      const res = await fetch(apiUrl(`/api/app-version?t=${Date.now()}`), {
-        cache: 'no-store'
-      }).then(r => r.json()).catch(() => null);
-
-      const customerData = res?.customer;
-      if (customerData) {
-        setUpdateInfo(customerData);
-        const remoteBuild = Number(customerData.build) || 0;
-        const isCapacitor = typeof window !== 'undefined' && window.Capacitor !== undefined;
-        const lastDownloaded = Number(localStorage.getItem('salik_last_downloaded_build') || 0);
-
-        // In Native APK: compare with compiled APP_BUILD_NUMBER
-        // In Web/Browser: if user hasn't downloaded or server build is higher than last download, show update
-        const isNewer = isCapacitor
-          ? (remoteBuild > APP_BUILD_NUMBER || customerData.version !== APP_VERSION)
-          : (remoteBuild > lastDownloaded || !localStorage.getItem('salik_last_downloaded_build'));
-
-        if (isNewer) {
-          setHasUpdate(true);
-          setIsLatestVersion(false);
-          setUpdateModalOpen(true);
-        } else {
-          setHasUpdate(false);
-          setIsLatestVersion(true);
-          if (isManual) {
-            setUpdateModalOpen(true);
-          }
-        }
-      } else {
-        if (isManual) {
-          setIsLatestVersion(true);
-          setUpdateModalOpen(true);
-        }
-      }
-    } catch (err) {
-      console.error('Update check failed:', err);
-      if (isManual) {
-        setIsLatestVersion(true);
-        setUpdateModalOpen(true);
-      }
-    } finally {
-      setIsCheckingUpdate(false);
-    }
-  };
-
-  // Background silent check for updates on app mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      checkForUpdates(false);
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Navigation states: 'home' | 'category' | 'deals' | 'orders' | 'checkout' | 'add-review' | 'item-detail'
   const [currentView, setCurrentView] = useState('home');
@@ -4396,40 +4330,6 @@ export default function CustomerMobileApp({
                   </button>
                 </div>
               </div>
-
-              {/* In-App Update Option below theme toggle */}
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => checkForUpdates(true)}
-                  disabled={isCheckingUpdate}
-                  className={`w-full py-2.5 px-3.5 rounded-2xl flex items-center justify-between border cursor-pointer select-none transition-all duration-300 active:scale-[0.98] ${
-                    isDark 
-                      ? 'bg-[#1e232d] hover:bg-[#252b37] border-white/5 text-white' 
-                      : 'bg-[#edf0f5] hover:bg-[#e4e8f0] border-zinc-200/90 text-zinc-900 shadow-2xs'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
-                      isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-100 text-orange-600'
-                    }`}>
-                      <RefreshCw className={`w-4 h-4 ${isCheckingUpdate ? 'animate-spin text-orange-500' : ''}`} />
-                    </div>
-                    <div className="text-left">
-                      <span className="text-xs font-bold block leading-tight">
-                        {isCheckingUpdate ? 'Checking for updates...' : 'Check for Updates'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {hasUpdate && (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold shadow-xs animate-pulse flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" />
-                      Update
-                    </span>
-                  )}
-                </button>
-              </div>
             </div>
 
           </div>
@@ -4438,17 +4338,6 @@ export default function CustomerMobileApp({
       {/* Cart & Modals */}
       <CartDrawer isDark={isDark} />
       <OrderSuccessModal isDark={isDark} />
-
-      {/* In-App App Update Modal */}
-      <AppUpdateModal
-        isOpen={updateModalOpen}
-        onClose={() => setUpdateModalOpen(false)}
-        updateInfo={updateInfo}
-        currentVersion={APP_VERSION}
-        isLatest={isLatestVersion}
-        isDark={isDark}
-        appName="Salik Fast Food"
-      />
 
       {/* ============================================================== */}
       {/* 6. GOOGLE SIGN-IN SETUP & DEMO MODAL */}
