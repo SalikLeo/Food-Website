@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Package,
   ShoppingBag,
@@ -490,6 +490,25 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     setOrders(incomingOrders);
   };
 
+  // Throttled live polling heartbeat fallback (prevents burst HTTP requests that trigger CDN/WAF rate blocks)
+  const lastPollTimeRef = useRef(0);
+  const pollUpdates = useCallback((force = false) => {
+    if (!force && typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+    const now = Date.now();
+    if (!force && now - lastPollTimeRef.current < 5000) return;
+    lastPollTimeRef.current = now;
+
+    fetch(apiUrl('/api/orders'))
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => {
+        if (Array.isArray(data)) {
+          processIncomingOrders(data);
+          try { localStorage.setItem('salik_cached_admin_orders', JSON.stringify(data)); } catch {}
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Real-time new customer review tracking & alerts
   const [newReviewAlert, setNewReviewAlert] = useState(null);
   const knownReviewIdsRef = useRef(new Set());
@@ -708,31 +727,12 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     };
     window.addEventListener('salik_sync_reviews', handleSyncReviews);
 
-    // Throttled live polling heartbeat fallback (prevents burst HTTP requests that trigger CDN/WAF rate blocks)
-    let lastPollTime = 0;
-    const pollUpdates = (force = false) => {
-      if (!force && typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-      const now = Date.now();
-      if (!force && now - lastPollTime < 5000) return;
-      lastPollTime = now;
-
-      fetch(apiUrl('/api/orders'))
-        .then(r => (r.ok ? r.json() : null))
-        .then(data => {
-          if (Array.isArray(data)) {
-            processIncomingOrders(data);
-            try { localStorage.setItem('salik_cached_admin_orders', JSON.stringify(data)); } catch {}
-          }
-        })
-        .catch(() => {});
-    };
-
     // ⚡ Real-Time WebSocket (Socket.io) Instant Synchronization
     const socket = getSocket();
 
     const handleInstantOrdersList = (updatedOrders) => {
       if (Array.isArray(updatedOrders)) {
-        lastPollTime = Date.now();
+        lastPollTimeRef.current = Date.now();
         processIncomingOrders(updatedOrders);
         try { localStorage.setItem('salik_cached_admin_orders', JSON.stringify(updatedOrders)); } catch {}
       } else {
@@ -743,7 +743,7 @@ export default function AdminDashboard({ onLogout, onBackToStore }) {
     const handleInstantOrderSingle = (order) => {
       if (!order || !order.id) return;
       // Only fallback-poll if orders:updated didn't already update within the last 2s
-      if (Date.now() - lastPollTime > 2000) {
+      if (Date.now() - lastPollTimeRef.current > 2000) {
         pollUpdates();
       }
     };

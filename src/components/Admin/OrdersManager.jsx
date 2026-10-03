@@ -702,13 +702,18 @@ export default function OrdersManager({
       }
       if (res.ok) {
         setModifyingOrder(null);
-        onRefresh();
+        try {
+          if (typeof onRefresh === 'function') onRefresh();
+        } catch (refreshErr) {
+          console.error('onRefresh error:', refreshErr);
+        }
       } else {
         const err = await res.json().catch(() => ({}));
         alert(err.error || 'Failed to update order');
       }
-    } catch {
-      alert('Error updating order');
+    } catch (e) {
+      console.error('Save modified order error:', e);
+      alert('Error updating order: ' + (e?.message || 'Network error'));
     } finally {
       setIsSaving(false);
     }
@@ -745,7 +750,11 @@ export default function OrdersManager({
         });
       }
       if (res.ok) {
-        onRefresh();
+        try {
+          if (typeof onRefresh === 'function') onRefresh();
+        } catch (refreshErr) {
+          console.error('onRefresh error:', refreshErr);
+        }
 
         // 1. Immediately update localStorage cache if this order is in local recent orders
         try {
@@ -779,12 +788,16 @@ export default function OrdersManager({
         window.dispatchEvent(new CustomEvent('salik_sync_orders'));
         window.dispatchEvent(new CustomEvent('salik_order_status_updated', { detail: { id: orderId, status: newStatus } }));
         window.dispatchEvent(new Event('storage'));
+        return true;
       } else {
         const errData = await res.json().catch(() => ({}));
         alert(errData.error || 'Failed to update status');
+        return false;
       }
-    } catch {
-      alert('Error updating status');
+    } catch (err) {
+      console.error('Status change error:', err);
+      alert('Error updating status: ' + (err?.message || 'Network error'));
+      return false;
     }
   };
 
@@ -812,7 +825,11 @@ export default function OrdersManager({
         });
       }
       if (res.ok) {
-        onRefresh();
+        try {
+          if (typeof onRefresh === 'function') onRefresh();
+        } catch (refreshErr) {
+          console.error('onRefresh error:', refreshErr);
+        }
         // Update local cache
         try {
           const cleanId = String(orderId).replace(/^#/, '');
@@ -837,12 +854,16 @@ export default function OrdersManager({
 
         window.dispatchEvent(new CustomEvent('salik_sync_orders'));
         window.dispatchEvent(new Event('storage'));
+        return true;
       } else {
         const errData = await res.json().catch(() => ({}));
         alert(errData.error || 'Failed to assign rider');
+        return false;
       }
-    } catch {
-      alert('Error assigning rider');
+    } catch (err) {
+      console.error('Assign rider error:', err);
+      alert('Error assigning rider: ' + (err?.message || 'Network error'));
+      return false;
     }
   };
 
@@ -866,8 +887,11 @@ export default function OrdersManager({
       }
       await handleStatusChange(order.id, newStatus, riderData, order);
       setStatusChangeConfirmModal(null);
+    } catch (e) {
+      console.error('Confirm status change error:', e);
     } finally {
       setIsUpdatingStatus(false);
+      setStatusChangeConfirmModal(null);
     }
   };
 
